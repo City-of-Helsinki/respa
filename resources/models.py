@@ -37,3 +37,30 @@ class Reservation(ModifiableModel):
     begin = models.DateTimeField()
     end = models.DateTimeField()
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, db_index=True)
+
+
+class Period(models.Model):
+    """
+    A period of time to express state of open or closed
+    Days that specifies the actual activity hours link here
+    """
+    resource = models.ForeignKey(Resource, db_index=True, related_name='periods')
+    start = models.DateTimeField()
+    end = models.DateTimeField()
+    name = models.CharField()
+    closed = models.BooleanField(default=False)
+
+
+class Day(models.Model):
+    """
+    Day of week and its active start and end time and whether it is open or closed
+
+    Kirjastot.fi API uses closed for both days and periods, don't know which takes precedence
+    """
+    period = models.ForeignKey(Period, db_index=True, related_name='days')
+    weekday = models.IntegerField("Day of week as a number 1-7", choices=[1, 2, 3, 4, 5, 6, 7])
+    opens = models.IntegerField("Clock as number, 0000 - 2359")
+    closes = models.IntegerField("Clock as number, 0000 - 2359")
+    closed = models.NullBooleanField(default=False)  # NOTE: If this is true and the period is false, what then?
+
+
