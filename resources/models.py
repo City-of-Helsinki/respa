@@ -44,8 +44,8 @@ class Period(models.Model):
     Days that specifies the actual activity hours link here
     """
     resource = models.ForeignKey(Resource, db_index=True, related_name='periods')
-    start = models.DateTimeField()
-    end = models.DateTimeField()
+    start = models.DateField()
+    end = models.DateField()
     name = models.CharField(max_length="200")
     closed = models.BooleanField(default=False)
 
