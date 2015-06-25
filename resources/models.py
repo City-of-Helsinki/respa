@@ -49,6 +49,10 @@ class Period(models.Model):
     name = models.CharField(max_length=200)
     closed = models.BooleanField(default=False)
 
+    def __str__(self):
+        return "{0}, {3}: {1:%d.%m.%Y} - {2:%d.%m.%Y}".format(self.name, self.start, self.end, STATE_BOOLS[self.closed])
+
+
 DAYS_OF_WEEK = [
     (1, 'maanantai'),
     (2, 'tiistai'),
@@ -57,6 +61,9 @@ DAYS_OF_WEEK = [
     (5, 'perjantai'),
     (6, 'lauantai'),
     (7, 'sunnuntai')]
+
+STATE_BOOLS = {True: 'kiinni', False: 'auki'}
+
 
 class Day(models.Model):
     """
@@ -69,5 +76,9 @@ class Day(models.Model):
     opens = models.IntegerField("Clock as number, 0000 - 2359")
     closes = models.IntegerField("Clock as number, 0000 - 2359")
     closed = models.NullBooleanField(default=False)  # NOTE: If this is true and the period is false, what then?
+
+    def __str__(self):
+        return "{4}, {3}: {1:%d.%m.%Y} - {2:%d.%m.%Y}, {0}: {3}".format(
+            self.get_weekday_display(), self.period.start, self.period.end, STATE_BOOLS[self.closed], self.period.name)
 
 
