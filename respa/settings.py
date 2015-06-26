@@ -80,7 +80,7 @@ WSGI_APPLICATION = 'respa.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': 'respa',
     }
 }
@@ -111,3 +111,5 @@ MODELTRANSLATION_PREPOPULATE_LANGUAGE = 'fi'
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+
+DEFAULT_SRID = 4326
