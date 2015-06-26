@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+from django.utils.translation import ugettext_lazy as _
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -37,6 +38,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'modeltranslation',
 
     'resources'
 )
@@ -87,7 +89,12 @@ DATABASES = {
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'fi'
+LANGUAGES = (
+    ('fi', _('Finnish')),
+    ('en', _('English')),
+    ('sv', _('Swedish'))
+)
 
 TIME_ZONE = 'UTC'
 
@@ -97,6 +104,8 @@ USE_L10N = True
 
 USE_TZ = True
 
+MODELTRANSLATION_FALLBACK_LANGUAGES = ('fi', 'en', 'sv')
+MODELTRANSLATION_PREPOPULATE_LANGUAGE = 'fi'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
