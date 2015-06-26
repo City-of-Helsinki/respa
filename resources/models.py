@@ -3,6 +3,16 @@ from django.contrib.gis.db import models
 from django.conf import settings
 from django.utils.translation import ugettext as _
 
+DEFAULT_LANG = settings.LANGUAGES[0][0]
+
+
+def get_translated(obj, attr):
+    key = "%s_%s" % (attr, DEFAULT_LANG)
+    val = getattr(obj, key, None)
+    if not val:
+        val = getattr(obj, attr)
+    return val
+
 
 class ModifiableModel(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
@@ -30,6 +40,18 @@ class Unit(ModifiableModel):
 
     picture_url = models.URLField(max_length=200, null=True)
     picture_caption = models.CharField(max_length=200, null=True)
+
+    def __str__(self):
+        return "%s (%s)" % (get_translated(self, 'name'), self.id)
+
+
+class UnitIdentifier(models.Model):
+    unit = models.ForeignKey(Unit, db_index=True, related_name='identifiers')
+    namespace = models.CharField(max_length=50)
+    value = models.CharField(max_length=100)
+
+    class Meta:
+        unique_together = (('namespace', 'value'), ('namespace', 'unit'))
 
 
 class ResourceType(ModifiableModel):
