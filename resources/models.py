@@ -67,7 +67,7 @@ class ResourceType(ModifiableModel):
 
 class Resource(ModifiableModel):
     id = models.CharField(primary_key=True, max_length=100)
-    unit = models.ForeignKey(Unit, db_index=True, null=True)
+    unit = models.ForeignKey(Unit, db_index=True, null=True, blank=True)
     type = models.ForeignKey(ResourceType, db_index=True)
     name = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
