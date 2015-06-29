@@ -34,7 +34,7 @@ class TPRekImporter(Importer):
         else:
             id_data = {'namespace': 'tprek'}
             ids.append(id_data)
-        id_data['id'] = data['id']
+        id_data['value'] = tprek_id
 
         location = data.get('location')
         if location is not None:

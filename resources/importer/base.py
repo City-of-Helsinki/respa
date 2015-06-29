@@ -104,7 +104,7 @@ class Importer(object):
         identifiers = {x.namespace: x for x in obj.identifiers.all()}
         for id_data in data.get('identifiers', []):
             ns = id_data['namespace']
-            val = id_data['id']
+            val = id_data['value']
             if ns in identifiers:
                 id_obj = identifiers[ns]
                 if id_obj.value != val:
