@@ -17,8 +17,14 @@ class ResourceAdmin(admin.ModelAdmin):
     ]
 
 
+class UnitAdmin(TranslationAdmin):
+    inlines = [
+        PeriodInline
+    ]
+
+
 admin.site.register(Resource, ResourceAdmin)
 admin.site.register(Reservation)
 admin.site.register(ResourceType)
 admin.site.register(Day)
-admin.site.register(Unit, TranslationAdmin)
+admin.site.register(Unit, UnitAdmin)
