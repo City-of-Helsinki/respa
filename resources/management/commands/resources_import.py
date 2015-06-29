@@ -18,7 +18,7 @@ class Command(BaseCommand):
         make_option('--all', action='store_true', dest='all', help='Import all entities'),
     ))
 
-    importer_types = ['units']
+    importer_types = ['units', 'resources']
 
     def __init__(self):
         super(Command, self).__init__()
