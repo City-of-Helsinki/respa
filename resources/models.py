@@ -2,6 +2,7 @@ from django.utils import timezone
 from django.contrib.gis.db import models
 from django.conf import settings
 from django.utils.translation import ugettext as _
+from django.core.exceptions import ValidationError
 
 DEFAULT_LANG = settings.LANGUAGES[0][0]
 
@@ -97,7 +98,11 @@ class Period(models.Model):
     A period of time to express state of open or closed
     Days that specifies the actual activity hours link here
     """
-    resource = models.ForeignKey(Resource, db_index=True, related_name='periods')
+    resource = models.ForeignKey(Resource, db_index=True, null=True, blank=True,
+                                 related_name='periods')
+    unit = models.ForeignKey(Unit, db_index=True, null=True, blank=True,
+                             related_name='periods')
+
     start = models.DateField()
     end = models.DateField()
     name = models.CharField(max_length=200)
@@ -107,6 +112,12 @@ class Period(models.Model):
     def __str__(self):
         # FIXME: output date in locale-specific format
         return "{0}, {3}: {1:%d.%m.%Y} - {2:%d.%m.%Y}".format(self.name, self.start, self.end, STATE_BOOLS[self.closed])
+
+    def save(self, *args, **kwargs):
+        if (self.resource is not None and self.unit is not None) or \
+           (self.resource is None and self.unit is None):
+            raise ValidationError(_("You must set either 'resource' or 'unit', but not both"))
+        return super(Period, self).save(*args, **kwargs)
 
 
 class Day(models.Model):
