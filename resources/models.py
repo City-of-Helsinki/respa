@@ -138,8 +138,8 @@ class Day(models.Model):
 
     period = models.ForeignKey(Period, db_index=True, related_name='days')
     weekday = models.IntegerField("Day of week as a number 1-7", choices=DAYS_OF_WEEK)
-    opens = models.IntegerField("Clock as number, 0000 - 2359")
-    closes = models.IntegerField("Clock as number, 0000 - 2359")
+    opens = models.IntegerField("Clock as number, 0000 - 2359", null=True, blank=True)
+    closes = models.IntegerField("Clock as number, 0000 - 2359", null=True, blank=True)
     closed = models.NullBooleanField(default=False)  # NOTE: If this is true and the period is false, what then?
 
     def __str__(self):
