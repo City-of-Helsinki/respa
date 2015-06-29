@@ -15,7 +15,27 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from rest_framework import routers
+
+from resources.api import all_views as resources_views
+
+router = routers.DefaultRouter()
+
+registered_api_views = set()
+
+for view in resources_views:
+    kwargs = {}
+    if view['name'] in registered_api_views:
+        continue
+    else:
+        registered_api_views.add(view['name'])
+
+    if 'base_name' in view:
+        kwargs['base_name'] = view['base_name']
+    router.register(view['name'], view['class'], **kwargs)
+
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^v1/', include(router.urls)),
 ]
