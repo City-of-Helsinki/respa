@@ -72,15 +72,15 @@ class Resource(ModifiableModel):
     type = models.ForeignKey(ResourceType, db_index=True)
     name = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
-    photo = models.URLField(null=True)
+    photo = models.URLField(null=True, blank=True)
     need_manual_confirmation = models.BooleanField(default=False)
 
-    people_capacity = models.IntegerField(null=True)
-    area = models.IntegerField(null=True)
-    ground_plan = models.URLField(null=True)
+    people_capacity = models.IntegerField(null=True, blank=True)
+    area = models.IntegerField(null=True, blank=True)
+    ground_plan = models.URLField(null=True, blank=True)
 
     # if not set, location is inherited from unit
-    location = models.PointField(null=True, srid=settings.DEFAULT_SRID)
+    location = models.PointField(null=True, blank=True, srid=settings.DEFAULT_SRID)
 
 
 class Reservation(ModifiableModel):
@@ -138,8 +138,8 @@ class Day(models.Model):
 
     period = models.ForeignKey(Period, db_index=True, related_name='days')
     weekday = models.IntegerField("Day of week as a number 1-7", choices=DAYS_OF_WEEK)
-    opens = models.IntegerField("Clock as number, 0000 - 2359", null=True, blank=True)
-    closes = models.IntegerField("Clock as number, 0000 - 2359", null=True, blank=True)
+    opens = models.TimeField("Clock as number, 0000 - 2359", null=True, blank=True)
+    closes = models.TimeField("Clock as number, 0000 - 2359", null=True, blank=True)
     closed = models.NullBooleanField(default=False)  # NOTE: If this is true and the period is false, what then?
 
     def __str__(self):
