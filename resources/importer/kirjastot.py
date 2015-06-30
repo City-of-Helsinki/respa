@@ -7,8 +7,8 @@ from ..models import Unit, UnitIdentifier, Period
 
 
 @register_importer
-class KirjastoImporter(Importer):
-    name = "kirjasto"
+class KirjastotImporter(Importer):
+    name = "kirjastot"
 
     def import_units(self):
         print("Fetching units")
