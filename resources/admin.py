@@ -1,5 +1,6 @@
 from modeltranslation.admin import TranslationAdmin
 from django.contrib import admin
+from django.contrib.gis import admin as geo_admin
 from .models import Resource, Reservation, ResourceType, Period, Day, Unit
 
 from django.contrib.admin import AdminSite
@@ -27,16 +28,24 @@ class DayInline(admin.TabularInline):
     model = Day
 
 
-class ResourceAdmin(TranslationAdmin):
+class ResourceAdmin(TranslationAdmin, geo_admin.OSMGeoAdmin):
     inlines = [
         PeriodInline
     ]
 
+    default_lon = 2776460  # Central Railway Station in EPSG:3857
+    default_lat = 8438120
+    default_zoom = 12
 
-class UnitAdmin(TranslationAdmin):
+
+class UnitAdmin(TranslationAdmin, geo_admin.OSMGeoAdmin):
     inlines = [
         PeriodInline
     ]
+
+    default_lon = 2776460  # Central Railway Station in EPSG:3857
+    default_lat = 8438120
+    default_zoom = 12
 
 
 admin_site.register(Resource, ResourceAdmin)
