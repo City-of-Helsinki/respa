@@ -87,7 +87,7 @@ class Resource(ModifiableModel):
     location = models.PointField(null=True, blank=True, srid=settings.DEFAULT_SRID)
 
     def __str__(self):
-        return "%s (%s)" % (get_translated(self, 'name'), self.id)
+        return "%s (%s)/%s" % (get_translated(self, 'name'), self.id, self.unit)
 
     def get_opening_hours(self, date):
         # Simulate behavior for now
