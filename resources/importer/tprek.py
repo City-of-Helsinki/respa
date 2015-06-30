@@ -56,7 +56,7 @@ class TPRekImporter(Importer):
         print("Fetching units")
         # 25480 == Public libraries
         # 25700 == Youth centers
-        url = "http://api.hel.fi/servicemap/v1/unit/?service=25480,25700&page_size=1000"
+        url = "http://api.hel.fi/servicemap/v1/unit/?service=25480,25700&municipality=helsinki&page_size=1000"
         resp = requests.get(url)
         assert resp.status_code == 200
         data = resp.json()
