@@ -1,3 +1,4 @@
+import datetime
 from django.utils import timezone
 from django.contrib.gis.db import models
 from django.conf import settings
@@ -101,9 +102,9 @@ class Resource(ModifiableModel):
     def __str__(self):
         return "%s (%s)/%s" % (get_translated(self, 'name'), self.id, self.unit)
 
-    def get_opening_hours(self, dt):
+    def get_open_from_now(self, dt):
         """
-        Returns opens and closes time for a given datetime starting from its moment
+        Returns opening and closing for a given datetime starting from its moment
         and ends on closing time
 
         If no periods and days that contain given datetime are not found,
@@ -125,7 +126,35 @@ class Resource(ModifiableModel):
         if res:
             day = res.days.filter(weekday=weekday, opens__lte=moment, closes__gte=moment).first()
             if day:
-                return {'opens': moment, 'closes': day.closes}
+                closes = dt.combine(dt, day.closes)
+                return {'opens': moment, 'closes': closes}
+
+        return {'opens': None, 'closes': None}
+
+    def get_opening_hours(self, date):
+        """
+        Returns opening and closing time for a given date
+
+        If no periods and days that contain given datetime are not found,
+        returns none both
+        """
+
+        weekday = date.weekday()
+
+        if self.periods.exists():
+            periods = self.periods
+        else:
+            periods = self.unit.periods
+
+        res = periods.filter(
+            start__lte=date, end__gte=date).annotate(
+            length=dbm.F('end')-dbm.F('start')
+        ).order_by('length').first()
+
+        if res:
+            day = res.days.filter(weekday=weekday).first()
+            if day:
+                return {'opens': day.opens, 'closes': day.closes}
 
         return {'opens': None, 'closes': None}
 
