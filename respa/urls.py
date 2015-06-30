@@ -14,10 +14,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
 from django.conf.urls import include, url
-from django.contrib import admin
 from rest_framework import routers
 
 from resources.api import all_views as resources_views
+from resources.admin import admin_site
 
 router = routers.DefaultRouter()
 
@@ -36,6 +36,6 @@ for view in resources_views:
 
 
 urlpatterns = [
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', include(admin_site.urls)),
     url(r'^v1/', include(router.urls)),
 ]
