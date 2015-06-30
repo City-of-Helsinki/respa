@@ -65,6 +65,9 @@ class ResourceType(ModifiableModel):
     main_type = models.CharField(max_length=20, choices=MAIN_TYPES)
     name = models.CharField(max_length=200)
 
+    def __str__(self):
+        return "%s (%s)" % (get_translated(self, 'name'), self.id)
+
 
 class Resource(ModifiableModel):
     id = models.CharField(primary_key=True, max_length=100)
@@ -81,6 +84,9 @@ class Resource(ModifiableModel):
 
     # if not set, location is inherited from unit
     location = models.PointField(null=True, blank=True, srid=settings.DEFAULT_SRID)
+
+    def __str__(self):
+        return "%s (%s)" % (get_translated(self, 'name'), self.id)
 
 
 class Reservation(ModifiableModel):

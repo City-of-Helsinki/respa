@@ -23,7 +23,7 @@ class Kirjasto10Importer(Importer):
             res_type, created = ResourceType.objects.get_or_create(
                 #  TODO: Better ids, without this invalid resource objects gets created
                 id=res_data['Tilatyyppi 1'],
-                name=res_data['Tilatyyppi 1'],
+                name_fi=res_data['Tilatyyppi 1'],
                 main_type='space')
 
             try:
@@ -49,9 +49,9 @@ class Kirjasto10Importer(Importer):
                 #  TODO: Better ids here also, without this invalid resource objects gets created
                 id=res_data['Nimi'],
                 type=res_type,
-                name=res_data['Nimi'],
+                name_fi=res_data['Nimi'],
                 people_capacity=people_capacity,
                 area=area,
                 need_manual_confirmation=confirm,
-                description=res_data['Kuvaus']
+                description_fi=res_data['Kuvaus']
             )
