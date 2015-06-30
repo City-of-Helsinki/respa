@@ -3,6 +3,7 @@ from django.contrib.gis.db import models
 from django.conf import settings
 from django.utils.translation import ugettext as _
 from django.core.exceptions import ValidationError
+import datetime
 
 DEFAULT_LANG = settings.LANGUAGES[0][0]
 
@@ -87,6 +88,15 @@ class Resource(ModifiableModel):
 
     def __str__(self):
         return "%s (%s)" % (get_translated(self, 'name'), self.id)
+
+    def get_opening_hours(self, date):
+        # Simulate behavior for now
+        now = datetime.datetime.now()
+        if True:
+            # return timezone-aware datetimes
+            return {'opens': now, 'closes': now + datetime.timedelta(hours=8)}
+        else:
+            return {'opens': None, 'closes': None}
 
 
 class Reservation(ModifiableModel):
