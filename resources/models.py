@@ -43,6 +43,10 @@ class Unit(ModifiableModel):
     picture_url = models.URLField(max_length=200, null=True)
     picture_caption = models.CharField(max_length=200, null=True)
 
+    class Meta:
+        verbose_name = _("unit")
+        verbose_name_plural = _("units")
+
     def __str__(self):
         return "%s (%s)" % (get_translated(self, 'name'), self.id)
 
@@ -66,6 +70,10 @@ class ResourceType(ModifiableModel):
     main_type = models.CharField(max_length=20, choices=MAIN_TYPES)
     name = models.CharField(max_length=200)
 
+    class Meta:
+        verbose_name = _("resource type")
+        verbose_name_plural = _("resource types")
+
     def __str__(self):
         return "%s (%s)" % (get_translated(self, 'name'), self.id)
 
@@ -85,6 +93,10 @@ class Resource(ModifiableModel):
 
     # if not set, location is inherited from unit
     location = models.PointField(null=True, blank=True, srid=settings.DEFAULT_SRID)
+
+    class Meta:
+        verbose_name = _("resource")
+        verbose_name_plural = _("resources")
 
     def __str__(self):
         return "%s (%s)/%s" % (get_translated(self, 'name'), self.id, self.unit)
@@ -124,6 +136,10 @@ class Reservation(ModifiableModel):
     end = models.DateTimeField()
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, db_index=True)
 
+    class Meta:
+        verbose_name = _("reservation")
+        verbose_name_plural = _("reservations")
+
     def __str__(self):
         return "%s -> %s: %s" % (self.begin, self.end, self.resource)
 
@@ -145,6 +161,10 @@ class Period(models.Model):
     name = models.CharField(max_length=200)
     description = models.CharField(null=True, max_length=500)
     closed = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = _("period")
+        verbose_name_plural = _("periods")
 
     def __str__(self):
         # FIXME: output date in locale-specific format
@@ -178,6 +198,10 @@ class Day(models.Model):
     opens = models.TimeField("Clock as number, 0000 - 2359", null=True, blank=True)
     closes = models.TimeField("Clock as number, 0000 - 2359", null=True, blank=True)
     closed = models.NullBooleanField(default=False)  # NOTE: If this is true and the period is false, what then?
+
+    class Meta:
+        verbose_name = _("day")
+        verbose_name_plural = _("days")
 
     def __str__(self):
         # FIXME: output date in locale-specific format
