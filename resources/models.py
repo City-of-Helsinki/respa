@@ -102,6 +102,59 @@ class Resource(ModifiableModel):
     def __str__(self):
         return "%s (%s)/%s" % (get_translated(self, 'name'), self.id, self.unit)
 
+    def get_opening_hours(self, begin, end=None):
+        """
+        Returns opening and closing time for a given date range
+
+        If no end is not supplied or None, will return the opening hours
+        as a dict. If end is given, returns all the opening hours for
+        each day as a list.
+        """
+
+        if end is None:
+            end = begin
+            only_one = True
+        else:
+            only_one = False
+        assert begin <= end
+        if self.periods.exists():
+            periods = self.periods
+        else:
+            periods = self.unit.periods
+
+        periods = periods.filter(
+            start__lte=begin, end__gte=end).annotate(
+            length=dbm.F('end')-dbm.F('start')
+        ).order_by('length')
+        days = Day.objects.filter(period__in=periods)
+
+        periods = list(periods)
+        for period in periods:
+            period.range_days = {day.weekday: day for day in days if day.period == period}
+
+        date = begin
+        date_list = []
+        while date <= end:
+            opens = None
+            closes = None
+            for period in periods:
+                if period.start > date or period.end < date:
+                    continue
+                if period.closed:
+                    break
+                day = period.range_days.get(date.weekday())
+                if day is None or day.closed:
+                    break
+                opens = day.opens
+                closes = day.closes
+
+            date_list.append({'date': date.isoformat(), 'opens': opens, 'closes': closes})
+            date += datetime.timedelta(days=1)
+
+        if only_one:
+            return date_list[0]
+        return date_list
+
     def get_open_from_now(self, dt):
         """
         Returns opening and closing for a given datetime starting from its moment
@@ -128,33 +181,6 @@ class Resource(ModifiableModel):
             if day:
                 closes = dt.combine(dt, day.closes)
                 return {'opens': moment, 'closes': closes}
-
-        return {'opens': None, 'closes': None}
-
-    def get_opening_hours(self, date):
-        """
-        Returns opening and closing time for a given date
-
-        If no periods and days that contain given datetime are not found,
-        returns none both
-        """
-
-        weekday = date.weekday()
-
-        if self.periods.exists():
-            periods = self.periods
-        else:
-            periods = self.unit.periods
-
-        res = periods.filter(
-            start__lte=date, end__gte=date).annotate(
-            length=dbm.F('end')-dbm.F('start')
-        ).order_by('length').first()
-
-        if res:
-            day = res.days.filter(weekday=weekday).first()
-            if day:
-                return {'opens': day.opens, 'closes': day.closes}
 
         return {'opens': None, 'closes': None}
 
@@ -236,7 +262,7 @@ class Day(models.Model):
     )
 
     period = models.ForeignKey(Period, db_index=True, related_name='days')
-    weekday = models.IntegerField("Day of week as a number 1-7", choices=DAYS_OF_WEEK)
+    weekday = models.IntegerField("Day of week as a number 0-6", choices=DAYS_OF_WEEK)
     opens = models.TimeField("Clock as number, 0000 - 2359", null=True, blank=True)
     closes = models.TimeField("Clock as number, 0000 - 2359", null=True, blank=True)
     closed = models.NullBooleanField(default=False)  # NOTE: If this is true and the period is false, what then?
