@@ -172,6 +172,19 @@ class Reservation(ModifiableModel):
     def __str__(self):
         return "%s -> %s: %s" % (self.begin, self.end, self.resource)
 
+    def save(self, *args, **kwargs):
+        hours = self.resource.get_opening_hours(self.begin)
+        if self.end.date() != self.begin.date():
+            raise ValidationError(_("The reservation has to end on the same day"))
+        if self.end <= self.begin:
+            raise ValidationError(_("You must end the reservation after it has begun"))
+        if self.begin.time() <= hours['opens']:
+            raise ValidationError(_("You must start the reservation during opening hours"))
+        if self.end.time() > hours['closes']:
+            raise ValidationError(_("You must end the reservation before closing"))
+        return super(Reservation, self).save(*args, **kwargs)
+
+
 STATE_BOOLS = {False: _('open'), True: _('closed')}
 
 
