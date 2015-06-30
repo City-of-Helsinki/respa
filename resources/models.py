@@ -95,6 +95,8 @@ class Reservation(ModifiableModel):
     end = models.DateTimeField()
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, db_index=True)
 
+    def __str__(self):
+        return "%s -> %s: %s" % (self.begin, self.end, self.resource)
 
 STATE_BOOLS = {True: _('open'), False: _('closed')}
 
