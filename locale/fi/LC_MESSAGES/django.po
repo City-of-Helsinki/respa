@@ -20,11 +20,11 @@ msgstr ""
 
 #: resources/admin.py:11 resources/admin.py:14
 msgid "RESPA Resource booking system"
-msgstr ""
+msgstr "RESPA Resurssien varausjärjestelmä"
 
 #: resources/admin.py:17
 msgid "RESPA Administration"
-msgstr ""
+msgstr "RESPA Ylläpito"
 
 #: resources/models.py:60
 msgid "Space"
