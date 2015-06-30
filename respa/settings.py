@@ -110,6 +110,10 @@ USE_L10N = True
 
 USE_TZ = True
 
+LOCALE_PATHS = (
+    os.path.join(BASE_DIR, 'locale'),
+)
+
 MODELTRANSLATION_FALLBACK_LANGUAGES = ('fi', 'en', 'sv')
 MODELTRANSLATION_PREPOPULATE_LANGUAGE = 'fi'
 
