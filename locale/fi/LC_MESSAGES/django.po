@@ -68,17 +68,15 @@ msgstr "Torstai"
 
 #: resources/models.py:140
 msgid "Friday"
-msgstr ""
+msgstr "Perjantai"
 
 #: resources/models.py:141
 msgid "Saturday"
-msgstr ""
+msgstr "Lauantai"
 
 #: resources/models.py:142
-#, fuzzy
-#| msgid "Monday"
 msgid "Sunday"
-msgstr "Maanantai"
+msgstr "Sunnuntai"
 
 #: respa/settings.py:100
 msgid "Finnish"
