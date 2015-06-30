@@ -27,7 +27,7 @@ class DayInline(admin.TabularInline):
     model = Day
 
 
-class ResourceAdmin(admin.ModelAdmin):
+class ResourceAdmin(TranslationAdmin):
     inlines = [
         PeriodInline
     ]

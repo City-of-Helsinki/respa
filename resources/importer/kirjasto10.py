@@ -11,6 +11,12 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 @register_importer
 class Kirjasto10Importer(Importer):
     name = "kirjasto10"
+    resource_ids = {'työtila': 'workspace',
+                    'työpiste': 'workstation',
+                    'tapahtumatila': 'event_space',
+                    'studio': 'studio',
+                    'näyttelytila': 'exhibition_space',
+                    'Kokoustila': 'meeting_room'}
 
     def import_resources(self):
         url = "https://docs.google.com/spreadsheets/d/1dOlIIDUINfOdyrth42JmQyTDzJmZJbwTi_bqMxRm7i8/export?format=csv&id=1dOlIIDUINfOdyrth42JmQyTDzJmZJbwTi_bqMxRm7i8&gid=0"
@@ -21,8 +27,8 @@ class Kirjasto10Importer(Importer):
 
         for res_data in data:
             res_type, created = ResourceType.objects.get_or_create(
-                #  TODO: Better ids, without this invalid resource objects gets created
-                id=res_data['Tilatyyppi 1'],
+                #  TODO: Catch key error if resource type unknown
+                id=self.resource_ids[res_data['Tilatyyppi 1']],
                 name_fi=res_data['Tilatyyppi 1'],
                 main_type='space')
 
