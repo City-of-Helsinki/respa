@@ -3,7 +3,7 @@ from django.contrib.gis.db import models
 from django.conf import settings
 from django.utils.translation import ugettext as _
 from django.core.exceptions import ValidationError
-import datetime
+import django.db.models as dbm
 
 DEFAULT_LANG = settings.LANGUAGES[0][0]
 
@@ -89,14 +89,33 @@ class Resource(ModifiableModel):
     def __str__(self):
         return "%s (%s)/%s" % (get_translated(self, 'name'), self.id, self.unit)
 
-    def get_opening_hours(self, date):
-        # Simulate behavior for now
-        now = datetime.datetime.now()
-        if True:
-            # return timezone-aware datetimes
-            return {'opens': now, 'closes': now + datetime.timedelta(hours=8)}
+    def get_opening_hours(self, dt):
+        """
+        Returns opens and closes time for a given datetime starting from its moment
+        and ends on closing time
+
+        If no periods and days that contain given datetime are not found,
+        returns none both
+        """
+
+        date, weekday, moment = dt.date(), dt.weekday(), dt.time()
+
+        if self.periods.exists():
+            periods = self.periods
         else:
-            return {'opens': None, 'closes': None}
+            periods = self.unit.periods
+
+        res = periods.filter(
+            start__lte=date, end__gte=date).annotate(
+            length=dbm.F('end')-dbm.F('start')
+        ).order_by('length').first()
+
+        if res:
+            day = res.days.filter(weekday=weekday, opens__lte=moment, closes__gte=moment).first()
+            if day:
+                return {'opens': moment, 'closes': day.closes}
+
+        return {'opens': None, 'closes': None}
 
 
 class Reservation(ModifiableModel):
@@ -108,7 +127,7 @@ class Reservation(ModifiableModel):
     def __str__(self):
         return "%s -> %s: %s" % (self.begin, self.end, self.resource)
 
-STATE_BOOLS = {True: _('open'), False: _('closed')}
+STATE_BOOLS = {False: _('open'), True: _('closed')}
 
 
 class Period(models.Model):
