@@ -3,7 +3,7 @@ from rest_framework import serializers, viewsets, generics
 from modeltranslation.translator import translator, NotRegistered
 from munigeo import api as munigeo_api
 
-from .models import Unit, Resource
+from .models import Unit, Resource, Reservation
 
 
 all_views = []
@@ -62,7 +62,16 @@ class TranslatedModelSerializer(serializers.ModelSerializer):
         return ret
 
 
+class NullableTimeField(serializers.TimeField):
+    def to_representation(self, value):
+        if not value:
+            return None
+        return super().to_representation(value)
+
+
 class UnitSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
+    opening_hours_today = serializers.DictField(child=NullableTimeField(),
+                                                source='get_opening_hours')
 
     class Meta:
         model = Unit
@@ -73,3 +82,31 @@ class UnitViewSet(munigeo_api.GeoModelAPIView, viewsets.ReadOnlyModelViewSet):
     serializer_class = UnitSerializer
 
 register_view(UnitViewSet, 'unit')
+
+
+class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
+    opening_hours_today = serializers.DictField(child=NullableTimeField(),
+                                                source='get_opening_hours')
+
+    class Meta:
+        model = Resource
+
+
+class ResourceViewSet(munigeo_api.GeoModelAPIView, viewsets.ReadOnlyModelViewSet):
+    queryset = Resource.objects.all()
+    serializer_class = ResourceSerializer
+
+register_view(ResourceViewSet, 'resource')
+
+
+class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
+
+    class Meta:
+        model = Reservation
+
+
+class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
+    queryset = Reservation.objects.all()
+    serializer_class = ReservationSerializer
+
+register_view(ReservationViewSet, 'reservation')
