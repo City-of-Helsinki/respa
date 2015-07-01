@@ -2,7 +2,7 @@ import datetime
 from django.utils import timezone
 from django.contrib.gis.db import models
 from django.conf import settings
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 import django.db.models as dbm
 
@@ -29,13 +29,14 @@ class ModifiableModel(models.Model):
         abstract = True
 
 
-def get_opening_hours(periods, begin, end=None):
+def get_opening_hours(periods, begin, end=None, tzinfo=None):
     """
     Returns opening and closing time for a given date range
 
     If no end is not supplied or None, will return the opening hours
     as a dict. If end is given, returns all the opening hours for
-    each day as a list.
+    each day as a list. If tzinfo is not None, will return opening
+    hours as datetime instances with the given timezone.
     """
 
     if end is None:
@@ -70,6 +71,12 @@ def get_opening_hours(periods, begin, end=None):
                 break
             opens = day.opens
             closes = day.closes
+
+            if tzinfo:
+                opens = datetime.combine(date, opens)
+                closes = datetime.combine(date, closes)
+                opens.replace(tzinfo=tzinfo)
+                closes.replace(tzinfo=tzinfo)
 
         date_list.append({'date': date.isoformat(), 'opens': opens, 'closes': closes})
         date += datetime.timedelta(days=1)
@@ -160,12 +167,50 @@ class Resource(ModifiableModel):
     # if not set, location is inherited from unit
     location = models.PointField(verbose_name=_('Location'), null=True, blank=True, srid=settings.DEFAULT_SRID)
 
+    min_period = models.DurationField(default=datetime.timedelta(minutes=30))
+    max_period = models.DurationField(null=True, blank=True)
+
     class Meta:
         verbose_name = _("resource")
         verbose_name_plural = _("resources")
 
     def __str__(self):
         return "%s (%s)/%s" % (get_translated(self, 'name'), self.id, self.unit)
+
+    def get_reservation_period(self, begin, end):
+        """
+        Returns accepted start and end times for a suggested reservation
+
+        If the reservation cannot be accepted, raises a ValidationError.
+        """
+
+        # TODO: set the timezone according to the resource
+        zone = timezone.get_default_timezone()
+
+        hours = self.get_opening_hours(begin.date(), tzinfo=zone)
+        opening = hours['opens']
+        closing = hours['closes']
+        if end <= begin:
+            raise ValidationError(_("You must end the reservation after it has begun"))
+        if begin <= opening:
+            raise ValidationError(_("You must start the reservation during opening hours"))
+        if end > closing:
+            raise ValidationError(_("You must end the reservation before closing"))
+        time_since_opening = datetime.timedelta(hours=begin.time().hour-opening.time().hour,
+                                                minutes=begin.time().minute-opening.time().minute,
+                                                seconds=begin.time().second-opening.time().second)
+        # We round down to the start of the time slot
+        time_slots_since_opening = int(time_since_opening/self.min_period)
+        begin = opening+(time_slots_since_opening*self.min_period)
+        # Duration is calculated modulo time slot
+        duration_in_slots = int((end-begin)/self.min_period)
+        if duration_in_slots == 0:
+            raise ValidationError(_("The minimum duration for a reservation is "+str(self.min_period)))
+        if self.max_period:
+            if duration_in_slots > self.max_period/self.min_period:
+                raise ValidationError(_("The maximum reservation length is "+str(self.max_period)))
+        end = begin+(duration_in_slots*self.min_period)
+        return begin, end
 
     def get_opening_hours(self, begin=None, end=None):
         if self.periods.exists():
@@ -222,15 +267,7 @@ class Reservation(ModifiableModel):
         return "%s -> %s: %s" % (self.begin, self.end, self.resource)
 
     def save(self, *args, **kwargs):
-        hours = self.resource.get_opening_hours(self.begin)
-        if self.end.date() != self.begin.date():
-            raise ValidationError(_("The reservation has to end on the same day"))
-        if self.end <= self.begin:
-            raise ValidationError(_("You must end the reservation after it has begun"))
-        if self.begin.time() <= hours['opens']:
-            raise ValidationError(_("You must start the reservation during opening hours"))
-        if self.end.time() > hours['closes']:
-            raise ValidationError(_("You must end the reservation before closing"))
+        self.begin, self.end = self.resource.get_reservation_period(self.begin, self.end)
         return super(Reservation, self).save(*args, **kwargs)
 
 
