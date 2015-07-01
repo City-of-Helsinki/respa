@@ -278,7 +278,7 @@ class Day(models.Model):
     )
 
     period = models.ForeignKey(Period, verbose_name=_('Period'), db_index=True, related_name='days')
-    weekday = models.IntegerField(verbose_name=_('Weekday'), long_help=_("Day of week as a number 0-6"), choices=DAYS_OF_WEEK)
+    weekday = models.IntegerField(verbose_name=_('Weekday'), choices=DAYS_OF_WEEK)
     opens = models.TimeField(verbose_name=_('Time when opens'), null=True, blank=True)
     closes = models.TimeField(verbose_name=_('Time when closes'), null=True, blank=True)
     closed = models.NullBooleanField(verbose_name=_('Closed'), default=False)  # NOTE: If this is true and the period is false, what then?
