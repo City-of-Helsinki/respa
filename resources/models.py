@@ -27,22 +27,74 @@ class ModifiableModel(models.Model):
         abstract = True
 
 
+def get_opening_hours(periods, begin, end=None):
+    """
+    Returns opening and closing time for a given date range
+
+    If no end is not supplied or None, will return the opening hours
+    as a dict. If end is given, returns all the opening hours for
+    each day as a list.
+    """
+
+    if end is None:
+        end = begin
+        only_one = True
+    else:
+        only_one = False
+    assert begin <= end
+
+    periods = periods.filter(
+        start__lte=begin, end__gte=end).annotate(
+        length=dbm.F('end')-dbm.F('start')
+    ).order_by('length')
+    days = Day.objects.filter(period__in=periods)
+
+    periods = list(periods)
+    for period in periods:
+        period.range_days = {day.weekday: day for day in days if day.period == period}
+
+    date = begin
+    date_list = []
+    while date <= end:
+        opens = None
+        closes = None
+        for period in periods:
+            if period.start > date or period.end < date:
+                continue
+            if period.closed:
+                break
+            day = period.range_days.get(date.weekday())
+            if day is None or day.closed:
+                break
+            opens = day.opens
+            closes = day.closes
+
+        date_list.append({'date': date.isoformat(), 'opens': opens, 'closes': closes})
+        date += datetime.timedelta(days=1)
+
+    if only_one:
+        ret = date_list[0]
+        del ret['date']
+        return ret
+    return date_list
+
+
 class Unit(ModifiableModel):
     id = models.CharField(primary_key=True, max_length=50)
-    name = models.CharField(max_length=200)
-    description = models.TextField(null=True)
+    name = models.CharField(verbose_name=_('Name'), max_length=200)
+    description = models.TextField(verbose_name=_('Description'), null=True)
 
-    location = models.PointField(null=True, srid=settings.DEFAULT_SRID)
+    location = models.PointField(verbose_name=_('Location'), null=True, srid=settings.DEFAULT_SRID)
     # organization = models.ForeignKey(...)
-    street_address = models.CharField(max_length=100, null=True)
-    address_zip = models.CharField(max_length=10, null=True)
-    phone = models.CharField(max_length=30, null=True)
-    email = models.EmailField(max_length=100, null=True)
-    www_url = models.URLField(max_length=400, null=True)
-    address_postal_full = models.CharField(max_length=100, null=True)
+    street_address = models.CharField(verbose_name=_('Street address'), max_length=100, null=True)
+    address_zip = models.CharField(verbose_name=_('Postal code'), max_length=10, null=True)
+    phone = models.CharField(verbose_name=_('Phone number'), max_length=30, null=True)
+    email = models.EmailField(verbose_name=_('Email'), max_length=100, null=True)
+    www_url = models.URLField(verbose_name=_('WWW link'), max_length=400, null=True)
+    address_postal_full = models.CharField(verbose_name=_('Full postal address'), max_length=100, null=True)
 
-    picture_url = models.URLField(max_length=200, null=True)
-    picture_caption = models.CharField(max_length=200, null=True)
+    picture_url = models.URLField(verbose_name=_('Picture URL'), max_length=200, null=True)
+    picture_caption = models.CharField(verbose_name=_('Picture caption'), max_length=200, null=True)
 
     class Meta:
         verbose_name = _("unit")
@@ -51,11 +103,18 @@ class Unit(ModifiableModel):
     def __str__(self):
         return "%s (%s)" % (get_translated(self, 'name'), self.id)
 
+    def get_opening_hours(self, begin=None, end=None):
+        if begin is None:
+            begin = datetime.date.today()
+        periods = self.periods
+        ret = get_opening_hours(periods, begin, end)
+        return ret
+
 
 class UnitIdentifier(models.Model):
-    unit = models.ForeignKey(Unit, db_index=True, related_name='identifiers')
-    namespace = models.CharField(max_length=50)
-    value = models.CharField(max_length=100)
+    unit = models.ForeignKey(Unit, verbose_name=_('Unit'), db_index=True, related_name='identifiers')
+    namespace = models.CharField(verbose_name=_('Namespace'), max_length=50)
+    value = models.CharField(verbose_name=_('Value'), max_length=100)
 
     class Meta:
         unique_together = (('namespace', 'value'), ('namespace', 'unit'))
@@ -68,8 +127,8 @@ class ResourceType(ModifiableModel):
         ('item', _('Item'))
     )
     id = models.CharField(primary_key=True, max_length=100)
-    main_type = models.CharField(max_length=20, choices=MAIN_TYPES)
-    name = models.CharField(max_length=200)
+    main_type = models.CharField(verbose_name=_('Main type'), max_length=20, choices=MAIN_TYPES)
+    name = models.CharField(verbose_name=_('Name'), max_length=200)
 
     class Meta:
         verbose_name = _("resource type")
@@ -81,19 +140,19 @@ class ResourceType(ModifiableModel):
 
 class Resource(ModifiableModel):
     id = models.CharField(primary_key=True, max_length=100)
-    unit = models.ForeignKey(Unit, db_index=True, null=True, blank=True, related_name="resources")
-    type = models.ForeignKey(ResourceType, db_index=True)
-    name = models.CharField(max_length=200)
-    description = models.TextField(null=True, blank=True)
-    photo = models.URLField(null=True, blank=True)
-    need_manual_confirmation = models.BooleanField(default=False)
+    unit = models.ForeignKey(Unit, verbose_name=_('Unit'), db_index=True, null=True, blank=True, related_name="resources")
+    type = models.ForeignKey(ResourceType, verbose_name=_('Resource type'), db_index=True)
+    name = models.CharField(verbose_name=_('Name'), max_length=200)
+    description = models.TextField(verbose_name=_('Description'), null=True, blank=True)
+    photo = models.URLField(verbose_name=_('Photo URL'), null=True, blank=True)
+    need_manual_confirmation = models.BooleanField(verbose_name=_('Need manual confirmation'), default=False)
 
-    people_capacity = models.IntegerField(null=True, blank=True)
-    area = models.IntegerField(null=True, blank=True)
-    ground_plan = models.URLField(null=True, blank=True)
+    people_capacity = models.IntegerField(verbose_name=_('People capacity'), null=True, blank=True)
+    area = models.IntegerField(verbose_name=_('Area'), null=True, blank=True)
+    ground_plan = models.URLField(verbose_name=_('Ground plan URL'), null=True, blank=True)
 
     # if not set, location is inherited from unit
-    location = models.PointField(null=True, blank=True, srid=settings.DEFAULT_SRID)
+    location = models.PointField(verbose_name=_('Location'), null=True, blank=True, srid=settings.DEFAULT_SRID)
 
     class Meta:
         verbose_name = _("resource")
@@ -102,58 +161,15 @@ class Resource(ModifiableModel):
     def __str__(self):
         return "%s (%s)/%s" % (get_translated(self, 'name'), self.id, self.unit)
 
-    def get_opening_hours(self, begin, end=None):
-        """
-        Returns opening and closing time for a given date range
-
-        If no end is not supplied or None, will return the opening hours
-        as a dict. If end is given, returns all the opening hours for
-        each day as a list.
-        """
-
-        if end is None:
-            end = begin
-            only_one = True
-        else:
-            only_one = False
-        assert begin <= end
+    def get_opening_hours(self, begin=None, end=None):
         if self.periods.exists():
             periods = self.periods
         else:
             periods = self.unit.periods
 
-        periods = periods.filter(
-            start__lte=begin, end__gte=end).annotate(
-            length=dbm.F('end')-dbm.F('start')
-        ).order_by('length')
-        days = Day.objects.filter(period__in=periods)
-
-        periods = list(periods)
-        for period in periods:
-            period.range_days = {day.weekday: day for day in days if day.period == period}
-
-        date = begin
-        date_list = []
-        while date <= end:
-            opens = None
-            closes = None
-            for period in periods:
-                if period.start > date or period.end < date:
-                    continue
-                if period.closed:
-                    break
-                day = period.range_days.get(date.weekday())
-                if day is None or day.closed:
-                    break
-                opens = day.opens
-                closes = day.closes
-
-            date_list.append({'date': date.isoformat(), 'opens': opens, 'closes': closes})
-            date += datetime.timedelta(days=1)
-
-        if only_one:
-            return date_list[0]
-        return date_list
+        if begin is None:
+            begin = datetime.date.today()
+        return get_opening_hours(periods, begin, end)
 
     def get_open_from_now(self, dt):
         """
@@ -186,10 +202,10 @@ class Resource(ModifiableModel):
 
 
 class Reservation(ModifiableModel):
-    resource = models.ForeignKey(Resource, db_index=True, related_name='reservations')
-    begin = models.DateTimeField()
-    end = models.DateTimeField()
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, db_index=True)
+    resource = models.ForeignKey(Resource, verbose_name=_('Resource'), db_index=True, related_name='reservations')
+    begin = models.DateTimeField(verbose_name=_('Begin time'))
+    end = models.DateTimeField(verbose_name=_('End time'))
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('User'), null=True, db_index=True)
 
     class Meta:
         verbose_name = _("reservation")
@@ -219,16 +235,16 @@ class Period(models.Model):
     A period of time to express state of open or closed
     Days that specifies the actual activity hours link here
     """
-    resource = models.ForeignKey(Resource, db_index=True, null=True, blank=True,
+    resource = models.ForeignKey(Resource, verbose_name=_('Resource'), db_index=True, null=True, blank=True,
                                  related_name='periods')
-    unit = models.ForeignKey(Unit, db_index=True, null=True, blank=True,
+    unit = models.ForeignKey(Unit, verbose_name=_('Unit'), db_index=True, null=True, blank=True,
                              related_name='periods')
 
-    start = models.DateField()
-    end = models.DateField()
-    name = models.CharField(max_length=200)
-    description = models.CharField(null=True, max_length=500)
-    closed = models.BooleanField(default=False)
+    start = models.DateField(verbose_name=_('Start date'))
+    end = models.DateField(verbose_name=_('End date'))
+    name = models.CharField(max_length=200, verbose_name=_('Name'))
+    description = models.CharField(verbose_name=_('Description'), null=True, max_length=500)
+    closed = models.BooleanField(verbose_name=_('Closed'), default=False)
 
     class Meta:
         verbose_name = _("period")
@@ -261,11 +277,11 @@ class Day(models.Model):
         (6, _('Sunday'))
     )
 
-    period = models.ForeignKey(Period, db_index=True, related_name='days')
-    weekday = models.IntegerField("Day of week as a number 0-6", choices=DAYS_OF_WEEK)
-    opens = models.TimeField("Clock as number, 0000 - 2359", null=True, blank=True)
-    closes = models.TimeField("Clock as number, 0000 - 2359", null=True, blank=True)
-    closed = models.NullBooleanField(default=False)  # NOTE: If this is true and the period is false, what then?
+    period = models.ForeignKey(Period, verbose_name=_('Period'), db_index=True, related_name='days')
+    weekday = models.IntegerField(verbose_name=_('Weekday'), long_help=_("Day of week as a number 0-6"), choices=DAYS_OF_WEEK)
+    opens = models.TimeField(verbose_name=_('Time when opens'), null=True, blank=True)
+    closes = models.TimeField(verbose_name=_('Time when closes'), null=True, blank=True)
+    closed = models.NullBooleanField(verbose_name=_('Closed'), default=False)  # NOTE: If this is true and the period is false, what then?
 
     class Meta:
         verbose_name = _("day")
