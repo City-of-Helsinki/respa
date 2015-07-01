@@ -18,10 +18,12 @@ def get_translated(obj, attr):
 
 
 class ModifiableModel(models.Model):
-    created_at = models.DateTimeField(default=timezone.now)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name="%(class)s_created")
-    modified_at = models.DateTimeField(default=timezone.now)
-    modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name="%(class)s_modified")
+    created_at = models.DateTimeField(verbose_name=_('Time of creation'), default=timezone.now)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Created by'),
+                                   null=True, related_name="%(class)s_created")
+    modified_at = models.DateTimeField(verbose_name=_('Time of modification'), default=timezone.now)
+    modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Modified by'),
+                                    null=True, related_name="%(class)s_modified")
 
     class Meta:
         abstract = True
