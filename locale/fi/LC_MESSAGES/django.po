@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-06-30 15:01+0000\n"
+"POT-Creation-Date: 2015-07-01 09:19+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,105 +26,109 @@ msgstr "RESPA Resurssien varausjärjestelmä"
 msgid "RESPA Administration"
 msgstr "RESPA Ylläpito"
 
-#: resources/models.py:47
+#: resources/apps.py:6
+msgid "Resource app"
+msgstr "Resurssisovellus"
+
+#: resources/models.py:48
 msgid "unit"
 msgstr "yksikkö"
 
-#: resources/models.py:48
+#: resources/models.py:49
 msgid "units"
 msgstr "yksiköt"
 
-#: resources/models.py:65
+#: resources/models.py:66
 msgid "Space"
 msgstr "Tila"
 
-#: resources/models.py:66
+#: resources/models.py:67
 msgid "Person"
 msgstr "Henkilö"
 
-#: resources/models.py:67
+#: resources/models.py:68
 msgid "Item"
 msgstr "Esine"
 
-#: resources/models.py:74
+#: resources/models.py:75
 msgid "resource type"
 msgstr "resurssityyppi"
 
-#: resources/models.py:75
+#: resources/models.py:76
 msgid "resource types"
 msgstr "resurssityypit"
 
-#: resources/models.py:98
+#: resources/models.py:99
 msgid "resource"
 msgstr "resurssi"
 
-#: resources/models.py:99
+#: resources/models.py:100
 msgid "resources"
 msgstr "resurssit"
 
-#: resources/models.py:140
+#: resources/models.py:169
 msgid "reservation"
 msgstr "varaus"
 
-#: resources/models.py:141
+#: resources/models.py:170
 msgid "reservations"
 msgstr "varaukset"
 
-#: resources/models.py:146
+#: resources/models.py:175
 msgid "open"
 msgstr "auki"
 
-#: resources/models.py:146
+#: resources/models.py:175
 msgid "closed"
 msgstr "kiinni"
 
-#: resources/models.py:166
+#: resources/models.py:195
 msgid "period"
 msgstr "aikaväli"
 
-#: resources/models.py:167
+#: resources/models.py:196
 msgid "periods"
 msgstr "aikavälit"
 
-#: resources/models.py:176
+#: resources/models.py:205
 msgid "You must set either 'resource' or 'unit', but not both"
 msgstr "Aseta resurssi tai yksikkö, mutta ei molempia"
 
-#: resources/models.py:187
+#: resources/models.py:216
 msgid "Monday"
 msgstr "Maanantai"
 
-#: resources/models.py:188
+#: resources/models.py:217
 msgid "Tuesday"
 msgstr "Tiistai"
 
-#: resources/models.py:189
+#: resources/models.py:218
 msgid "Wednesday"
 msgstr "Keskiviikko"
 
-#: resources/models.py:190
+#: resources/models.py:219
 msgid "Thursday"
 msgstr "Torstai"
 
-#: resources/models.py:191
+#: resources/models.py:220
 msgid "Friday"
 msgstr "Perjantai"
 
-#: resources/models.py:192
+#: resources/models.py:221
 msgid "Saturday"
 msgstr "Lauantai"
 
-#: resources/models.py:193
+#: resources/models.py:222
 msgid "Sunday"
 msgstr "Sunnuntai"
 
-#: resources/models.py:203
+#: resources/models.py:232
 #, fuzzy
 #| msgid "Monday"
 msgid "day"
 msgstr "Maanantai"
 
-#: resources/models.py:204
+#: resources/models.py:233
 msgid "days"
 msgstr "päivät"
 
