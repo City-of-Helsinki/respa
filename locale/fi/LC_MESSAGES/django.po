@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-07-01 09:19+0000\n"
+"POT-Creation-Date: 2015-07-01 10:13+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -30,122 +30,260 @@ msgstr "RESPA Ylläpito"
 msgid "Resource app"
 msgstr "Resurssisovellus"
 
-#: resources/models.py:48
+#: resources/models.py:84 resources/models.py:131 resources/models.py:145
+#: resources/models.py:245
+msgid "Name"
+msgstr "Nimi"
+
+#: resources/models.py:85 resources/models.py:146 resources/models.py:246
+#| msgid "reservation"
+msgid "Description"
+msgstr "Kuvaus"
+
+#: resources/models.py:87 resources/models.py:155
+msgid "Location"
+msgstr "Sijainti"
+
+#: resources/models.py:89
+msgid "Street address"
+msgstr "Katuosoite"
+
+#: resources/models.py:90
+msgid "Postal code"
+msgstr "Postinumero"
+
+#: resources/models.py:91
+msgid "Phone number"
+msgstr "Puhelinnumero"
+
+#: resources/models.py:92
+msgid "Email"
+msgstr "Sähköpostiosoite"
+
+#: resources/models.py:93
+msgid "WWW link"
+msgstr "Www-osoite"
+
+#: resources/models.py:94
+msgid "Full postal address"
+msgstr "Täysi postiosoite"
+
+#: resources/models.py:96
+msgid "Picture URL"
+msgstr "Valokuvan osoite"
+
+#: resources/models.py:97
+msgid "Picture caption"
+msgstr "Valokuvan kuvateksti"
+
+#: resources/models.py:100
 msgid "unit"
-msgstr "yksikkö"
+msgstr "toimipiste"
 
-#: resources/models.py:49
+#: resources/models.py:101
 msgid "units"
-msgstr "yksiköt"
+msgstr "toimipisteet"
 
-#: resources/models.py:66
+#: resources/models.py:115 resources/models.py:143 resources/models.py:240
+msgid "Unit"
+msgstr "Toimipiste"
+
+#: resources/models.py:116
+msgid "Namespace"
+msgstr "Tunnisteavaruus"
+
+#: resources/models.py:117
+msgid "Value"
+msgstr "Arvo"
+
+#: resources/models.py:125
 msgid "Space"
 msgstr "Tila"
 
-#: resources/models.py:67
+#: resources/models.py:126
 msgid "Person"
 msgstr "Henkilö"
 
-#: resources/models.py:68
+#: resources/models.py:127
 msgid "Item"
 msgstr "Esine"
 
-#: resources/models.py:75
+#: resources/models.py:130
+msgid "Main type"
+msgstr "Päätyyppi"
+
+#: resources/models.py:134
 msgid "resource type"
 msgstr "resurssityyppi"
 
-#: resources/models.py:76
+#: resources/models.py:135
 msgid "resource types"
 msgstr "resurssityypit"
 
-#: resources/models.py:99
+#: resources/models.py:144
+msgid "Resource type"
+msgstr "Resurssityyppi"
+
+#: resources/models.py:147
+msgid "Photo URL"
+msgstr "Valokuvan osoite"
+
+#: resources/models.py:148
+msgid "Need manual confirmation"
+msgstr "Tarvitsee virkailijan vahvistuksen"
+
+#: resources/models.py:150
+msgid "People capacity"
+msgstr "Henkilömäärä"
+
+#: resources/models.py:151
+msgid "Area"
+msgstr "Pinta-ala"
+
+#: resources/models.py:152
+msgid "Ground plan URL"
+msgstr "Pohjapiirroksen osoite"
+
+#: resources/models.py:158
 msgid "resource"
 msgstr "resurssi"
 
-#: resources/models.py:100
+#: resources/models.py:159
 msgid "resources"
 msgstr "resurssit"
 
-#: resources/models.py:169
+#: resources/models.py:205 resources/models.py:238
+msgid "Resource"
+msgstr "Resurssi"
+
+#: resources/models.py:206
+msgid "Begin time"
+msgstr "Alkuaika"
+
+#: resources/models.py:207
+msgid "End time"
+msgstr "Loppuaika"
+
+#: resources/models.py:208
+msgid "User"
+msgstr "Käyttäjä"
+
+#: resources/models.py:211
 msgid "reservation"
 msgstr "varaus"
 
-#: resources/models.py:170
+#: resources/models.py:212
 msgid "reservations"
 msgstr "varaukset"
 
-#: resources/models.py:175
+#: resources/models.py:220
+msgid "The reservation has to end on the same day"
+msgstr ""
+
+#: resources/models.py:222
+msgid "You must end the reservation after it has begun"
+msgstr ""
+
+#: resources/models.py:224
+msgid "You must start the reservation during opening hours"
+msgstr ""
+
+#: resources/models.py:226
+msgid "You must end the reservation before closing"
+msgstr ""
+
+#: resources/models.py:230
 msgid "open"
 msgstr "auki"
 
-#: resources/models.py:175
+#: resources/models.py:230
 msgid "closed"
 msgstr "kiinni"
 
-#: resources/models.py:195
+#: resources/models.py:243
+msgid "Start date"
+msgstr "Alkupäivä"
+
+#: resources/models.py:244
+msgid "End date"
+msgstr "Loppupäivä"
+
+#: resources/models.py:247 resources/models.py:284
+msgid "Closed"
+msgstr "Kiinni"
+
+#: resources/models.py:250
 msgid "period"
 msgstr "aikaväli"
 
-#: resources/models.py:196
+#: resources/models.py:251
 msgid "periods"
 msgstr "aikavälit"
 
-#: resources/models.py:205
+#: resources/models.py:260
 msgid "You must set either 'resource' or 'unit', but not both"
-msgstr "Aseta resurssi tai yksikkö, mutta ei molempia"
+msgstr "Aseta 'resource' tai 'unit', älä molempia"
 
-#: resources/models.py:216
+#: resources/models.py:271
 msgid "Monday"
 msgstr "Maanantai"
 
-#: resources/models.py:217
+#: resources/models.py:272
 msgid "Tuesday"
 msgstr "Tiistai"
 
-#: resources/models.py:218
+#: resources/models.py:273
 msgid "Wednesday"
 msgstr "Keskiviikko"
 
-#: resources/models.py:219
+#: resources/models.py:274
 msgid "Thursday"
 msgstr "Torstai"
 
-#: resources/models.py:220
+#: resources/models.py:275
 msgid "Friday"
 msgstr "Perjantai"
 
-#: resources/models.py:221
+#: resources/models.py:276
 msgid "Saturday"
 msgstr "Lauantai"
 
-#: resources/models.py:222
+#: resources/models.py:277
 msgid "Sunday"
 msgstr "Sunnuntai"
 
-#: resources/models.py:232
-#, fuzzy
-#| msgid "Monday"
-msgid "day"
-msgstr "Maanantai"
+#: resources/models.py:280
+msgid "Period"
+msgstr "Aikaväli"
 
-#: resources/models.py:233
+#: resources/models.py:281
+msgid "Weekday"
+msgstr "Viikonpäivä"
+
+#: resources/models.py:282
+msgid "Time when opens"
+msgstr "Aukeamisaika"
+
+#: resources/models.py:283
+msgid "Time when closes"
+msgstr "Kiinnimenoaika"
+
+#: resources/models.py:287
+msgid "day"
+msgstr "päivä"
+
+#: resources/models.py:288
 msgid "days"
 msgstr "päivät"
 
 #: respa/settings.py:100
 msgid "Finnish"
-msgstr "Suomi"
+msgstr "suomi"
 
 #: respa/settings.py:101
 msgid "English"
-msgstr "Englanti"
+msgstr "englanti"
 
 #: respa/settings.py:102
 msgid "Swedish"
-msgstr "Ruotsi"
-
-#~ msgid "resurssi"
-#~ msgstr "resurssi"
-
-#~ msgid "resurssit"
-#~ msgstr "re"
+msgstr "ruotsi"
