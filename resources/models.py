@@ -20,10 +20,10 @@ def get_translated(obj, attr):
 class ModifiableModel(models.Model):
     created_at = models.DateTimeField(verbose_name=_('Time of creation'), default=timezone.now)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Created by'),
-                                   null=True, related_name="%(class)s_created")
+                                   null=True, blank=True, related_name="%(class)s_created")
     modified_at = models.DateTimeField(verbose_name=_('Time of modification'), default=timezone.now)
     modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Modified by'),
-                                    null=True, related_name="%(class)s_modified")
+                                    null=True, blank=True, related_name="%(class)s_modified")
 
     class Meta:
         abstract = True
@@ -84,19 +84,22 @@ def get_opening_hours(periods, begin, end=None):
 class Unit(ModifiableModel):
     id = models.CharField(primary_key=True, max_length=50)
     name = models.CharField(verbose_name=_('Name'), max_length=200)
-    description = models.TextField(verbose_name=_('Description'), null=True)
+    description = models.TextField(verbose_name=_('Description'), null=True, blank=True)
 
     location = models.PointField(verbose_name=_('Location'), null=True, srid=settings.DEFAULT_SRID)
     # organization = models.ForeignKey(...)
     street_address = models.CharField(verbose_name=_('Street address'), max_length=100, null=True)
-    address_zip = models.CharField(verbose_name=_('Postal code'), max_length=10, null=True)
-    phone = models.CharField(verbose_name=_('Phone number'), max_length=30, null=True)
-    email = models.EmailField(verbose_name=_('Email'), max_length=100, null=True)
-    www_url = models.URLField(verbose_name=_('WWW link'), max_length=400, null=True)
-    address_postal_full = models.CharField(verbose_name=_('Full postal address'), max_length=100, null=True)
+    address_zip = models.CharField(verbose_name=_('Postal code'), max_length=10, null=True, blank=True)
+    phone = models.CharField(verbose_name=_('Phone number'), max_length=30, null=True, blank=True)
+    email = models.EmailField(verbose_name=_('Email'), max_length=100, null=True, blank=True)
+    www_url = models.URLField(verbose_name=_('WWW link'), max_length=400, null=True, blank=True)
+    address_postal_full = models.CharField(verbose_name=_('Full postal address'), max_length=100,
+                                           null=True, blank=True)
 
-    picture_url = models.URLField(verbose_name=_('Picture URL'), max_length=200, null=True)
-    picture_caption = models.CharField(verbose_name=_('Picture caption'), max_length=200, null=True)
+    picture_url = models.URLField(verbose_name=_('Picture URL'), max_length=200,
+                                  null=True, blank=True)
+    picture_caption = models.CharField(verbose_name=_('Picture caption'), max_length=200,
+                                       null=True, blank=True)
 
     class Meta:
         verbose_name = _("unit")
@@ -142,7 +145,8 @@ class ResourceType(ModifiableModel):
 
 class Resource(ModifiableModel):
     id = models.CharField(primary_key=True, max_length=100)
-    unit = models.ForeignKey(Unit, verbose_name=_('Unit'), db_index=True, null=True, blank=True, related_name="resources")
+    unit = models.ForeignKey(Unit, verbose_name=_('Unit'), db_index=True, null=True, blank=True,
+                             related_name="resources")
     type = models.ForeignKey(ResourceType, verbose_name=_('Resource type'), db_index=True)
     name = models.CharField(verbose_name=_('Name'), max_length=200)
     description = models.TextField(verbose_name=_('Description'), null=True, blank=True)
@@ -207,7 +211,8 @@ class Reservation(ModifiableModel):
     resource = models.ForeignKey(Resource, verbose_name=_('Resource'), db_index=True, related_name='reservations')
     begin = models.DateTimeField(verbose_name=_('Begin time'))
     end = models.DateTimeField(verbose_name=_('End time'))
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('User'), null=True, db_index=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('User'), null=True,
+                             blank=True, db_index=True)
 
     class Meta:
         verbose_name = _("reservation")
@@ -237,15 +242,16 @@ class Period(models.Model):
     A period of time to express state of open or closed
     Days that specifies the actual activity hours link here
     """
-    resource = models.ForeignKey(Resource, verbose_name=_('Resource'), db_index=True, null=True, blank=True,
-                                 related_name='periods')
-    unit = models.ForeignKey(Unit, verbose_name=_('Unit'), db_index=True, null=True, blank=True,
-                             related_name='periods')
+    resource = models.ForeignKey(Resource, verbose_name=_('Resource'), db_index=True,
+                                 null=True, blank=True, related_name='periods')
+    unit = models.ForeignKey(Unit, verbose_name=_('Unit'), db_index=True,
+                             null=True, blank=True, related_name='periods')
 
     start = models.DateField(verbose_name=_('Start date'))
     end = models.DateField(verbose_name=_('End date'))
     name = models.CharField(max_length=200, verbose_name=_('Name'))
-    description = models.CharField(verbose_name=_('Description'), null=True, max_length=500)
+    description = models.CharField(verbose_name=_('Description'), null=True,
+                                   blank=True, max_length=500)
     closed = models.BooleanField(verbose_name=_('Closed'), default=False)
 
     class Meta:
