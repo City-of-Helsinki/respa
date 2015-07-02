@@ -177,7 +177,7 @@ class Resource(ModifiableModel):
     def __str__(self):
         return "%s (%s)/%s" % (get_translated(self, 'name'), self.id, self.unit)
 
-    def get_reservation_period(self, begin, end):
+    def get_reservation_period(self, reservation):
         """
         Returns accepted start and end times for a suggested reservation
 
@@ -187,6 +187,8 @@ class Resource(ModifiableModel):
         # TODO: set the timezone according to the resource
         zone = timezone.get_default_timezone()
 
+        begin = reservation.begin
+        end = reservation.end
         hours = self.get_opening_hours(begin.date(), tzinfo=zone)
         opening = hours['opens']
         closing = hours['closes']
@@ -209,8 +211,65 @@ class Resource(ModifiableModel):
         if self.max_period:
             if duration_in_slots > self.max_period/self.min_period:
                 raise ValidationError(_("The maximum reservation length is "+str(self.max_period)))
-        end = begin+(duration_in_slots*self.min_period)
+        duration = duration_in_slots*self.min_period
+        end = begin+duration
+        if not self.is_available(begin, end, reservation):
+            raise ValidationError(_("The resource is already reserved for some of the period"))
         return begin, end
+
+    def is_available(self, begin, end, reservation=None):
+        """
+        Returns whether the resource is available between the two datetimes
+
+        Will also return true when the resource is closed, if it is not reserved.
+        The optional reservation argument is for disregarding a given
+        reservation.
+        """
+        hours = self.get_available_hours(begin, end, reservation=reservation)
+        if hours:
+            if begin == hours[0]['starts'] and end == hours[0]['ends']:
+                return True
+        return False
+
+    def get_available_hours(self, begin, end, tzinfo=None, reservation=None):
+        """
+        Returns hours that the resource is not reserved for a given date range
+
+        Will also return hours when the resource is closed, if it is not reserved.
+        This is so that admins can book resources during closing hours. Returns
+        the available hours as a list of dicts. The optional reservation argument
+        is for disregarding a given reservation during checking, if we wish to
+        move an existing reservation.
+        """
+
+        # the reservations already have a timezone set, so we only add timezone info to the query
+        if tzinfo:
+            begin = begin.replace(tzinfo=tzinfo)
+            end = end.replace(tzinfo=tzinfo)
+        reservations = self.reservations.filter(
+            end__gte=begin, begin__lte=end).order_by('begin')
+        hours_list = [({'starts': begin})]
+        first_checked = False
+        for res in reservations:
+            # skip the reservation that is being edited
+            if res == reservation:
+                continue
+            # check if the reservation spans the beginning
+            if not first_checked:
+                first_checked = True
+                if res.begin < begin:
+                    if res.end > end:
+                        return []
+                    hours_list[0]['starts'] = res.end
+                    # proceed to the next reservation
+                    continue
+            hours_list[-1]['ends'] = res.begin
+            # check if the reservation spans the end
+            if res.end > end:
+                return hours_list
+            hours_list.append({'starts': res.end})
+        hours_list[-1]['ends'] = end
+        return hours_list
 
     def get_opening_hours(self, begin=None, end=None, tzinfo=None):
         if self.periods.exists():
@@ -267,7 +326,7 @@ class Reservation(ModifiableModel):
         return "%s -> %s: %s" % (self.begin, self.end, self.resource)
 
     def save(self, *args, **kwargs):
-        self.begin, self.end = self.resource.get_reservation_period(self.begin, self.end)
+        self.begin, self.end = self.resource.get_reservation_period(self)
         return super(Reservation, self).save(*args, **kwargs)
 
 
