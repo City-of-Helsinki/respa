@@ -17,7 +17,8 @@ class Kirjasto10Importer(Importer):
                     'tapahtumatila': 'event_space',
                     'studio': 'studio',
                     'näyttelytila': 'exhibition_space',
-                    'Kokoustila': 'meeting_room'}
+                    'kokoustila': 'meeting_room',
+                    'pelitila': 'game_space'}
 
     def import_resources(self):
         url = "https://docs.google.com/spreadsheets/d/1dOlIIDUINfOdyrth42JmQyTDzJmZJbwTi_bqMxRm7i8/export?format=csv&id=1dOlIIDUINfOdyrth42JmQyTDzJmZJbwTi_bqMxRm7i8&gid=0"
@@ -25,6 +26,7 @@ class Kirjasto10Importer(Importer):
         assert resp.status_code == 200
         reader = csv.DictReader(io.StringIO(resp.content.decode('utf8')))
         data = list(reader)
+        next(reader)  # remove field descriptions
 
         for res_data in data:
             res_type, created = ResourceType.objects.get_or_create(
