@@ -73,10 +73,10 @@ def get_opening_hours(periods, begin, end=None, tzinfo=None):
             closes = day.closes
 
             if tzinfo:
-                opens = datetime.combine(date, opens)
-                closes = datetime.combine(date, closes)
-                opens.replace(tzinfo=tzinfo)
-                closes.replace(tzinfo=tzinfo)
+                opens = datetime.datetime.combine(date, opens)
+                closes = datetime.datetime.combine(date, closes)
+                opens = opens.replace(tzinfo=tzinfo)
+                closes = closes.replace(tzinfo=tzinfo)
 
         date_list.append({'date': date.isoformat(), 'opens': opens, 'closes': closes})
         date += datetime.timedelta(days=1)
@@ -212,7 +212,7 @@ class Resource(ModifiableModel):
         end = begin+(duration_in_slots*self.min_period)
         return begin, end
 
-    def get_opening_hours(self, begin=None, end=None):
+    def get_opening_hours(self, begin=None, end=None, tzinfo=None):
         if self.periods.exists():
             periods = self.periods
         else:
@@ -220,7 +220,7 @@ class Resource(ModifiableModel):
 
         if begin is None:
             begin = datetime.date.today()
-        return get_opening_hours(periods, begin, end)
+        return get_opening_hours(periods, begin, end, tzinfo)
 
     def get_open_from_now(self, dt):
         """
