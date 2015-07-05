@@ -15,6 +15,12 @@ class ResourceTypeTranslationOptions(TranslationOptions):
     fields = ('name',)
 
 
+class PurposeTranslationOptions(TranslationOptions):
+    fields = ('name',)
+
+
 translator.register(Unit, UnitTranslationOptions)
 translator.register(Resource, ResourceTranslationOptions)
 translator.register(ResourceType, ResourceTypeTranslationOptions)
+translator.register(Purpose, PurposeTranslationOptions)
+

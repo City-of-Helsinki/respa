@@ -150,16 +150,43 @@ class ResourceType(ModifiableModel):
         return "%s (%s)" % (get_translated(self, 'name'), self.id)
 
 
+class Purpose(ModifiableModel):
+    MAIN_TYPES = (
+        ('audiovisual_work', _('Audiovisual work')),
+        ('manufacturing', _('Manufacturing')),
+        ('watch_and_listen', _('Watch and listen')),
+        ('meet_and_work', _('Meet and work')),
+        ('games', _('Games')),
+        ('events_and_exhibitions', _('Events and exhibitions'))
+    )
+    id = models.CharField(primary_key=True, max_length=100)
+    main_type = models.CharField(verbose_name=_('Main type'), max_length=40, choices=MAIN_TYPES)
+    name = models.CharField(verbose_name=_('Name'), max_length=200)
+
+    class Meta:
+        verbose_name = _("resource type")
+        verbose_name_plural = _("resource types")
+
+    def __str__(self):
+        return "%s (%s)" % (get_translated(self, 'name'), self.id)
+
+
 class Resource(ModifiableModel):
+    AUTHENTICATION_TYPES = (
+        ('none', _('None')),
+        ('weak', _('Weak')),
+        ('strong', _('Strong'))
+    )
     id = models.CharField(primary_key=True, max_length=100)
     unit = models.ForeignKey(Unit, verbose_name=_('Unit'), db_index=True, null=True, blank=True,
                              related_name="resources")
     type = models.ForeignKey(ResourceType, verbose_name=_('Resource type'), db_index=True)
+    purposes = models.ManyToManyField(Purpose)
     name = models.CharField(verbose_name=_('Name'), max_length=200)
     description = models.TextField(verbose_name=_('Description'), null=True, blank=True)
     photo = models.URLField(verbose_name=_('Photo URL'), null=True, blank=True)
     need_manual_confirmation = models.BooleanField(verbose_name=_('Need manual confirmation'), default=False)
-
+    authentication = models.CharField(blank=False, max_length=20, choices=AUTHENTICATION_TYPES)
     people_capacity = models.IntegerField(verbose_name=_('People capacity'), null=True, blank=True)
     area = models.IntegerField(verbose_name=_('Area'), null=True, blank=True)
     ground_plan = models.URLField(verbose_name=_('Ground plan URL'), null=True, blank=True)
