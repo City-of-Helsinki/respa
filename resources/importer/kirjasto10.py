@@ -25,8 +25,8 @@ class Kirjasto10Importer(Importer):
         resp = requests.get(url)
         assert resp.status_code == 200
         reader = csv.DictReader(io.StringIO(resp.content.decode('utf8')))
-        data = list(reader)
         next(reader)  # remove field descriptions
+        data = list(reader)
 
         for res_data in data:
             res_type, created = ResourceType.objects.get_or_create(
