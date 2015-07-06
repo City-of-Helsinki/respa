@@ -3,7 +3,7 @@ from rest_framework import serializers, viewsets, generics
 from modeltranslation.translator import translator, NotRegistered
 from munigeo import api as munigeo_api
 
-from .models import Unit, Resource, Reservation
+from .models import Unit, Resource, Reservation, Purpose
 
 
 all_views = []
@@ -84,9 +84,16 @@ class UnitViewSet(munigeo_api.GeoModelAPIView, viewsets.ReadOnlyModelViewSet):
 register_view(UnitViewSet, 'unit')
 
 
+class PurposeSerializer(TranslatedModelSerializer):
+    class Meta:
+        model = Purpose
+        fields = ['name', 'main_type', 'id']
+
+
 class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     opening_hours_today = serializers.DictField(child=NullableTimeField(),
                                                 source='get_opening_hours')
+    purposes = PurposeSerializer(many=True)
 
     class Meta:
         model = Resource
