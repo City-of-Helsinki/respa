@@ -40,7 +40,7 @@ class ReservationTestCase(TestCase):
         r1a = Resource.objects.get(id='r1a')
         r1b = Resource.objects.get(id='r1b')
 
-        begin = arrow.get('2015-06-01T08:00:00+03:00')
+        begin = arrow.get('2015-06-01T08:00:00+00:00')
         Reservation.objects.create(resource=r1a, begin=begin,
                                    end=begin + datetime.timedelta(hours=2))
 
@@ -50,6 +50,6 @@ class ReservationTestCase(TestCase):
                                        end=begin + datetime.timedelta(hours=2))
 
         # Make a reservation that ends when the resource closes
-        begin = arrow.get('2015-06-01T16:00:00+03:00')
+        begin = arrow.get('2015-06-01T16:00:00+00:00')
         Reservation.objects.create(resource=r1a, begin=begin,
                                    end=begin + datetime.timedelta(hours=2))
