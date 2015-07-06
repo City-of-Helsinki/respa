@@ -110,6 +110,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
 
     class Meta:
         model = Reservation
+        fields = ['resource', 'begin', 'end', 'user']
 
 
 class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
