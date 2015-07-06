@@ -6,3 +6,4 @@ djangorestframework
 django-filter
 django-admin-bootstrapped
 arrow
+pytz
