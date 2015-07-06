@@ -1,5 +1,6 @@
-import arrow
+import pytz
 import datetime
+import arrow
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from .models import *
@@ -8,8 +9,8 @@ from .models import *
 class ReservationTestCase(TestCase):
 
     def setUp(self):
-        u1 = Unit.objects.create(name='Unit 1', id='unit_1')
-        u2 = Unit.objects.create(name='Unit 2', id='unit_2')
+        u1 = Unit.objects.create(name='Unit 1', id='unit_1', time_zone='Europe/Helsinki')
+        u2 = Unit.objects.create(name='Unit 2', id='unit_2', time_zone='Europe/Helsinki')
         rt = ResourceType.objects.create(name='Type 1', id='type_1', main_type='space')
         Resource.objects.create(name='Resource 1a', id='r1a', unit=u1, type=rt)
         Resource.objects.create(name='Resource 1b', id='r1b', unit=u1, type=rt)
@@ -40,7 +41,9 @@ class ReservationTestCase(TestCase):
         r1a = Resource.objects.get(id='r1a')
         r1b = Resource.objects.get(id='r1b')
 
-        begin = arrow.get('2015-06-01T08:00:00+00:00')
+        tz = pytz.timezone('Europe/Helsinki')
+
+        begin = tz.localize(arrow.get('2015-06-01T08:00:00').naive)
         Reservation.objects.create(resource=r1a, begin=begin,
                                    end=begin + datetime.timedelta(hours=2))
 
@@ -50,6 +53,6 @@ class ReservationTestCase(TestCase):
                                        end=begin + datetime.timedelta(hours=2))
 
         # Make a reservation that ends when the resource closes
-        begin = arrow.get('2015-06-01T16:00:00+00:00')
+        begin = tz.localize(arrow.get('2015-06-01T16:00:00').naive)
         Reservation.objects.create(resource=r1a, begin=begin,
                                    end=begin + datetime.timedelta(hours=2))
