@@ -1,3 +1,6 @@
+import struct
+import base64
+import time
 import datetime
 from django.utils import timezone
 from django.contrib.gis.db import models
@@ -15,6 +18,23 @@ def get_translated(obj, attr):
     if not val:
         val = getattr(obj, attr)
     return val
+
+
+def generate_id():
+    t = time.time() * 1000000
+    b = base64.b32encode(struct.pack(">Q", int(t)).lstrip(b'\x00')).strip(b'=').lower()
+    return b.decode('utf8')
+
+
+class AutoIdentifiedModel(models.Model):
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.id = generate_id()
+        super().save(*args, **kwargs)
+
+    class Meta:
+        abstract = True
 
 
 class ModifiableModel(models.Model):
@@ -88,7 +108,7 @@ def get_opening_hours(periods, begin, end=None, tzinfo=None):
     return date_list
 
 
-class Unit(ModifiableModel):
+class Unit(ModifiableModel, AutoIdentifiedModel):
     id = models.CharField(primary_key=True, max_length=50)
     name = models.CharField(verbose_name=_('Name'), max_length=200)
     description = models.TextField(verbose_name=_('Description'), null=True, blank=True)
@@ -132,7 +152,7 @@ class UnitIdentifier(models.Model):
         unique_together = (('namespace', 'value'), ('namespace', 'unit'))
 
 
-class ResourceType(ModifiableModel):
+class ResourceType(ModifiableModel, AutoIdentifiedModel):
     MAIN_TYPES = (
         ('space', _('Space')),
         ('person', _('Person')),
@@ -171,7 +191,7 @@ class Purpose(ModifiableModel):
         return "%s (%s)" % (get_translated(self, 'name'), self.id)
 
 
-class Resource(ModifiableModel):
+class Resource(ModifiableModel, AutoIdentifiedModel):
     AUTHENTICATION_TYPES = (
         ('none', _('None')),
         ('weak', _('Weak')),
