@@ -1,7 +1,8 @@
 from django.conf import settings
-from rest_framework import serializers, viewsets, generics
+from rest_framework import serializers, viewsets, generics, filters
 from modeltranslation.translator import translator, NotRegistered
 from munigeo import api as munigeo_api
+import django_filters
 
 from .models import Unit, Resource, Reservation, Purpose
 
@@ -99,9 +100,19 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
         model = Resource
 
 
+class ResourceFilter(django_filters.FilterSet):
+    purpose = django_filters.CharFilter(name="purposes__id", lookup_type='iexact')
+
+    class Meta:
+        model = Resource
+        fields = ['purpose']
+
+
 class ResourceViewSet(munigeo_api.GeoModelAPIView, viewsets.ReadOnlyModelViewSet):
     queryset = Resource.objects.all()
     serializer_class = ResourceSerializer
+    filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend)
+    filter_class = ResourceFilter
 
 register_view(ResourceViewSet, 'resource')
 
