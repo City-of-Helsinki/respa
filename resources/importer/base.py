@@ -3,22 +3,21 @@ import base64
 import logging
 import time
 import struct
-from django.utils.text import slugify
-from django.contrib.gis.gdal import DataSource, SpatialReference, CoordTransform
-from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Point
+import re
 from django.conf import settings
 from modeltranslation.translator import translator
 
 from resources.models import Unit, UnitIdentifier
 
 
-def convert_from_wgs84(coords):
-    pnt = Point(coords[1], coords[0], srid=4326)
-    pnt.transform(PROJECTION_SRID)
-    return pnt
-
-
 class Importer(object):
+
+    @staticmethod
+    def clean_text(text):
+        text = text.replace('\n', ' ')
+        # remove consecutive whitespaces
+        return re.sub(r'\s\s+', ' ', text, re.U).strip()
+
     def find_data_file(self, data_file):
         for path in self.data_paths:
             full_path = os.path.join(path, data_file)
