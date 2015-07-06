@@ -4,3 +4,4 @@ psycopg2
 -e git+https://github.com/City-of-Helsinki/munigeo#egg=django-munigeo
 djangorestframework
 django-admin-bootstrapped
+arrow
