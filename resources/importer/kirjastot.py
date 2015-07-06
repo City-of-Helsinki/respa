@@ -44,12 +44,13 @@ class KirjastotImporter(Importer):
                 if not period['days']:
                     continue
                 for day_id, day in period['days'].items():
+                    weekday = day['day'] - 1
                     try:
                         # TODO: check the data for inconsistencies
                         opens = day['opens'] or None
                         closes = day['closes'] or None
                         active_period.days.get_or_create(
-                            weekday=day['day'],
+                            weekday=weekday,
                             opens=opens,
                             closes=closes,
                             closed=day['closed']
