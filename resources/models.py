@@ -241,7 +241,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         closing = hours['closes']
         if end <= begin:
             raise ValidationError(_("You must end the reservation after it has begun"))
-        if begin <= opening:
+        if begin < opening:
             raise ValidationError(_("You must start the reservation during opening hours"))
         if end > closing:
             raise ValidationError(_("You must end the reservation before closing"))
