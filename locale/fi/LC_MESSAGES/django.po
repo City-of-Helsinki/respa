@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-07-01 10:39+0000\n"
+"POT-Creation-Date: 2015-07-06 05:12+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -46,248 +45,300 @@ msgstr "Muokkausaika"
 msgid "Modified by"
 msgstr "Muokkaaja"
 
-#: resources/models.py:86 resources/models.py:133 resources/models.py:147
-#: resources/models.py:247
+#: resources/models.py:93 resources/models.py:143 resources/models.py:164
+#: resources/models.py:185 resources/models.py:375
 msgid "Name"
 msgstr "Nimi"
 
-#: resources/models.py:87 resources/models.py:148 resources/models.py:248
+#: resources/models.py:94 resources/models.py:186 resources/models.py:376
 msgid "Description"
 msgstr "Kuvaus"
 
-#: resources/models.py:89 resources/models.py:157
+#: resources/models.py:96 resources/models.py:195
 msgid "Location"
 msgstr "Sijainti"
 
-#: resources/models.py:91
+#: resources/models.py:98
 msgid "Street address"
 msgstr "Katuosoite"
 
-#: resources/models.py:92
+#: resources/models.py:99
 msgid "Postal code"
 msgstr "Postinumero"
 
-#: resources/models.py:93
+#: resources/models.py:100
 msgid "Phone number"
 msgstr "Puhelinnumero"
 
-#: resources/models.py:94
+#: resources/models.py:101
 msgid "Email"
 msgstr "Sähköpostiosoite"
 
-#: resources/models.py:95
+#: resources/models.py:102
 msgid "WWW link"
 msgstr "Www-osoite"
 
-#: resources/models.py:96
+#: resources/models.py:103
 msgid "Full postal address"
 msgstr "Täysi postiosoite"
 
-#: resources/models.py:98
+#: resources/models.py:106
 msgid "Picture URL"
 msgstr "Valokuvan osoite"
 
-#: resources/models.py:99
+#: resources/models.py:108
 msgid "Picture caption"
 msgstr "Valokuvan kuvateksti"
 
-#: resources/models.py:102
+#: resources/models.py:112
 msgid "unit"
 msgstr "toimipiste"
 
-#: resources/models.py:103
+#: resources/models.py:113
 msgid "units"
 msgstr "toimipisteet"
 
-#: resources/models.py:117 resources/models.py:145 resources/models.py:242
+#: resources/models.py:127 resources/models.py:181 resources/models.py:370
 msgid "Unit"
 msgstr "Toimipiste"
 
-#: resources/models.py:118
+#: resources/models.py:128
 msgid "Namespace"
 msgstr "Tunnisteavaruus"
 
-#: resources/models.py:119
+#: resources/models.py:129
 msgid "Value"
 msgstr "Arvo"
 
-#: resources/models.py:127
+#: resources/models.py:137
 msgid "Space"
 msgstr "Tila"
 
-#: resources/models.py:128
+#: resources/models.py:138
 msgid "Person"
 msgstr "Henkilö"
 
-#: resources/models.py:129
+#: resources/models.py:139
 msgid "Item"
 msgstr "Esine"
 
-#: resources/models.py:132
+#: resources/models.py:142 resources/models.py:163
 msgid "Main type"
 msgstr "Päätyyppi"
 
-#: resources/models.py:136
+#: resources/models.py:146 resources/models.py:167
 msgid "resource type"
 msgstr "resurssityyppi"
 
-#: resources/models.py:137
+#: resources/models.py:147 resources/models.py:168
 msgid "resource types"
 msgstr "resurssityypit"
 
-#: resources/models.py:146
+#: resources/models.py:155
+msgid "Audiovisual work"
+msgstr "Audiovisuaalinen työskentely"
+
+#: resources/models.py:156
+msgid "Manufacturing"
+msgstr "Fyysisten esineiden tekeminen"
+
+#: resources/models.py:157
+msgid "Watch and listen"
+msgstr "Katselu ja kuuntelu"
+
+#: resources/models.py:158
+msgid "Meet and work"
+msgstr "Kokoontuminen ja työskentely"
+
+#: resources/models.py:159
+msgid "Games"
+msgstr "Pelaaminen"
+
+#: resources/models.py:160
+msgid "Events and exhibitions"
+msgstr "Tapahtumat ja näyttelyt"
+
+#: resources/models.py:176
+msgid "None"
+msgstr "Ei mitään"
+
+#: resources/models.py:177
+msgid "Weak"
+msgstr "Heikko"
+
+#: resources/models.py:178
+msgid "Strong"
+msgstr "Vahva"
+
+#: resources/models.py:183
 msgid "Resource type"
 msgstr "Resurssityyppi"
 
-#: resources/models.py:149
+#: resources/models.py:187
 msgid "Photo URL"
 msgstr "Valokuvan osoite"
 
-#: resources/models.py:150
+#: resources/models.py:188
 msgid "Need manual confirmation"
 msgstr "Tarvitsee virkailijan vahvistuksen"
 
-#: resources/models.py:152
+#: resources/models.py:190
 msgid "People capacity"
 msgstr "Henkilömäärä"
 
-#: resources/models.py:153
+#: resources/models.py:191
 msgid "Area"
 msgstr "Pinta-ala"
 
-#: resources/models.py:154
+#: resources/models.py:192
 msgid "Ground plan URL"
 msgstr "Pohjapiirroksen osoite"
 
-#: resources/models.py:160
+#: resources/models.py:197
+msgid "Minimum reservation time"
+msgstr "Lyhin varausaika"
+
+#: resources/models.py:198
+msgid "Maximum reservation time"
+msgstr "Pisin varausaika"
+
+#: resources/models.py:201
 msgid "resource"
 msgstr "resurssi"
 
-#: resources/models.py:161
+#: resources/models.py:202
 msgid "resources"
 msgstr "resurssit"
 
-#: resources/models.py:207 resources/models.py:240
-msgid "Resource"
-msgstr "Resurssi"
-
-#: resources/models.py:208
-msgid "Begin time"
-msgstr "Alkuaika"
-
-#: resources/models.py:209
-msgid "End time"
-msgstr "Loppuaika"
-
-#: resources/models.py:210
-msgid "User"
-msgstr "Käyttäjä"
-
-#: resources/models.py:213
-msgid "reservation"
-msgstr "varaus"
-
-#: resources/models.py:214
-msgid "reservations"
-msgstr "varaukset"
-
-#: resources/models.py:222
-msgid "The reservation has to end on the same day"
-msgstr ""
-
-#: resources/models.py:224
+#: resources/models.py:223
 msgid "You must end the reservation after it has begun"
 msgstr ""
 
-#: resources/models.py:226
+#: resources/models.py:225
 msgid "You must start the reservation during opening hours"
 msgstr ""
 
-#: resources/models.py:228
+#: resources/models.py:227
 msgid "You must end the reservation before closing"
 msgstr ""
 
-#: resources/models.py:232
+#: resources/models.py:237
+msgid "The minimum duration for a reservation is "
+msgstr ""
+
+#: resources/models.py:240
+msgid "The maximum reservation length is "
+msgstr ""
+
+#: resources/models.py:244
+msgid "The resource is already reserved for some of the period"
+msgstr ""
+
+#: resources/models.py:342 resources/models.py:368
+msgid "Resource"
+msgstr "Resurssi"
+
+#: resources/models.py:343
+msgid "Begin time"
+msgstr "Alkuaika"
+
+#: resources/models.py:344
+msgid "End time"
+msgstr "Loppuaika"
+
+#: resources/models.py:345
+msgid "User"
+msgstr "Käyttäjä"
+
+#: resources/models.py:349
+msgid "reservation"
+msgstr "varaus"
+
+#: resources/models.py:350
+msgid "reservations"
+msgstr "varaukset"
+
+#: resources/models.py:360
 msgid "open"
 msgstr "auki"
 
-#: resources/models.py:232
+#: resources/models.py:360
 msgid "closed"
 msgstr "kiinni"
 
-#: resources/models.py:245
+#: resources/models.py:373
 msgid "Start date"
 msgstr "Alkupäivä"
 
-#: resources/models.py:246
+#: resources/models.py:374
 msgid "End date"
 msgstr "Loppupäivä"
 
-#: resources/models.py:249 resources/models.py:286
+#: resources/models.py:378 resources/models.py:415
 msgid "Closed"
 msgstr "Kiinni"
 
-#: resources/models.py:252
+#: resources/models.py:381
 msgid "period"
 msgstr "aikaväli"
 
-#: resources/models.py:253
+#: resources/models.py:382
 msgid "periods"
 msgstr "aikavälit"
 
-#: resources/models.py:262
+#: resources/models.py:391
 msgid "You must set either 'resource' or 'unit', but not both"
 msgstr "Aseta 'resource' tai 'unit', älä molempia"
 
-#: resources/models.py:273
+#: resources/models.py:402
 msgid "Monday"
 msgstr "Maanantai"
 
-#: resources/models.py:274
+#: resources/models.py:403
 msgid "Tuesday"
 msgstr "Tiistai"
 
-#: resources/models.py:275
+#: resources/models.py:404
 msgid "Wednesday"
 msgstr "Keskiviikko"
 
-#: resources/models.py:276
+#: resources/models.py:405
 msgid "Thursday"
 msgstr "Torstai"
 
-#: resources/models.py:277
+#: resources/models.py:406
 msgid "Friday"
 msgstr "Perjantai"
 
-#: resources/models.py:278
+#: resources/models.py:407
 msgid "Saturday"
 msgstr "Lauantai"
 
-#: resources/models.py:279
+#: resources/models.py:408
 msgid "Sunday"
 msgstr "Sunnuntai"
 
-#: resources/models.py:282
+#: resources/models.py:411
 msgid "Period"
 msgstr "Aikaväli"
 
-#: resources/models.py:283
+#: resources/models.py:412
 msgid "Weekday"
 msgstr "Viikonpäivä"
 
-#: resources/models.py:284
+#: resources/models.py:413
 msgid "Time when opens"
 msgstr "Aukeamisaika"
 
-#: resources/models.py:285
+#: resources/models.py:414
 msgid "Time when closes"
 msgstr "Kiinnimenoaika"
 
-#: resources/models.py:289
+#: resources/models.py:418
 msgid "day"
 msgstr "päivä"
 
-#: resources/models.py:290
+#: resources/models.py:419
 msgid "days"
 msgstr "päivät"
 

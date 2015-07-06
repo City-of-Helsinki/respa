@@ -194,8 +194,8 @@ class Resource(ModifiableModel):
     # if not set, location is inherited from unit
     location = models.PointField(verbose_name=_('Location'), null=True, blank=True, srid=settings.DEFAULT_SRID)
 
-    min_period = models.DurationField(default=datetime.timedelta(minutes=30))
-    max_period = models.DurationField(null=True, blank=True)
+    min_period = models.DurationField(verbose_name=_('Minimum reservation time'), default=datetime.timedelta(minutes=30))
+    max_period = models.DurationField(verbose_name=_('Maximum reservation time'), null=True, blank=True)
 
     class Meta:
         verbose_name = _("resource")
