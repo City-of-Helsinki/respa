@@ -102,7 +102,7 @@ LANGUAGES = (
     ('sv', _('Swedish'))
 )
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Helsinki'
 
 USE_I18N = True
 

@@ -2,9 +2,10 @@ import struct
 import base64
 import time
 import datetime
+import pytz
 from django.utils import timezone
 from django.contrib.gis.db import models
-from django.conf import settings
+from django.f import settings
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 import django.db.models as dbm
@@ -95,8 +96,8 @@ def get_opening_hours(periods, begin, end=None, tzinfo=None):
             if tzinfo:
                 opens = datetime.datetime.combine(date, opens)
                 closes = datetime.datetime.combine(date, closes)
-                opens = opens.replace(tzinfo=tzinfo)
-                closes = closes.replace(tzinfo=tzinfo)
+                opens = tzinfo.localize(opens)
+                closes = tzinfo.localize(closes)
 
         date_list.append({'date': date.isoformat(), 'opens': opens, 'closes': closes})
         date += datetime.timedelta(days=1)
@@ -114,6 +115,9 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
     description = models.TextField(verbose_name=_('Description'), null=True, blank=True)
 
     location = models.PointField(verbose_name=_('Location'), null=True, srid=settings.DEFAULT_SRID)
+    time_zone = models.CharField(verbose_name=_('Time zone'), max_length=50, default=timezone.get_default_timezone().zone,
+                                 choices=[(x, x) for x in pytz.all_timezones])
+
     # organization = models.ForeignKey(...)
     street_address = models.CharField(verbose_name=_('Street address'), max_length=100, null=True)
     address_zip = models.CharField(verbose_name=_('Postal code'), max_length=10, null=True, blank=True)
@@ -135,12 +139,11 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
     def __str__(self):
         return "%s (%s)" % (get_translated(self, 'name'), self.id)
 
-    def get_opening_hours(self, begin=None, end=None):
+    def get_opening_hours(self, begin=None, end=None, tzinfo=None):
         if begin is None:
             begin = datetime.date.today()
         periods = self.periods
-        ret = get_opening_hours(periods, begin, end)
-        return ret
+        return get_opening_hours(periods, begin, end, tzinfo)
 
 
 class UnitIdentifier(models.Model):
@@ -231,17 +234,16 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         If the reservation cannot be accepted, raises a ValidationError.
         """
 
-        # TODO: set the timezone according to the resource
-        zone = timezone.get_default_timezone()
+        zone = pytz.timezone(self.unit.time_zone)
 
-        begin = reservation.begin
-        end = reservation.end
+        begin = reservation.begin.astimezone(zone)
+        end = reservation.end.astimezone(zone)
         hours = self.get_opening_hours(begin.date(), tzinfo=zone)
         opening = hours['opens']
         closing = hours['closes']
         if end <= begin:
             raise ValidationError(_("You must end the reservation after it has begun"))
-        if begin < opening:
+        if opening is None or begin < opening:
             raise ValidationError(_("You must start the reservation during opening hours"))
         if end > closing:
             raise ValidationError(_("You must end the reservation before closing"))
