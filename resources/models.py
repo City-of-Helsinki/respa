@@ -5,7 +5,7 @@ import datetime
 import pytz
 from django.utils import timezone
 from django.contrib.gis.db import models
-from django.f import settings
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 import django.db.models as dbm
