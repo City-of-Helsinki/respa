@@ -280,7 +280,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                 return True
         return False
 
-    def get_available_hours(self, begin, end, tzinfo=None, reservation=None):
+    def get_available_hours(self, start=None, end=None, duration=None, reservation=None):
         """
         Returns hours that the resource is not reserved for a given date range
 
@@ -288,16 +288,24 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         This is so that admins can book resources during closing hours. Returns
         the available hours as a list of dicts. The optional reservation argument
         is for disregarding a given reservation during checking, if we wish to
-        move an existing reservation.
+        move an existing reservation. The optional duration argument specifies
+        minimum length for periods to be returned.
         """
+        zone = pytz.timezone(self.unit.time_zone)
 
-        # the reservations already have a timezone set, so we only add timezone info to the query
-        if tzinfo:
-            begin = begin.replace(tzinfo=tzinfo)
-            end = end.replace(tzinfo=tzinfo)
+        if start is None:
+            start = datetime.datetime.combine(datetime.date.today(),
+                                              datetime.datetime.min.time())
+        if end is None:
+            end = datetime.datetime.combine(datetime.date.today()+datetime.timedelta(days=1),
+                                            datetime.datetime.min.time())
+        if start.tzinfo is None:
+            start = zone.localize(start)
+        if end.tzinfo is None:
+            end = zone.localize(end)
         reservations = self.reservations.filter(
-            end__gte=begin, begin__lte=end).order_by('begin')
-        hours_list = [({'starts': begin})]
+            end__gte=start, begin__lte=end).order_by('begin')
+        hours_list = [({'starts': start})]
         first_checked = False
         for res in reservations:
             # skip the reservation that is being edited
@@ -306,17 +314,26 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             # check if the reservation spans the beginning
             if not first_checked:
                 first_checked = True
-                if res.begin < begin:
+                if res.begin < start:
                     if res.end > end:
                         return []
                     hours_list[0]['starts'] = res.end
                     # proceed to the next reservation
+                    continue
+            if duration:
+                if res.begin-hours_list[-1]['starts'] < duration:
+                    # the free period is too short
                     continue
             hours_list[-1]['ends'] = res.begin
             # check if the reservation spans the end
             if res.end > end:
                 return hours_list
             hours_list.append({'starts': res.end})
+        if duration:
+            if end-hours_list[-1]['starts'] < duration:
+                # the free period is too short
+                hours_list.pop()
+                return hours_list
         hours_list[-1]['ends'] = end
         return hours_list
 

@@ -1,4 +1,6 @@
+import datetime
 from django.conf import settings
+from django.utils.datastructures import MultiValueDictKeyError
 from rest_framework import serializers, viewsets, generics, filters
 from modeltranslation.translator import translator, NotRegistered
 from munigeo import api as munigeo_api
@@ -92,12 +94,31 @@ class PurposeSerializer(TranslatedModelSerializer):
 
 
 class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
+    available_hours = serializers.SerializerMethodField()
     opening_hours_today = serializers.DictField(child=NullableTimeField(),
                                                 source='get_opening_hours')
     purposes = PurposeSerializer(many=True)
 
     class Meta:
         model = Resource
+
+    def get_available_hours(self, obj):
+        parameters = self.context['request'].query_params
+        if 'duration' in parameters or 'start' in parameters or 'end' in parameters:
+            try:
+                duration = parameters['duration']
+            except MultiValueDictKeyError:
+                duration = None
+            try:
+                start = parameters['start']
+            except MultiValueDictKeyError:
+                start = None
+            try:
+                end = parameters['end']
+            except MultiValueDictKeyError:
+                end = None
+            return obj.get_available_hours(start=start, end=end, duration=datetime.timedelta(minutes=int(duration)))
+        return obj.get_available_hours()
 
 
 class ResourceFilter(django_filters.FilterSet):
