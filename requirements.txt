@@ -9,3 +9,4 @@ django-nose
 nose-watch
 arrow
 pytz
+coverage
