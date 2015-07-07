@@ -44,15 +44,28 @@ class ReservationTestCase(TestCase):
         tz = pytz.timezone('Europe/Helsinki')
 
         begin = tz.localize(arrow.get('2015-06-01T08:00:00').naive)
-        Reservation.objects.create(resource=r1a, begin=begin,
-                                   end=begin + datetime.timedelta(hours=2))
+        end = begin + datetime.timedelta(hours=2)
+
+        Reservation.objects.create(resource=r1a, begin=begin, end=end)
 
         # Attempt overlapping reservation
         with self.assertRaises(ValidationError):
             Reservation.objects.create(resource=r1a, begin=begin,
-                                       end=begin + datetime.timedelta(hours=2))
+                                       end=end)
 
-        # Make a reservation that ends when the resource closes
+        # Attempt reservation that starts before the resource opens
+        with self.assertRaises(ValidationError):
+            Reservation.objects.create(resource=r1a,
+                                       begin=begin - datetime.timedelta(hours=1),
+                                       end=end)
+
         begin = tz.localize(arrow.get('2015-06-01T16:00:00').naive)
+        end = begin + datetime.timedelta(hours=2)
+        # Make a reservation that ends when the resource closes
         Reservation.objects.create(resource=r1a, begin=begin,
-                                   end=begin + datetime.timedelta(hours=2))
+                                   end=end)
+
+        # Attempt reservation that ends after the resource closes
+        with self.assertRaises(ValidationError):
+            Reservation.objects.create(resource=r1a, begin=begin,
+                                       end=end + datetime.timedelta(hours=1))
