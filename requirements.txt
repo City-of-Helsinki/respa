@@ -5,5 +5,7 @@ psycopg2
 djangorestframework
 django-filter
 django-admin-bootstrapped
+django-nose
+nose-watch
 arrow
 pytz

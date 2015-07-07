@@ -43,6 +43,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'rest_framework',
+    'django_nose',
     
     'munigeo',
 
@@ -79,6 +80,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'respa.wsgi.application'
+
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 
 # Database
