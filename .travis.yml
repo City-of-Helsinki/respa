@@ -1,0 +1,18 @@
+
+language: python
+
+python:
+  - "3.4"
+
+env:
+  - DJANGO=Django>=1.8
+  
+before_install:
+  - echo "Testing Travis"
+
+# command to install dependencies
+install:
+  - pip install -r requirements.txt --use-mirrors
+
+# command to run tests
+script: python setup.py test
