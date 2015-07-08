@@ -232,9 +232,9 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
     def get_opening_hours(self, begin=None, end=None):
         today = arrow.get()
         if begin is None:
-            begin = today.replace().floor('hour').datetime
+            begin = today.replace().floor('day').datetime
         if end is None:
-            end = today.replace(days=+1).floor('hour').datetime
+            end = today.replace(days=+1).floor('day').datetime
         periods = self.periods
         return get_opening_hours(periods, begin, end)
 
@@ -396,11 +396,13 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         """
         today = arrow.get()
         if start is None:
-            start = today.replace().floor('hour').datetime
+            start = today.floor('day').datetime
         if end is None:
-            end = today.replace(days=+1).floor('hour').datetime
+            end = today.replace(days=+1).floor('day').datetime
+        print(start, end)
         reservations = self.reservations.filter(
             end__gte=start, begin__lte=end).order_by('begin')
+        print(reservations)
         hours_list = [({'starts': start})]
         first_checked = False
         for res in reservations:
@@ -439,10 +441,12 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         else:
             periods = self.unit.periods
 
+        today = arrow.get()
         if begin is None:
-            begin = datetime.date.today()
+            begin = today.floor('day').datetime
         if end is None:
-            end = datetime.date.today()
+            end = today.replace(days=+1).floor('day').datetime
+        print(begin, end)
         return get_opening_hours(periods, begin, end)
 
     def get_open_from_now(self, dt):
