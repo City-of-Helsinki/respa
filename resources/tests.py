@@ -3,8 +3,8 @@ import datetime
 import arrow
 from django.core.exceptions import ValidationError
 from django.test import TestCase
+from rest_framework.test import APITestCase, APIRequestFactory, APIClient
 from .models import *
-
 
 class ReservationTestCase(TestCase):
 
@@ -115,3 +115,43 @@ class DayTestCase(TestCase):
         periods = Period.objects.all()
         self.assertEqual(len(periods), 3)
 
+
+class ReservationApiTestCase(APITestCase):
+
+    def setUp(self):
+        u1 = Unit.objects.create(name='Unit 1', id='unit_1', time_zone='Europe/Helsinki')
+        u2 = Unit.objects.create(name='Unit 2', id='unit_2', time_zone='Europe/Helsinki')
+        rt = ResourceType.objects.create(name='Type 1', id='type_1', main_type='space')
+        Resource.objects.create(name='Resource 1a', id='r1a', unit=u1, type=rt)
+        Resource.objects.create(name='Resource 1b', id='r1b', unit=u1, type=rt)
+        Resource.objects.create(name='Resource 2a', id='r2a', unit=u2, type=rt)
+        Resource.objects.create(name='Resource 2b', id='r2b', unit=u2, type=rt)
+
+        p1 = Period.objects.create(start='2015-06-01', end='2015-09-01', unit=u1, name='')
+        p2 = Period.objects.create(start='2015-06-01', end='2015-09-01', unit=u2, name='')
+        p3 = Period.objects.create(start='2015-06-01', end='2015-09-01', resource_id='r1a', name='')
+        Day.objects.create(period=p1, weekday=0, opens='08:00', closes='22:00')
+        Day.objects.create(period=p2, weekday=1, opens='08:00', closes='16:00')
+        Day.objects.create(period=p3, weekday=0, opens='08:00', closes='18:00')
+
+    
+    def test_api(self):
+        response = self.client.get('/v1/unit/')
+        self.assertContains(response, 'Unit 1')
+        self.assertContains(response, 'Unit 2')
+
+        response = self.client.get('/v1/resource/')
+        self.assertContains(response, 'Resource 1a')
+        self.assertContains(response, 'Resource 1b')
+        self.assertContains(response, 'Resource 2a')
+        self.assertContains(response, 'Resource 2b')
+
+        # Check that available hours are reported correctly for a free resource
+        response = self.client.get('/v1/resource/r1a/')
+        print(response.content)
+        tz = pytz.timezone('Europe/Helsinki')
+        start = tz.localize(arrow.get(arrow.now().date()).naive)
+        end = start + datetime.timedelta(days=1)
+        format = '%Y-%m-%dT%H:%M:%S+03:00'
+        self.assertContains(response, '"starts":"' + start.strftime(format) + '"')
+        self.assertContains(response, '"ends":"' + end.strftime(format) + '"')

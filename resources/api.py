@@ -1,4 +1,6 @@
 import datetime
+import arrow
+import pytz
 from django.conf import settings
 from django.utils.datastructures import MultiValueDictKeyError
 from rest_framework import serializers, viewsets, generics, filters
@@ -103,21 +105,22 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
         model = Resource
 
     def get_available_hours(self, obj):
+        zone = pytz.timezone(obj.unit.time_zone)
         parameters = self.context['request'].query_params
         if 'duration' in parameters or 'start' in parameters or 'end' in parameters:
             try:
-                duration = parameters['duration']
+                duration = datetime.timedelta(minutes=int(parameters['duration']))
             except MultiValueDictKeyError:
                 duration = None
             try:
-                start = parameters['start']
+                start = zone.localize(arrow.get(parameters['start']).naive)
             except MultiValueDictKeyError:
                 start = None
             try:
-                end = parameters['end']
+                end = zone.localize(arrow.get(parameters['end']).naive)
             except MultiValueDictKeyError:
                 end = None
-            return obj.get_available_hours(start=start, end=end, duration=datetime.timedelta(minutes=int(duration)))
+            return obj.get_available_hours(start=start, end=end, duration=duration)
         return obj.get_available_hours()
 
 
