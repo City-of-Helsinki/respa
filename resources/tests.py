@@ -118,6 +118,8 @@ class DayTestCase(TestCase):
 
 class ReservationApiTestCase(APITestCase):
 
+    client = APIClient()
+
     def setUp(self):
         u1 = Unit.objects.create(name='Unit 1', id='unit_1', time_zone='Europe/Helsinki')
         u2 = Unit.objects.create(name='Unit 2', id='unit_2', time_zone='Europe/Helsinki')
