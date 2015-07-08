@@ -8,7 +8,12 @@ from django.contrib.gis.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
+from django.db.models import Q
+from django.utils.dateformat import time_format
 import django.db.models as dbm
+import django.contrib.postgres.fields as pgfields
+
+import arrow
 
 DEFAULT_LANG = settings.LANGUAGES[0][0]
 
@@ -50,7 +55,7 @@ class ModifiableModel(models.Model):
         abstract = True
 
 
-def get_opening_hours(periods, begin, end=None, tzinfo=None):
+def get_opening_hours_old(periods, begin, end=None, tzinfo=None):
     """
     Returns opening and closing time for a given date range
 
@@ -108,6 +113,75 @@ def get_opening_hours(periods, begin, end=None, tzinfo=None):
         return ret
     return date_list
 
+def get_opening_hours(periods, begin, end=None):
+    """
+    Returns opening and closing times for a given date range
+
+    Return value is a dict where keys are days on the range
+        and values are a list of Day objects for that day's active period
+        containing opening and closing hours
+    """
+    assert begin <= end
+
+    periods = periods.filter(start__lte=begin, end__gte=end).order_by('start', 'end')
+    days = Day.objects.filter(period__in=periods)
+
+    for period in periods:
+        period.range_days = [day for day in days if day.period == period]
+
+    periods = {per: (exper for exper in periods if per.exception and exper.parent == per)
+               for per in periods if not per.exception}
+
+    begin_dt = datetime.datetime.combine(begin, datetime.time(0, 0))
+    if end:
+        end_dt = datetime.datetime.combine(end, datetime.time(0, 0))
+    else:
+        end_dt = begin_dt
+
+    # Generates a dict of time range's days as keys and values as active period's days
+    dates = {}
+    for period, exception_periods in periods.items():
+
+        # Date range for periods needs to be given start and end days, but other periods get to keep their range
+        if period.start < begin_dt:
+            start = begin_dt
+        else:
+            start = arrow.get(period.start, tzinfo='UTC')
+        if period.end > end_dt:
+            end = end_dt
+        else:
+            end = arrow.get(period.end, tzinfo='UTC')
+
+        # For one period, generate all of its days and for given day, put its hours into the dict
+        for r in arrow.Arrow.range('day', start, end):
+            dates[r] = [day for day in period.range_days if day.weekday() is r.weekday()]
+
+        if exception_periods:
+            # For period's exceptional periods, generate a new dict for those days
+            exception_dates = {}
+            for exception_period in exception_periods:
+                # Exceptions happen inside date range of their periods so same mulling of start and end days occur
+                if period.start < begin_dt:
+                    start = begin_dt
+                else:
+                    start = arrow.get(period.start, tzinfo='UTC')
+                if period.end > end_dt:
+                    end = end_dt
+                else:
+                    end = arrow.get(period.end, tzinfo='UTC')
+
+                # Updating dict of exceptional dates with current exception period's days
+                for r in arrow.Arrow.range('day', start, end):
+                    exception_dates[r] = [day for day in exception_period.range_days if day.weekday() is r.weekday()]
+
+            # And override full day list with exceptions where applicable
+            dates.update(exception_dates)
+
+    # Old format for memory, does not quite cut it for resources with intermittent open/closed periods during one day
+    # These would be places that close for lunch, for instance
+    # date_list.append({'date': date.isoformat(), 'opens': opens, 'closes': closes})
+
+    return dates
 
 class Unit(ModifiableModel, AutoIdentifiedModel):
     id = models.CharField(primary_key=True, max_length=50)
@@ -381,6 +455,8 @@ class Reservation(ModifiableModel):
     resource = models.ForeignKey(Resource, verbose_name=_('Resource'), db_index=True, related_name='reservations')
     begin = models.DateTimeField(verbose_name=_('Begin time'))
     end = models.DateTimeField(verbose_name=_('End time'))
+    duration = pgfields.DateTimeRangeField(verbose_name=_('Length of reservation'), null=True,
+                                           blank=True, db_index=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('User'), null=True,
                              blank=True, db_index=True)
 
@@ -404,6 +480,8 @@ class Period(models.Model):
     A period of time to express state of open or closed
     Days that specifies the actual activity hours link here
     """
+    parent = models.ForeignKey('Period', verbose_name=_('period'), null=True, blank=True)
+    exception = models.BooleanField(verbose_name=_('Exceptional period'), default=False)
     resource = models.ForeignKey(Resource, verbose_name=_('Resource'), db_index=True,
                                  null=True, blank=True, related_name='periods')
     unit = models.ForeignKey(Unit, verbose_name=_('Unit'), db_index=True,
@@ -411,6 +489,9 @@ class Period(models.Model):
 
     start = models.DateField(verbose_name=_('Start date'))
     end = models.DateField(verbose_name=_('End date'))
+    duration = pgfields.DateRangeField(verbose_name=_('Length of period'), null=True,
+                                       blank=True, db_index=True)
+
     name = models.CharField(max_length=200, verbose_name=_('Name'))
     description = models.CharField(verbose_name=_('Description'), null=True,
                                    blank=True, max_length=500)
@@ -451,7 +532,11 @@ class Day(models.Model):
     weekday = models.IntegerField(verbose_name=_('Weekday'), choices=DAYS_OF_WEEK)
     opens = models.TimeField(verbose_name=_('Time when opens'), null=True, blank=True)
     closes = models.TimeField(verbose_name=_('Time when closes'), null=True, blank=True)
-    closed = models.NullBooleanField(verbose_name=_('Closed'), default=False)  # NOTE: If this is true and the period is false, what then?
+    length = pgfields.IntegerRangeField(verbose_name=_('Range between opens and closes'), null=True,
+                                          blank=True, db_index=True)
+    # NOTE: If this is true and the period is false, what then?
+    closed = models.NullBooleanField(verbose_name=_('Closed'), default=False)
+    description = models.CharField(max_length=200, verbose_name=_('description'), null=True, blank=True)
 
     class Meta:
         verbose_name = _("day")
@@ -459,5 +544,10 @@ class Day(models.Model):
 
     def __str__(self):
         # FIXME: output date in locale-specific format
-        return "{4}, {3}: {1:%d.%m.%Y} - {2:%d.%m.%Y}, {0}: {3}".format(
-            self.get_weekday_display(), self.period.start, self.period.end, STATE_BOOLS[self.closed], self.period.name)
+        if self.opens and self.closes:
+            hours = ", {0} - {1}".format(time_format(self.opens, "G:i"), time_format(self.closes, "G:i"))
+        else:
+            hours = ""
+        return "{4}, {3}: {1:%d.%m.%Y} - {2:%d.%m.%Y}, {0}: {3} {5}".format(
+            self.get_weekday_display(), self.period.start, self.period.end,
+            STATE_BOOLS[self.closed], self.period.name, hours)
