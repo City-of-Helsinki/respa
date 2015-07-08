@@ -85,12 +85,37 @@ class ReservationTestCase(APITestCase):
         self.assertContains(response, 'Resource 2a')
         self.assertContains(response, 'Resource 2b')
 
-        # Check that available hours are reported correctly for a free resource
-        response = self.client.get('/v1/resource/r1a/')
-        print(response.content)
         tz = pytz.timezone('Europe/Helsinki')
         start = tz.localize(arrow.get(arrow.now().date()).naive)
         end = start + datetime.timedelta(days=1)
         format = '%Y-%m-%dT%H:%M:%S+03:00'
+
+        # Check that available hours are reported correctly for a free resource
+        response = self.client.get('/v1/resource/r1a/')
+        print(response.content)
         self.assertContains(response, '"starts":"' + start.strftime(format) + '"')
         self.assertContains(response, '"ends":"' + end.strftime(format) + '"')
+
+        # Set opening hours for today (required to make a reservation)
+        today = Period.objects.create(start=start.date(), end=end.date(), resource_id='r1a', name='')
+        Day.objects.create(period=today, weekday=start.weekday(), opens='08:00', closes='22:00')
+
+        # Make a reservation through the API
+        res_start = start + datetime.timedelta(hours=8)
+        res_end = res_start + datetime.timedelta(hours=2)
+        # res_start = '2015-06-01T08:00:00'
+        # res_end = '2015-06-01T10:00:00'
+        response = self.client.post('/v1/reservation/',
+                                    {'resource': 'r1a',
+                                     'begin': res_start,
+                                     'end': res_end})
+        print(response.content)
+        self.assertContains(response, '"resource":"r1a"', status_code=201)
+
+        # Check that available hours are reported correctly for a reserved resource
+        response = self.client.get('/v1/resource/r1a/')
+        print(response.content)
+        self.assertContains(response, '"starts":"' + start.strftime(format))
+        self.assertContains(response, '"ends":"' + res_start.strftime(format))
+        self.assertContains(response, '"starts":"' + res_end.strftime(format))
+        self.assertContains(response, '"ends":"' + end.strftime(format))
