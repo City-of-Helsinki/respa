@@ -3,10 +3,13 @@ import datetime
 import arrow
 from django.core.exceptions import ValidationError
 from django.test import TestCase
+from rest_framework.test import APITestCase, APIRequestFactory, APIClient
 from .models import *
 
 
-class ReservationTestCase(TestCase):
+class ReservationTestCase(APITestCase):
+
+    client = APIClient()
 
     def setUp(self):
         u1 = Unit.objects.create(name='Unit 1', id='unit_1', time_zone='Europe/Helsinki')
@@ -16,6 +19,7 @@ class ReservationTestCase(TestCase):
         Resource.objects.create(name='Resource 1b', id='r1b', unit=u1, type=rt)
         Resource.objects.create(name='Resource 2a', id='r2a', unit=u2, type=rt)
         Resource.objects.create(name='Resource 2b', id='r2b', unit=u2, type=rt)
+        Purpose.objects.create(name='Having fun', id='having_fun', main_type='games')
 
         p1 = Period.objects.create(start='2015-06-01', end='2015-09-01', unit=u1, name='')
         p2 = Period.objects.create(start='2015-06-01', end='2015-09-01', unit=u2, name='')
@@ -69,3 +73,24 @@ class ReservationTestCase(TestCase):
         with self.assertRaises(ValidationError):
             Reservation.objects.create(resource=r1a, begin=begin,
                                        end=end + datetime.timedelta(hours=1))
+
+    def test_api(self):
+        response = self.client.get('/v1/unit/')
+        self.assertContains(response, 'Unit 1')
+        self.assertContains(response, 'Unit 2')
+
+        response = self.client.get('/v1/resource/')
+        self.assertContains(response, 'Resource 1a')
+        self.assertContains(response, 'Resource 1b')
+        self.assertContains(response, 'Resource 2a')
+        self.assertContains(response, 'Resource 2b')
+
+        # Check that available hours are reported correctly for a free resource
+        response = self.client.get('/v1/resource/r1a/')
+        print(response.content)
+        tz = pytz.timezone('Europe/Helsinki')
+        start = tz.localize(arrow.get(arrow.now().date()).naive)
+        end = start + datetime.timedelta(days=1)
+        format = '%Y-%m-%dT%H:%M:%S+03:00'
+        self.assertContains(response, '"starts":"' + start.strftime(format) + '"')
+        self.assertContains(response, '"ends":"' + end.strftime(format) + '"')
