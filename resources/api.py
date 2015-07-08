@@ -73,10 +73,22 @@ class NullableTimeField(serializers.TimeField):
             return None
         return super().to_representation(value)
 
+class NullableDateTimeField(serializers.DateTimeField):
+    def to_representation(self, value):
+        if not value:
+            return None
+        return super().to_representation(value)
+
+
 
 class UnitSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
-    opening_hours_today = serializers.DictField(child=NullableTimeField(),
-                                                source='get_opening_hours')
+    opening_hours_today = serializers.DictField(
+        source='get_opening_hours',
+        child=serializers.ListField(
+            child=serializers.DictField(
+                child=NullableDateTimeField())
+        )
+    )
 
     class Meta:
         model = Unit
@@ -97,8 +109,14 @@ class PurposeSerializer(TranslatedModelSerializer):
 
 class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     available_hours = serializers.SerializerMethodField()
-    opening_hours_today = serializers.DictField(child=NullableTimeField(),
-                                                source='get_opening_hours')
+    opening_hours_today = serializers.DictField(
+        source='get_opening_hours',
+        child=serializers.ListField(
+            child=serializers.DictField(
+                child=NullableDateTimeField())
+        )
+    )
+
     purposes = PurposeSerializer(many=True)
 
     class Meta:

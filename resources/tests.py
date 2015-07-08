@@ -154,6 +154,6 @@ class ReservationApiTestCase(APITestCase):
         tz = pytz.timezone('Europe/Helsinki')
         start = tz.localize(arrow.get(arrow.now().date()).naive)
         end = start + datetime.timedelta(days=1)
-        format = '%Y-%m-%dT%H:%M:%S+03:00'
+        format = '%Y-%m-%dT%H:%M:%SZ'
         self.assertContains(response, '"starts":"' + start.strftime(format) + '"')
         self.assertContains(response, '"ends":"' + end.strftime(format) + '"')

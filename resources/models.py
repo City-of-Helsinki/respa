@@ -32,10 +32,13 @@ def generate_id():
     return b.decode('utf8')
 
 def time_to_dtz(time, date=None, arr=None, zone='UTC'):
-    if date:
-        return arrow.get(datetime.datetime.combine(date, time), tzinfo=zone).datetime
-    elif arr:
-        return arr.replace(hour=time.hour, minute=time.minute, tzinfo=zone).datetime
+    if time:
+        if date:
+            return arrow.get(datetime.datetime.combine(date, time), tzinfo=zone).datetime
+        elif arr:
+            return arr.replace(hour=time.hour, minute=time.minute, tzinfo=zone).datetime
+    else:
+        return None
 
 
 class AutoIdentifiedModel(models.Model):
@@ -227,8 +230,11 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
         return "%s (%s)" % (get_translated(self, 'name'), self.id)
 
     def get_opening_hours(self, begin=None, end=None):
+        today = arrow.get()
         if begin is None:
-            begin = datetime.date.today()
+            begin = today.replace().floor('hour').datetime
+        if end is None:
+            end = today.replace(days=+1).floor('hour').datetime
         periods = self.periods
         return get_opening_hours(periods, begin, end)
 
@@ -328,9 +334,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         if not days.values():
             raise ValidationError(_("No hours for reservation period"))
         for n, day in enumerate(days.values()):
-            print("debug", n, day)
             for m, hours in enumerate(day):
-                print("debug", m, hours)
                 opening = hours['opens']
                 closing = hours['closes']
                 try:
@@ -363,7 +367,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                         # Last of days, no valid opening hours are found
                         raise e
                     else:
-                        print("debug: iterating")
+                        pass # other day might work better
 
     def is_available(self, begin, end, reservation=None):
         """
@@ -390,12 +394,11 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         move an existing reservation. The optional duration argument specifies
         minimum length for periods to be returned.
         """
+        today = arrow.get()
         if start is None:
-            start = datetime.datetime.combine(datetime.date.today(),
-                                              datetime.datetime.min.time())
+            start = today.replace().floor('hour').datetime
         if end is None:
-            end = datetime.datetime.combine(datetime.date.today()+datetime.timedelta(days=1),
-                                            datetime.datetime.min.time())
+            end = today.replace(days=+1).floor('hour').datetime
         reservations = self.reservations.filter(
             end__gte=start, begin__lte=end).order_by('begin')
         hours_list = [({'starts': start})]
