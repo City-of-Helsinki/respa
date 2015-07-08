@@ -31,6 +31,12 @@ def generate_id():
     b = base64.b32encode(struct.pack(">Q", int(t)).lstrip(b'\x00')).strip(b'=').lower()
     return b.decode('utf8')
 
+def time_to_dtz(time, date=None, arr=None, zone='UTC'):
+    if date:
+        return arrow.get(datetime.datetime.combine(date, time), tzinfo=zone).datetime
+    elif arr:
+        return arr.replace(hour=time.hour, minute=time.minute, tzinfo=zone).datetime
+
 
 class AutoIdentifiedModel(models.Model):
 
@@ -121,7 +127,8 @@ def get_opening_hours(periods, begin, end=None):
         and values are a list of Day objects for that day's active period
         containing opening and closing hours
     """
-    assert begin <= end
+    if end:
+        assert begin <= end
 
     periods = periods.filter(start__lte=begin, end__gte=end).order_by('start', 'end')
     days = Day.objects.filter(period__in=periods)
@@ -143,36 +150,42 @@ def get_opening_hours(periods, begin, end=None):
     for period, exception_periods in periods.items():
 
         # Date range for periods needs to be given start and end days, but other periods get to keep their range
-        if period.start < begin_dt:
+        if period.start < begin_dt.date():
             start = begin_dt
         else:
             start = arrow.get(period.start, tzinfo='UTC')
-        if period.end > end_dt:
+        if period.end > end_dt.date():
             end = end_dt
         else:
             end = arrow.get(period.end, tzinfo='UTC')
 
         # For one period, generate all of its days and for given day, put its hours into the dict
         for r in arrow.Arrow.range('day', start, end):
-            dates[r] = [day for day in period.range_days if day.weekday() is r.weekday()]
+            dates[r.date()] = [{'opens' : time_to_dtz(day.opens, arr=r),
+                                'closes' : time_to_dtz(day.closes, arr=r)}
+                        for day in period.range_days
+                        if day.weekday is r.weekday()]
 
         if exception_periods:
             # For period's exceptional periods, generate a new dict for those days
             exception_dates = {}
             for exception_period in exception_periods:
                 # Exceptions happen inside date range of their periods so same mulling of start and end days occur
-                if period.start < begin_dt:
+                if period.start < begin_dt.date():
                     start = begin_dt
                 else:
                     start = arrow.get(period.start, tzinfo='UTC')
-                if period.end > end_dt:
+                if period.end > end_dt.date():
                     end = end_dt
                 else:
                     end = arrow.get(period.end, tzinfo='UTC')
 
                 # Updating dict of exceptional dates with current exception period's days
                 for r in arrow.Arrow.range('day', start, end):
-                    exception_dates[r] = [day for day in exception_period.range_days if day.weekday() is r.weekday()]
+                    exception_dates[r.date()] = [{'opens' : time_to_dtz(day.opens, arr=r),
+                                                  'closes' : time_to_dtz(day.closes, arr=r)}
+                                          for day in exception_period.range_days
+                                          if day.weekday is r.weekday()]
 
             # And override full day list with exceptions where applicable
             dates.update(exception_dates)
@@ -213,11 +226,11 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
     def __str__(self):
         return "%s (%s)" % (get_translated(self, 'name'), self.id)
 
-    def get_opening_hours(self, begin=None, end=None, tzinfo=None):
+    def get_opening_hours(self, begin=None, end=None):
         if begin is None:
             begin = datetime.date.today()
         periods = self.periods
-        return get_opening_hours(periods, begin, end, tzinfo)
+        return get_opening_hours(periods, begin, end)
 
 
 class UnitIdentifier(models.Model):
@@ -308,37 +321,49 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         If the reservation cannot be accepted, raises a ValidationError.
         """
 
-        zone = pytz.timezone(self.unit.time_zone)
+        begin = reservation.begin
+        end = reservation.end
 
-        begin = reservation.begin.astimezone(zone)
-        end = reservation.end.astimezone(zone)
-        hours = self.get_opening_hours(begin.date(), tzinfo=zone)
-        opening = hours['opens']
-        closing = hours['closes']
-        if end <= begin:
-            raise ValidationError(_("You must end the reservation after it has begun"))
-        if opening is None or begin < opening:
-            raise ValidationError(_("You must start the reservation during opening hours"))
-        if end > closing:
-            raise ValidationError(_("You must end the reservation before closing"))
-        time_since_opening = datetime.timedelta(hours=begin.time().hour-opening.time().hour,
-                                                minutes=begin.time().minute-opening.time().minute,
-                                                seconds=begin.time().second-opening.time().second)
-        # We round down to the start of the time slot
-        time_slots_since_opening = int(time_since_opening/self.min_period)
-        begin = opening+(time_slots_since_opening*self.min_period)
-        # Duration is calculated modulo time slot
-        duration_in_slots = int((end-begin)/self.min_period)
-        if duration_in_slots == 0:
-            raise ValidationError(_("The minimum duration for a reservation is "+str(self.min_period)))
-        if self.max_period:
-            if duration_in_slots > self.max_period/self.min_period:
-                raise ValidationError(_("The maximum reservation length is "+str(self.max_period)))
-        duration = duration_in_slots*self.min_period
-        end = begin+duration
-        if not self.is_available(begin, end, reservation):
-            raise ValidationError(_("The resource is already reserved for some of the period"))
-        return begin, end
+        days = self.get_opening_hours(begin.date(), end.date())
+        if not days.values():
+            raise ValidationError(_("No hours for reservation period"))
+        for n, day in enumerate(days.values()):
+            print("debug", n, day)
+            for m, hours in enumerate(day):
+                print("debug", m, hours)
+                opening = hours['opens']
+                closing = hours['closes']
+                try:
+                    if end <= begin:
+                        raise ValidationError(_("You must end the reservation after it has begun"))
+                    if opening is None or begin < opening:
+                        raise ValidationError(_("You must start the reservation during opening hours"))
+                    if end > closing:
+                        raise ValidationError(_("You must end the reservation before closing"))
+                    time_since_opening = datetime.timedelta(hours=begin.time().hour-opening.time().hour,
+                                                            minutes=begin.time().minute-opening.time().minute,
+                                                            seconds=begin.time().second-opening.time().second)
+                    # We round down to the start of the time slot
+                    time_slots_since_opening = int(time_since_opening/self.min_period)
+                    begin = opening+(time_slots_since_opening*self.min_period)
+                    # Duration is calculated modulo time slot
+                    duration_in_slots = int((end-begin)/self.min_period)
+                    if duration_in_slots == 0:
+                        raise ValidationError(_("The minimum duration for a reservation is "+str(self.min_period)))
+                    if self.max_period:
+                        if duration_in_slots > self.max_period/self.min_period:
+                            raise ValidationError(_("The maximum reservation length is "+str(self.max_period)))
+                    duration = duration_in_slots*self.min_period
+                    end = begin+duration
+                    if not self.is_available(begin, end, reservation):
+                        raise ValidationError(_("The resource is already reserved for some of the period"))
+                    return begin, end
+                except ValidationError as e:
+                    if n + 1 == len(days) and m + 1 == len(day):
+                        # Last of days, no valid opening hours are found
+                        raise e
+                    else:
+                        print("debug: iterating")
 
     def is_available(self, begin, end, reservation=None):
         """
@@ -365,18 +390,12 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         move an existing reservation. The optional duration argument specifies
         minimum length for periods to be returned.
         """
-        zone = pytz.timezone(self.unit.time_zone)
-
         if start is None:
             start = datetime.datetime.combine(datetime.date.today(),
                                               datetime.datetime.min.time())
         if end is None:
             end = datetime.datetime.combine(datetime.date.today()+datetime.timedelta(days=1),
                                             datetime.datetime.min.time())
-        if start.tzinfo is None:
-            start = zone.localize(start)
-        if end.tzinfo is None:
-            end = zone.localize(end)
         reservations = self.reservations.filter(
             end__gte=start, begin__lte=end).order_by('begin')
         hours_list = [({'starts': start})]
@@ -411,7 +430,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         hours_list[-1]['ends'] = end
         return hours_list
 
-    def get_opening_hours(self, begin=None, end=None, tzinfo=None):
+    def get_opening_hours(self, begin=None, end=None):
         if self.periods.exists():
             periods = self.periods
         else:
@@ -419,7 +438,9 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
         if begin is None:
             begin = datetime.date.today()
-        return get_opening_hours(periods, begin, end, tzinfo)
+        if end is None:
+            end = datetime.date.today()
+        return get_opening_hours(periods, begin, end)
 
     def get_open_from_now(self, dt):
         """
