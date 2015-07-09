@@ -25,10 +25,10 @@ registered_api_views = set()
 
 for view in resources_views:
     kwargs = {}
-    if view['name'] in registered_api_views:
+    if view['class'] in registered_api_views:
         continue
     else:
-        registered_api_views.add(view['name'])
+        registered_api_views.add(view['class'])
 
     if 'base_name' in view:
         kwargs['base_name'] = view['base_name']
