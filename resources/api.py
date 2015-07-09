@@ -3,7 +3,7 @@ import arrow
 import pytz
 from django.conf import settings
 from django.utils.datastructures import MultiValueDictKeyError
-from rest_framework import serializers, viewsets, generics, filters
+from rest_framework import serializers, viewsets, mixins, filters
 from modeltranslation.translator import translator, NotRegistered
 from munigeo import api as munigeo_api
 import django_filters
@@ -95,14 +95,37 @@ class PurposeSerializer(TranslatedModelSerializer):
         fields = ['name', 'main_type', 'id']
 
 
-class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
-    available_hours = serializers.SerializerMethodField()
-    opening_hours_today = serializers.DictField(child=NullableTimeField(),
-                                                source='get_opening_hours')
+class ResourceListSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     purposes = PurposeSerializer(many=True)
 
     class Meta:
         model = Resource
+
+
+class ResourceListFilter(django_filters.FilterSet):
+    purpose = django_filters.CharFilter(name="purposes__id", lookup_type='iexact')
+
+    class Meta:
+        model = Resource
+        fields = ['purpose']
+
+
+class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = Resource.objects.all()
+    serializer_class = ResourceListSerializer
+    filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend)
+    filter_class = ResourceListFilter
+
+register_view(ResourceListViewSet, 'resource')
+
+
+class ResourceSerializer(ResourceListSerializer):
+    """
+    This is used for displaying a single resource and its current status.
+    """
+    available_hours = serializers.SerializerMethodField()
+    opening_hours_today = serializers.DictField(child=NullableTimeField(),
+                                                source='get_opening_hours')
 
     def get_available_hours(self, obj):
         zone = pytz.timezone(obj.unit.time_zone)
@@ -127,27 +150,9 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
         return hour_list
 
 
-def filter_by_availability(queryset, value):
-    # TODO: implement by preserializing, adding available_hours dict to queryset
-    return queryset
-
-
-class ResourceFilter(django_filters.FilterSet):
-    purpose = django_filters.CharFilter(name="purposes__id", lookup_type='iexact')
-    start = django_filters.CharFilter(action=filter_by_availability)
-    end = django_filters.CharFilter(action=filter_by_availability)
-    duration = django_filters.CharFilter(action=filter_by_availability)
-
-    class Meta:
-        model = Resource
-        fields = ['purpose']
-
-
-class ResourceViewSet(munigeo_api.GeoModelAPIView, viewsets.ReadOnlyModelViewSet):
+class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = Resource.objects.all()
     serializer_class = ResourceSerializer
-    filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend)
-    filter_class = ResourceFilter
 
 register_view(ResourceViewSet, 'resource')
 
