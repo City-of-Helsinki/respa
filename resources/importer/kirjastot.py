@@ -25,16 +25,18 @@ class KirjastotImporter(Importer):
                 unit = Unit.objects.get(identifiers=id_qs)
             except ObjectDoesNotExist:
                 continue
+            unit.periods.all().delete()
             for period in unit_data['periods']:
                 if not period['start'] or not period['end']:
                     continue  # NOTE: period is supposed to have *at least* start or end date
-                start = datetime.datetime.strptime(period['start'], '%Y-%m-%d')
+                start = datetime.datetime.strptime(period['start'], '%Y-%m-%d').date()
                 if not period['end']:
                     this_day = datetime.date.today()
                     end = datetime.date(this_day.year + 1 , 12, 31) # No end time goes to end of next year
                 else:
-                    end = datetime.datetime.strptime(period['end'], '%Y-%m-%d')
-                active_period, created = unit.periods.get_or_create(
+                    end = datetime.datetime.strptime(period['end'], '%Y-%m-%d').date()
+
+                active_period = unit.periods.create(
                     start=start,
                     end=end,
                     description=period['description']['fi'],
@@ -49,7 +51,7 @@ class KirjastotImporter(Importer):
                         # TODO: check the data for inconsistencies
                         opens = day['opens'] or None
                         closes = day['closes'] or None
-                        active_period.days.get_or_create(
+                        active_period.days.create(
                             weekday=weekday,
                             opens=opens,
                             closes=closes,

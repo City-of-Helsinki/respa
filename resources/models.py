@@ -12,6 +12,8 @@ from django.db.models import Q
 from django.utils.dateformat import time_format
 import django.db.models as dbm
 import django.contrib.postgres.fields as pgfields
+from psycopg2.extras import DateTimeTZRange, DateRange, NumericRange
+
 
 import arrow
 
@@ -445,7 +447,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         if begin is None:
             begin = today.floor('day').datetime
         if end is None:
-            end = today.replace(days=+1).floor('day').datetime
+            end = begin # today.replace(days=+1).floor('day').datetime
         print(begin, end)
         return get_opening_hours(periods, begin, end)
 
@@ -497,6 +499,8 @@ class Reservation(ModifiableModel):
 
     def save(self, *args, **kwargs):
         self.begin, self.end = self.resource.get_reservation_period(self)
+        if self.begin and self.end:
+            self.duration = DateTimeTZRange(self.begin, self.end)
         return super(Reservation, self).save(*args, **kwargs)
 
 
@@ -537,6 +541,8 @@ class Period(models.Model):
         if (self.resource is not None and self.unit is not None) or \
            (self.resource is None and self.unit is None):
             raise ValidationError(_("You must set either 'resource' or 'unit', but not both"))
+        if self.start and self.end:
+            self.duration = DateRange(self.start, self.end)
         return super(Period, self).save(*args, **kwargs)
 
 
@@ -579,3 +585,15 @@ class Day(models.Model):
         return "{4}, {3}: {1:%d.%m.%Y} - {2:%d.%m.%Y}, {0}: {3} {5}".format(
             self.get_weekday_display(), self.period.start, self.period.end,
             STATE_BOOLS[self.closed], self.period.name, hours)
+
+    def save(self, *args, **kwargs):
+        if self.opens and self.closes:
+            try:
+                opens = int(self.opens.isoformat().replace(":", ""))
+                closes = int(self.closes.isoformat().replace(":", ""))
+            except AttributeError:
+                opens = int(self.opens.replace(":", ""))
+                closes = int(self.closes.replace(":", ""))
+            self.length = NumericRange(opens, closes)
+        return super(Day, self).save(*args, **kwargs)
+
