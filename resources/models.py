@@ -542,6 +542,9 @@ class Period(models.Model):
            (self.resource is None and self.unit is None):
             raise ValidationError(_("You must set either 'resource' or 'unit', but not both"))
         if self.start and self.end:
+            if self.start == self.end:
+                # Range of 1 day must end on next day
+                self.end = self.end + 1
             self.duration = DateRange(self.start, self.end)
         return super(Period, self).save(*args, **kwargs)
 
