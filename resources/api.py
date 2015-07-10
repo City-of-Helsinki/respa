@@ -110,23 +110,6 @@ class ResourceListSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeri
     class Meta:
         model = Resource
 
-
-class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
-    available_hours = serializers.SerializerMethodField()
-    opening_hours_today = serializers.DictField(
-        source='get_opening_hours',
-        child=serializers.ListField(
-            child=serializers.DictField(
-                child=NullableDateTimeField())
-        )
-    )
-
-    purposes = PurposeSerializer(many=True)
-
-    class Meta:
-        model = Resource
-
-
 class ResourceListFilter(django_filters.FilterSet):
     purpose = django_filters.CharFilter(name="purposes__id", lookup_type='iexact')
 
@@ -149,9 +132,13 @@ class ResourceSerializer(ResourceListSerializer):
     This is used for displaying a single resource and its current status.
     """
     available_hours = serializers.SerializerMethodField()
-    opening_hours_today = serializers.DictField(child=NullableTimeField(),
-                                                source='get_opening_hours')
-
+    opening_hours_today = serializers.DictField(
+        source='get_opening_hours',
+        child=serializers.ListField(
+            child=serializers.DictField(
+                child=NullableDateTimeField())
+        )
+    )
     def get_available_hours(self, obj):
         zone = pytz.timezone(obj.unit.time_zone)
         parameters = self.context['request'].query_params
@@ -173,6 +160,13 @@ class ResourceSerializer(ResourceListSerializer):
             hours['starts'] = hours['starts'].astimezone(zone)
             hours['ends'] = hours['ends'].astimezone(zone)
         return hour_list
+
+    purposes = PurposeSerializer(many=True)
+
+    class Meta:
+        model = Resource
+
+
 
 
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, viewsets.GenericViewSet):

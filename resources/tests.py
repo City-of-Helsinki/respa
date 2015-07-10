@@ -153,18 +153,20 @@ class ReservationApiTestCase(APITestCase):
         self.assertContains(response, 'Resource 2b')
 
         # Check that available hours are reported correctly for a free resource
-        response = self.client.get('/v1/resource/r1a/')
-        print(response.content)
-        tz = pytz.timezone('Europe/Helsinki')
-        start = tz.localize(arrow.get(arrow.now().date()).naive)
+
+        start = arrow.get().floor("day")
         end = start + datetime.timedelta(days=1)
-        format = '%Y-%m-%dT%H:%M:%S+03:00'
+        format = '%Y-%m-%dT%H:%M:%S%z'
+        print("debug", start, end)
 
         # Check that available hours are reported correctly for a free resource
         response = self.client.get('/v1/resource/r1a/')
-        print(response.content)
-        self.assertContains(response, '"starts":"' + start.strftime(format) + '"')
-        self.assertContains(response, '"ends":"' + end.strftime(format) + '"')
+        print("res starting state", response.content)
+
+        eest_start = start.to(tz="Europe/Helsinki")
+        eest_end = end.to(tz="Europe/Helsinki")
+        self.assertContains(response, '"starts":"' + eest_start.isoformat() + '"')
+        self.assertContains(response, '"ends":"' + eest_end.isoformat() + '"')
 
         # Set opening hours for today (required to make a reservation)
         today = Period.objects.create(start=start.date(), end=end.date(), resource_id='r1a', name='')
@@ -177,15 +179,16 @@ class ReservationApiTestCase(APITestCase):
         # res_end = '2015-06-01T10:00:00'
         response = self.client.post('/v1/reservation/',
                                     {'resource': 'r1a',
-                                     'begin': res_start,
-                                     'end': res_end})
-        print(response.content)
+                                     'begin': res_start.to(tz="UTC"),
+                                     'end': res_end.to(tz="UTC")})
+        print("reservation", response.content)
         self.assertContains(response, '"resource":"r1a"', status_code=201)
 
         # Check that available hours are reported correctly for a reserved resource
         response = self.client.get('/v1/resource/r1a/')
-        print(response.content)
-        self.assertContains(response, '"starts":"' + start.strftime(format))
-        self.assertContains(response, '"ends":"' + res_start.strftime(format))
-        self.assertContains(response, '"starts":"' + res_end.strftime(format))
-        self.assertContains(response, '"ends":"' + end.strftime(format))
+        print("res after reservation", response.content)
+        print("res debug", res_start, res_end)
+        self.assertContains(response, '"starts":"' + start.to(tz="Europe/Helsinki").isoformat())
+        self.assertContains(response, '"ends":"' + res_start.to(tz="Europe/Helsinki").isoformat())
+        self.assertContains(response, '"starts":"' + res_end.to(tz="Europe/Helsinki").isoformat())
+        self.assertContains(response, '"ends":"' + end.to(tz="Europe/Helsinki").isoformat())
