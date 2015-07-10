@@ -544,8 +544,10 @@ class Period(models.Model):
         if self.start and self.end:
             if self.start == self.end:
                 # Range of 1 day must end on next day
-                self.end = self.end + 1
-            self.duration = DateRange(self.start, self.end)
+                self.duration = DateRange(self.start,
+                                          self.end + datetime.timedelta(days=+1))
+            else:
+                self.duration = DateRange(self.start, self.end)
         return super(Period, self).save(*args, **kwargs)
 
 
