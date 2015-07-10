@@ -125,25 +125,36 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     def get_available_hours(self, obj):
         zone = pytz.timezone(obj.unit.time_zone)
         parameters = self.context['request'].query_params
-        if 'duration' in parameters or 'start' in parameters or 'end' in parameters:
-            try:
-                duration = datetime.timedelta(minutes=int(parameters['duration']))
-            except MultiValueDictKeyError:
-                duration = None
-            try:
-                start = zone.localize(arrow.get(parameters['start']).naive)
-            except MultiValueDictKeyError:
-                start = None
-            try:
-                end = zone.localize(arrow.get(parameters['end']).naive)
-            except MultiValueDictKeyError:
-                end = None
-            return obj.get_available_hours(start=start, end=end, duration=duration)
-        return obj.get_available_hours()
+        try:
+            duration = datetime.timedelta(minutes=int(parameters['duration']))
+        except MultiValueDictKeyError:
+            duration = None
+        try:
+            start = zone.localize(arrow.get(parameters['start']).naive)
+        except MultiValueDictKeyError:
+            start = None
+        try:
+            end = zone.localize(arrow.get(parameters['end']).naive)
+        except MultiValueDictKeyError:
+            end = None
+        hour_list = obj.get_available_hours(start=start, end=end, duration=duration)
+        # the hours must be localized when serializing
+        for hours in hour_list:
+            hours['starts'] = hours['starts'].astimezone(zone)
+            hours['ends'] = hours['ends'].astimezone(zone)
+        return hour_list
+
+
+def filter_by_availability(queryset, value):
+    # TODO: implement by preserializing, adding available_hours dict to queryset
+    return queryset
 
 
 class ResourceFilter(django_filters.FilterSet):
     purpose = django_filters.CharFilter(name="purposes__id", lookup_type='iexact')
+    start = django_filters.CharFilter(action=filter_by_availability)
+    end = django_filters.CharFilter(action=filter_by_availability)
+    duration = django_filters.CharFilter(action=filter_by_availability)
 
     class Meta:
         model = Resource
