@@ -182,17 +182,33 @@ class AvailableSerializer(ResourceAvailabilitySerializer):
         fields = ['url', 'location', 'available_hours', 'opening_hours']
 
 
+class AvailableFilterBackEnd(filters.BaseFilterBackend):
+    """
+    Filters resource availability based on request parameters, preserializing
+    opening_hours and available_hours and adding them to the corresponding objects.
+    """
+
+    def filter_queryset(self, request, queryset, view):
+        params = request.query_params
+        if params['duration']:
+            pass
+        if params['start']:
+            pass
+        if params['end']:
+            pass
+        return queryset
+
+
 class AvailableViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = Resource.objects.all()
     serializer_class = AvailableSerializer
-    filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend)
+    filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend, AvailableFilterBackEnd)
     filter_class = ResourceListFilterSet
 
 register_view(AvailableViewSet, 'available')
 
 
-class ReservationSerializer(TranslatedModelSerializer,
-                            munigeo_api.GeoModelSerializer):
+class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
 
     class Meta:
         model = Reservation
