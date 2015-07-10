@@ -96,13 +96,16 @@ class PurposeSerializer(TranslatedModelSerializer):
 
 
 class ResourceListSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
+    """
+    For listing permanent properties of resources.
+    """
     purposes = PurposeSerializer(many=True)
 
     class Meta:
         model = Resource
 
 
-class ResourceListFilter(django_filters.FilterSet):
+class ResourceListFilterSet(django_filters.FilterSet):
     purpose = django_filters.CharFilter(name="purposes__id", lookup_type='iexact')
 
     class Meta:
@@ -114,18 +117,19 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin, vi
     queryset = Resource.objects.all()
     serializer_class = ResourceListSerializer
     filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend)
-    filter_class = ResourceListFilter
+    filter_class = ResourceListFilterSet
 
 register_view(ResourceListViewSet, 'resource')
 
 
-class ResourceSerializer(ResourceListSerializer):
+class ResourceAvailabilitySerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     """
-    This is used for displaying a single resource and its current status.
+    For displaying the status of a single resource during a requested period.
     """
     available_hours = serializers.SerializerMethodField()
-    opening_hours_today = serializers.DictField(child=NullableTimeField(),
-                                                source='get_opening_hours')
+    opening_hours = serializers.DictField(child=NullableTimeField(),
+                                          source='get_opening_hours')
+    location = serializers.SerializerMethodField()
 
     def get_available_hours(self, obj):
         zone = pytz.timezone(obj.unit.time_zone)
@@ -149,6 +153,17 @@ class ResourceSerializer(ResourceListSerializer):
             hours['ends'] = hours['ends'].astimezone(zone)
         return hour_list
 
+    def get_location(self, obj):
+        if obj.location:
+            return obj.location
+        return obj.unit.location
+
+
+class ResourceSerializer(ResourceListSerializer, ResourceAvailabilitySerializer):
+    """
+    Mixes resource listing and availability data for displaying a single resource.
+    """
+
 
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = Resource.objects.all()
@@ -157,7 +172,27 @@ class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, vi
 register_view(ResourceViewSet, 'resource')
 
 
-class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
+class AvailableSerializer(ResourceAvailabilitySerializer):
+    """
+    Lists availability data for availability queries.
+    """
+
+    class Meta:
+        model = Resource
+        fields = ['url', 'location', 'available_hours', 'opening_hours']
+
+
+class AvailableViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = Resource.objects.all()
+    serializer_class = AvailableSerializer
+    filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend)
+    filter_class = ResourceListFilterSet
+
+register_view(AvailableViewSet, 'available')
+
+
+class ReservationSerializer(TranslatedModelSerializer,
+                            munigeo_api.GeoModelSerializer):
 
     class Meta:
         model = Reservation
