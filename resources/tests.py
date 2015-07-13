@@ -2,6 +2,7 @@ import pytz
 import datetime
 import arrow
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from django.test import TestCase
 from rest_framework.test import APITestCase, APIRequestFactory, APIClient
 from .models import *
@@ -48,11 +49,13 @@ class ReservationTestCase(APITestCase):
         r1a = Resource.objects.get(id='r1a')
         r1b = Resource.objects.get(id='r1b')
 
-        begin = arrow.get('2015-06-01T08:00:00')
+        tz = timezone.get_current_timezone()
+        begin = tz.localize(datetime.datetime(2015, 6, 1, 8, 0, 0))
         end = begin + datetime.timedelta(hours=2)
 
-        Reservation.objects.create(resource=r1a, begin=begin.datetime, end=end.datetime)
+        Reservation.objects.create(resource=r1a, begin=begin, end=end)
 
+        print(Reservation.objects.all())
         # Attempt overlapping reservation
         with self.assertRaises(ValidationError):
             Reservation.objects.create(resource=r1a, begin=begin,
@@ -64,16 +67,19 @@ class ReservationTestCase(APITestCase):
                                        begin=begin - datetime.timedelta(hours=1),
                                        end=end)
 
-        begin = arrow.get('2015-06-01T16:00:00')
+        begin = tz.localize(datetime.datetime(2015, 6, 1, 16, 0, 0))
         end = begin + datetime.timedelta(hours=2)
+
+        print("debug", begin.isoformat(), end.isoformat())
+
         # Make a reservation that ends when the resource closes
-        Reservation.objects.create(resource=r1a, begin=begin.datetime,
-                                   end=end.datetime)
+        Reservation.objects.create(resource=r1a, begin=begin,
+                                   end=end)
 
         # Attempt reservation that ends after the resource closes
         with self.assertRaises(ValidationError):
-            Reservation.objects.create(resource=r1a, begin=begin.datetime,
-                                       end=end.datetime + datetime.timedelta(hours=1))
+            Reservation.objects.create(resource=r1a, begin=begin,
+                                       end=end + datetime.timedelta(hours=1))
 
 class DayTestCase(TestCase):
     """
@@ -153,20 +159,20 @@ class ReservationApiTestCase(APITestCase):
         self.assertContains(response, 'Resource 2b')
 
         # Check that available hours are reported correctly for a free resource
-
-        start = arrow.get().floor("day")
+        tz = timezone.get_current_timezone()
+        start = tz.localize(arrow.get().floor("day").naive)
         end = start + datetime.timedelta(days=1)
         format = '%Y-%m-%dT%H:%M:%S%z'
-        print("debug", start, end)
+        print("debug", start.isoformat(), end.isoformat())
 
         # Check that available hours are reported correctly for a free resource
         response = self.client.get('/v1/resource/r1a/')
         print("res starting state", response.content)
 
-        eest_start = start.to(tz="Europe/Helsinki")
-        eest_end = end.to(tz="Europe/Helsinki")
-        self.assertContains(response, '"starts":"' + eest_start.isoformat() + '"')
-        self.assertContains(response, '"ends":"' + eest_end.isoformat() + '"')
+        #eest_start = start.to(tz="Europe/Helsinki")
+        #eest_end = end.to(tz="Europe/Helsinki")
+        self.assertContains(response, '"starts":"' + start.isoformat() + '"')
+        self.assertContains(response, '"ends":"' + end.isoformat() + '"')
 
         # Set opening hours for today (required to make a reservation)
         today = Period.objects.create(start=start.date(), end=end.date(), resource_id='r1a', name='')
@@ -179,8 +185,8 @@ class ReservationApiTestCase(APITestCase):
         # res_end = '2015-06-01T10:00:00'
         response = self.client.post('/v1/reservation/',
                                     {'resource': 'r1a',
-                                     'begin': res_start.to(tz="UTC"),
-                                     'end': res_end.to(tz="UTC")})
+                                     'begin': res_start,
+                                     'end': res_end})
         print("reservation", response.content)
         self.assertContains(response, '"resource":"r1a"', status_code=201)
 
@@ -188,7 +194,7 @@ class ReservationApiTestCase(APITestCase):
         response = self.client.get('/v1/resource/r1a/')
         print("res after reservation", response.content)
         print("res debug", res_start, res_end)
-        self.assertContains(response, '"starts":"' + start.to(tz="Europe/Helsinki").isoformat())
-        self.assertContains(response, '"ends":"' + res_start.to(tz="Europe/Helsinki").isoformat())
-        self.assertContains(response, '"starts":"' + res_end.to(tz="Europe/Helsinki").isoformat())
-        self.assertContains(response, '"ends":"' + end.to(tz="Europe/Helsinki").isoformat())
+        self.assertContains(response, '"starts":"' + start.isoformat())
+        self.assertContains(response, '"ends":"' + res_start.isoformat())
+        self.assertContains(response, '"starts":"' + res_end.isoformat())
+        self.assertContains(response, '"ends":"' + end.isoformat())

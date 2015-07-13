@@ -417,9 +417,13 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             start = today.floor('day').naive
         if end is None:
             end = today.replace(days=+1).floor('day').naive
-        tz = timezone.get_current_timezone()
-        start = tz.localize(start)
-        end = tz.localize(end)
+        if not start.tzinfo and not end.tzinfo:
+            """
+            Only try to localize naive dates
+            """
+            tz = timezone.get_current_timezone()
+            start = tz.localize(start)
+            end = tz.localize(end)
         reservations = self.reservations.filter(
             end__gte=start, begin__lte=end).order_by('begin')
         hours_list = [({'starts': start})]
@@ -465,7 +469,6 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             begin = today.floor('day').datetime
         if end is None:
             end = begin # today.replace(days=+1).floor('day').datetime
-        print(begin, end)
         return get_opening_hours(periods, begin, end)
 
     def get_open_from_now(self, dt):
@@ -557,7 +560,7 @@ class Reservation(ModifiableModel):
         return "%s -> %s: %s" % (self.begin, self.end, self.resource)
 
     def save(self, *args, **kwargs):
-        #self.begin, self.end = self.resource.get_reservation_period(self)
+        self.begin, self.end = self.resource.get_reservation_period(self)
         if self.begin and self.end:
             self.duration = DateTimeTZRange(self.begin, self.end)
         return super(Reservation, self).save(*args, **kwargs)
