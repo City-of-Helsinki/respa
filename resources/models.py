@@ -412,11 +412,14 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         move an existing reservation. The optional duration argument specifies
         minimum length for periods to be returned.
         """
-        today = arrow.get()
+        today = arrow.get(timezone.now())
         if start is None:
-            start = today.floor('day').datetime
+            start = today.floor('day').naive
         if end is None:
-            end = today.replace(days=+1).floor('day').datetime
+            end = today.replace(days=+1).floor('day').naive
+        tz = timezone.get_current_timezone()
+        start = tz.localize(start)
+        end = tz.localize(end)
         reservations = self.reservations.filter(
             end__gte=start, begin__lte=end).order_by('begin')
         hours_list = [({'starts': start})]
@@ -438,11 +441,11 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                 if res.begin-hours_list[-1]['starts'] < duration:
                     # the free period is too short
                     continue
-            hours_list[-1]['ends'] = res.begin
+            hours_list[-1]['ends'] = timezone.localtime(res.begin)
             # check if the reservation spans the end
             if res.end > end:
                 return hours_list
-            hours_list.append({'starts': res.end})
+            hours_list.append({'starts': timezone.localtime(res.end)})
         if duration:
             if end-hours_list[-1]['starts'] < duration:
                 # the free period is too short

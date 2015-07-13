@@ -175,10 +175,12 @@ register_view(ResourceViewSet, 'resource')
 
 
 class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
+    begin = NullableDateTimeField()
+    end = NullableDateTimeField()
 
     class Meta:
         model = Reservation
-        fields = ['resource', 'begin', 'end', 'user']
+        fields = ['resource', 'user', 'begin', 'end']
 
 
 class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
