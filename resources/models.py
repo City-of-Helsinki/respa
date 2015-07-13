@@ -19,6 +19,21 @@ import arrow
 
 DEFAULT_LANG = settings.LANGUAGES[0][0]
 
+def save_dt(obj, attr, dt, orig_tz="UTC"):
+    """
+    Sets given field in an object to a DateTime object with or without
+    a time zone converted into UTC time zone from given time zone
+
+    If there is no time zone on the given DateTime, orig_tz will be used
+    """
+    if dt.tzinfo:
+        arr = arrow.get(dt).to("UTC")
+    else:
+        arr = arrow.get(dt, orig_tz).to("UTC")
+    setattr(obj, attr, arr.datetime)
+
+def get_dt(obj, attr, tz):
+    return arrow.get(getattr(obj, attr)).to(tz).datetime
 
 def get_translated(obj, attr):
     key = "%s_%s" % (attr, DEFAULT_LANG)
@@ -354,7 +369,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                     begin = opening+(time_slots_since_opening*self.min_period)
                     # Duration is calculated modulo time slot
                     duration_in_slots = int((end-begin)/self.min_period)
-                    if duration_in_slots == 0:
+                    if duration_in_slots <= 0:
                         raise ValidationError(_("The minimum duration for a reservation is "+str(self.min_period)))
                     if self.max_period:
                         if duration_in_slots > self.max_period/self.min_period:
@@ -401,10 +416,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             start = today.floor('day').datetime
         if end is None:
             end = today.replace(days=+1).floor('day').datetime
-        print(start, end)
         reservations = self.reservations.filter(
             end__gte=start, begin__lte=end).order_by('begin')
-        print(reservations)
         hours_list = [({'starts': start})]
         first_checked = False
         for res in reservations:
@@ -490,6 +503,48 @@ class Reservation(ModifiableModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('User'), null=True,
                              blank=True, db_index=True)
 
+    def _save_dt(self, attr, dt):
+        """
+        Any DateTime object is converted to UTC time zone aware DateTime
+        before save
+
+        If there is no time zone on the object, resource's time zone will
+        be assumed through its unit's time zone
+        """
+        save_dt(self, attr, dt, self.resource.unit.time_zone)
+
+    def _get_dt(self, attr, tz):
+        return get_dt(self, attr, tz)
+
+    @property
+    def begin_tz(self):
+        return self.begin
+
+    @begin_tz.setter
+    def begin_tz(self, dt):
+        self._save_dt('begin', dt)
+
+    def get_begin_tz(self, tz):
+        return self._get_dt("begin", tz)
+
+    @property
+    def end_tz(self):
+        return self.end
+
+    @end_tz.setter
+    def end_tz(self, dt):
+        """
+        Any DateTime object is converted to UTC time zone aware DateTime
+        before save
+
+        If there is no time zone on the object, resource's time zone will
+        be assumed through its unit's time zone
+        """
+        self._save_dt('end', dt)
+
+    def get_end_tz(self, tz):
+        return self._get_dt("end", tz)
+
     class Meta:
         verbose_name = _("reservation")
         verbose_name_plural = _("reservations")
@@ -498,7 +553,7 @@ class Reservation(ModifiableModel):
         return "%s -> %s: %s" % (self.begin, self.end, self.resource)
 
     def save(self, *args, **kwargs):
-        self.begin, self.end = self.resource.get_reservation_period(self)
+        #self.begin, self.end = self.resource.get_reservation_period(self)
         if self.begin and self.end:
             self.duration = DateTimeTZRange(self.begin, self.end)
         return super(Reservation, self).save(*args, **kwargs)
