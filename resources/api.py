@@ -7,6 +7,7 @@ from rest_framework import serializers, viewsets, mixins, filters
 from modeltranslation.translator import translator, NotRegistered
 from munigeo import api as munigeo_api
 import django_filters
+from django.utils import timezone
 
 from .models import Unit, Resource, Reservation, Purpose
 
@@ -66,17 +67,30 @@ class TranslatedModelSerializer(serializers.ModelSerializer):
 
         return ret
 
-
 class NullableTimeField(serializers.TimeField):
     def to_representation(self, value):
         if not value:
             return None
+        else:
+            value = timezone.localtime(value)
         return super().to_representation(value)
 
+class NullableDateTimeField(serializers.DateTimeField):
+    def to_representation(self, value):
+        if not value:
+            return None
+        else:
+            value = timezone.localtime(value)
+        return super().to_representation(value)
 
 class UnitSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
-    opening_hours_today = serializers.DictField(child=NullableTimeField(),
-                                                source='get_opening_hours')
+    opening_hours_today = serializers.DictField(
+        source='get_opening_hours',
+        child=serializers.ListField(
+            child=serializers.DictField(
+                child=NullableDateTimeField())
+        )
+    )
 
     class Meta:
         model = Unit
@@ -93,7 +107,6 @@ class PurposeSerializer(TranslatedModelSerializer):
     class Meta:
         model = Purpose
         fields = ['name', 'main_type', 'id']
-
 
 class ResourceListSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     """
@@ -130,30 +143,29 @@ class ResourceAvailabilitySerializer(TranslatedModelSerializer, munigeo_api.GeoM
     serialization as is.
     """
     available_hours = serializers.SerializerMethodField()
-    opening_hours = serializers.DictField(child=NullableTimeField(),
-                                          source='get_opening_hours')
+    opening_hours_today = serializers.DictField(
+        source='get_opening_hours',
+        child=serializers.ListField(
+            child=serializers.DictField(
+                child=NullableDateTimeField())
+        )
+    )
     location = serializers.SerializerMethodField()
 
     def get_available_hours(self, obj):
-        zone = pytz.timezone(obj.unit.time_zone)
+        #zone = pytz.timezone(obj.unit.time_zone)
         parameters = self.context['request'].query_params
+        start = parameters.get('start', None)
+        end = parameters.get('end', None)
         try:
             duration = datetime.timedelta(minutes=int(parameters['duration']))
         except MultiValueDictKeyError:
             duration = None
-        try:
-            start = zone.localize(arrow.get(parameters['start']).naive)
-        except MultiValueDictKeyError:
-            start = None
-        try:
-            end = zone.localize(arrow.get(parameters['end']).naive)
-        except MultiValueDictKeyError:
-            end = None
         hour_list = obj.get_available_hours(start=start, end=end, duration=duration)
         # the hours must be localized when serializing
-        for hours in hour_list:
-            hours['starts'] = hours['starts'].astimezone(zone)
-            hours['ends'] = hours['ends'].astimezone(zone)
+        #for hours in hour_list:
+        #    hours['starts'] = hours['starts'].astimezone(zone)
+        #    hours['ends'] = hours['ends'].astimezone(zone)
         return hour_list
 
     def get_location(self, obj):
@@ -171,6 +183,10 @@ class ResourceSerializer(ResourceListSerializer, ResourceAvailabilitySerializer)
     """
     Mixes resource listing and availability data for displaying a single resource.
     """
+    purposes = PurposeSerializer(many=True)
+
+    class Meta:
+        model = Resource
 
 
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
@@ -220,10 +236,12 @@ register_view(AvailableViewSet, 'available')
 
 
 class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
+    begin = NullableDateTimeField()
+    end = NullableDateTimeField()
 
     class Meta:
         model = Reservation
-        fields = ['resource', 'begin', 'end', 'user']
+        fields = ['resource', 'user', 'begin', 'end']
 
 
 class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
