@@ -119,12 +119,15 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin, vi
     filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend)
     filter_class = ResourceListFilterSet
 
+
 register_view(ResourceListViewSet, 'resource')
 
 
 class ResourceAvailabilitySerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     """
     For displaying the status of a single resource during a requested period.
+    The resource might be preserialized; in this case just return the
+    serialization as is.
     """
     available_hours = serializers.SerializerMethodField()
     opening_hours = serializers.DictField(child=NullableTimeField(),
@@ -158,6 +161,11 @@ class ResourceAvailabilitySerializer(TranslatedModelSerializer, munigeo_api.GeoM
             return obj.location
         return obj.unit.location
 
+    def to_representation(self, obj):
+        if isinstance(obj, dict):
+            return obj
+        return super().to_representation(obj)
+
 
 class ResourceSerializer(ResourceListSerializer, ResourceAvailabilitySerializer):
     """
@@ -184,18 +192,21 @@ class AvailableSerializer(ResourceAvailabilitySerializer):
 
 class AvailableFilterBackEnd(filters.BaseFilterBackend):
     """
-    Filters resource availability based on request parameters, preserializing
-    opening_hours and available_hours and adding them to the corresponding objects.
+    Filters resource availability based on request parameters, requiring
+    serializing.
     """
 
     def filter_queryset(self, request, queryset, view):
         params = request.query_params
-        if params['duration']:
-            pass
-        if params['start']:
-            pass
-        if params['end']:
-            pass
+        # filtering is only done if at least one parameter is provided
+        if 'start' in params or 'end' in params or 'duration' in params:
+            serializer = view.serializer_class(context={'request': request})
+            serialized_queryset = []
+            for resource in queryset:
+                serialized_resource = serializer.to_representation(resource)
+                if serialized_resource['available_hours'] and serialized_resource['opening_hours']:
+                    serialized_queryset.append(serialized_resource)
+            return serialized_queryset
         return queryset
 
 
