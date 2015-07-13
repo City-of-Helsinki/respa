@@ -13,7 +13,7 @@ from django.utils.dateformat import time_format
 import django.db.models as dbm
 import django.contrib.postgres.fields as pgfields
 from psycopg2.extras import DateTimeTZRange, DateRange, NumericRange
-
+from django.utils import timezone
 
 import arrow
 
@@ -48,12 +48,13 @@ def generate_id():
     b = base64.b32encode(struct.pack(">Q", int(t)).lstrip(b'\x00')).strip(b'=').lower()
     return b.decode('utf8')
 
-def time_to_dtz(time, date=None, arr=None, zone='UTC'):
+def time_to_dtz(time, date=None, arr=None):
+    tz = timezone.get_current_timezone()
     if time:
         if date:
-            return arrow.get(datetime.datetime.combine(date, time), tzinfo=zone).datetime
+            return tz.localize(datetime.datetime.combine(date, time))
         elif arr:
-            return arr.replace(hour=time.hour, minute=time.minute, tzinfo=zone).datetime
+            return tz.localize(datetime.datetime(arr.year, arr.month, arr.day, time.hour, time.minute))
     else:
         return None
 
@@ -173,11 +174,11 @@ def get_opening_hours(periods, begin, end=None):
         if period.start < begin_dt.date():
             start = begin_dt
         else:
-            start = arrow.get(period.start, tzinfo='UTC')
+            start = arrow.get(period.start)
         if period.end > end_dt.date():
             end = end_dt
         else:
-            end = arrow.get(period.end, tzinfo='UTC')
+            end = arrow.get(period.end)
 
         # For one period, generate all of its days and for given day, put its hours into the dict
         for r in arrow.Arrow.range('day', start, end):
@@ -194,11 +195,11 @@ def get_opening_hours(periods, begin, end=None):
                 if period.start < begin_dt.date():
                     start = begin_dt
                 else:
-                    start = arrow.get(period.start, tzinfo='UTC')
+                    start = arrow.get(period.start)
                 if period.end > end_dt.date():
                     end = end_dt
                 else:
-                    end = arrow.get(period.end, tzinfo='UTC')
+                    end = arrow.get(period.end)
 
                 # Updating dict of exceptional dates with current exception period's days
                 for r in arrow.Arrow.range('day', start, end):

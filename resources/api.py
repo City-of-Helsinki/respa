@@ -7,6 +7,7 @@ from rest_framework import serializers, viewsets, mixins, filters
 from modeltranslation.translator import translator, NotRegistered
 from munigeo import api as munigeo_api
 import django_filters
+from django.utils import timezone
 
 from .models import Unit, Resource, Reservation, Purpose
 
@@ -66,17 +67,20 @@ class TranslatedModelSerializer(serializers.ModelSerializer):
 
         return ret
 
-
 class NullableTimeField(serializers.TimeField):
     def to_representation(self, value):
         if not value:
             return None
+        else:
+            value = timezone.localtime(value)
         return super().to_representation(value)
 
 class NullableDateTimeField(serializers.DateTimeField):
     def to_representation(self, value):
         if not value:
             return None
+        else:
+            value = timezone.localtime(value)
         return super().to_representation(value)
 
 class UnitSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
@@ -140,25 +144,19 @@ class ResourceSerializer(ResourceListSerializer):
         )
     )
     def get_available_hours(self, obj):
-        zone = pytz.timezone(obj.unit.time_zone)
+        #zone = pytz.timezone(obj.unit.time_zone)
         parameters = self.context['request'].query_params
+        start = parameters.get('start', None)
+        end = parameters.get('end', None)
         try:
             duration = datetime.timedelta(minutes=int(parameters['duration']))
         except MultiValueDictKeyError:
             duration = None
-        try:
-            start = zone.localize(arrow.get(parameters['start']).naive)
-        except MultiValueDictKeyError:
-            start = None
-        try:
-            end = zone.localize(arrow.get(parameters['end']).naive)
-        except MultiValueDictKeyError:
-            end = None
         hour_list = obj.get_available_hours(start=start, end=end, duration=duration)
         # the hours must be localized when serializing
-        for hours in hour_list:
-            hours['starts'] = hours['starts'].astimezone(zone)
-            hours['ends'] = hours['ends'].astimezone(zone)
+        #for hours in hour_list:
+        #    hours['starts'] = hours['starts'].astimezone(zone)
+        #    hours['ends'] = hours['ends'].astimezone(zone)
         return hour_list
 
     purposes = PurposeSerializer(many=True)
