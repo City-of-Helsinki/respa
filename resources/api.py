@@ -143,7 +143,7 @@ class ResourceAvailabilitySerializer(TranslatedModelSerializer, munigeo_api.GeoM
     serialization as is.
     """
     available_hours = serializers.SerializerMethodField()
-    opening_hours_today = serializers.DictField(
+    opening_hours = serializers.DictField(
         source='get_opening_hours',
         child=serializers.ListField(
             child=serializers.DictField(
@@ -155,12 +155,18 @@ class ResourceAvailabilitySerializer(TranslatedModelSerializer, munigeo_api.GeoM
     def get_available_hours(self, obj):
         #zone = pytz.timezone(obj.unit.time_zone)
         parameters = self.context['request'].query_params
-        start = parameters.get('start', None)
-        end = parameters.get('end', None)
         try:
             duration = datetime.timedelta(minutes=int(parameters['duration']))
         except MultiValueDictKeyError:
             duration = None
+        try:
+            start = arrow.get(parameters['start']).naive
+        except MultiValueDictKeyError:
+            start = None
+        try:
+            end = arrow.get(parameters['end']).naive
+        except MultiValueDictKeyError:
+            end = None
         hour_list = obj.get_available_hours(start=start, end=end, duration=duration)
         # the hours must be localized when serializing
         #for hours in hour_list:
