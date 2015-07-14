@@ -201,7 +201,7 @@ class ReservationApiTestCase(APITestCase):
 
 class PeriodTestCase(TestCase):
 
-    def __init__(self):
+    def setUp(self):
         u1 = Unit.objects.create(name='Unit 1', id='unit_1')
         u2 = Unit.objects.create(name='Unit 2', id='unit_2')
         rt = ResourceType.objects.create(name='Type 1', id='type_1', main_type='space')
