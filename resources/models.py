@@ -94,8 +94,8 @@ def get_opening_hours(periods, begin, end=None):
 
     :rtype : dict[str, list[dict[str, datetime.datetime]]]
     :type periods: list[Period]
-    :type begin: datetime.datetime
-    :type end: datetime.datetime | None
+    :type begin: datetime.date
+    :type end: datetime.date | None
     """
     if end:
         assert begin <= end
