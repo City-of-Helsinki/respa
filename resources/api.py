@@ -1,5 +1,6 @@
 import datetime
 import arrow
+from arrow.parser import ParserError
 import pytz
 from django.conf import settings
 from django.utils.datastructures import MultiValueDictKeyError
@@ -153,25 +154,49 @@ class ResourceAvailabilitySerializer(TranslatedModelSerializer, munigeo_api.GeoM
     location = serializers.SerializerMethodField()
 
     def get_available_hours(self, obj):
-        #zone = pytz.timezone(obj.unit.time_zone)
+        """
+        Parses the required start and end parameters from the request.
+
+        The input datetimes must be converted to UTC before passing them to the model. Also, missing
+        parameters have to be replaced with the start and end of today, as defined in the unit timezone.
+        The returned UTC times are serialized in the unit timezone.
+        """
+        zone = pytz.timezone(obj.unit.time_zone)
+        start_of_today = arrow.now(zone).floor("day")
+        print("Today starts at " + start_of_today.datetime.isoformat())
         parameters = self.context['request'].query_params
+        print("Query parameters are " + str(parameters))
         try:
             duration = datetime.timedelta(minutes=int(parameters['duration']))
         except MultiValueDictKeyError:
             duration = None
         try:
-            start = arrow.get(parameters['start']).naive
+            # arrow takes care of most of the parsing and casts time to UTC
+            start = arrow.get(parameters['start']).to('utc').datetime
         except MultiValueDictKeyError:
-            start = None
+            # if no start is provided, default to start of today as defined in the *unit* timezone!
+            start = start_of_today.to('utc').datetime
+        except ParserError:
+            # if only time is provided, default to today as defined in the unit timezone *today*!
+            string = start_of_today.date().isoformat() + ' ' + parameters['start']
+            # the string has to be localized from naive, then cast to utc
+            start = arrow.get(zone.localize(arrow.get(string).naive)).to('utc').datetime
         try:
-            end = arrow.get(parameters['end']).naive
+            # arrow takes care of most of the parsing and casts time to UTC
+            end = arrow.get(parameters['end']).datetime
         except MultiValueDictKeyError:
-            end = None
+            # if no end is provided, default to end of today as defined in the *unit* timezone!
+            end = (start_of_today.to('utc') + datetime.timedelta(days=1)).datetime
+        except ParserError:
+            # if only time is provided, default to today as defined in the unit timezone *today*!
+            string = start_of_today.date().isoformat() + ' ' + parameters['end']
+            # the string has to be localized from naive, then cast to utc
+            end = arrow.get(zone.localize(arrow.get(string).naive)).to('utc').datetime
         hour_list = obj.get_available_hours(start=start, end=end, duration=duration)
         # the hours must be localized when serializing
-        #for hours in hour_list:
-        #    hours['starts'] = hours['starts'].astimezone(zone)
-        #    hours['ends'] = hours['ends'].astimezone(zone)
+        for hours in hour_list:
+            hours['starts'] = hours['starts'].astimezone(zone)
+            hours['ends'] = hours['ends'].astimezone(zone)
         return hour_list
 
     def get_location(self, obj):
@@ -181,6 +206,7 @@ class ResourceAvailabilitySerializer(TranslatedModelSerializer, munigeo_api.GeoM
 
     def to_representation(self, obj):
         if isinstance(obj, dict):
+            print("The resource has already been serialized")
             return obj
         return super().to_representation(obj)
 
