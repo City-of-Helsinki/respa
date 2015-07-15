@@ -3,14 +3,14 @@ from psycopg2.extras import DateTimeTZRange, DateRange, NumericRange
 import datetime
 import arrow
 from collections import namedtuple
-import django.db.models as dbm
+import django.db.models as djdbm
 
 OpenHours = namedtuple("OpenHours", ['opens', 'closes'])
 
-def find_opening_hours(begin, end, resources=None):
+def get_opening_hours(begin, end, resources=None):
     """
-    :type begin:datetime
-    :type end:datetime
+    :type begin:datetime.date
+    :type end:datetime.date
     :type resources: Resource | None
     :rtype: dict[datetime, dict[Resource, list[OpenHours]]]
 
@@ -32,10 +32,12 @@ def find_opening_hours(begin, end, resources=None):
     if not resources:
         resources = Resource.objects.all()
 
+    if not begin < end:
+        end = begin + datetime.timedelta(days=1)
     d_range = DateRange(begin, end)
 
     periods = Period.objects.filter(
-        dbm.Q(resource__in=resources) | dbm.Q(unit__in=resources.values("unit__pk")),
+        djdbm.Q(resource__in=resources) | djdbm.Q(unit__in=resources.values("unit__pk")),
         duration__overlap=d_range).order_by('exception')
 
     begin_dt = datetime.datetime.combine(begin, datetime.time(0, 0))
