@@ -165,6 +165,7 @@ class ResourceAvailabilitySerializer(TranslatedModelSerializer, munigeo_api.GeoM
         start_of_today = arrow.now(zone).floor("day")
         print("Today starts at " + start_of_today.datetime.isoformat())
         parameters = self.context['request'].query_params
+        print("Serializing " + obj.id + " availability")
         print("Query parameters are " + str(parameters))
         try:
             duration = datetime.timedelta(minutes=int(parameters['duration']))
@@ -206,7 +207,7 @@ class ResourceAvailabilitySerializer(TranslatedModelSerializer, munigeo_api.GeoM
 
     def to_representation(self, obj):
         if isinstance(obj, dict):
-            print("The resource has already been serialized")
+            print("Resource " + obj['url'] + " availability has already been serialized")
             return obj
         return super().to_representation(obj)
 

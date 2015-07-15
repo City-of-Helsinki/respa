@@ -414,18 +414,20 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                     continue
             if duration:
                 if res.begin - hours_list[-1]['starts'] < duration:
-                    # the free period is too short
+                    # the free period is too short, discard this period
+                    hours_list[-1]['starts'] = res.end
                     continue
             hours_list[-1]['ends'] = timezone.localtime(res.begin)
             # check if the reservation spans the end
             if res.end > end:
                 return hours_list
             hours_list.append({'starts': timezone.localtime(res.end)})
+        # after the last reservation, we must check if the remaining free period is too short
         if duration:
             if end - hours_list[-1]['starts'] < duration:
-                # the free period is too short
                 hours_list.pop()
                 return hours_list
+        # otherwise add the remaining free period
         hours_list[-1]['ends'] = end
         return hours_list
 
