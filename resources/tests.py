@@ -273,6 +273,11 @@ class AvailableAPITestCase(APITestCase):
         print("availability response ", response.content)
         self.assertNotContains(response, '/r1a')
 
+        # Check that our intrepid tester can still have fun for a more limited amount of time
+        response = self.client.get('/v1/available/?purpose=having_fun&duration=720&start=08:00&end=22:00')
+        print("availability response ", response.content)
+        self.assertContains(response, '/r1a')
+
 class PeriodTestCase(TestCase):
 
     def setUp(self):
