@@ -95,11 +95,23 @@ class TimeWarp(object):
         else:
             return pytz.utc.localize(dt)
 
-    def get_delta(self, delta, zone=None):
-        if not zone:
-            return zone.normalize(self.dt + delta)
+    def get_delta(self, delta, operator, zone=None):
+        """
+
+        :param delta:
+        :type delta: datetime.timedelta
+        :param operator: operator function to apply
+        :type operator: func
+        :param zone:
+        :type zone: pytz.timezone
+        :return:
+        :rtype: TimeWarp
+        """
+        if zone:
+            return TimeWarp(operator(self.dt.astimezone(zone), delta))
         else:
-            return self.original_timezone.normalize(self.dt, + delta)
+            return TimeWarp(operator(self.dt.astimezone(self.original_timezone),
+                                     delta))
 
     def __lt__(self, other):
         return self.dt <= other.dt
