@@ -12,38 +12,65 @@ OpenHours = namedtuple("OpenHours", ['opens', 'closes'])
 
 class TimeWarp(object):
 
-    def __init__(self, daytime=None, day=None, original_timezone=None):
+    def __init__(self, dt=None, day=None, end_dt=None, end_day=None, original_timezone=None):
         """
-        Converts given daytime or day into UTC date time object
+        Converts given dt or day into UTC date time object
         and saves this and the original time zone object
         into object's fields
 
-        :type daytime: datetime.datetime | None
-        :type day: datetime.day | None
+        :param dt: TimeWarp sole datetime or start of date time range
+        :type dt: datetime.datetime | None
+        :param day: a date of TimeWarp or start of date range
+        :type day: datetime.date | None
+        :param end_dt: end of date range
+        :type end_dt: datetime.datetime | None
+        :param end_day: end of date range
+        :type end_day: datetime.date | None
+        :param original_timezone: a string stating original time zone for dame
         :type original_timezone: basestring
-        :rtype: None
+        :rtype: TimeWarp
         """
-        if daytime:
-            # Incoming datetetime
-            if daytime.tzinfo:
-                self._dt = pytz.utc.normalize(daytime)
-                self._orig_zone = daytime.tzinfo
-            else:
-                if original_timezone:
-                    zone = pytz.timezone(original_timezone)
-                else:
-                    zone = timezone.get_current_timezone()
-                self._dt = zone.normalize(daytime)
-                self._orig_zone = zone
-        elif day:
-            self._dt = pytz.utc.normalize(
-                datetime.datetime.combine(day, datetime.time(0, 0)))
-            self._orig_zone = pytz.utc
+        if day:
+            self.original_timezone = pytz.utc
+            self.dt = self._date_to_dt(day)
+            self.date = day
+        elif dt:
+            self.original_timezone = self.find_timezone(dt, original_timezone)
+            self.dt = self.normalize(dt, self.original_timezone)
         else:
             # Now dates, well be the moment of creation
-            self._dt = pytz.utc.normalize(datetime.datetime.now())
-            self._orig_zone = pytz.utc
+            self.dt = self.normalize(datetime.datetime.now(), pytz.utc)
+            self.original_timezone = pytz.utc
+        
 
+
+    def _date_to_dt(self, day):
+        return self.normalize(datetime.datetime.combine(day, datetime.time(0, 0)),
+                              self.original_timezone)
+
+    def find_timezone(self, dt, original_timezone=None):
+        if original_timezone:
+            return pytz.timezone(original_timezone)
+        elif dt.tzinfo:
+            return dt.tzinfo
+        else:
+            return timezone.get_current_timezone()
+
+    def normalize(self, dt, zone=None):
+        """
+        :param dt: datetime to normalize
+        :type dt: datetime.datetime
+        :param zone: a pytz time zone
+        :type zone: pytz.timezone
+        :param original_timezone: Name of original time zone
+        :type original_timezone: string
+        :return: Updates object in place
+        :rtype: pytz.timezone
+        """
+        if zone:
+            return zone.normalize(dt)
+        else:
+            return pytz.utc.normalize(dt)
 
 def get_opening_hours(begin, end, resources=None):
     """
