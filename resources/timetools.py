@@ -34,7 +34,7 @@ class TimeWarp(object):
         :type original_timezone: basestring
         :rtype: TimeWarp
         """
-        if not hasattr(dt, "tzinfo"):
+        if dt and not hasattr(dt, "tzinfo"):
             raise ValueError(type(dt), "has no attribute tzinfo")
 
         if day:
@@ -55,6 +55,15 @@ class TimeWarp(object):
                               self.original_timezone)
 
     def find_timezone(self, dt, original_timezone=None):
+        """
+        Gets the pytz time zone object from given original time zone,
+        or uses datetime objects own
+        or finally returns Django's current time zone
+
+        :type dt: datetime.datetime
+        :type original_timezone: string
+        :rtype: pytz.timezone
+        """
         if original_timezone:
             return pytz.timezone(original_timezone)
         elif dt.tzinfo and dt.tzinfo.zone:
@@ -85,6 +94,24 @@ class TimeWarp(object):
             return zone.localize(dt).astimezone(pytz.utc)
         else:
             return pytz.utc.localize(dt)
+
+    def get_delta(self, delta, zone=None):
+        if not zone:
+            return zone.normalize(self.dt + delta)
+        else:
+            return self.original_timezone.normalize(self.dt, + delta)
+
+    def __lt__(self, other):
+        return self.dt <= other.dt
+
+    def __gt__(self, other):
+        return self.dt >= other.dt
+
+    def __eq__(self, other):
+        return self.dt == other.dt
+
+    def __ne__(self, other):
+        return self.dt != other.dt
 
 def get_opening_hours(begin, end, resources=None):
     """
