@@ -113,6 +113,19 @@ class TimeWarp(object):
     def __ne__(self, other):
         return self.dt != other.dt
 
+    def astimezone(self, tz):
+        return self.dt.astimezone(pytz.timezone(tz))
+
+    def ceiling(self):
+        return TimeWarp(datetime.datetime.combine(self.dt.date(),
+                                                  datetime.time(0,0)),
+                        original_timezone=self.original_timezone.zone)
+
+    def floor(self):
+        return TimeWarp(self.dt.combine(self.dt.replace(day=self.dt.day + 1).date(),
+                                        datetime.time(0,0)),
+                        original_timezone=self.original_timezone.zone)
+
 def get_opening_hours(begin, end, resources=None):
     """
     :type begin:datetime.date
