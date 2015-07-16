@@ -18,6 +18,10 @@ class TimeWarp(object):
         and saves this and the original time zone object
         into object's fields
 
+        NOTE: At the moment Arror generated DateTime's will fail time zone conversion
+        since Arrow does zone handling differently than Pytz, use Pytz generated
+        or naive datetimes or state the original timezone excplicitly
+
         :param dt: TimeWarp sole datetime or start of date time range
         :type dt: datetime.datetime | None
         :param day: a date of TimeWarp or start of date range
@@ -30,34 +34,42 @@ class TimeWarp(object):
         :type original_timezone: basestring
         :rtype: TimeWarp
         """
+        if not hasattr(dt, "tzinfo"):
+            raise ValueError(type(dt), "has no attribute tzinfo")
+
         if day:
             self.original_timezone = pytz.utc
             self.dt = self._date_to_dt(day)
             self.date = day
         elif dt:
             self.original_timezone = self.find_timezone(dt, original_timezone)
-            self.dt = self.normalize(dt, self.original_timezone)
+            self.dt = self.dt_as_utc(dt, self.original_timezone)
         else:
             # Now dates, well be the moment of creation
-            self.dt = self.normalize(datetime.datetime.now(), pytz.utc)
-            self.original_timezone = pytz.utc
-        
+            self.original_timezone = timezone.get_current_timezone()
+            self.dt = self.dt_as_utc(datetime.datetime.now(), self.original_timezone)
 
 
     def _date_to_dt(self, day):
-        return self.normalize(datetime.datetime.combine(day, datetime.time(0, 0)),
+        return self.dt_as_utc(datetime.datetime.combine(day, datetime.time(0, 0)),
                               self.original_timezone)
 
     def find_timezone(self, dt, original_timezone=None):
         if original_timezone:
             return pytz.timezone(original_timezone)
-        elif dt.tzinfo:
-            return dt.tzinfo
+        elif dt.tzinfo and dt.tzinfo.zone:
+            return pytz.timezone(dt.tzinfo.zone)
         else:
             return timezone.get_current_timezone()
 
-    def normalize(self, dt, zone=None):
+    def dt_as_utc(self, dt, zone=None):
         """
+        Normalizes given datetime to UTC
+
+        DateTime with time zone cast to UTC
+        Naive DateTime is in given time zone and is casted to UTC
+        When no zone is given and DateTime is naive, localize it to UTC as is
+
         :param dt: datetime to normalize
         :type dt: datetime.datetime
         :param zone: a pytz time zone
@@ -67,10 +79,12 @@ class TimeWarp(object):
         :return: Updates object in place
         :rtype: pytz.timezone
         """
-        if zone:
-            return zone.normalize(dt)
+        if dt.tzinfo:
+            return dt.astimezone(pytz.utc)
+        elif zone:
+            return zone.localize(dt).astimezone(pytz.utc)
         else:
-            return pytz.utc.normalize(dt)
+            return pytz.utc.localize(dt)
 
 def get_opening_hours(begin, end, resources=None):
     """
