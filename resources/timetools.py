@@ -19,8 +19,8 @@ class TimeWarp(object):
         into object's fields
 
         NOTE: At the moment Arror generated DateTime's will fail time zone conversion
-        since Arrow does zone handling differently than Pytz, use Pytz generated
-        or naive datetimes or state the original timezone excplicitly
+        since Arrow does zone handling differently than Pytz, use Pytz zone localized
+        or naive datetimes or state the original timezone explicitly
 
         :param dt: TimeWarp sole datetime or start of date time range
         :type dt: datetime.datetime | None
@@ -37,10 +37,14 @@ class TimeWarp(object):
         if dt and not hasattr(dt, "tzinfo"):
             raise ValueError(type(dt), "has no attribute tzinfo")
 
+        self.dt = None
+        self.end_dt = None
+        self.dt_range = None
+        self.as_date = False
+
         if day:
             self.original_timezone = pytz.utc
             self.dt = self._date_to_dt(day)
-            self.date = day
         elif dt:
             self.original_timezone = self.find_timezone(dt, original_timezone)
             self.dt = self.dt_as_utc(dt, self.original_timezone)
@@ -49,6 +53,17 @@ class TimeWarp(object):
             self.original_timezone = timezone.get_current_timezone()
             self.dt = self.dt_as_utc(datetime.datetime.now(), self.original_timezone)
 
+        if end_day:
+            self.end_dt = self._date_to_dt(end_day)
+        elif end_dt:
+            self.end_dt = self.dt_as_utc(end_dt, self.original_timezone)
+
+        if self.end_dt:
+            if self.end_dt < self.dt:
+                raise ValueError(self.dt, self.end_dt,
+                                 "End range can't be earlier than start range")
+            self.dt_range = DateTimeTZRange(self.dt, self.end_dt)
+            self.as_date = True  # NOTE: created as date, which have no time zone
 
     def _date_to_dt(self, day):
         return self.dt_as_utc(datetime.datetime.combine(day, datetime.time(0, 0)),
