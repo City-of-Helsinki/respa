@@ -77,6 +77,12 @@ class TimeWarp(object):
             self.dt_range = DateTimeTZRange(self.dt, self.end_dt)
             self.as_date = True  # NOTE: created as date, which have no time zone
 
+    def __repr__(self):
+        return '<TimeWarp "{0}">'.format(
+            ", ".join(str(i) for i in (
+                self.dt, self.end_dt, self.original_timezone, self.as_date) if i)
+        )
+
     def _date_to_dt(self, day):
         return self.dt_as_utc(datetime.datetime.combine(day, datetime.time(0, 0)),
                               self.original_timezone)
