@@ -11,6 +11,18 @@ OpenHours = namedtuple("OpenHours", ['opens', 'closes'])
 
 
 class TimeWarp(object):
+    """
+    A time handling helper class
+
+    Give it datetime or date and optional end datetime or end date for ranges
+
+    Get back time zone aware date times, but rely on calculations done using
+     UTC and normalized to your chosen time zone
+
+    Also supports time deltas, comparisons, date's start and end
+
+    TODO: ambiguous DST times are not handled, though Pytz supports this
+    """
 
     def __init__(self, dt=None, day=None, end_dt=None, end_day=None, original_timezone=None):
         """
@@ -97,10 +109,8 @@ class TimeWarp(object):
         :param dt: datetime to normalize
         :type dt: datetime.datetime
         :param zone: a pytz time zone
-        :type zone: pytz.timezone
-        :param original_timezone: Name of original time zone
-        :type original_timezone: string
-        :return: Updates object in place
+        :type zone: pytz.timezone | None
+        :return: datetime in UTC
         :rtype: pytz.timezone
         """
         if dt.tzinfo:
@@ -155,6 +165,7 @@ class TimeWarp(object):
         return TimeWarp(self.dt.combine(self.dt.replace(day=self.dt.day + 1).date(),
                                         datetime.time(0,0)),
                         original_timezone=self.original_timezone.zone)
+
 
 def get_opening_hours(begin, end, resources=None):
     """
