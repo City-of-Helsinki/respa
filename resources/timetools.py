@@ -140,8 +140,11 @@ class TimeWarp(object):
     def __ne__(self, other):
         return self.dt != other.dt
 
-    def astimezone(self, tz):
-        return self.dt.astimezone(pytz.timezone(tz))
+    def astimezone(self, tz=None):
+        if tz:
+            return self.dt.astimezone(pytz.timezone(tz))
+        else:
+            return self.dt.astimezone(self.original_timezone)
 
     def ceiling(self):
         return TimeWarp(datetime.datetime.combine(self.dt.date(),
