@@ -6,6 +6,7 @@ from collections import namedtuple
 import django.db.models as djdbm
 from django.utils import timezone
 import pytz
+from django.utils.dateformat import format, time_format
 
 OpenHours = namedtuple("OpenHours", ['opens', 'closes'])
 
@@ -23,6 +24,10 @@ class TimeWarp(object):
 
     TODO: ambiguous DST times are not handled, though Pytz supports this
     """
+
+    SERIALIZATION_FORMATS = {
+        "finnish": "j.n.Y G.i"
+    }
 
     def __init__(self, dt=None, day=None, end_dt=None, end_day=None, original_timezone=None):
         """
@@ -172,6 +177,40 @@ class TimeWarp(object):
                                         datetime.time(0,0)),
                         original_timezone=self.original_timezone.zone)
 
+    def serialize(self, dt_format=None, zone=None):
+        """
+        Serializes datetimes using given format or default format if None,
+        in given or original time zone
+        Returns formatted strings as dict for both datetime fields if present
+
+        TimeWarp class now has built in time formats
+        Serializer can use given format or you can choose from built in formats
+        Builtin formats use Django's date formatter and argument format uses Python's own
+        Also, datetimes are cast to given time zone or the
+        original_timezone is used
+
+        :param dt_format: a key in class formats or a Python format string
+        :type dt_format: string
+        :return: a dict with object's used datetime fields formatted
+        :rtype: dict[string, string]
+        """
+        if not zone:
+            zone = self.original_timezone
+        else:
+            zone = pytz.timezone(zone)
+        resp = {}
+        for key in ("dt", "end_dt"):
+            field = getattr(self, key)
+            if field:
+                field = field.astimezone(zone)
+                if not dt_format:
+                    resp[key] = format(field, self.SERIALIZATION_FORMATS["finnish"])
+                else:
+                    try:
+                        resp[key] = format(field, self.SERIALIZATION_FORMATS[dt_format])
+                    except KeyError:
+                        resp[key] = dt_format.format(field)
+        return resp
 
 def get_opening_hours(begin, end, resources=None):
     """
