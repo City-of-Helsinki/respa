@@ -163,7 +163,11 @@ class ReservationApiTestCase(APITestCase):
         format = '%Y-%m-%dT%H:%M:%S%z'
         print("debug", start.isoformat(), end.isoformat())
 
-        # Check that available hours are reported correctly for a free resource
+        # Set opening hours for today (required to make a reservation)
+        today = Period.objects.create(start=start.date(), end=end.date(), resource_id='r1a', name='')
+        Day.objects.create(period=today, weekday=start.weekday(), opens='08:00', closes='22:00')
+
+        # Check that available *and* opening hours are reported correctly for a free resource
         response = self.client.get('/v1/resource/r1a/')
         print("res starting state", response.content)
 
@@ -171,16 +175,16 @@ class ReservationApiTestCase(APITestCase):
         #eest_end = end.to(tz="Europe/Helsinki")
         self.assertContains(response, '"starts":"' + start.isoformat() + '"')
         self.assertContains(response, '"ends":"' + end.isoformat() + '"')
-
-        # Set opening hours for today (required to make a reservation)
-        today = Period.objects.create(start=start.date(), end=end.date(), resource_id='r1a', name='')
-        Day.objects.create(period=today, weekday=start.weekday(), opens='08:00', closes='22:00')
+        self.assertContains(response, '08:00')
+        self.assertContains(response, '22:00')
 
         # Make a reservation through the API
         res_start = start + datetime.timedelta(hours=8)
         res_end = res_start + datetime.timedelta(hours=2)
         # res_start = '2015-06-01T08:00:00'
         # res_end = '2015-06-01T10:00:00'
+        print("start reservation at ", res_start)
+        print("end reservation at ", res_end)
         response = self.client.post('/v1/reservation/',
                                     {'resource': 'r1a',
                                      'begin': res_start,
