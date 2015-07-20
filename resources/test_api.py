@@ -1,7 +1,6 @@
 from rest_framework.test import APITestCase, APIRequestFactory, APIClient
 from .models import *
 
-
 class ReservationTestCase(APITestCase):
 
     client = APIClient()
@@ -87,12 +86,12 @@ class ReservationApiTestCase(APITestCase):
         Resource.objects.create(name='Resource 2a', id='r2a', unit=u2, type=rt)
         Resource.objects.create(name='Resource 2b', id='r2b', unit=u2, type=rt)
 
-        p1 = Period.objects.create(start='2015-06-01', end='2015-09-01', unit=u1, name='')
+        #p1 = Period.objects.create(start='2015-06-01', end='2015-09-01', unit=u1, name='')
         p2 = Period.objects.create(start='2015-06-01', end='2015-09-01', unit=u2, name='')
-        p3 = Period.objects.create(start='2015-06-01', end='2015-09-01', resource_id='r1a', name='')
-        Day.objects.create(period=p1, weekday=0, opens='08:00', closes='22:00')
+        #p3 = Period.objects.create(start='2015-06-01', end='2015-09-01', resource_id='r1a', name='')
+        #Day.objects.create(period=p1, weekday=0, opens='08:00', closes='22:00')
         Day.objects.create(period=p2, weekday=1, opens='08:00', closes='16:00')
-        Day.objects.create(period=p3, weekday=0, opens='08:00', closes='18:00')
+        #Day.objects.create(period=p3, weekday=0, opens='08:00', closes='18:00')
 
     def test_api(self):
         response = self.client.get('/v1/unit/')
