@@ -206,12 +206,10 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
         """
         today = arrow.get()
         if begin is None:
-            begin = today.replace().floor('day').datetime
+            begin = today.floor('day').datetime
         if end is None:
-            end = today.replace(days=+1).floor('day').datetime
-        periods = self.periods
-        return get_opening_hours(periods, begin, end)
-
+            end = begin  # today.replace(days=+1).floor('day').datetime
+        return get_opening_hours(self.periods, begin, end)
 
 class UnitIdentifier(models.Model):
     unit = models.ForeignKey(Unit, verbose_name=_('Unit'), db_index=True, related_name='identifiers')
