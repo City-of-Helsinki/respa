@@ -615,7 +615,13 @@ class Period(models.Model):
         # if any of these preceding rules is true, period has days on time range
         overlapping_periods_old = old_periods.filter(starts_during | ends_during | larger)
 
-        d_range = DateRange(self.begin, self.end)
+        if self.start > self.end:
+            raise ValidationError("Period must start before its end")
+        elif self.start == self.end:
+            # DateRange must end at least one day after its start
+            d_range = DateRange(self.start, self.end.replace(day=self.end.day + 1))
+        else:
+            d_range = DateRange(self.start, self.end)
 
         overlapping_periods = old_periods.filter(duration__overlap=d_range)
 
