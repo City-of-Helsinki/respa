@@ -12,6 +12,24 @@ ProxyPeriod = namedtuple("ProxyPeriod", ['start', 'end', 'description', 'closed'
 
 @register_importer
 class KirjastotImporter(Importer):
+
+    """
+    Importer tries to convert kirjastot.fi opening hours information to into database
+
+    Since respa has somewhat stricter rules for Period overlaps, this requires some fidling
+
+    If period is fully overlapping existing, larger period, the new one becomes its exception
+
+    If period overlaps only partially, there is attempt to split it to overlapping and non-overlapping
+    parts and then tried again
+    In ideal case this results in exception being created for overlapping part, and regular period
+    for non-overlapping part
+
+    Overlaps more than two levels deep (exception's exception) are not handled at the moment, nor
+    period that overlaps on two periods at the same time
+
+    TODO: check more carefully that importer does the right things and add more tests
+    """
     name = "kirjastot"
 
     def import_units(self):
