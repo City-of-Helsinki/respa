@@ -578,10 +578,74 @@ class Period(models.Model):
         # FIXME: output date in locale-specific format
         return "{0}, {3}: {1:%d.%m.%Y} - {2:%d.%m.%Y}".format(self.name, self.start, self.end, STATE_BOOLS[self.closed])
 
+    # def save(self, *args, **kwargs):
+    #     if (self.resource is not None and self.unit is not None) or \
+    #             (self.resource is None and self.unit is None):
+    #         raise ValidationError(_("You must set either 'resource' or 'unit', but not both"))
+    #     if self.start and self.end:
+    #         if self.start == self.end:
+    #             # Range of 1 day must end on next day
+    #             self.duration = DateRange(self.start,
+    #                                       self.end + datetime.timedelta(days=+1))
+    #         else:
+    #             self.duration = DateRange(self.start, self.end)
+    #     return super(Period, self).save(*args, **kwargs)
+
     def save(self, *args, **kwargs):
+        # Periods are either regular and stand alone or exceptions to regular period and must have a relation to it
+
         if (self.resource is not None and self.unit is not None) or \
-                (self.resource is None and self.unit is None):
+           (self.resource is None and self.unit is None):
             raise ValidationError(_("You must set either 'resource' or 'unit', but not both"))
+
+        if self.resource:
+            old_periods = self.resource.periods
+        else:
+            old_periods = self.unit.periods
+
+        # period has an end during the time range
+        ends_during = dbm.Q(end__gte=self.start, end__lte=self.end)
+
+        # period has a start during time range
+        starts_during = dbm.Q(start__gte=self.start, start__lte=self.end)
+
+        # period starts before and ends after time range
+        larger = dbm.Q(start__lte=self.start, end__gte=self.end)
+
+        # if any of these preceding rules is true, period has days on time range
+        overlapping_periods_old = old_periods.filter(starts_during | ends_during | larger)
+
+        d_range = DateRange(self.begin, self.end)
+
+        overlapping_periods = old_periods.filter(duration__overlap=d_range)
+
+        print("debug new", overlapping_periods)
+        print("debug old", overlapping_periods_old)
+
+        #  Validate periods are not overlapping regular or exceptional periods
+        if self.exception:
+            overlapping_exceptions = overlapping_periods.filter(exception=True)
+            if overlapping_exceptions:
+                raise ValidationError("There is already an exceptional period on these dates")
+            regular_periods = overlapping_periods.filter(exception=False)
+            if len(regular_periods) > 1:
+                raise ValidationError("Exceptional period can't be exception for more than one period")
+            elif not regular_periods:
+                raise ValidationError("Exceptional period can't be exception without a regular period")
+            elif len(regular_periods) == 1:
+                parent = regular_periods.first()
+                if (parent.start <= self.start) and (parent.end >= self.end):
+                    # period that encompasses this exceptional period is also this period's parent
+                    self.parent = parent
+                    # continue out of this layer of tests
+                else:
+                    raise ValidationError("Exception period can't have different times from its regular period")
+            else:
+                raise ValidationError("Somehow exceptional period is too exceptional")
+
+        elif overlapping_periods:
+            raise ValidationError("There is already a period on these dates")
+
         if self.start and self.end:
             if self.start == self.end:
                 # Range of 1 day must end on next day
@@ -589,7 +653,9 @@ class Period(models.Model):
                                           self.end + datetime.timedelta(days=+1))
             else:
                 self.duration = DateRange(self.start, self.end)
+
         return super(Period, self).save(*args, **kwargs)
+
 
 
 class Day(models.Model):
