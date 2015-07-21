@@ -173,8 +173,8 @@ class TimeWarp(object):
                         original_timezone=self.original_timezone.zone)
 
     def floor(self):
-        return TimeWarp(self.dt.combine(self.dt.replace(day=self.dt.day + 1).date(),
-                                        datetime.time(0,0)),
+        dt = self.dt + datetime.timedelta(days=+1)
+        return TimeWarp(self.dt.combine(dt.date(), datetime.time(0,0)),
                         original_timezone=self.original_timezone.zone)
 
     def serialize(self, dt_format=None, zone=None):

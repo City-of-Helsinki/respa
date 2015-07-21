@@ -619,14 +619,11 @@ class Period(models.Model):
             raise ValidationError("Period must start before its end")
         elif self.start == self.end:
             # DateRange must end at least one day after its start
-            d_range = DateRange(self.start, self.end.replace(day=self.end.day + 1))
+            d_range = DateRange(self.start, self.end + datetime.timedelta(days=+1))
         else:
             d_range = DateRange(self.start, self.end)
 
         overlapping_periods = old_periods.filter(duration__overlap=d_range)
-
-        print("debug new", overlapping_periods)
-        print("debug old", overlapping_periods_old)
 
         #  Validate periods are not overlapping regular or exceptional periods
         if self.exception:
