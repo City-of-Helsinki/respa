@@ -222,13 +222,6 @@ class ResourceSerializer(ResourceListSerializer, ResourceAvailabilitySerializer)
         model = Resource
 
 
-class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
-    queryset = Resource.objects.all()
-    serializer_class = ResourceSerializer
-
-register_view(ResourceViewSet, 'resource')
-
-
 class AvailableSerializer(ResourceAvailabilitySerializer):
     """
     Lists availability data for availability queries.
@@ -265,7 +258,7 @@ class AvailableViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin, views
     filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend, AvailableFilterBackEnd)
     filter_class = ResourceListFilterSet
 
-register_view(AvailableViewSet, 'available')
+register_view(AvailableViewSet, 'available', base_name='available')
 
 
 class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
