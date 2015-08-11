@@ -10,3 +10,4 @@ nose-watch
 arrow
 pytz
 coverage
+django-cors-headers

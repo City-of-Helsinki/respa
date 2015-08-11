@@ -44,7 +44,8 @@ INSTALLED_APPS = (
     'django.contrib.gis',
     'rest_framework',
     'django_nose',
-    
+    'corsheaders',
+
     'munigeo',
 
     'resources'
@@ -54,6 +55,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -126,6 +128,8 @@ MODELTRANSLATION_PREPOPULATE_LANGUAGE = 'fi'
 STATIC_URL = '/static/'
 
 DEFAULT_SRID = 4326
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 # local_settings.py can be used to override environment-specific settings
 # like database and email that differ between development and production.
