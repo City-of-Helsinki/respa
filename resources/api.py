@@ -124,6 +124,12 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
         )
     )
 
+    def to_representation(self, obj):
+        if isinstance(obj, dict):
+            # resource is already serialized
+            return obj
+        return super().to_representation(obj)
+
     def get_location(self, obj):
         if obj.location is not None:
             return obj.location
@@ -212,13 +218,18 @@ class AvailableFilterBackEnd(filters.BaseFilterBackend):
         return queryset
 
 
-class ResourceViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
+class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = Resource.objects.all()
     serializer_class = ResourceSerializer
     filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend, AvailableFilterBackEnd)
     filter_class = ResourceFilterSet
 
 
+class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    queryset = Resource.objects.all()
+    serializer_class = ResourceSerializer
+
+register_view(ResourceListViewSet, 'resource')
 register_view(ResourceViewSet, 'resource')
 
 
