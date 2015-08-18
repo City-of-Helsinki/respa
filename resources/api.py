@@ -1,10 +1,11 @@
 import datetime
 import arrow
+import collections
 from arrow.parser import ParserError
 import pytz
 from django.conf import settings
 from django.utils.datastructures import MultiValueDictKeyError
-from rest_framework import serializers, viewsets, mixins, filters
+from rest_framework import serializers, viewsets, mixins, filters, exceptions
 from modeltranslation.translator import translator, NotRegistered
 from munigeo import api as munigeo_api
 import django_filters
@@ -116,24 +117,50 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     # FIXME: location field gets removed by munigeo
     location = serializers.SerializerMethodField()
     available_hours = serializers.SerializerMethodField()
-    opening_hours = serializers.DictField(
-        source='get_opening_hours',
-        child=serializers.ListField(
-            child=serializers.DictField(
-                child=NullableDateTimeField())
-        )
-    )
+    opening_hours = serializers.SerializerMethodField()
+    reservations = serializers.SerializerMethodField()
 
     def to_representation(self, obj):
         if isinstance(obj, dict):
             # resource is already serialized
             return obj
-        return super().to_representation(obj)
+        ret = super().to_representation(obj)
+        return ret
 
     def get_location(self, obj):
         if obj.location is not None:
             return obj.location
         return obj.unit.location
+
+    def get_opening_hours(self, obj):
+        if 'start' in self.context:
+            start = self.context['start']
+            end = self.context['end']
+        else:
+            start = None
+            end = None
+
+        hours_by_date = obj.get_opening_hours(start, end)
+
+        ret = []
+        for x in sorted(hours_by_date.items()):
+            d = collections.OrderedDict(date=x[0].isoformat())
+            d.update(x[1][0])
+            ret.append(d)
+        return ret
+
+    def get_reservations(self, obj):
+        if 'start' not in self.context:
+            return None
+
+        start = self.context['start']
+        end = self.context['end']
+        res_list = obj.reservations.all().filter(begin__lte=end)\
+            .filter(end__gte=start).order_by('begin')
+        res_ser_list = ReservationSerializer(res_list, many=True).data
+        for res in res_ser_list:
+            del res['resource']
+        return res_ser_list
 
     def get_available_hours(self, obj):
         """
@@ -143,43 +170,21 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
         parameters have to be replaced with the start and end of today, as defined in the unit timezone.
         The returned UTC times are serialized in the unit timezone.
         """
-        parameters = self.context['request'].query_params
-        for param in ('start', 'end', 'duration'):
-            if param in parameters:
-                break
-        else:
+        if 'start' not in self.context:
             return None
 
+        parameters = self.context['request'].query_params
+
         zone = pytz.timezone(obj.unit.time_zone)
-        start_of_today = arrow.now(zone).floor("day")
 
         try:
             duration = datetime.timedelta(minutes=int(parameters['duration']))
         except MultiValueDictKeyError:
             duration = None
-        try:
-            # arrow takes care of most of the parsing and casts time to UTC
-            start = arrow.get(parameters['start']).to('utc').datetime
-        except MultiValueDictKeyError:
-            # if no start is provided, default to start of today as defined in the *unit* timezone!
-            start = start_of_today.to('utc').datetime
-        except ParserError:
-            # if only time is provided, default to today as defined in the unit timezone *today*!
-            string = start_of_today.date().isoformat() + ' ' + parameters['start']
-            # the string has to be localized from naive, then cast to utc
-            start = arrow.get(zone.localize(arrow.get(string).naive)).to('utc').datetime
-        try:
-            # arrow takes care of most of the parsing and casts time to UTC
-            end = arrow.get(parameters['end']).datetime
-        except MultiValueDictKeyError:
-            # if no end is provided, default to end of today as defined in the *unit* timezone!
-            end = (start_of_today.to('utc') + datetime.timedelta(days=1)).datetime
-        except ParserError:
-            # if only time is provided, default to today as defined in the unit timezone *today*!
-            string = start_of_today.date().isoformat() + ' ' + parameters['end']
-            # the string has to be localized from naive, then cast to utc
-            end = arrow.get(zone.localize(arrow.get(string).naive)).to('utc').datetime
-        hour_list = obj.get_available_hours(start=start, end=end, duration=duration)
+
+        hour_list = obj.get_available_hours(start=self.context['start'],
+                                            end=self.context['end'],
+                                            duration=duration)
         # the hours must be localized when serializing
         for hours in hour_list:
             hours['starts'] = hours['starts'].astimezone(zone)
@@ -207,7 +212,7 @@ class AvailableFilterBackEnd(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         params = request.query_params
         # filtering is only done if at least one parameter is provided
-        if 'start' in params or 'end' in params or 'duration' in params:
+        if 'start' in params and 'end' in params and 'duration' in params:
             serializer = view.serializer_class(context={'request': request})
             serialized_queryset = []
             for resource in queryset:
@@ -228,6 +233,25 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin, vi
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = Resource.objects.all()
     serializer_class = ResourceSerializer
+
+    def get_serializer_context(self):
+        context = super(ResourceViewSet, self).get_serializer_context()
+        params = self.request.query_params
+        times = {}
+        for name in ('start', 'end'):
+            if name not in params:
+                continue
+            try:
+                times[name] = arrow.get(params[name]).to('utc').datetime
+            except ParserError:
+                raise exceptions.ParseError("'%s' must be a timestamp in ISO 8601 format" % name)
+
+        if len(times):
+            if len(times) != 2:
+                raise exceptions.ParseError("You must supply both 'start' and 'end'")
+            context.update(times)
+
+        return context
 
 register_view(ResourceListViewSet, 'resource')
 register_view(ResourceViewSet, 'resource')
