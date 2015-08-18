@@ -145,7 +145,8 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
         ret = []
         for x in sorted(hours_by_date.items()):
             d = collections.OrderedDict(date=x[0].isoformat())
-            d.update(x[1][0])
+            if len(x[1]):
+                d.update(x[1][0])
             ret.append(d)
         return ret
 
