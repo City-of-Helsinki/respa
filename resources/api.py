@@ -196,6 +196,10 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
         model = Resource
 
 
+class ResourceDetailsSerializer(ResourceSerializer):
+    unit = UnitSerializer()
+
+
 class ResourceFilterSet(django_filters.FilterSet):
     purpose = django_filters.CharFilter(name="purposes__id", lookup_type='iexact')
 
@@ -233,7 +237,7 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin, vi
 
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = Resource.objects.all()
-    serializer_class = ResourceSerializer
+    serializer_class = ResourceDetailsSerializer
 
     def get_serializer_context(self):
         context = super(ResourceViewSet, self).get_serializer_context()
