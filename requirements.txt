@@ -2,7 +2,7 @@ Django
 django-modeltranslation
 psycopg2>2.6
 -e git+https://github.com/City-of-Helsinki/munigeo#egg=django-munigeo
-djangorestframework
+djangorestframework!=3.2.3
 django-filter
 django-admin-bootstrapped
 django-nose
