@@ -270,6 +270,10 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         model = Reservation
         fields = ['resource', 'user', 'begin', 'end']
 
+    def validate(self, data):
+        data['begin'], data['end'] = data['resource'].get_reservation_period(data)
+        return data
+
 
 class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
     queryset = Reservation.objects.all()

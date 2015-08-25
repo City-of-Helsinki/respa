@@ -295,16 +295,22 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
     def get_reservation_period(self, reservation):
         """
-        Returns accepted start and end times for a suggested reservation
+        Returns accepted start and end times for a suggested reservation.
 
+        The reservation may be provided as Reservation or as a dict.
         If the reservation cannot be accepted, raises a ValidationError.
 
         :rtype : list[datetime.datetime]
-        :type reservation: Reservation
+        :type reservation: Reservation | dict[str, Object]
         """
 
-        begin = reservation.begin
-        end = reservation.end
+        # check if provided reservation is a dictionary:
+        if isinstance(reservation, dict):
+            begin = reservation['begin']
+            end = reservation['end']
+        else:
+            begin = reservation.begin
+            end = reservation.end
 
         days = self.get_opening_hours(begin.date(), end.date())
         if not days.values():
@@ -351,7 +357,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
         Will also return true when the resource is closed, if it is not reserved.
         The optional reservation argument is for disregarding a given
-        reservation.
+        reservation. If the reservation argument is a dict, it cannot be
+        disregarded, as it cannot be identified with existing reservations.
 
         :rtype : bool
         :type begin: datetime.datetime
