@@ -293,22 +293,27 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     def __str__(self):
         return "%s (%s)/%s" % (get_translated(self, 'name'), self.id, self.unit)
 
-    def get_reservation_period(self, reservation):
+    def get_reservation_period(self, reservation, data=None):
         """
         Returns accepted start and end times for a suggested reservation.
 
-        The reservation may be provided as Reservation or as a dict.
+        Suggested reservation may be provided as Reservation or as a data dict.
+        When providing the data dict from a serializer, reservation
+        argument must be present to indicate the reservation being edited,
+        or None if we are creating a new reservation.
         If the reservation cannot be accepted, raises a ValidationError.
 
         :rtype : list[datetime.datetime]
-        :type reservation: Reservation | dict[str, Object]
+        :type reservation: Reservation
+        :type data: dict[str, Object]
         """
 
-        # check if provided reservation is a dictionary:
-        if isinstance(reservation, dict):
-            begin = reservation['begin']
-            end = reservation['end']
+        # check if data from serializer is present:
+        if data:
+            begin = data['begin']
+            end = data['end']
         else:
+            # if data is not provided, the reservation object has the desired data:
             begin = reservation.begin
             end = reservation.end
 
@@ -342,6 +347,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                     duration = duration_in_slots * self.min_period
                     end = begin + duration
                     if not self.is_available(begin, end, reservation):
+                        # check that the current reservation is the only overlapping one
                         raise ValidationError(_("The resource is already reserved for some of the period"))
                     return begin, end
                 except ValidationError as e:
@@ -357,8 +363,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
         Will also return true when the resource is closed, if it is not reserved.
         The optional reservation argument is for disregarding a given
-        reservation. If the reservation argument is a dict, it cannot be
-        disregarded, as it cannot be identified with existing reservations.
+        reservation.
 
         :rtype : bool
         :type begin: datetime.datetime

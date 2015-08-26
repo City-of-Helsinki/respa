@@ -271,7 +271,13 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         fields = ['resource', 'user', 'begin', 'end']
 
     def validate(self, data):
-        data['begin'], data['end'] = data['resource'].get_reservation_period(data)
+        # if updating a reservation, its identity must be provided to validator
+        try:
+            reservation = self.context['view'].get_object()
+        except AssertionError:
+            # the view is a list, which means that we are POSTing a new reservation
+            reservation = None
+        data['begin'], data['end'] = data['resource'].get_reservation_period(reservation, data=data)
         return data
 
 
