@@ -331,9 +331,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                         raise ValidationError(_("You must start the reservation during opening hours"))
                     if end > closing:
                         raise ValidationError(_("You must end the reservation before closing"))
-                    time_since_opening = datetime.timedelta(hours=begin.time().hour - opening.time().hour,
-                                                            minutes=begin.time().minute - opening.time().minute,
-                                                            seconds=begin.time().second - opening.time().second)
+                    time_since_opening = begin - opening
                     # We round down to the start of the time slot
                     time_slots_since_opening = int(time_since_opening / self.min_period)
                     begin = opening + (time_slots_since_opening * self.min_period)
