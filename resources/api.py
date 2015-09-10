@@ -268,7 +268,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
 
     class Meta:
         model = Reservation
-        fields = ['resource', 'user', 'begin', 'end']
+        fields = ['url', 'resource', 'user', 'begin', 'end']
 
     def validate(self, data):
         # if updating a reservation, its identity must be provided to validator
