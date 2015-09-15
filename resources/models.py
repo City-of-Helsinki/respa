@@ -211,12 +211,15 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
             end = begin  # today.replace(days=+1).floor('day').datetime
         return get_opening_hours(self.periods, begin, end)
 
+
 class UnitIdentifier(models.Model):
     unit = models.ForeignKey(Unit, verbose_name=_('Unit'), db_index=True, related_name='identifiers')
     namespace = models.CharField(verbose_name=_('Namespace'), max_length=50)
     value = models.CharField(verbose_name=_('Value'), max_length=100)
 
     class Meta:
+        verbose_name = _("unit identifier")
+        verbose_name_plural = _("unit identifiers")
         unique_together = (('namespace', 'value'), ('namespace', 'unit'))
 
 
@@ -252,8 +255,8 @@ class Purpose(ModifiableModel):
     name = models.CharField(verbose_name=_('Name'), max_length=200)
 
     class Meta:
-        verbose_name = _("resource type")
-        verbose_name_plural = _("resource types")
+        verbose_name = _("purpose")
+        verbose_name_plural = _("purposes")
 
     def __str__(self):
         return "%s (%s)" % (get_translated(self, 'name'), self.id)
@@ -269,12 +272,13 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     unit = models.ForeignKey(Unit, verbose_name=_('Unit'), db_index=True, null=True, blank=True,
                              related_name="resources")
     type = models.ForeignKey(ResourceType, verbose_name=_('Resource type'), db_index=True)
-    purposes = models.ManyToManyField(Purpose)
+    purposes = models.ManyToManyField(Purpose, verbose_name=_('Purposes'))
     name = models.CharField(verbose_name=_('Name'), max_length=200)
     description = models.TextField(verbose_name=_('Description'), null=True, blank=True)
     photo = models.URLField(verbose_name=_('Photo URL'), null=True, blank=True)
     need_manual_confirmation = models.BooleanField(verbose_name=_('Need manual confirmation'), default=False)
-    authentication = models.CharField(blank=False, max_length=20, choices=AUTHENTICATION_TYPES)
+    authentication = models.CharField(blank=False, verbose_name=_('Authentication'),
+                                      max_length=20, choices=AUTHENTICATION_TYPES)
     people_capacity = models.IntegerField(verbose_name=_('People capacity'), null=True, blank=True)
     area = models.IntegerField(verbose_name=_('Area'), null=True, blank=True)
     ground_plan = models.URLField(verbose_name=_('Ground plan URL'), null=True, blank=True)
