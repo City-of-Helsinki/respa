@@ -9,7 +9,7 @@ import pytz
 from django.utils.dateformat import format, time_format
 
 OpenHours = namedtuple("OpenHours", ['opens', 'closes'])
-
+FreeTime = namedtuple("FreeTime", ['begin', 'end', 'duration'])
 
 class TimeWarp(object):
     """
@@ -318,9 +318,14 @@ def get_availability(begin, end, duration, resources):
     # NOTE: Resource's Period overrides Unit's Period
 
     opening_hours = {}
+    availability = {}
 
     for res in resources:
         opening_hours[res] = periods_to_opening_hours(res, begin, end)
+
+        if duration:
+            availability[res] = calculate_availability(res, opening_hours[res], duration)
+
 
 
     """
@@ -338,6 +343,68 @@ def get_availability(begin, end, duration, resources):
 
     API can calculate all fitting slots, but is it necessary at this stage?
     """
+
+from itertools import groupby
+def calculate_availability(resource, opening_hours, duration=None):
+    """
+    Goes through reservations for given resource
+
+    Calculates available time for days with reservations
+    based on reservation duration and opening hours
+
+    Availability is dictionary of dates and a list of
+    FreeTime objects with begin and end DateTime fields
+
+    If duration is given and longer than free time, it won't be returned
+
+    Empty list for a date means no availability
+
+    :param resource:
+    :type resource:
+    :param opening_hours:
+    :type opening_hours:
+    :param duration:
+    :type duration:
+    :return:
+    :rtype:
+    """
+    reservations_by_day = groupby(resource.overlapping_reservations,
+                                  key=lambda rsv: rsv.begin.date())
+
+    availability = {}
+
+    for day in reservations_by_day:
+        first = opening_hours[day].opens
+        last = opening_hours[day].closes
+
+        full_time = []
+
+        for n, rsv in enumerate(day):
+            # First free time between opening and first reservation
+            if n == 0:
+                # If day does not start with a reserved time
+                if first != rsv.begin:
+                    begin = first
+                    end = rsv.begin
+                    if duration and duration > (end - begin):
+                        continue
+                    full_time.append(FreeTime(begin, end))
+            else:
+                if last != rsv.end:
+                    begin = rsv.end
+                    # if there is more reservations on this day
+                    if n + 1 < len(day):
+                        end = day[n + 1].begin
+                    # otherwise free time ends with closing
+                    else:
+                        end = last
+                    if duration and duration > (end - begin):
+                        continue
+                    full_time.append(FreeTime(begin, end))
+
+        availability[day] = full_time
+
+    return availability
 
 def periods_to_opening_hours(resource, begin, end):
     """
@@ -387,7 +454,15 @@ def periods_to_opening_hours(resource, begin, end):
                     if day.closed:
                         dates[r.date()] = False
                     else:
-                        dates[r.date()] = OpenHours(day.opens, day.closes)
+                        if day.closes < day.opens:
+                            # Day that closes before it opens means closing next day
+                            closes = datetime.datetime.combine(
+                                r.date() + datetime.timedelta(days=1),
+                                day.closes)
+                        else:
+                            closes = datetime.datetime.combine(r.date(), day.closes)
+                        opens = datetime.datetime.combine(r.date(), day.closes)
+                        dates[r.date()] = OpenHours(opens, closes)
 
     for period in resource.overlapping_periods:
         if period.start < begin:
@@ -405,7 +480,15 @@ def periods_to_opening_hours(resource, begin, end):
                     if day.closed:
                         dates[r.date()] = False
                     else:
-                        dates[r.date()] = OpenHours(day.opens, day.closes)
+                        if day.closes < day.opens:
+                            # Day that closes before it opens means closing next day
+                            closes = datetime.datetime.combine(
+                                r.date() + datetime.timedelta(days=1),
+                                day.closes)
+                        else:
+                            closes = datetime.datetime.combine(r.date(), day.closes)
+                        opens = datetime.datetime.combine(r.date(), day.closes)
+                        dates[r.date()] = OpenHours(opens, closes)
     return dates
 
 def set():
