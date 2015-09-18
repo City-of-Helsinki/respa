@@ -1,4 +1,4 @@
-from .models import Day, Resource, Period, Unit, ResourceType
+from .models import Day, Resource, Period, Unit, ResourceType, Reservation
 from psycopg2.extras import DateTimeTZRange, DateRange, NumericRange
 import datetime
 import arrow
@@ -283,6 +283,130 @@ def get_opening_hours(begin, end, resources=None):
 
     return dates
 
+from django.db.models import Prefetch
+
+def get_availability(begin, end, duration, resources):
+
+    if not resources:
+        resources = Resource.objects.all()
+
+    d_range = DateRange(begin, end)
+
+    # Saved query for overlapping periods, fetching also their Day items
+    qs_periods = Period.objects.filter(
+        duration__overlap=d_range
+    ).order_by('exception').prefetch_related('days')
+
+    # Saved query for Unit's overlapping periods, fetching also their Day items
+    qs_unit_periods = Unit.objects.filter(
+        periods__duration__overlap=d_range
+    ).order_by('periods__exception').prefetch_related('periods__days')
+
+    # Saved query for overlapping reservations
+    qs_reservations = Reservation.objects.filter(duration__overlap=d_range)
+
+    # Get all resources and prefetch to stated attributes to the items
+    # their matching Period, Unit and Reservation
+    # items according to queries defined above
+
+    resources_during_time = resources.prefetch_related(
+        Prefetch('periods', queryset=qs_periods, to_attr='overlapping_periods'),
+        Prefetch('unit', queryset=qs_unit_periods, to_attr='overlapping_unit_periods'),
+        Prefetch('reservations', queryset=qs_reservations, to_attr='overlapping_reservations')
+    )
+
+    # NOTE: Resource's Period overrides Unit's Period
+
+    opening_hours = {}
+
+    for res in resources:
+        opening_hours[res] = periods_to_opening_hours(res, begin, end)
+
+
+    """
+    Loop through all Unit and Resource Periods and append their day states
+
+    For Reservations, calculate the spaces between opening and closing time
+    and between Reservations and add them to their own list of before and after
+    time deltas
+
+    Go through each day and flag all dates that can fit given duration
+
+    Or just add Reservations and in doing so calculate their preceding space
+
+    Should this fit given duration, flag the day, moving to next day's Reservations
+
+    API can calculate all fitting slots, but is it necessary at this stage?
+    """
+
+def periods_to_opening_hours(resource, begin, end):
+    """
+    Goes through resource's unit's periods and its own
+    periods
+
+    Creates opening hours for each day
+
+    First unit's regular days are processed, then their exceptions
+    Then same order for resource itself
+
+    Resulting date dict is union of all periodical information
+    or false if given day is closed
+
+    Also, all days that don't have a period are assumed closed
+
+    :param resource:
+    :type resource:
+    :param begin:
+    :type begin:
+    :param end:
+    :type end:
+    :return:
+    :rtype:
+    """
+    begin_dt = datetime.datetime.combine(begin, datetime.time(0, 0))
+    end_dt = datetime.datetime.combine(end, datetime.time(0, 0))
+
+    # Generates a dict of time range's days as keys and values as active period's days
+
+    # all requested dates are assumed closed
+    dates = {r.date() : False for r in arrow.Arrow.range('day', begin_dt, end_dt)}
+
+    for period in resource.overlapping_unit_periods:
+        if period.start < begin:
+            start = begin_dt
+        else:
+            start = arrow.get(period.start)
+        if period.end > end:
+            end = end_dt
+        else:
+            end = arrow.get(period.end)
+
+        for r in arrow.Arrow.range('day', start, end):
+            for day in period.days.all():
+                if day.weekday is r.weekday():
+                    if day.closed:
+                        dates[r.date()] = False
+                    else:
+                        dates[r.date()] = OpenHours(day.opens, day.closes)
+
+    for period in resource.overlapping_periods:
+        if period.start < begin:
+            start = begin_dt
+        else:
+            start = arrow.get(period.start)
+        if period.end > end:
+            end = end_dt
+        else:
+            end = arrow.get(period.end)
+
+        for r in arrow.Arrow.range('day', start, end):
+            for day in period.days.all():
+                if day.weekday is r.weekday():
+                    if day.closed:
+                        dates[r.date()] = False
+                    else:
+                        dates[r.date()] = OpenHours(day.opens, day.closes)
+    return dates
 
 def set():
     u1 = Unit.objects.create(name='Unit 1', id='unit_1')
