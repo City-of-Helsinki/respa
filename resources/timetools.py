@@ -285,7 +285,31 @@ def get_opening_hours(begin, end, resources=None):
 
 from django.db.models import Prefetch
 
-def get_availability(begin, end, duration, resources):
+def get_availability(begin, end, resources=None, duration=None):
+    """
+    Availability is opening hours and free time between reservations
+
+    This function calculates both for given time range
+
+    Given a queryset of resources (even if just one) can calculate
+    applicable opening hours and free time slots between
+    begin and end of day and reservations for days that
+    have reservations
+
+    Does not currently check if resource is open shorter time
+    than duration
+
+    :param begin:
+    :type begin:
+    :param end:
+    :type end:
+    :param duration:
+    :type duration:
+    :param resources:
+    :type resources:
+    :return:
+    :rtype:
+    """
 
     if not resources:
         resources = Resource.objects.all()
@@ -327,22 +351,7 @@ def get_availability(begin, end, duration, resources):
             availability[res] = calculate_availability(res, opening_hours[res], duration)
 
 
-
-    """
-    Loop through all Unit and Resource Periods and append their day states
-
-    For Reservations, calculate the spaces between opening and closing time
-    and between Reservations and add them to their own list of before and after
-    time deltas
-
-    Go through each day and flag all dates that can fit given duration
-
-    Or just add Reservations and in doing so calculate their preceding space
-
-    Should this fit given duration, flag the day, moving to next day's Reservations
-
-    API can calculate all fitting slots, but is it necessary at this stage?
-    """
+    return opening_hours, availability
 
 from itertools import groupby
 def calculate_availability(resource, opening_hours, duration=None):
@@ -358,6 +367,8 @@ def calculate_availability(resource, opening_hours, duration=None):
     If duration is given and longer than free time, it won't be returned
 
     Empty list for a date means no availability
+
+    Reservations that occupy whole day or longer are handled
 
     :param resource:
     :type resource:
@@ -380,17 +391,29 @@ def calculate_availability(resource, opening_hours, duration=None):
         full_time = []
 
         for n, rsv in enumerate(day):
+            if first >= rsv.begin and last <= rsv.end:
+                # Whole opening time could be reserved, thus rendering whole day unavailable
+                full_time = []
+                break
+            if first > rsv.begin:
+                # Reservation overlaps beginning of opening time
+                first = rsv.end
+            if last > rsv.begin:
+                # Reservation overlaps end of opening time
+                last = rsv.begin
+
             # First free time between opening and first reservation
             if n == 0:
                 # If day does not start with a reserved time
-                if first != rsv.begin:
+                if first < rsv.begin:
                     begin = first
                     end = rsv.begin
                     if duration and duration > (end - begin):
+                        # this free time slot is not long enough
                         continue
                     full_time.append(FreeTime(begin, end))
             else:
-                if last != rsv.end:
+                if last > rsv.end:
                     begin = rsv.end
                     # if there is more reservations on this day
                     if n + 1 < len(day):
@@ -399,6 +422,7 @@ def calculate_availability(resource, opening_hours, duration=None):
                     else:
                         end = last
                     if duration and duration > (end - begin):
+                        # this free time slot is not long enough
                         continue
                     full_time.append(FreeTime(begin, end))
 
