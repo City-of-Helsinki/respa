@@ -202,10 +202,11 @@ class ResourceDetailsSerializer(ResourceSerializer):
 
 class ResourceFilterSet(django_filters.FilterSet):
     purpose = django_filters.CharFilter(name="purposes__id", lookup_type='iexact')
+    type = django_filters.CharFilter(name="type__id", lookup_type='iexact')
 
     class Meta:
         model = Resource
-        fields = ['purpose']
+        fields = ['purpose', 'type']
 
 
 class AvailableFilterBackEnd(filters.BaseFilterBackend):
@@ -233,6 +234,7 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin, vi
     serializer_class = ResourceSerializer
     filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend, AvailableFilterBackEnd)
     filter_class = ResourceFilterSet
+    search_fields = ('id',)
 
 
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
