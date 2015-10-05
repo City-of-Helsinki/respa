@@ -11,7 +11,7 @@ from munigeo import api as munigeo_api
 import django_filters
 from django.utils import timezone
 
-from .models import Unit, Resource, Reservation, Purpose
+from .models import Unit, Resource, Reservation, Purpose, ResourceType
 
 
 all_views = []
@@ -112,8 +112,29 @@ class PurposeSerializer(TranslatedModelSerializer):
         fields = ['name', 'main_type', 'id']
 
 
+class PurposeViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Purpose.objects.all()
+    serializer_class = PurposeSerializer
+
+register_view(PurposeViewSet, 'purpose')
+
+
+class ResourceTypeSerializer(TranslatedModelSerializer):
+
+    class Meta:
+        model = ResourceType
+        fields = ['name', 'main_type', 'id']
+
+class ResourceTypeViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = ResourceType.objects.all()
+    serializer_class = ResourceTypeSerializer
+
+register_view(ResourceTypeViewSet, 'type')
+
+
 class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     purposes = PurposeSerializer(many=True)
+    type = ResourceTypeSerializer()
     # FIXME: location field gets removed by munigeo
     location = serializers.SerializerMethodField()
     available_hours = serializers.SerializerMethodField()
