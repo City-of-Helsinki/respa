@@ -45,7 +45,9 @@ class ReservationApiTestCase(APITestCase):
 
         print("debug", [j for j in Resource.objects.get(id='r1a').reservations.all()])
         # Check that available *and* opening hours are reported correctly for a free resource
-        response = self.client.get('/v1/resource/r1a/')
+        url = '/v1/resource/r1a/?start=' + start.isoformat().replace('+','%2b') + '&end=' + end.isoformat().replace('+','%2b')
+        print("request: ", url)
+        response = self.client.get(url)
         print("res starting state", response.content)
 
         # eest_start = start.to(tz="Europe/Helsinki")
@@ -70,7 +72,8 @@ class ReservationApiTestCase(APITestCase):
         self.assertContains(response, '"resource":"r1a"', status_code=201)
 
         # Check that available hours are reported correctly for a reserved resource
-        response = self.client.get('/v1/resource/r1a/')
+        url = '/v1/resource/r1a/?start=' + start.isoformat().replace('+','%2b') + '&end=' + end.isoformat().replace('+','%2b')
+        response = self.client.get(url)
         print("res after reservation", response.content)
         print("res debug", res_start, res_end)
         self.assertContains(response, '"starts":"' + start.isoformat())
@@ -98,12 +101,6 @@ class AvailableAPITestCase(APITestCase):
 
     def test_filters(self):
         # Check that correct resources are returned
-        response = self.client.get('/v1/available/?purpose=having_fun')
-        print("availability response ", response.content)
-        self.assertContains(response, '/r1a')
-        self.assertContains(response, '/r2a')
-        self.assertNotContains(response, '/r1b')
-        self.assertNotContains(response, '/r2b')
 
         response = self.client.get('/v1/resource/?purpose=having_fun')
         print("resource response ", response.content)
@@ -121,14 +118,16 @@ class AvailableAPITestCase(APITestCase):
         Day.objects.create(period=today, weekday=start.weekday(), opens='08:00', closes='22:00')
 
         # Check that the resource is available for all-day fun-having
-        response = self.client.get('/v1/available/?purpose=having_fun&duration=840&start=08:00&end=22:00')
+        url = '/v1/resource/?purpose=having_fun&duration=1440&start=' + start.isoformat().replace('+','%2b') + '&end=' + end.isoformat().replace('+','%2b')
+        response = self.client.get(url)
         print("availability response ", response.content)
-        self.assertContains(response, '/r1a')
+        self.assertContains(response, 'r1a')
 
         # Check that the duration cannot be longer than the datetimes specified
-        response = self.client.get('/v1/available/?purpose=having_fun&duration=850&start=08:00&end=22:00')
+        url = '/v1/resource/?purpose=having_fun&duration=1450&start=' + start.isoformat().replace('+','%2b') + '&end=' + end.isoformat().replace('+','%2b')
+        response = self.client.get(url)
         print("availability response ", response.content)
-        self.assertNotContains(response, '/r1a')
+        self.assertNotContains(response, 'r1a')
 
         # Make a reservation through the API
         res_start = start + datetime.timedelta(hours=8)
@@ -143,19 +142,22 @@ class AvailableAPITestCase(APITestCase):
         self.assertContains(response, '"resource":"r1a"', status_code=201)
 
         # Check that available hours are reported correctly for a reserved resource
-        response = self.client.get('/v1/resource/r1a/?start=08:00&end=22:00')
+        url = '/v1/resource/?purpose=having_fun&start=' + start.isoformat().replace('+','%2b') + '&end=' + end.isoformat().replace('+','%2b')
+        response = self.client.get(url)
         print("resource after reservation", response.content)
         print("reservation debug", res_start, res_end)
         self.assertContains(response, '"starts":"' + res_end.isoformat())
-        self.assertContains(response, '"ends":"' + (res_end + datetime.timedelta(hours=12)).isoformat())
+        self.assertContains(response, '"ends":"' + (res_end + datetime.timedelta(hours=14)).isoformat())
 
         # Check that all-day fun is no longer to be had
-        response = self.client.get('/v1/available/?purpose=having_fun&duration=840&start=08:00&end=22:00')
+        url = '/v1/resource/?purpose=having_fun&duration=1440&start=' + start.isoformat().replace('+','%2b') + '&end=' + end.isoformat().replace('+','%2b')
+        response = self.client.get(url)
         print("availability response ", response.content)
-        self.assertNotContains(response, '/r1a')
+        self.assertNotContains(response, 'r1a')
 
         # Check that our intrepid tester can still have fun for a more limited amount of time
-        response = self.client.get('/v1/available/?purpose=having_fun&duration=720&start=08:00&end=22:00')
+        url = '/v1/resource/?purpose=having_fun&duration=720&start=' + start.isoformat().replace('+','%2b') + '&end=' + end.isoformat().replace('+','%2b')
+        response = self.client.get(url)
         print("availability response ", response.content)
-        self.assertContains(response, '/r1a')
+        self.assertContains(response, 'r1a')
 
