@@ -142,6 +142,8 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     reservations = serializers.SerializerMethodField()
 
     def to_representation(self, obj):
+        # we must parse the time parameters before serializing
+        self.parse_parameters()
         if isinstance(obj, dict):
             # resource is already serialized
             return obj
@@ -152,6 +154,30 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
         if obj.location is not None:
             return obj.location
         return obj.unit.location
+
+    def parse_parameters(self):
+        """
+        Parses request time parameters for serializing available_hours, opening_hours
+        and reservations
+        """
+
+        params = self.context['request'].query_params
+        times = {}
+        for name in ('start', 'end'):
+            if name not in params:
+                continue
+            try:
+                times[name] = arrow.get(params[name]).to('utc').datetime
+            except ParserError:
+                raise exceptions.ParseError("'%s' must be a timestamp in ISO 8601 format" % name)
+
+        if 'duration' in params:
+            times['duration'] = params['duration']
+
+        if len(times):
+            if len(times) < 2:
+                raise exceptions.ParseError("You must supply both 'start' and 'end'")
+            self.context.update(times)
 
     def get_opening_hours(self, obj):
         if 'start' in self.context:
@@ -186,21 +212,17 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
 
     def get_available_hours(self, obj):
         """
-        Parses the required start and end parameters from the request.
-
         The input datetimes must be converted to UTC before passing them to the model. Also, missing
         parameters have to be replaced with the start and end of today, as defined in the unit timezone.
         The returned UTC times are serialized in the unit timezone.
         """
+
         if 'start' not in self.context:
             return None
-
-        parameters = self.context['request'].query_params
-
         zone = pytz.timezone(obj.unit.time_zone)
 
         try:
-            duration = datetime.timedelta(minutes=int(parameters['duration']))
+            duration = datetime.timedelta(minutes=int(self.context['duration']))
         except MultiValueDictKeyError:
             duration = None
 
@@ -238,9 +260,10 @@ class AvailableFilterBackEnd(filters.BaseFilterBackend):
 
     def filter_queryset(self, request, queryset, view):
         params = request.query_params
-        # filtering is only done if at least one parameter is provided
+        # filtering is only done if all three parameters are provided
         if 'start' in params and 'end' in params and 'duration' in params:
-            serializer = view.serializer_class(context={'request': request})
+            context = {'request': request}
+            serializer = view.serializer_class(context=context)
             serialized_queryset = []
             for resource in queryset:
                 serialized_resource = serializer.to_representation(resource)
@@ -262,24 +285,6 @@ class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, vi
     queryset = Resource.objects.all()
     serializer_class = ResourceDetailsSerializer
 
-    def get_serializer_context(self):
-        context = super(ResourceViewSet, self).get_serializer_context()
-        params = self.request.query_params
-        times = {}
-        for name in ('start', 'end'):
-            if name not in params:
-                continue
-            try:
-                times[name] = arrow.get(params[name]).to('utc').datetime
-            except ParserError:
-                raise exceptions.ParseError("'%s' must be a timestamp in ISO 8601 format" % name)
-
-        if len(times):
-            if len(times) != 2:
-                raise exceptions.ParseError("You must supply both 'start' and 'end'")
-            context.update(times)
-
-        return context
 
 register_view(ResourceListViewSet, 'resource')
 register_view(ResourceViewSet, 'resource')
