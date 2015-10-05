@@ -223,7 +223,7 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
 
         try:
             duration = datetime.timedelta(minutes=int(self.context['duration']))
-        except MultiValueDictKeyError:
+        except KeyError:
             duration = None
 
         hour_list = obj.get_available_hours(start=self.context['start'],
