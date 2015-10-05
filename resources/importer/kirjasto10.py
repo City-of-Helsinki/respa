@@ -23,7 +23,7 @@ class Kirjasto10Importer(Importer):
                           'Kevyt': 'weak',
                           'Vahva': 'strong'}
     PURPOSE_IDS = {}
-    PURPOSE_IDS['audiovisual_work'] = {'musiikin soitto ja äänitys': 'play_and_record_music',
+    PURPOSE_IDS['audiovisual_work'] = {'laulaminen / musiikin soitto ja äänitys': 'sing_play_and_record_music',
                                           'äänen käsittely tietokoneella': 'edit_sound',
                                           'kuvan käsittely tietokoneella': 'edit_image',
                                           'videokuvan käsittely tietokoneella': 'edit_video',
