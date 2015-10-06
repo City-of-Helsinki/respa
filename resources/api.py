@@ -274,7 +274,7 @@ class AvailableFilterBackEnd(filters.BaseFilterBackend):
 
 
 class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin, viewsets.GenericViewSet):
-    queryset = Resource.objects.all().prefetch_related('reservations')
+    queryset = Resource.objects.all()
     serializer_class = ResourceSerializer
     filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend, AvailableFilterBackEnd)
     filter_class = ResourceFilterSet
@@ -282,7 +282,7 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin, vi
 
 
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
-    queryset = Resource.objects.all().prefetch_related('reservations')
+    queryset = Resource.objects.all()
     serializer_class = ResourceDetailsSerializer
 
 
