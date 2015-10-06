@@ -32,7 +32,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 
-INSTALLED_APPS = (
+INSTALLED_APPS = [
     'modeltranslation',
     'django_admin_bootstrapped',
     'django.contrib.admin',
@@ -45,11 +45,12 @@ INSTALLED_APPS = (
     'rest_framework',
     'django_nose',
     'corsheaders',
-
     'munigeo',
+    'resources',
+]
 
-    'resources'
-)
+if DEBUG:
+    INSTALLED_APPS.insert(-1, 'debug_toolbar.apps.DebugToolbarConfig')
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
