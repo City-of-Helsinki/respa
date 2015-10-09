@@ -11,4 +11,3 @@ arrow
 pytz
 coverage
 django-cors-headers
-django-debug-toolbar
