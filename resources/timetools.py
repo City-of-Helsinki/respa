@@ -310,11 +310,16 @@ def get_availability(begin, end, resources=None, duration=None):
     :return:
     :rtype:
     """
-
     if not resources:
         resources = Resource.objects.all()
 
-    d_range = DateRange(begin, end)
+    dt_range = DateTimeTZRange(begin, end)
+
+    if not begin < end:
+        end_d = begin + datetime.timedelta(days=1)
+        d_range = DateRange(begin.date, end_d.date())
+    else:
+        d_range = DateRange(begin.date(), end.date())
 
     # Saved query for overlapping periods, fetching also their Day items
     qs_periods = Period.objects.filter(
@@ -327,7 +332,7 @@ def get_availability(begin, end, resources=None, duration=None):
     ).order_by('periods__exception').prefetch_related('periods__days')
 
     # Saved query for overlapping reservations
-    qs_reservations = Reservation.objects.filter(duration__overlap=d_range)
+    qs_reservations = Reservation.objects.filter(duration__overlap=dt_range)
 
     # Get all resources and prefetch to stated attributes to the items
     # their matching Period, Unit and Reservation
@@ -547,4 +552,3 @@ def set():
     exp2 = Period.objects.create(start=datetime.date(2015, 8, 8), end=datetime.date(2015, 8, 9),
                                  unit=u1, name='weekend is closed', closed=True, exception=True,
                                  parent=p1)
-

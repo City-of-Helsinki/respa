@@ -24,7 +24,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '&ou^j4t&geyrw8$&*sb2h$js&e%h7+_ugm43ekzm*_o%-d3*qn'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -135,6 +135,6 @@ CORS_ORIGIN_ALLOW_ALL = True
 # local_settings.py can be used to override environment-specific settings
 # like database and email that differ between development and production.
 try:
-    from local_settings import *
+    from .local_settings import *
 except ImportError:
     pass
