@@ -304,6 +304,30 @@ paths:
                 type: array
                 items:
                   $ref: '#/definitions/reservation'
+    post:
+      description:
+        The reservation endpoint accepts reservations.
+      parameters:
+        - name: reservation
+          in: body
+          description: The reservation you wish to make
+          schema:
+            $ref: '#/definitions/reservation'
+          required: true
+      responses:
+        '201':
+          description: Reservation created
+          schema:
+            $ref: '#/definitions/reservation'
+        '400':
+          description: Bad request
+          schema:
+            type: object
+            properties:
+              non_field_errors:
+                type: string
+                description: 'The reason the reservation was not accepted'
+
   /reservation/{id}:
     get:
       description: 
@@ -319,6 +343,46 @@ paths:
           description: Successful response
           schema:
             $ref: '#/definitions/reservation'
+    put:
+      description:
+        The reservation endpoint allows editing existing reservations.
+      parameters:
+        - name: id
+          in: path
+          type: string
+          description: Unique identifier of the reservation in the reservation system.
+          required: true
+        - name: reservation
+          in: body
+          description: The reservation data you wish to edit
+          schema:
+            $ref: '#/definitions/reservation'
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          schema:
+            $ref: '#/definitions/reservation'
+        '400':
+          description: Bad request
+          schema:
+            type: object
+            properties:
+              non_field_errors:
+                type: string
+                description: 'The reason the change was not accepted'
+    delete:
+      description:
+        The reservation endpoint allows deleting existing reservations.
+      parameters:
+        - name: id
+          in: path
+          type: string
+          description: Unique identifier of the reservation in the reservation system.
+          required: true
+      responses:
+        '204':
+          description: Reservation deleted
 
 definitions:
   unit:
