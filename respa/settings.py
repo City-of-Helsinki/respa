@@ -132,6 +132,15 @@ DEFAULT_SRID = 4326
 
 CORS_ORIGIN_ALLOW_ALL = True
 
+# REST Framework
+# http://www.django-rest-framework.org
+
+REST_FRAMEWORK = {
+    'PAGINATE_BY': 20,                 # Default to 10
+    'PAGINATE_BY_PARAM': 'page_size',  # Allow client to override, using `?page_size=xxx`.
+    'MAX_PAGINATE_BY': 100,             # Maximum limit allowed when using `?page_size=xxx`.
+}
+
 # local_settings.py can be used to override environment-specific settings
 # like database and email that differ between development and production.
 try:
