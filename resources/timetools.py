@@ -340,7 +340,7 @@ def get_availability(begin, end, resources=None, duration=None):
 
     resources_during_time = resources.prefetch_related(
         Prefetch('periods', queryset=qs_periods, to_attr='overlapping_periods'),
-        Prefetch('unit', queryset=qs_unit_periods, to_attr='overlapping_unit_periods'),
+        Prefetch('unit', queryset=qs_unit_periods, to_attr='overlapping_unit'),
         Prefetch('reservations', queryset=qs_reservations, to_attr='overlapping_reservations')
     )
 
@@ -349,7 +349,7 @@ def get_availability(begin, end, resources=None, duration=None):
     opening_hours = {}
     availability = {}
 
-    for res in resources:
+    for res in resources_during_time:
         opening_hours[res] = periods_to_opening_hours(res, begin, end)
 
         if duration:
@@ -435,7 +435,7 @@ def calculate_availability(resource, opening_hours, duration=None):
 
     return availability
 
-def periods_to_opening_hours(resource, begin, end):
+def periods_to_opening_hours(resource, begin_dt, end_dt):
     """
     Goes through resource's unit's periods and its own
     periods
@@ -459,46 +459,50 @@ def periods_to_opening_hours(resource, begin, end):
     :return:
     :rtype:
     """
-    begin_dt = datetime.datetime.combine(begin, datetime.time(0, 0))
-    end_dt = datetime.datetime.combine(end, datetime.time(0, 0))
+    #begin_dt = datetime.datetime.combine(begin, datetime.time(0, 0))
+    #end_dt = datetime.datetime.combine(end, datetime.time(0, 0))
+
+    begin_d = begin_dt.date()
+    end_d = end_dt.date()
 
     # Generates a dict of time range's days as keys and values as active period's days
 
     # all requested dates are assumed closed
     dates = {r.date() : False for r in arrow.Arrow.range('day', begin_dt, end_dt)}
 
-    for period in resource.overlapping_unit_periods:
-        if period.start < begin:
-            start = begin_dt
-        else:
-            start = arrow.get(period.start)
-        if period.end > end:
-            end = end_dt
-        else:
-            end = arrow.get(period.end)
+    if resource.overlapping_unit:
+        for period in resource.overlapping_unit.periods.all():
+            if period.start < begin_d:
+                start = begin_dt
+            else:
+                start = arrow.get(period.start)
+            if period.end > end_d:
+                end = end_dt
+            else:
+                end = arrow.get(period.end)
 
-        for r in arrow.Arrow.range('day', start, end):
-            for day in period.days.all():
-                if day.weekday is r.weekday():
-                    if day.closed:
-                        dates[r.date()] = False
-                    else:
-                        if day.closes < day.opens:
-                            # Day that closes before it opens means closing next day
-                            closes = datetime.datetime.combine(
-                                r.date() + datetime.timedelta(days=1),
-                                day.closes)
+            for r in arrow.Arrow.range('day', start, end):
+                for day in period.days.all():
+                    if day.weekday is r.weekday():
+                        if day.closed:
+                            dates[r.date()] = False
                         else:
-                            closes = datetime.datetime.combine(r.date(), day.closes)
-                        opens = datetime.datetime.combine(r.date(), day.closes)
-                        dates[r.date()] = OpenHours(opens, closes)
+                            if day.closes < day.opens:
+                                # Day that closes before it opens means closing next day
+                                closes = datetime.datetime.combine(
+                                    r.date() + datetime.timedelta(days=1),
+                                    day.closes)
+                            else:
+                                closes = datetime.datetime.combine(r.date(), day.closes)
+                            opens = datetime.datetime.combine(r.date(), day.opens)
+                            dates[r.date()] = OpenHours(opens, closes)
 
     for period in resource.overlapping_periods:
-        if period.start < begin:
+        if period.start < begin_d:
             start = begin_dt
         else:
             start = arrow.get(period.start)
-        if period.end > end:
+        if period.end > end_d:
             end = end_dt
         else:
             end = arrow.get(period.end)
@@ -516,7 +520,7 @@ def periods_to_opening_hours(resource, begin, end):
                                 day.closes)
                         else:
                             closes = datetime.datetime.combine(r.date(), day.closes)
-                        opens = datetime.datetime.combine(r.date(), day.closes)
+                        opens = datetime.datetime.combine(r.date(), day.opens)
                         dates[r.date()] = OpenHours(opens, closes)
     return dates
 
