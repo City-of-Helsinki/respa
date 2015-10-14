@@ -359,6 +359,7 @@ def get_availability(begin, end, resources=None, duration=None):
     return opening_hours, availability
 
 from itertools import groupby
+
 def calculate_availability(resource, opening_hours, duration=None):
     """
     Goes through reservations for given resource
@@ -389,13 +390,13 @@ def calculate_availability(resource, opening_hours, duration=None):
 
     availability = {}
 
-    for day in reservations_by_day:
+    for day, reservations in reservations_by_day:
         first = opening_hours[day].opens
         last = opening_hours[day].closes
 
         full_time = []
 
-        for n, rsv in enumerate(day):
+        for n, rsv in enumerate(reservations):
             if first >= rsv.begin and last <= rsv.end:
                 # Whole opening time could be reserved, thus rendering whole day unavailable
                 full_time = []
