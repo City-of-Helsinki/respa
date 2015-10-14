@@ -394,6 +394,9 @@ def calculate_availability(resource, opening_hours, duration=None):
         first = opening_hours[day].opens
         last = opening_hours[day].closes
 
+        first = TimeWarp(dt=first).astimezone('UTC')
+        last = TimeWarp(dt=last).astimezone('UTC')
+
         full_time = []
 
         for n, rsv in enumerate(reservations):
@@ -417,7 +420,7 @@ def calculate_availability(resource, opening_hours, duration=None):
                     if duration and duration > (end - begin):
                         # this free time slot is not long enough
                         continue
-                    full_time.append(FreeTime(begin, end))
+                    full_time.append(FreeTime(begin, end, end - begin))
             else:
                 if last > rsv.end:
                     begin = rsv.end
@@ -430,7 +433,7 @@ def calculate_availability(resource, opening_hours, duration=None):
                     if duration and duration > (end - begin):
                         # this free time slot is not long enough
                         continue
-                    full_time.append(FreeTime(begin, end))
+                    full_time.append(FreeTime(begin, end, end - begin))
 
         availability[day] = full_time
 
