@@ -1,11 +1,22 @@
 swagger: '2.0'
 info:
-  version: 1.0.0
+  version: 0.1.0
   title: 'Respa'
   description: 'Resource reservation system for City of Helsinki'
 host: api.hel.fi
 basePath: /respa/v1
+tags:
+  - name: resource
+    description: Look for available resources
+  - name: reservation
+    description: Make or change your reservations
+  - name: unit
+    description: Places where resources are located
+  - name: filter
+    description: Properties you can use in filtering resources
 produces:
+  - application/json
+consumes:
   - application/json
 paths:
   /unit:
@@ -19,14 +30,12 @@ paths:
           in: query
           description: Result page number
           required: false
-          type: number
-          format: integer
+          type: integer
         - name: page_size
           in: query
           description: Number of units per page
           required: false
-          type: number
-          format: integer
+          type: integer
       responses:
         '200':
           description: Successful response
@@ -34,7 +43,7 @@ paths:
             type: object
             properties:
               count:
-                type: number
+                type: integer
                 description: 'The total number of results'
               next:
                 type: string
@@ -72,14 +81,12 @@ paths:
           in: query
           description: Result page number
           required: false
-          type: number
-          format: integer
+          type: integer
         - name: page_size
           in: query
           description: Number of purposes per page
           required: false
-          type: number
-          format: integer
+          type: integer
       responses:
         '200':
           description: Successful response
@@ -87,7 +94,7 @@ paths:
             type: object
             properties:
               count:
-                type: number
+                type: integer
                 description: 'The total number of results'
               next:
                 type: string
@@ -125,14 +132,12 @@ paths:
           in: query
           description: Result page number
           required: false
-          type: number
-          format: integer
+          type: integer
         - name: page_size
           in: query
           description: Number of types per page
           required: false
-          type: number
-          format: integer
+          type: integer
       responses:
         '200':
           description: Successful response
@@ -140,7 +145,7 @@ paths:
             type: object
             properties:
               count:
-                type: number
+                type: integer
                 description: 'The total number of results'
               next:
                 type: string
@@ -169,6 +174,8 @@ paths:
             $ref: '#/definitions/type'
   /resource:
     get:
+      tags:
+        - resource
       description: |
         The resource endpoint returns resources (meeting rooms, workstations, reservable spaces etc.) listed in the reservation system.
         
@@ -196,28 +203,28 @@ paths:
           description: Use together with `end`. Only return resources that are free within the specified interval.
           required: false
           type: string
+          format: date-time
         - name: end
           in: query
           description: Use together with `start`. Only return resources that are free within the specified interval.
           required: false
           type: string
+          format: date-time
         - name: duration
           in: query
           description: Use together with `start` and `end`. Only return resources that are free for a consecutive period of `duration` minutes within the specified interval.
           required: false
-          type: string
+          type: number
         - name: page
           in: query
           description: Result page number
           required: false
-          type: number
-          format: integer
+          type: integer
         - name: page_size
           in: query
           description: Number of resources per page
           required: false
-          type: number
-          format: integer
+          type: integer
       responses:
         '200':
           description: Successful response
@@ -225,7 +232,7 @@ paths:
             type: object
             properties:
               count:
-                type: number
+                type: integer
                 description: 'The total number of results'
               next:
                 type: string
@@ -239,6 +246,8 @@ paths:
                   $ref: '#/definitions/resource'
   /resource/{id}:
     get:
+      tags:
+        - resource
       description: 
         The resource endpoint returns resources (meeting rooms, workstations, reservable spaces etc.) listed in the reservation system.
       parameters:
@@ -252,15 +261,17 @@ paths:
           description: Use together with `end`. Specifies starting time for reporting opening hours, availability and reservations.
           required: false
           type: string
+          format: date-time
         - name: end
           in: query
           description: Use together with `start`. Specifies ending time for reporting opening hours, availability and reservations.
           type: string
+          format: date-time
         - name: duration
           in: query
           description: Use together with `start` and `end`. Specifies minimum free period duration for resource availability.
           required: false
-          type: string
+          type: number
       responses:
         '200':
           description: Successful response
@@ -268,6 +279,8 @@ paths:
             $ref: '#/definitions/resource'
   /reservation:
     get:
+      tags:
+        - reservation
       description: |
         The reservation endpoint returns reservations listed in the reservation system.
         
@@ -277,14 +290,12 @@ paths:
           in: query
           description: Result page number
           required: false
-          type: number
-          format: integer
+          type: integer
         - name: page_size
           in: query
           description: Number of reservations per page
           required: false
-          type: number
-          format: integer
+          type: integer
       responses:
         '200':
           description: Successful response
@@ -292,7 +303,7 @@ paths:
             type: object
             properties:
               count:
-                type: number
+                type: integer
                 description: 'The total number of results'
               next:
                 type: string
@@ -305,6 +316,8 @@ paths:
                 items:
                   $ref: '#/definitions/reservation'
     post:
+      tags:
+        - reservation
       description:
         The reservation endpoint accepts reservations.
       parameters:
@@ -330,6 +343,8 @@ paths:
 
   /reservation/{id}:
     get:
+      tags:
+        - reservation
       description: 
         The reservation endpoint returns reservations listed in the reservation system.
       parameters:
@@ -344,6 +359,8 @@ paths:
           schema:
             $ref: '#/definitions/reservation'
     put:
+      tags:
+        - reservation
       description:
         The reservation endpoint allows editing existing reservations.
       parameters:
@@ -372,6 +389,8 @@ paths:
                 type: string
                 description: 'The reason the change was not accepted'
     delete:
+      tags:
+        - reservation
       description:
         The reservation endpoint allows deleting existing reservations.
       parameters:
