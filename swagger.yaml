@@ -21,6 +21,8 @@ consumes:
 paths:
   /unit:
     get:
+      tags:
+        - unit
       description: 
         The unit endpoint returns City of Helsinki units (libraries, youth centers etc.) listed in the reservation system.
 
@@ -57,6 +59,8 @@ paths:
                   $ref: '#/definitions/unit'
   /unit/{id}:
     get:
+      tags:
+        - unit
       description: 
         The unit endpoint returns City of Helsinki units (libraries, youth centers etc.) listed in the reservation system.
       parameters:
@@ -72,6 +76,8 @@ paths:
             $ref: '#/definitions/unit'
   /purpose:
     get:
+      tags:
+        - filter
       description: |
         The purpose endpoint returns the possible resource usage purposes registered in the system.
         
@@ -108,6 +114,8 @@ paths:
                   $ref: '#/definitions/purpose'
   /purpose/{id}:
     get:
+      tags:
+        - filter
       description: 
         The purpose endpoint returns the possible resource usage purposes registered in the system.
       parameters:
@@ -123,6 +131,8 @@ paths:
             $ref: '#/definitions/purpose'
   /type:
     get:
+      tags:
+        - filter
       description: |
         The type endpoint returns the possible resource types registered in the system.
         
@@ -159,6 +169,8 @@ paths:
                   $ref: '#/definitions/type'
   /type/{id}:
     get:
+      tags:
+        - filter
       description: 
         The type endpoint returns the possible resource types registered in the system.
       parameters:
