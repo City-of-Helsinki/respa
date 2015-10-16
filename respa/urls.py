@@ -39,3 +39,9 @@ urlpatterns = [
     url(r'^admin/', include(admin_site.urls)),
     url(r'^v1/', include(router.urls)),
 ]
+
+from django.conf import settings
+if settings.DEBUG:
+    urlpatterns.append(
+        url(r'test/availability$', 'resources.views.testink')
+    )

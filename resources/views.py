@@ -24,9 +24,9 @@ def testink(request):
     start_date = request.GET.get('start_date', '2015-03-02')
     end_date = request.GET.get('end_date', '2015-03-07')
     duration = request.GET.get('duration', 2)
-    begin = datetime.datetime(2015,3,2)
-    end = datetime.datetime(2015,3,7)
-    duration = datetime.timedelta(hours=2)
+    begin = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+    end = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+    duration = datetime.timedelta(hours=duration)
     openings, avail = resources.timetools.get_availability(begin, end, duration=duration)
 
     return HttpResponse('<html><body>opens<br><pre>' + pprint.pformat(openings.values()) + '</pre> avail<br>' +
