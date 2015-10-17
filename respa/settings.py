@@ -20,9 +20,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '&ou^j4t&geyrw8$&*sb2h$js&e%h7+_ugm43ekzm*_o%-d3*qn'
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
@@ -144,6 +141,26 @@ REST_FRAMEWORK = {
 # local_settings.py can be used to override environment-specific settings
 # like database and email that differ between development and production.
 try:
-    from .local_settings import *
+    from local_settings import *
 except ImportError:
     pass
+
+if 'CUSTOM_INSTALLED_APPS' in locals():
+    INSTALLED_APPS = INSTALLED_APPS + CUSTOM_INSTALLED_APPS
+
+if 'SECRET_KEY' not in locals():
+    secret_file = os.path.join(BASE_DIR, '.django_secret')
+    try:
+        SECRET_KEY = open(secret_file).read().strip()
+    except IOError:
+        import random
+        system_random = random.SystemRandom()
+        try:
+            SECRET_KEY = ''.join([system_random.choice('abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)') for i in range(64)])
+            secret = open(secret_file, 'w')
+            import os
+            os.chmod(secret_file, 0o0600)
+            secret.write(SECRET_KEY)
+            secret.close()
+        except IOError:
+            Exception('Please create a %s file with random characters to generate your secret key!' % secret_file)
