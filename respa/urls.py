@@ -14,10 +14,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
 from django.conf.urls import include, url
+from django.conf import settings
+from django.conf.urls.static import static
+
 from rest_framework import routers
 
 from resources.api import all_views as resources_views
 from resources.admin import admin_site
+from resources.images import ResourceImageView
 
 router = routers.DefaultRouter()
 
@@ -37,11 +41,14 @@ for view in resources_views:
 
 urlpatterns = [
     url(r'^admin/', include(admin_site.urls)),
+    url(r'^grappelli/', include('grappelli.urls')),
+    url(r'^resource_image/(?P<pk>\d+)\.(?P<ext>[a-z]+)$', ResourceImageView.as_view(),
+        name='resource-image-view'),
     url(r'^v1/', include(router.urls)),
 ]
 
-from django.conf import settings
 if settings.DEBUG:
     urlpatterns.append(
         url(r'test/availability$', 'resources.views.testink')
     )
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

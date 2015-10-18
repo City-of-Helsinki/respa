@@ -1,5 +1,5 @@
 Django
-django-modeltranslation
+django-modeltranslation>=0.10
 psycopg2>2.6
 -e git+https://github.com/City-of-Helsinki/munigeo#egg=django-munigeo
 djangorestframework!=3.2.3
@@ -11,3 +11,5 @@ arrow
 pytz
 coverage
 django-cors-headers
+django-image-cropping
+easy_thumbnails

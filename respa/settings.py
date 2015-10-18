@@ -31,7 +31,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'modeltranslation',
-    'django_admin_bootstrapped',
+    'grappelli',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -42,7 +42,11 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_nose',
     'corsheaders',
+    'easy_thumbnails',
+    'image_cropping',
+
     'munigeo',
+
     'resources',
 ]
 
@@ -124,6 +128,8 @@ MODELTRANSLATION_PREPOPULATE_LANGUAGE = 'fi'
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR + '/media/'
 
 DEFAULT_SRID = 4326
 
@@ -137,6 +143,15 @@ REST_FRAMEWORK = {
     'PAGINATE_BY_PARAM': 'page_size',  # Allow client to override, using `?page_size=xxx`.
     'MAX_PAGINATE_BY': 100,             # Maximum limit allowed when using `?page_size=xxx`.
 }
+
+CSRF_COOKIE_NAME = 'respa-csrftoken'
+SESSION_COOKIE_NAME = 'respa-sessionid'
+
+from easy_thumbnails.conf import Settings as thumbnail_settings
+THUMBNAIL_PROCESSORS = (
+    'image_cropping.thumbnail_processors.crop_corners',
+) + thumbnail_settings.THUMBNAIL_PROCESSORS
+
 
 # local_settings.py can be used to override environment-specific settings
 # like database and email that differ between development and production.

@@ -3,3 +3,6 @@ __pycache__
 db.sqlite3
 *.mo
 *.sqlite
+media/
+.django_secret
+local_settings.py

@@ -1,10 +1,12 @@
-from modeltranslation.admin import TranslationAdmin
+from modeltranslation.admin import TranslationAdmin, TranslationInlineModelAdmin
 from django.contrib import admin
 from django.contrib.gis import admin as geo_admin
-from .models import Resource, Reservation, ResourceType, Period, Day, Unit
-
 from django.contrib.admin import AdminSite
 from django.utils.translation import ugettext_lazy
+from image_cropping import ImageCroppingMixin
+
+from .models import Resource, Reservation, ResourceType, Period, Day, \
+    Unit, ResourceImage
 
 
 class RespaAdminSite(AdminSite):
@@ -47,6 +49,11 @@ class UnitAdmin(TranslationAdmin, geo_admin.OSMGeoAdmin):
     default_lat = 8438120
     default_zoom = 12
 
+
+class ResourceImageAdmin(ImageCroppingMixin, TranslationAdmin):
+    exclude = ('sort_order', 'image_format')
+
+admin_site.register(ResourceImage, ResourceImageAdmin)
 
 admin_site.register(Resource, ResourceAdmin)
 admin_site.register(Reservation)

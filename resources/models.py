@@ -3,6 +3,7 @@ import base64
 import time
 import datetime
 import pytz
+import arrow
 from django.contrib.gis.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
@@ -13,8 +14,8 @@ import django.db.models as dbm
 import django.contrib.postgres.fields as pgfields
 from psycopg2.extras import DateTimeTZRange, DateRange, NumericRange
 from django.utils import timezone
+from image_cropping import ImageRatioField
 
-import arrow
 
 DEFAULT_LANG = settings.LANGUAGES[0][0]
 
@@ -275,13 +276,11 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     purposes = models.ManyToManyField(Purpose, verbose_name=_('Purposes'))
     name = models.CharField(verbose_name=_('Name'), max_length=200)
     description = models.TextField(verbose_name=_('Description'), null=True, blank=True)
-    photo = models.URLField(verbose_name=_('Photo URL'), null=True, blank=True)
     need_manual_confirmation = models.BooleanField(verbose_name=_('Need manual confirmation'), default=False)
     authentication = models.CharField(blank=False, verbose_name=_('Authentication'),
                                       max_length=20, choices=AUTHENTICATION_TYPES)
     people_capacity = models.IntegerField(verbose_name=_('People capacity'), null=True, blank=True)
     area = models.IntegerField(verbose_name=_('Area'), null=True, blank=True)
-    ground_plan = models.URLField(verbose_name=_('Ground plan URL'), null=True, blank=True)
 
     # if not set, location is inherited from unit
     location = models.PointField(verbose_name=_('Location'), null=True, blank=True, srid=settings.DEFAULT_SRID)
@@ -492,6 +491,66 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                 return {'opens': moment, 'closes': closes}
 
         return {'opens': None, 'closes': None}
+
+
+class ResourceImage(ModifiableModel):
+    TYPES = (
+        ('main', _('Main photo')),
+        ('ground_plan', _('Ground plan')),
+        ('map', _('Map')),
+        ('other', _('Other')),
+    )
+    resource = models.ForeignKey(Resource, verbose_name=_('Resource'), db_index=True,
+                                 related_name='images')
+    type = models.CharField(max_length=20, verbose_name=_('Type'), choices=TYPES)
+    caption = models.CharField(max_length=100, verbose_name=_('Caption'), null=True, blank=True)
+    # FIXME: name images based on resource, type, and sort_order
+    image = models.ImageField(verbose_name=_('Image'), upload_to='resource_images')
+    image_format = models.CharField(max_length=10)
+    cropping = ImageRatioField('image', '800x800', verbose_name=_('Cropping'))
+    sort_order = models.PositiveSmallIntegerField(verbose_name=_('Sort order'))
+
+    def save(self, *args, **kwargs):
+        if not self.image_format:
+            # FIXME
+            self.image_format = 'JPEG'
+        if self.sort_order is None:
+            other_images = self.resource.images.order_by('-sort_order')
+            if not other_images:
+                self.sort_order = 0
+            else:
+                self.sort_order = other_images[0].sort_order + 1
+        return super(ResourceImage, self).save(*args, **kwargs)
+
+    # Unused for now
+    def get_upload_filename(image, filename):
+        res = image.resource
+        # FIXME: Convert to JPEG
+        ext = filename.split('.')[-1].lower()
+        assert ext == 'jpg'
+
+        # Image already exists
+        if image.pk:
+            return image.image.name
+
+        other_images = ResourceImage.objects.filter(resource=image.resource, type=image.type)\
+            .order_by('-sort_order')
+
+        if other_images:
+            nr = other_images[0].sort_order + 1
+        else:
+            nr = 1
+
+        fname = res.type 
+        # ...
+
+    def __str__(self):
+        return "%s image for %s" % (self.get_type_display(), str(self.resource))
+
+    class Meta:
+        verbose_name = _('resource image')
+        verbose_name_plural = _('resource images')
+        unique_together = (('resource', 'sort_order'),)
 
 
 class Reservation(ModifiableModel):

@@ -5,13 +5,15 @@ from arrow.parser import ParserError
 import pytz
 from django.conf import settings
 from django.utils.datastructures import MultiValueDictKeyError
-from rest_framework import serializers, viewsets, mixins, filters, exceptions
+from django.core.urlresolvers import reverse
+from rest_framework import serializers, viewsets, mixins, filters, exceptions, generics
 from modeltranslation.translator import translator, NotRegistered
 from munigeo import api as munigeo_api
 import django_filters
 from django.utils import timezone
 
-from .models import Unit, Resource, Reservation, Purpose, ResourceType
+from .models import Unit, Resource, Reservation, Purpose, ResourceType, \
+    ResourceImage
 
 
 all_views = []
@@ -125,6 +127,7 @@ class ResourceTypeSerializer(TranslatedModelSerializer):
         model = ResourceType
         fields = ['name', 'main_type', 'id']
 
+
 class ResourceTypeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ResourceType.objects.all()
     serializer_class = ResourceTypeSerializer
@@ -132,8 +135,26 @@ class ResourceTypeViewSet(viewsets.ReadOnlyModelViewSet):
 register_view(ResourceTypeViewSet, 'type')
 
 
+class NestedResourceImageSerializer(TranslatedModelSerializer):
+    url = serializers.SerializerMethodField()
+
+    def get_url(self, obj):
+        # FIXME: Get ext from obj.image_format
+        kwargs = {'pk': obj.pk, 'ext': 'jpg'}
+        url = reverse('resource-image-view', kwargs=kwargs)
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(url)
+
+    class Meta:
+        model = ResourceImage
+        fields = ('url', 'type', 'caption')
+        ordering = ('resource', 'sort_order')
+
+
 class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     purposes = PurposeSerializer(many=True)
+    images = NestedResourceImageSerializer(many=True)
     type = ResourceTypeSerializer()
     # FIXME: location field gets removed by munigeo
     location = serializers.SerializerMethodField()
