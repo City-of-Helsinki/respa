@@ -49,17 +49,17 @@ class Kirjasto10Importer(Importer):
         next(reader)  # remove field descriptions
         data = list(reader)
 
-        for res_data in data:
-            res_type, created = ResourceType.objects.get_or_create(
-                # TODO: Catch key error if resource type unknown
-                id=self.RESOURCETYPE_IDS[res_data['Tilatyyppi']],
-                name_fi=self.clean_text(res_data['Tilatyyppi']),
-                main_type='space')
+        missing_units = set()
 
+        for res_data in data:
+            unit_name = res_data['Osasto']
             try:
-                unit = Unit.objects.get(name_fi=res_data['Osasto'])
+                unit = Unit.objects.get(name_fi=unit_name)
             except ObjectDoesNotExist:
                 # No unit for this resource in the db
+                if unit_name not in missing_units:
+                    print("Unit %s not found in db" % unit_name)
+                    missing_units.add(unit_name)
                 continue
 
             if res_data['Erillisvaraus'] is 'Kyllä':
@@ -83,30 +83,54 @@ class Kirjasto10Importer(Importer):
             except ValueError:
                 max_period = None
 
-            res, created = unit.resources.get_or_create(
-                #  TODO: Better ids here also, without this invalid resource objects gets created
-                id=res_data['Nimi'],
-                type=res_type,
-                name_fi=self.clean_text(res_data['Nimi']),
+            resource_name = self.clean_text(res_data['Nimi'])
+
+            data = dict(
+                unit_id=unit.pk,
                 people_capacity=people_capacity,
                 area=area,
                 need_manual_confirmation=confirm,
-                description_fi=self.clean_text(res_data['Kuvaus']),
                 min_period=min_period,
                 max_period=max_period,
                 authentication=self.AUTHENTICATION[res_data['Asiakkuus / tunnistamisen tarve']]
             )
+            data['name'] = {'fi': resource_name}
+            data['description'] = {'fi': self.clean_text(res_data['Kuvaus'])}
 
+            data['purposes'] = []
             purposes = [res_data[key] for key in res_data if key.startswith('Käyttötarkoitus')]
             for purpose in purposes:
-                if purpose:
-                    main_type = [key for key in self.PURPOSE_IDS if (purpose in self.PURPOSE_IDS[key].keys())][0]
-                    pprint(self.PURPOSE_IDS[main_type][purpose])
-                    res_purpose, created = Purpose.objects.get_or_create(
-                        # TODO: Catch key error if purpose unknown
-                        id=self.PURPOSE_IDS[main_type][purpose],
-                        name_fi=purpose,
-                        main_type=main_type
-                    )
-                    res.purposes.add(res_purpose)
-                    pprint("purpose " + purpose + " added to " + str(res))
+                if not purpose:
+                    continue
+
+                main_type = [key for key in self.PURPOSE_IDS if purpose in self.PURPOSE_IDS[key].keys()][0]
+
+                purpose_id = self.PURPOSE_IDS[main_type][purpose]
+                try:
+                    purpose_obj = Purpose.objects.get(id=purpose_id)
+                except Purpose.DoesNotExist:
+                    purpose_obj = Purpose(id=purpose_id)
+
+                purpose_obj.name_fi = purpose
+                purpose_obj.main_type = main_type
+                purpose_obj.save()
+
+                data['purposes'].append(purpose_obj)
+
+            res_type_id = self.RESOURCETYPE_IDS[res_data['Tilatyyppi']]
+            try:
+                res_type = ResourceType.objects.get(id=res_type_id)
+            except ResourceType.DoesNotExist:
+                res_type = ResourceType(id=res_type_id)
+            res_type.name_fi = self.clean_text(res_data['Tilatyyppi']),
+            res_type.main_type = 'space'
+            res_type.save()
+
+            data['type_id'] = res_type.pk
+
+            try:
+                resource = Resource.objects.get(unit=unit, name_fi=resource_name)
+            except Resource.DoesNotExist:
+                resource = None
+
+            self.save_resource(data, resource)

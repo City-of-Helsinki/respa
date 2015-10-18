@@ -7,7 +7,7 @@ import re
 from django.conf import settings
 from modeltranslation.translator import translator
 
-from resources.models import Unit, UnitIdentifier
+from resources.models import Unit, UnitIdentifier, Resource
 
 
 class Importer(object):
@@ -27,7 +27,9 @@ class Importer(object):
 
     def _set_field(self, obj, field_name, val):
         if not hasattr(obj, field_name):
+            print("'%s' not there!" % field_name)
             print(vars(obj))
+
         obj_val = getattr(obj, field_name)
         if obj_val == val:
             return
@@ -72,6 +74,8 @@ class Importer(object):
 
         for field in obj_fields:
             field_name = field.name
+            if field.get_internal_type() == 'ForeignKey':
+                field_name = "%s_id" % field_name
             if field_name not in info:
                 continue
             self._set_field(obj, field_name, info[field_name])
@@ -121,6 +125,36 @@ class Importer(object):
             obj.save()
 
         return obj
+
+    def save_resource(self, data, obj):
+        if not obj:
+            obj = Resource()
+            obj._created = True
+        else:
+            obj._created = False
+            obj._changed = False
+        obj._changed_fields = []
+
+        self._update_fields(obj, data, ['id', 'purposes'])
+
+        if obj._created:
+            print("%s created" % obj)
+            print(obj.type_id)
+            obj.save()
+
+        old_purposes = set([obj.pk for obj in obj.purposes.all()])
+        new_purposes = set([obj.pk for obj in data['purposes']])
+        if old_purposes != new_purposes:
+            obj.purposes = new_purposes
+            obj._changed_fields.append('purposes')
+
+        if obj._changed:
+            if not obj._created:
+                print("%s changed: %s" % (obj, ', '.join(obj._changed_fields)))
+            obj.save()
+
+        return obj
+
 
     def __init__(self, options):
         self.logger = logging.getLogger("%s_importer" % self.name)

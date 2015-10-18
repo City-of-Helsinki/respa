@@ -65,8 +65,14 @@ def time_to_dtz(time, date=None, arr=None):
 
 class AutoIdentifiedModel(models.Model):
     def save(self, *args, **kwargs):
-        if not self.id:
-            self.id = generate_id()
+        pk_type = self._meta.pk.get_internal_type()
+        if pk_type == 'CharField':
+            if not self.pk:
+                self.pk = generate_id()
+        elif pk_type == 'AutoField':
+            pass
+        else:
+            raise Exception('Unsupported primary key field: %s' % pk_type)
         super().save(*args, **kwargs)
 
     class Meta:
