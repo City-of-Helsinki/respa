@@ -155,13 +155,15 @@ THUMBNAIL_PROCESSORS = (
 
 # local_settings.py can be used to override environment-specific settings
 # like database and email that differ between development and production.
-try:
-    from .local_settings import *
-except ImportError:
-    pass
-
-if 'CUSTOM_INSTALLED_APPS' in locals():
-    INSTALLED_APPS = INSTALLED_APPS + CUSTOM_INSTALLED_APPS
+f = os.path.join(BASE_DIR, "local_settings.py")
+if os.path.exists(f):
+    import sys
+    import imp
+    module_name = "%s.local_settings" % ROOT_URLCONF.split('.')[0]
+    module = imp.new_module(module_name)
+    module.__file__ = f
+    sys.modules[module_name] = module
+    exec(open(f, "rb").read())
 
 if 'SECRET_KEY' not in locals():
     secret_file = os.path.join(BASE_DIR, '.django_secret')
