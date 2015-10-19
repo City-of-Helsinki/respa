@@ -3,6 +3,14 @@ from .models import *
 from datetime import datetime
 import arrow
 
+import unittest
+
+# NOTE: Set TEST_PERFORMANCE to True in local_settings if performance testing
+from django.conf import settings
+if hasattr(settings, 'TEST_PERFORMANCE'):
+    TEST_PERFORMANCE = settings.TEST_PERFORMANCE
+else:
+    TEST_PERFORMANCE = False
 
 class APIPerformanceTestCase(APITestCase):
 
@@ -11,6 +19,7 @@ class APIPerformanceTestCase(APITestCase):
     def setUp(self):
         pass
 
+    @unittest.skipUnless(TEST_PERFORMANCE, "skip this in production")
     def test_resource_scalability(self):
         u1 = Unit.objects.create(name='Unit 1', id='unit_1', time_zone='Europe/Helsinki')
         rt = ResourceType.objects.create(name='Type 1', id='type_1', main_type='space')
@@ -68,6 +77,7 @@ class AvailabilityViewPerformanceTestCase(APITestCase):
     def setUp(self):
         pass
 
+    @unittest.skipUnless(TEST_PERFORMANCE, "skip this in production")
     def test_resource_scalability(self):
         u1 = Unit.objects.create(name='Unit 1', id='unit_1', time_zone='Europe/Helsinki')
         rt = ResourceType.objects.create(name='Type 1', id='type_1', main_type='space')
