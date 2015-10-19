@@ -1,7 +1,7 @@
 from modeltranslation.admin import TranslationAdmin, TranslationInlineModelAdmin
 from django.contrib import admin
 from django.contrib.gis import admin as geo_admin
-from django.contrib.admin import AdminSite
+from django.contrib.admin import site as admin_site
 from django.utils.translation import ugettext_lazy
 from image_cropping import ImageCroppingMixin
 
@@ -9,17 +9,14 @@ from .models import Resource, Reservation, ResourceType, Period, Day, \
     Unit, ResourceImage
 
 
-class RespaAdminSite(AdminSite):
-    # Text to put at the end of each page's <title>.
-    site_title = ugettext_lazy('RESPA Resource booking system')
+# Text to put at the end of each page's <title>.
+admin_site.site_title = ugettext_lazy('RESPA Resource booking system')
 
-    # Text to put in each page's <h1>.
-    site_header = ugettext_lazy('RESPA Resource booking system')
+# Text to put in each page's <h1>.
+admin_site.site_header = ugettext_lazy('RESPA Resource booking system')
 
-    # Text to put at the top of the admin index page.
-    index_title = ugettext_lazy('RESPA Administration')
-
-admin_site = RespaAdminSite()
+# Text to put at the top of the admin index page.
+admin_site.index_title = ugettext_lazy('RESPA Administration')
 
 
 class PeriodInline(admin.TabularInline):
