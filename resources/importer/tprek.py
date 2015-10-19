@@ -48,7 +48,9 @@ class TPRekImporter(Importer):
 
         obj = syncher.get(tprek_id)
         saved_obj = self.save_unit(data, obj)
-        if not obj:
+        if obj:
+            syncher.mark(obj)
+        else:
             syncher.mark(saved_obj)
 
 
