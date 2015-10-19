@@ -20,7 +20,7 @@ from django.conf.urls.static import static
 from rest_framework import routers
 
 from resources.api import all_views as resources_views
-from resources.admin import admin_site
+from django.contrib.admin import site as admin_site
 from resources.images import ResourceImageView
 
 router = routers.DefaultRouter()
@@ -41,6 +41,7 @@ for view in resources_views:
 
 urlpatterns = [
     url(r'^admin/', include(admin_site.urls)),
+    url(r'^accounts/', include('allauth.urls')),
     url(r'^grappelli/', include('grappelli.urls')),
     url(r'^resource_image/(?P<pk>\d+)\.(?P<ext>[a-z]+)$', ResourceImageView.as_view(),
         name='resource-image-view'),

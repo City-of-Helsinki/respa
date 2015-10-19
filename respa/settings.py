@@ -16,7 +16,6 @@ from django.utils.translation import ugettext_lazy as _
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
@@ -32,6 +31,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'modeltranslation',
     'grappelli',
+    'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,9 +45,16 @@ INSTALLED_APPS = [
     'easy_thumbnails',
     'image_cropping',
 
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'helusers.providers.helsinki',
+
     'munigeo',
+    'helusers',
 
     'resources',
+    'users',
 ]
 
 if DEBUG:
@@ -134,6 +141,26 @@ MEDIA_ROOT = BASE_DIR + '/media/'
 DEFAULT_SRID = 4326
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+#
+# Authentication
+#
+AUTH_USER_MODEL = 'users.User'
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+SITE_ID = 1
+
+SOCIALACCOUNT_PROVIDERS = {
+    'helsinki': {
+        'VERIFIED_EMAIL': True
+    }
+}
+LOGIN_REDIRECT_URL = '/'
+ACCOUNT_LOGOUT_ON_GET = True
+SOCIALACCOUNT_ADAPTER = 'helusers.providers.helsinki.provider.SocialAccountAdapter'
+
 
 # REST Framework
 # http://www.django-rest-framework.org
