@@ -122,7 +122,7 @@ class Kirjasto10Importer(Importer):
                 res_type = ResourceType.objects.get(id=res_type_id)
             except ResourceType.DoesNotExist:
                 res_type = ResourceType(id=res_type_id)
-            res_type.name_fi = self.clean_text(res_data['Tilatyyppi']),
+            res_type.name_fi = self.clean_text(res_data['Tilatyyppi'])
             res_type.main_type = 'space'
             res_type.save()
 
