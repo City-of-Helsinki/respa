@@ -4,6 +4,7 @@ munigeo importer for Finnish nation-level data
 
 import os
 import requests
+import dateutil.parser
 
 from django import db
 from django.contrib.gis.gdal import DataSource, SpatialReference, CoordTransform
@@ -44,7 +45,7 @@ class TPRekImporter(Importer):
             data['location'] = point
 
 
-        data['modified_at'] = data['origin_last_modified_time']
+        data['modified_at'] = dateutil.parser.parse(data['origin_last_modified_time'])
 
         obj = syncher.get(tprek_id)
         saved_obj = self.save_unit(data, obj)
