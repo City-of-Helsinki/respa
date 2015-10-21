@@ -1,6 +1,6 @@
 Django
 django-modeltranslation>=0.10
-psycopg2>2.6
+psycopg2>=2.6
 -e git+https://github.com/City-of-Helsinki/munigeo#egg=django-munigeo
 djangorestframework!=3.2.3
 django-filter
