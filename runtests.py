@@ -6,15 +6,16 @@ Built based on documentation from:
 * https://docs.djangoproject.com/en/1.8/topics/testing/advanced/#using-the-django-test-runner-to-test-reusable-applications
 * http://nose.readthedocs.org/en/latest/usage.html#basic-usage
 """
+import os
 import sys
 
 import django
 import nose
-from django.test.utils import setup_test_environment, teardown_test_environment
 from django.db import connection
-
+from django.test.utils import setup_test_environment, teardown_test_environment
 
 if __name__ == '__main__':
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "respa.settings")
     django.setup()
 
     try:
