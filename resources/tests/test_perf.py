@@ -1,5 +1,5 @@
 from rest_framework.test import APITestCase, APIClient
-from .models import *
+from resources.models import *
 from datetime import datetime
 import arrow
 

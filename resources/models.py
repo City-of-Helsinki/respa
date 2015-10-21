@@ -526,6 +526,14 @@ class ResourceImage(ModifiableModel):
                 self.sort_order = 0
             else:
                 self.sort_order = other_images[0].sort_order + 1
+        if self.type == "main":
+            other_main_images = self.resource.images.filter(type="main")
+            if other_main_images.exists():
+                # Demote other main images to "other".
+                # The other solution would be to raise an error, but that would
+                # lead to a more awkward API experience (having to first patch other
+                # images for the resource, then fix the last one).
+                other_main_images.update(type="other")
         return super(ResourceImage, self).save(*args, **kwargs)
 
     # Unused for now

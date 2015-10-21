@@ -1,5 +1,5 @@
 from rest_framework.test import APITestCase, APIRequestFactory, APIClient
-from .models import *
+from resources.models import *
 
 class ReservationApiTestCase(APITestCase):
 
