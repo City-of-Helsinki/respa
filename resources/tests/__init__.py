@@ -4,7 +4,7 @@ import arrow
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.test import TestCase
-from .models import *
+from resources.models import *
 
 
 class DayTestCase(TestCase):
