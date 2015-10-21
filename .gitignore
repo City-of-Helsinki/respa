@@ -8,3 +8,6 @@ media/
 local_settings.py
 /venv*
 /.idea
+.coverage
+htmlcov
+.cache
