@@ -6,14 +6,10 @@ python:
 env:
 - DJANGO=Django>=1.8
 
-before_install:
-- echo "Testing Travis"
-
 install:
-- pip install -r requirements.txt --use-mirrors
-- pip install coveralls
-  
-script: python manage.py test --with-coverage --cover-package=resources
+- pip install coveralls -r requirements.txt --use-mirrors
+
+script: py.test resources
 
 addons:
   postgresql: "9.4"

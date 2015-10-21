@@ -39,3 +39,21 @@ h3. Setting up PostGIS/GEOS/GDAL on Windows (x64) / Python 3
   * Failing to do this while setting `GEOS_LIBRARY_PATH`/`GDAL_LIBRARY_PATH` will result in
     "Module not found" errors or similar, which can be annoying to track down.
 
+Running tests
+-------------
+
+Respa uses the [pytest](http://pytest.org/latest/) test framework.
+
+To run the test suite,
+
+```shell
+$ py.test .
+```
+
+should be enough.
+
+```shell
+$ py.test --cov-report html .
+```
+
+to generate a HTML coverage report.

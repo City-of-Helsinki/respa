@@ -5,8 +5,10 @@ psycopg2>=2.6
 djangorestframework!=3.2.3
 django-filter
 django-grappelli
-django-nose
-nose-watch
+pytest==2.8.2
+pytest-cov==2.2.0
+pytest-django==2.9.1
+flake8==2.4.1
 arrow
 pytz
 coverage
