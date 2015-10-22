@@ -366,27 +366,7 @@ class ResourceImage(ModifiableModel):
         else:  # All good -- keep the file as-is.
             self.image_format = img.format
 
-    # Unused for now
-    def get_upload_filename(image, filename):
-        res = image.resource
-        # FIXME: Convert to JPEG
-        ext = filename.split('.')[-1].lower()
-        assert ext == 'jpg'
-
-        # Image already exists
-        if image.pk:
-            return image.image.name
-
-        other_images = ResourceImage.objects.filter(resource=image.resource, type=image.type)\
-            .order_by('-sort_order')
-
-        if other_images:
-            nr = other_images[0].sort_order + 1
-        else:
-            nr = 1
-
-        fname = res.type
-        # ...
+    # def get_upload_filename(image, filename): -- used to live here, but was dead code
 
     def __str__(self):
         return "%s image for %s" % (self.get_type_display(), str(self.resource))
