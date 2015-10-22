@@ -43,8 +43,7 @@ urlpatterns = [
     url(r'^admin/', include(admin_site.urls)),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^grappelli/', include('grappelli.urls')),
-    url(r'^resource_image/(?P<pk>\d+)\.(?P<ext>[a-z]+)$', ResourceImageView.as_view(),
-        name='resource-image-view'),
+    url(r'^resource_image/(?P<pk>\d+)$', ResourceImageView.as_view(), name='resource-image-view'),
     url(r'^v1/', include(router.urls)),
 ]
 
