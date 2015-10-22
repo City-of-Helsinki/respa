@@ -21,7 +21,7 @@ from rest_framework import routers
 
 from resources.api import all_views as resources_views
 from django.contrib.admin import site as admin_site
-from resources.images import ResourceImageView
+from resources.views.images import ResourceImageView
 
 router = routers.DefaultRouter()
 
@@ -49,6 +49,6 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns.append(
-        url(r'test/availability$', 'resources.views.testink')
+        url(r'test/availability$', 'resources.views.testing.testing_view')
     )
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
