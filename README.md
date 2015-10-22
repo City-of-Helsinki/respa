@@ -1,6 +1,6 @@
 [![Stories in Ready](https://badge.waffle.io/City-of-Helsinki/respa.png?label=ready&title=Ready)](https://waffle.io/City-of-Helsinki/respa)
 [![Build Status](https://api.travis-ci.org/City-of-Helsinki/respa.svg?branch=master)](https://travis-ci.org/City-of-Helsinki/respa)
-[![Coveralls](https://img.shields.io/coveralls/City-of-Helsinki/respa.svg)]()
+[![Coverage Status](https://coveralls.io/repos/City-of-Helsinki/respa/badge.svg?branch=master&service=github)](https://coveralls.io/github/City-of-Helsinki/respa?branch=master)
 
 respa – Resource reservation and management service
 ===================
