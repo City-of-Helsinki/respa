@@ -1,7 +1,7 @@
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
 from django.conf import settings
-from django.views.generic import View
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
+from django.views.generic import View
 from easy_thumbnails.files import get_thumbnailer
 
 from .models import ResourceImage

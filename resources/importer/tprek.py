@@ -3,16 +3,16 @@ munigeo importer for Finnish nation-level data
 """
 
 import os
-import requests
+
 import dateutil.parser
-
+import requests
 from django import db
-from django.contrib.gis.gdal import DataSource, SpatialReference, CoordTransform
-from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Polygon, Point
+from django.contrib.gis.gdal import CoordTransform, DataSource, SpatialReference
+from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Point, Polygon
 
+from ..models import Unit
 from .base import Importer, register_importer
 from .sync import ModelSyncher
-from ..models import Unit
 
 
 def generate_tprek_id(obj):

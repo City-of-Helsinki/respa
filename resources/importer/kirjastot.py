@@ -1,12 +1,12 @@
-import requests
 import datetime
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from psycopg2.extras import DateTimeTZRange, DateRange, NumericRange
 from collections import namedtuple
 
-from .base import Importer, register_importer
-from ..models import Unit, UnitIdentifier, Period
+import requests
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from psycopg2.extras import DateRange, DateTimeTZRange, NumericRange
 
+from ..models import Period, Unit, UnitIdentifier
+from .base import Importer, register_importer
 
 ProxyPeriod = namedtuple("ProxyPeriod", ['start', 'end', 'description', 'closed', 'name', 'unit', 'days'])
 

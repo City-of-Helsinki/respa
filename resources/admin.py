@@ -1,13 +1,11 @@
-from modeltranslation.admin import TranslationAdmin, TranslationInlineModelAdmin
 from django.contrib import admin
-from django.contrib.gis import admin as geo_admin
 from django.contrib.admin import site as admin_site
+from django.contrib.gis import admin as geo_admin
 from django.utils.translation import ugettext_lazy
 from image_cropping import ImageCroppingMixin
+from modeltranslation.admin import TranslationAdmin, TranslationInlineModelAdmin
 
-from .models import Resource, Reservation, ResourceType, Period, Day, \
-    Unit, ResourceImage
-
+from .models import Day, Period, Reservation, Resource, ResourceImage, ResourceType, Unit
 
 # Text to put at the end of each page's <title>.
 admin_site.site_title = ugettext_lazy('RESPA Resource booking system')
@@ -57,4 +55,3 @@ admin_site.register(Reservation)
 admin_site.register(ResourceType)
 admin_site.register(Day)
 admin_site.register(Unit, UnitAdmin)
-

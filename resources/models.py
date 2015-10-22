@@ -1,21 +1,21 @@
-import struct
 import base64
-import time
 import datetime
-import pytz
+import struct
+import time
+
 import arrow
-from django.contrib.gis.db import models
+import django.contrib.postgres.fields as pgfields
+import django.db.models as dbm
+import pytz
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
+from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.db.models import Model
-from django.utils.dateformat import time_format
-import django.db.models as dbm
-import django.contrib.postgres.fields as pgfields
-from psycopg2.extras import DateTimeTZRange, DateRange, NumericRange
 from django.utils import timezone
+from django.utils.dateformat import time_format
+from django.utils.translation import ugettext_lazy as _
 from image_cropping import ImageRatioField
-
+from psycopg2.extras import DateRange, DateTimeTZRange, NumericRange
 
 DEFAULT_LANG = settings.LANGUAGES[0][0]
 

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-import requests_cache
-
 from optparse import make_option
-from django.db import transaction
+
+import requests_cache
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
 from django.utils.translation import override
 
 from resources.importer.base import get_importers

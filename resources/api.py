@@ -1,20 +1,20 @@
-import datetime
-import arrow
 import collections
-from arrow.parser import ParserError
-import pytz
-from django.conf import settings
-from django.utils.datastructures import MultiValueDictKeyError
-from django.core.urlresolvers import reverse
-from rest_framework import serializers, viewsets, mixins, filters, exceptions, generics
-from modeltranslation.translator import translator, NotRegistered
-from munigeo import api as munigeo_api
+import datetime
+
+import arrow
 import django_filters
+import pytz
+from arrow.parser import ParserError
+from django.conf import settings
+from django.core.urlresolvers import reverse
 from django.utils import timezone
+from django.utils.datastructures import MultiValueDictKeyError
+from modeltranslation.translator import NotRegistered, translator
+from rest_framework import exceptions, filters, generics, mixins, serializers, viewsets
 
-from .models import Unit, Resource, Reservation, Purpose, ResourceType, \
-    ResourceImage
+from munigeo import api as munigeo_api
 
+from .models import Purpose, Reservation, Resource, ResourceImage, ResourceType, Unit
 
 all_views = []
 def register_view(klass, name, base_name=None):

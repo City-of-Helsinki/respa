@@ -1,13 +1,14 @@
-import os
 import base64
 import logging
-import time
-import struct
+import os
 import re
+import struct
+import time
+
 from django.conf import settings
 from modeltranslation.translator import translator
 
-from resources.models import Unit, UnitIdentifier, Resource
+from resources.models import Resource, Unit, UnitIdentifier
 
 
 class Importer(object):

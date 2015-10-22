@@ -1,8 +1,10 @@
 from datetime import datetime
-from django.conf import settings
-from resources.models import Resource, Reservation, Unit, ResourceType, Period, Day
+
 import arrow
 import pytest
+from django.conf import settings
+
+from resources.models import Day, Period, Reservation, Resource, ResourceType, Unit
 
 TEST_PERFORMANCE = bool(getattr(settings, "TEST_PERFORMANCE", False))
 

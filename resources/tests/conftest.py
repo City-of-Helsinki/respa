@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import pytest
-from resources.models import ResourceType, Resource
 from rest_framework.test import APIClient, APIRequestFactory
+
+from resources.models import Resource, ResourceType
 
 
 @pytest.fixture

@@ -1,4 +1,5 @@
-from modeltranslation.translator import register, TranslationOptions
+from modeltranslation.translator import TranslationOptions, register
+
 from .models import *
 
 
@@ -26,4 +27,3 @@ class ResourceImageTranslationOptions(TranslationOptions):
 @register(Purpose)
 class PurposeTranslationOptions(TranslationOptions):
     fields = ('name',)
-

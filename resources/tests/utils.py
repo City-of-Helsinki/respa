@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 
-from PIL import Image
 from django.core.files.base import ContentFile
-
 from django.utils.six import BytesIO
+from PIL import Image
+
 from resources.models import ResourceImage
 
 

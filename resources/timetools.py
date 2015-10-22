@@ -1,12 +1,16 @@
-from .models import Day, Resource, Period, Unit, ResourceType, Reservation
-from psycopg2.extras import DateTimeTZRange, DateRange, NumericRange
 import datetime
-import arrow
 from collections import namedtuple
+from itertools import groupby
+
+import arrow
 import django.db.models as djdbm
-from django.utils import timezone
 import pytz
+from django.db.models import Prefetch
+from django.utils import timezone
 from django.utils.dateformat import format, time_format
+from psycopg2.extras import DateRange, DateTimeTZRange, NumericRange
+
+from .models import Day, Period, Reservation, Resource, ResourceType, Unit
 
 OpenHours = namedtuple("OpenHours", ['opens', 'closes'])
 FreeTime = namedtuple("FreeTime", ['begin', 'end', 'duration'])
@@ -283,7 +287,6 @@ def get_opening_hours(begin, end, resources=None):
 
     return dates
 
-from django.db.models import Prefetch
 
 def get_availability(begin, end, resources=None, duration=None):
     """
@@ -358,7 +361,6 @@ def get_availability(begin, end, resources=None, duration=None):
 
     return opening_hours, availability
 
-from itertools import groupby
 
 def calculate_availability(resource, opening_hours, duration=None):
     """
