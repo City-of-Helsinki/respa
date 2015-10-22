@@ -7,8 +7,8 @@ import django.db.models as djdbm
 import pytz
 from django.db.models import Prefetch
 from django.utils import timezone
-from django.utils.dateformat import format, time_format
-from psycopg2.extras import DateRange, DateTimeTZRange, NumericRange
+from django.utils.dateformat import format
+from psycopg2.extras import DateRange, DateTimeTZRange
 
 from .models import Day, Period, Reservation, Resource, ResourceType, Unit
 

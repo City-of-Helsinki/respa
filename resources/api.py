@@ -8,9 +8,8 @@ from arrow.parser import ParserError
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.utils import timezone
-from django.utils.datastructures import MultiValueDictKeyError
 from modeltranslation.translator import NotRegistered, translator
-from rest_framework import exceptions, filters, generics, mixins, serializers, viewsets
+from rest_framework import exceptions, filters, mixins, serializers, viewsets
 
 from munigeo import api as munigeo_api
 

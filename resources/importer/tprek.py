@@ -2,14 +2,10 @@
 munigeo importer for Finnish nation-level data
 """
 
-import os
-
 import dateutil.parser
 import requests
-from django import db
-from django.contrib.gis.gdal import CoordTransform, DataSource, SpatialReference
-from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Point, Polygon
 
+from django.contrib.gis.geos import Point
 from ..models import Unit
 from .base import Importer, register_importer
 from .sync import ModelSyncher

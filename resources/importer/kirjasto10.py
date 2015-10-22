@@ -1,12 +1,11 @@
 import csv
 import datetime
-import io
-from pprint import pprint
 
 import requests
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
-from ..models import Period, Purpose, Resource, ResourceType, Unit, UnitIdentifier
+import io
+from django.core.exceptions import ObjectDoesNotExist
+from ..models import Purpose, Resource, ResourceType, Unit
 from .base import Importer, register_importer
 
 
