@@ -1,5 +1,7 @@
-from rest_framework.test import APITestCase, APIRequestFactory, APIClient
+from rest_framework.test import APIClient, APIRequestFactory, APITestCase
+
 from resources.models import *
+
 
 class ReservationApiTestCase(APITestCase):
 
@@ -160,4 +162,3 @@ class AvailableAPITestCase(APITestCase):
         response = self.client.get(url)
         print("availability response ", response.content)
         self.assertContains(response, 'r1a')
-

@@ -1,14 +1,18 @@
-from django.shortcuts import render
-from .models import Resource, Day, Unit
+import datetime
+import pprint
+
 import django.db.models as dbm
-from django.http import JsonResponse, HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render
+
+import resources.models
+import resources.timetools
+
+from .models import Day, Resource, Unit
+
 
 # Create your views here.
 
-import resources.timetools
-import resources.models
-import datetime
-import pprint
 
 def testink(request):
     """
