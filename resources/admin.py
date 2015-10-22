@@ -3,7 +3,7 @@ from django.contrib.admin import site as admin_site
 from django.contrib.gis import admin as geo_admin
 from django.utils.translation import ugettext_lazy
 from image_cropping import ImageCroppingMixin
-from modeltranslation.admin import TranslationAdmin, TranslationInlineModelAdmin
+from modeltranslation.admin import TranslationAdmin
 
 from .models import Day, Period, Reservation, Resource, ResourceImage, ResourceType, Unit
 

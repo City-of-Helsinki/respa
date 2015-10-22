@@ -1,6 +1,6 @@
 from modeltranslation.translator import TranslationOptions, register
 
-from .models import *
+from .models import Unit, Resource, ResourceType, ResourceImage, Purpose
 
 
 @register(Unit)

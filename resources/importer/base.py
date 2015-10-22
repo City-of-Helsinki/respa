@@ -143,8 +143,8 @@ class Importer(object):
             print(obj.type_id)
             obj.save()
 
-        old_purposes = set([obj.pk for obj in obj.purposes.all()])
-        new_purposes = set([obj.pk for obj in data['purposes']])
+        old_purposes = set([purp.pk for purp in obj.purposes.all()])
+        new_purposes = set([purp.pk for purp in data['purposes']])
         if old_purposes != new_purposes:
             obj.purposes = new_purposes
             obj._changed_fields.append('purposes')
@@ -155,7 +155,6 @@ class Importer(object):
             obj.save()
 
         return obj
-
 
     def __init__(self, options):
         self.logger = logging.getLogger("%s_importer" % self.name)
@@ -173,9 +172,11 @@ class Importer(object):
 
 importers = {}
 
+
 def register_importer(klass):
     importers[klass.name] = klass
     return klass
+
 
 def get_importers():
     if importers:

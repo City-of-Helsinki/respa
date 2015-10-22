@@ -1,20 +1,13 @@
 import datetime
 import pprint
 
-import django.db.models as dbm
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
+from django.http import HttpResponse
 
 import resources.models
 import resources.timetools
 
-from .models import Day, Resource, Unit
 
-
-# Create your views here.
-
-
-def testink(request):
+def testing_view(request):
     """
     Testing various ways of getting to resources by their availability time
     This function gets you active period for all resources in given date range
@@ -36,10 +29,11 @@ def testink(request):
     return HttpResponse('<html><body>opens<br><pre>' + pprint.pformat(openings.values()) + '</pre> avail<br>' +
                         '<pre>' + pprint.pformat(avail.values()) + '</pre></body></html>')
 
+
 def tester():
 
-    begin = datetime.datetime(2015,3,2)
-    end = datetime.datetime(2015,3,7)
+    begin = datetime.datetime(2015, 3, 2)
+    end = datetime.datetime(2015, 3, 7)
     begin_utc = resources.timetools.TimeWarp(dt=begin).astimezone('UTC')
     end_utc = resources.timetools.TimeWarp(dt=end).astimezone('UTC')
     duration = datetime.timedelta(hours=2)

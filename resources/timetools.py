@@ -7,13 +7,14 @@ import django.db.models as djdbm
 import pytz
 from django.db.models import Prefetch
 from django.utils import timezone
-from django.utils.dateformat import format, time_format
-from psycopg2.extras import DateRange, DateTimeTZRange, NumericRange
+from django.utils.dateformat import format
+from psycopg2.extras import DateRange, DateTimeTZRange
 
 from .models import Day, Period, Reservation, Resource, ResourceType, Unit
 
 OpenHours = namedtuple("OpenHours", ['opens', 'closes'])
 FreeTime = namedtuple("FreeTime", ['begin', 'end', 'duration'])
+
 
 class TimeWarp(object):
     """
@@ -173,12 +174,12 @@ class TimeWarp(object):
 
     def ceiling(self):
         return TimeWarp(datetime.datetime.combine(self.dt.date(),
-                                                  datetime.time(0,0)),
+                                                  datetime.time(0, 0)),
                         original_timezone=self.original_timezone.zone)
 
     def floor(self):
         dt = self.dt + datetime.timedelta(days=+1)
-        return TimeWarp(self.dt.combine(dt.date(), datetime.time(0,0)),
+        return TimeWarp(self.dt.combine(dt.date(), datetime.time(0, 0)),
                         original_timezone=self.original_timezone.zone)
 
     def serialize(self, dt_format=None, zone=None):
@@ -215,6 +216,7 @@ class TimeWarp(object):
                     except KeyError:
                         resp[key] = dt_format.format(field)
         return resp
+
 
 def get_opening_hours(begin, end, resources=None):
     """
@@ -256,7 +258,7 @@ def get_opening_hours(begin, end, resources=None):
     # Generates a dict of time range's days as keys and values as active period's days
 
     # all requested dates are assumed closed
-    dates = {r.date() : False for r in arrow.Arrow.range('day', begin_dt, end_dt)}
+    dates = {r.date(): False for r in arrow.Arrow.range('day', begin_dt, end_dt)}
 
     for period in periods:
 
@@ -282,7 +284,7 @@ def get_opening_hours(begin, end, resources=None):
                         if not dates.get(r.date(), None):
                             dates[r.date] = {}
                         dates[r.date()].setdefault(
-                                res, []).append(
+                            res, []).append(
                             OpenHours(day.opens, day.closes))
 
     return dates
@@ -357,7 +359,6 @@ def get_availability(begin, end, resources=None, duration=None):
 
         if duration:
             availability[res] = calculate_availability(res, opening_hours[res], duration)
-
 
     return opening_hours, availability
 
@@ -441,6 +442,7 @@ def calculate_availability(resource, opening_hours, duration=None):
 
     return availability
 
+
 def periods_to_opening_hours(resource, begin_dt, end_dt):
     """
     Goes through resource's unit's periods and its own
@@ -474,7 +476,7 @@ def periods_to_opening_hours(resource, begin_dt, end_dt):
     # Generates a dict of time range's days as keys and values as active period's days
 
     # all requested dates are assumed closed
-    dates = {r.date() : False for r in arrow.Arrow.range('day', begin_dt, end_dt)}
+    dates = {r.date(): False for r in arrow.Arrow.range('day', begin_dt, end_dt)}
 
     if resource.overlapping_unit:
         for period in resource.overlapping_unit.periods.all():
@@ -529,6 +531,7 @@ def periods_to_opening_hours(resource, begin_dt, end_dt):
                         opens = datetime.datetime.combine(r.date(), day.opens)
                         dates[r.date()] = OpenHours(opens, closes)
     return dates
+
 
 def set():
     u1 = Unit.objects.create(name='Unit 1', id='unit_1')

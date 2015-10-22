@@ -1,12 +1,11 @@
 import csv
 import datetime
 import io
-from pprint import pprint
 
 import requests
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ObjectDoesNotExist
 
-from ..models import Period, Purpose, Resource, ResourceType, Unit, UnitIdentifier
+from ..models import Purpose, Resource, ResourceType, Unit
 from .base import Importer, register_importer
 
 
@@ -14,33 +13,33 @@ from .base import Importer, register_importer
 class Kirjasto10Importer(Importer):
     name = "kirjasto10"
     RESOURCETYPE_IDS = {'työtila': 'workspace',
-                    'työpiste': 'workstation',
-                    'tapahtumatila': 'event_space',
-                    'studio': 'studio',
-                    'näyttelytila': 'exhibition_space',
-                    'kokoustila': 'meeting_room',
-                    'pelitila': 'game_space'}
+                        'työpiste': 'workstation',
+                        'tapahtumatila': 'event_space',
+                        'studio': 'studio',
+                        'näyttelytila': 'exhibition_space',
+                        'kokoustila': 'meeting_room',
+                        'pelitila': 'game_space'}
     AUTHENTICATION = {'Ei tunnistautumista': 'none',
-                          'Kevyt': 'weak',
-                          'Vahva': 'strong'}
+                      'Kevyt': 'weak',
+                      'Vahva': 'strong'}
     PURPOSE_IDS = {}
     PURPOSE_IDS['audiovisual_work'] = {'laulaminen / musiikin soitto ja äänitys': 'sing_play_and_record_music',
-                                          'äänen käsittely tietokoneella': 'edit_sound',
-                                          'kuvan käsittely tietokoneella': 'edit_image',
-                                          'videokuvan käsittely tietokoneella': 'edit_video',
-                                          'digitointi': 'digitizing'}
+                                       'äänen käsittely tietokoneella': 'edit_sound',
+                                       'kuvan käsittely tietokoneella': 'edit_image',
+                                       'videokuvan käsittely tietokoneella': 'edit_video',
+                                       'digitointi': 'digitizing'}
     PURPOSE_IDS['physical_work'] = {'fyysisten esineiden tekeminen': 'manufacturing'}
-    PURPOSE_IDS['watch_and_listen']= {'(elokuvien) katselu': 'watch_video',
-                                         'musiikin kuuntelu': 'listen_to_music'}
+    PURPOSE_IDS['watch_and_listen'] = {'(elokuvien) katselu': 'watch_video',
+                                       'musiikin kuuntelu': 'listen_to_music'}
     PURPOSE_IDS['meet_and_work'] = {'kokoukset, suljetut tilaisuudet': 'private_meetings',
-                                       'työskentely ryhmässä': 'work_in_group',
-                                       'työskentely yksin': 'work_alone',
-                                       'tietokoneen käyttäminen': 'work_at_computer'}
+                                    'työskentely ryhmässä': 'work_in_group',
+                                    'työskentely yksin': 'work_alone',
+                                    'tietokoneen käyttäminen': 'work_at_computer'}
     PURPOSE_IDS['games'] = {'konsolipelit': 'console_games',
-                               'pelaaminen: lauta-, kortti- ja roolipelit': 'board_card_and_role_playing_games',
-                               'tietokonepelit': 'computer_games'}
+                            'pelaaminen: lauta-, kortti- ja roolipelit': 'board_card_and_role_playing_games',
+                            'tietokonepelit': 'computer_games'}
     PURPOSE_IDS['events_and_exhibitions'] = {'näyttelyt': 'exhibitions',
-                                                'yleisötilaisuudet, tapahtumat': 'public_events'}
+                                             'yleisötilaisuudet, tapahtumat': 'public_events'}
 
     def import_resources(self):
         url = "https://docs.google.com/spreadsheets/d/1dOlIIDUINfOdyrth42JmQyTDzJmZJbwTi_bqMxRm7i8/export?format=csv&id=1dOlIIDUINfOdyrth42JmQyTDzJmZJbwTi_bqMxRm7i8&gid=0"
@@ -76,11 +75,11 @@ class Kirjasto10Importer(Importer):
             except ValueError:
                 people_capacity = None
             try:
-                min_period = datetime.timedelta(minutes=int(60*float(res_data['Varausaika min'].replace(',', '.'))))
+                min_period = datetime.timedelta(minutes=int(60 * float(res_data['Varausaika min'].replace(',', '.'))))
             except ValueError:
                 min_period = datetime.timedelta(minutes=30)
             try:
-                max_period = datetime.timedelta(minutes=int(60*float(res_data['Varausaika max'].replace(',', '.'))))
+                max_period = datetime.timedelta(minutes=int(60 * float(res_data['Varausaika max'].replace(',', '.'))))
             except ValueError:
                 max_period = None
 
