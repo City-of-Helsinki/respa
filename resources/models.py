@@ -1,5 +1,6 @@
 import base64
 import datetime
+import os
 import struct
 import time
 
@@ -10,14 +11,21 @@ import pytz
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 from django.db.models import Model
 from django.utils import timezone
 from django.utils.dateformat import time_format
+from django.utils.six import BytesIO
 from django.utils.translation import ugettext_lazy as _
 from image_cropping import ImageRatioField
+from PIL import Image
 from psycopg2.extras import DateRange, DateTimeTZRange, NumericRange
 
 DEFAULT_LANG = settings.LANGUAGES[0][0]
+
+
+class InvalidImage(ValidationError):
+    pass
 
 
 def save_dt(obj, attr, dt, orig_tz="UTC"):
@@ -517,9 +525,7 @@ class ResourceImage(ModifiableModel):
     sort_order = models.PositiveSmallIntegerField(verbose_name=_('Sort order'))
 
     def save(self, *args, **kwargs):
-        if not self.image_format:
-            # FIXME
-            self.image_format = 'JPEG'
+        self._process_image()
         if self.sort_order is None:
             other_images = self.resource.images.order_by('-sort_order')
             if not other_images:
@@ -535,6 +541,48 @@ class ResourceImage(ModifiableModel):
                 # images for the resource, then fix the last one).
                 other_main_images.update(type="other")
         return super(ResourceImage, self).save(*args, **kwargs)
+
+    def full_clean(self, exclude=(), validate_unique=True):
+        if "image" not in exclude:
+            self._process_image()
+        return super(ResourceImage, self).full_clean(exclude, validate_unique)
+
+    def _process_image(self):
+        """
+        Preprocess the uploaded image file, if required.
+
+        This may transcode the image to a JPEG or PNG if it's not either to begin with.
+
+        :raises InvalidImage: Exception raised if the uploaded file is not valid.
+        """
+        if not self.image:  # No image set - we can't do this right now
+            return
+
+        if self.image_format:  # Assume that if image_format is set, no further processing is required
+            return
+
+        try:
+            img = Image.open(self.image)
+            img.load()
+        except Exception as exc:
+            raise InvalidImage("Image %s not valid (%s)" % (self.image, exc)) from exc
+
+        if img.format not in ("JPEG", "PNG"):  # Needs transcoding.
+            if self.type in ("map", "ground_plan"):
+                target_format = "PNG"
+                save_kwargs = {}
+            else:
+                target_format = "JPEG"
+                save_kwargs = {"quality": 75, "progressive": True}
+            image_bio = BytesIO()
+            img.save(image_bio, format=target_format, **save_kwargs)
+            self.image = ContentFile(
+                image_bio.getvalue(),
+                name=os.path.splitext(self.image.name)[0] + ".%s" % target_format.lower()
+            )
+            self.image_format = target_format
+        else:  # All good -- keep the file as-is.
+            self.image_format = img.format
 
     # Unused for now
     def get_upload_filename(image, filename):
@@ -555,7 +603,7 @@ class ResourceImage(ModifiableModel):
         else:
             nr = 1
 
-        fname = res.type 
+        fname = res.type
         # ...
 
     def __str__(self):
