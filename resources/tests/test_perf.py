@@ -10,6 +10,7 @@ TEST_PERFORMANCE = bool(getattr(settings, "TEST_PERFORMANCE", False))
 
 
 @pytest.mark.skipif(not TEST_PERFORMANCE, reason="TEST_PERFORMANCE not enabled")
+@pytest.mark.django_db
 def test_api_resource_scalability(api_client):
     u1 = Unit.objects.create(name='Unit 1', id='unit_1', time_zone='Europe/Helsinki')
     rt = ResourceType.objects.create(name='Type 1', id='type_1', main_type='space')
@@ -55,6 +56,7 @@ def test_api_resource_scalability(api_client):
 
 
 @pytest.mark.skipif(not TEST_PERFORMANCE, reason="TEST_PERFORMANCE not enabled")
+@pytest.mark.django_db
 def test_avail_resource_scalability(client):
     u1 = Unit.objects.create(name='Unit 1', id='unit_1', time_zone='Europe/Helsinki')
     rt = ResourceType.objects.create(name='Type 1', id='type_1', main_type='space')
