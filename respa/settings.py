@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'rest_framework',
-    'django_nose',
     'corsheaders',
     'easy_thumbnails',
     'image_cropping',
@@ -92,8 +91,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'respa.wsgi.application'
 
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-
+TEST_RUNNER = 'respa.test_runner.PyTestShimRunner'
+TEST_PERFORMANCE = False
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
