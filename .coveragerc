@@ -1,3 +1,3 @@
 [run]
 branch = True
-omit = *migrations*
+omit = *migrations*, *tests*
