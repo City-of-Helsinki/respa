@@ -2,8 +2,9 @@
 import pytest
 from django.core.files.base import ContentFile
 from PIL import Image
+from resources.errors import InvalidImage
 
-from resources.models import InvalidImage, ResourceImage
+from resources.models import ResourceImage
 from resources.tests.utils import create_resource_image, get_test_image_data
 
 
