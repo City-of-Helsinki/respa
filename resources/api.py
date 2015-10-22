@@ -16,6 +16,8 @@ from munigeo import api as munigeo_api
 from .models import Purpose, Reservation, Resource, ResourceImage, ResourceType, Unit
 
 all_views = []
+
+
 def register_view(klass, name, base_name=None):
     entry = {'class': klass, 'name': name}
     if base_name is not None:
@@ -70,7 +72,9 @@ class TranslatedModelSerializer(serializers.ModelSerializer):
 
         return ret
 
+
 class NullableTimeField(serializers.TimeField):
+
     def to_representation(self, value):
         if not value:
             return None
@@ -78,13 +82,16 @@ class NullableTimeField(serializers.TimeField):
             value = timezone.localtime(value)
         return super().to_representation(value)
 
+
 class NullableDateTimeField(serializers.DateTimeField):
+
     def to_representation(self, value):
         if not value:
             return None
         else:
             value = timezone.localtime(value)
         return super().to_representation(value)
+
 
 class UnitSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     opening_hours_today = serializers.DictField(

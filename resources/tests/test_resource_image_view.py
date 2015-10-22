@@ -4,8 +4,8 @@ from django.core.urlresolvers import reverse
 from django.utils.six import BytesIO
 from PIL import Image
 
-from resources.views.images import parse_dimension_string
 from resources.tests.utils import create_resource_image
+from resources.views.images import parse_dimension_string
 
 
 @pytest.mark.django_db

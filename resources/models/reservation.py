@@ -1,11 +1,11 @@
-from psycopg2.extras import DateTimeTZRange
-
 import django.contrib.postgres.fields as pgfields
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.utils.translation import ugettext_lazy as _
+from psycopg2.extras import DateTimeTZRange
+
 from .base import ModifiableModel
-from .utils import save_dt, get_dt
+from .utils import get_dt, save_dt
 
 
 class Reservation(ModifiableModel):
@@ -71,5 +71,3 @@ class Reservation(ModifiableModel):
         if self.begin and self.end:
             self.duration = DateTimeTZRange(self.begin, self.end)
         return super(Reservation, self).save(*args, **kwargs)
-
-

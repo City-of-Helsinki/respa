@@ -2,6 +2,7 @@ import datetime
 import pprint
 
 from django.http import HttpResponse
+
 import resources.models
 import resources.timetools
 
@@ -28,10 +29,11 @@ def testing_view(request):
     return HttpResponse('<html><body>opens<br><pre>' + pprint.pformat(openings.values()) + '</pre> avail<br>' +
                         '<pre>' + pprint.pformat(avail.values()) + '</pre></body></html>')
 
+
 def tester():
 
-    begin = datetime.datetime(2015,3,2)
-    end = datetime.datetime(2015,3,7)
+    begin = datetime.datetime(2015, 3, 2)
+    end = datetime.datetime(2015, 3, 7)
     begin_utc = resources.timetools.TimeWarp(dt=begin).astimezone('UTC')
     end_utc = resources.timetools.TimeWarp(dt=end).astimezone('UTC')
     duration = datetime.timedelta(hours=2)

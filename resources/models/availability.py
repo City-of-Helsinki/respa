@@ -1,7 +1,5 @@
 import datetime
 
-from psycopg2.extras import DateRange, NumericRange
-
 import arrow
 import django.contrib.postgres.fields as pgfields
 import django.db.models as dbm
@@ -9,6 +7,8 @@ from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.utils.dateformat import time_format
 from django.utils.translation import ugettext_lazy as _
+from psycopg2.extras import DateRange, NumericRange
+
 from .utils import time_to_dtz
 
 STATE_BOOLS = {False: _('open'), True: _('closed')}
@@ -95,8 +95,6 @@ def get_opening_hours(periods, begin, end=None):
     # date_list.append({'date': date.isoformat(), 'opens': opens, 'closes': closes})
 
     return dates
-
-
 
 
 class Period(models.Model):
@@ -209,7 +207,6 @@ class Period(models.Model):
                 self.duration = DateRange(self.start, self.end)
 
         return super(Period, self).save(*args, **kwargs)
-
 
 
 class Day(models.Model):

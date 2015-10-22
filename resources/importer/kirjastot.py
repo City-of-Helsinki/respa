@@ -1,14 +1,15 @@
 import datetime
+from collections import namedtuple
 
 import requests
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from psycopg2.extras import DateRange
 
-from collections import namedtuple
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from ..models import Unit, UnitIdentifier
 from .base import Importer, register_importer
 
 ProxyPeriod = namedtuple("ProxyPeriod", ['start', 'end', 'description', 'closed', 'name', 'unit', 'days'])
+
 
 @register_importer
 class KirjastotImporter(Importer):
@@ -56,7 +57,7 @@ class KirjastotImporter(Importer):
                 start = datetime.datetime.strptime(period['start'], '%Y-%m-%d').date()
                 if not period['end']:
                     this_day = datetime.date.today()
-                    end = datetime.date(this_day.year + 1 , 12, 31) # No end time goes to end of next year
+                    end = datetime.date(this_day.year + 1, 12, 31)  # No end time goes to end of next year
                 else:
                     end = datetime.datetime.strptime(period['end'], '%Y-%m-%d').date()
                 periods.append(ProxyPeriod(
@@ -161,22 +162,22 @@ class KirjastotImporter(Importer):
         if parent:
 
             active_period = period.unit.periods.create(
-                    start=period.start,
-                    end=period.end,
-                    description=period.description,
-                    closed=period.closed,
-                    name=period.name,
-                    parent=parent,
-                    exception=True)
+                start=period.start,
+                end=period.end,
+                description=period.description,
+                closed=period.closed,
+                name=period.name,
+                parent=parent,
+                exception=True)
 
         else:
 
             active_period = period.unit.periods.create(
-                    start=period.start,
-                    end=period.end,
-                    description=period.description,
-                    closed=period.closed,
-                    name=period.name)
+                start=period.start,
+                end=period.end,
+                description=period.description,
+                closed=period.closed,
+                name=period.name)
 
         if period.days:
             for day_id, day in period.days.items():

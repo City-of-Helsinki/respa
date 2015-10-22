@@ -1,8 +1,6 @@
 import datetime
-
-from PIL import Image
-
 import os
+
 import arrow
 import django.db.models as dbm
 from django.conf import settings
@@ -13,8 +11,11 @@ from django.utils import timezone
 from django.utils.six import BytesIO
 from django.utils.translation import ugettext_lazy as _
 from image_cropping import ImageRatioField
-from .base import ModifiableModel, AutoIdentifiedModel
+from PIL import Image
+
 from resources.errors import InvalidImage
+
+from .base import AutoIdentifiedModel, ModifiableModel
 from .utils import get_translated
 
 
@@ -394,5 +395,3 @@ class ResourceImage(ModifiableModel):
         verbose_name = _('resource image')
         verbose_name_plural = _('resource images')
         unique_together = (('resource', 'sort_order'),)
-
-

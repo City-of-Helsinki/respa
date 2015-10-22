@@ -4,8 +4,8 @@ munigeo importer for Finnish nation-level data
 
 import dateutil.parser
 import requests
-
 from django.contrib.gis.geos import Point
+
 from ..models import Unit
 from .base import Importer, register_importer
 from .sync import ModelSyncher
@@ -40,7 +40,6 @@ class TPRekImporter(Importer):
             point = Point(x=coords[0], y=coords[1], srid=4326)
             data['location'] = point
 
-
         data['modified_at'] = dateutil.parser.parse(data['origin_last_modified_time'])
 
         obj = syncher.get(tprek_id)
@@ -49,7 +48,6 @@ class TPRekImporter(Importer):
             syncher.mark(obj)
         else:
             syncher.mark(saved_obj)
-
 
     def import_units(self):
         print("Fetching units")

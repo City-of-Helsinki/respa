@@ -40,5 +40,4 @@ class TimeTestCase:
 
     def test_periods(self):
         from resources.timetools import get_opening_hours
-        hours = get_opening_hours(datetime.date(2015,8,1), datetime.date(2015,8,10))
-
+        hours = get_opening_hours(datetime.date(2015, 8, 1), datetime.date(2015, 8, 10))

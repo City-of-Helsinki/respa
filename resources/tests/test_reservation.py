@@ -2,8 +2,9 @@ import datetime
 
 import arrow
 from django.core.exceptions import ValidationError
-from django.utils import timezone
 from django.test import TestCase
+from django.utils import timezone
+
 from resources.models import *
 
 
@@ -32,12 +33,12 @@ class ReservationTestCase(TestCase):
         date = arrow.get('2015-06-01').date()
         end = arrow.get('2015-06-02').date()
         days = r1a.get_opening_hours(begin=date, end=end)  # Monday
-        hours = days[date][0] # first day object of chosen days
+        hours = days[date][0]  # first day object of chosen days
         self.assertEqual(hours['opens'].time(), datetime.time(8, 00))
         self.assertEqual(hours['closes'].time(), datetime.time(18, 00))
 
         days = r1b.get_opening_hours(begin=date, end=end)  # Monday
-        hours = days[date][0] # first day object of chosen days
+        hours = days[date][0]  # first day object of chosen days
         self.assertEqual(hours['opens'].time(), datetime.time(8, 00))
         self.assertEqual(hours['closes'].time(), datetime.time(22, 00))
 

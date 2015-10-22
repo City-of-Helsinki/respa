@@ -1,6 +1,7 @@
 import datetime
 
 from django.test import TestCase
+
 from resources.models import *
 
 
@@ -42,9 +43,8 @@ class DayTestCase(TestCase):
 
         # Weekend is closed as an exception
         exp2 = Period.objects.create(start=datetime.date(2015, 8, 8), end=datetime.date(2015, 8, 9), unit=u1,
-            name='weekend is closed', closed=True, exception=True, parent=p1)
+                                     name='weekend is closed', closed=True, exception=True, parent=p1)
 
     def test_days(self):
         periods = Period.objects.all()
         self.assertEqual(len(periods), 3)
-

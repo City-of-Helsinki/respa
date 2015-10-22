@@ -1,13 +1,14 @@
+import base64
 import datetime
+import struct
 import time
 
-import base64
-import struct
 import arrow
 from django.conf import settings
 from django.utils import timezone
 
 DEFAULT_LANG = settings.LANGUAGES[0][0]
+
 
 def save_dt(obj, attr, dt, orig_tz="UTC"):
     """
@@ -50,5 +51,3 @@ def time_to_dtz(time, date=None, arr=None):
             return tz.localize(datetime.datetime(arr.year, arr.month, arr.day, time.hour, time.minute))
     else:
         return None
-
-

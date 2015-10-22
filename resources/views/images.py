@@ -34,6 +34,7 @@ def parse_dimension_string(dim):
 
 class ResourceImageView(DetailView):
     model = ResourceImage
+
     def get(self, request, *args, **kwargs):
         image = self.get_object()
 

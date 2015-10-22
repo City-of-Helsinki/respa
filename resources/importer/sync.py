@@ -1,4 +1,5 @@
 class ModelSyncher(object):
+
     def __init__(self, queryset, generate_obj_id):
         d = {}
         self.generate_obj_id = generate_obj_id

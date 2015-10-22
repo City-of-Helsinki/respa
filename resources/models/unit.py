@@ -1,13 +1,13 @@
 import datetime
 
-import pytz
-
 import arrow
+import pytz
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from .base import ModifiableModel, AutoIdentifiedModel
+
+from .base import AutoIdentifiedModel, ModifiableModel
 from .utils import get_translated
 
 

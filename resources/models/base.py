@@ -2,10 +2,12 @@ from django.conf import settings
 from django.contrib.gis.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+
 from .utils import generate_id
 
 
 class AutoIdentifiedModel(models.Model):
+
     def save(self, *args, **kwargs):
         pk_type = self._meta.pk.get_internal_type()
         if pk_type == 'CharField':
@@ -31,5 +33,3 @@ class ModifiableModel(models.Model):
 
     class Meta:
         abstract = True
-
-

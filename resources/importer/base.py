@@ -156,7 +156,6 @@ class Importer(object):
 
         return obj
 
-
     def __init__(self, options):
         self.logger = logging.getLogger("%s_importer" % self.name)
 
@@ -173,9 +172,11 @@ class Importer(object):
 
 importers = {}
 
+
 def register_importer(klass):
     importers[klass.name] = klass
     return klass
+
 
 def get_importers():
     if importers:
