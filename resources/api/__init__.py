@@ -2,6 +2,7 @@ from .base import all_views
 from .resource import ResourceListViewSet, ResourceViewSet, PurposeViewSet
 from .reservation import ReservationViewSet
 from .unit import UnitViewSet
+from .search import TypeaheadViewSet
 
 from rest_framework import routers
 
@@ -11,6 +12,7 @@ class RespaAPIRouter(routers.DefaultRouter):
         super(RespaAPIRouter, self).__init__()
         self.registered_api_views = set()
         self.register_views()
+        self.register("search", TypeaheadViewSet, base_name="search")
 
     def register_views(self):
         for view in all_views:
