@@ -2,6 +2,7 @@
 
 
 from django.core.files.base import ContentFile
+from django.test.testcases import SimpleTestCase
 from django.utils.six import BytesIO
 from PIL import Image
 
@@ -55,3 +56,14 @@ def create_resource_image(resource, size=(32, 32), color=(250, 250, 210), format
     ri.full_clean()
     ri.save()
     return ri
+
+
+_dummy_test_case = SimpleTestCase()
+
+
+def assert_response_contains(response, text, **kwargs):
+    _dummy_test_case.assertContains(response=response, text=text, **kwargs)
+
+
+def assert_response_does_not_contain(response, text, **kwargs):
+    _dummy_test_case.assertNotContains(response=response, text=text, **kwargs)
