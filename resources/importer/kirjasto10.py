@@ -35,7 +35,7 @@ class Kirjasto10Importer(Importer):
     }
     PURPOSE_IDS = {}
     PURPOSE_IDS['audiovisual_work'] = {
-        'laulaminen / musiikin soitto ja äänitys': 'sing_play_and_record_music',
+        'musiikin soitto ja tekeminen': 'play_and_record_music',
         'äänen käsittely tietokoneella': 'edit_sound',
         'kuvan käsittely tietokoneella': 'edit_image',
         'videokuvan käsittely tietokoneella': 'edit_video',
@@ -45,8 +45,8 @@ class Kirjasto10Importer(Importer):
     PURPOSE_IDS['watch_and_listen']= {'(elokuvien) katselu': 'watch_video',
                                          'musiikin kuuntelu': 'listen_to_music'}
     PURPOSE_IDS['meet_and_work'] = {
-        'kokoukset, suljetut tilaisuudet': 'private_meetings',
-        'työskentely ryhmässä': 'work_in_group',
+        'kokoukset tai suljetut tilaisuudet': 'private_meetings',
+        'työskentely ryhmässä tai yksin': 'work_in_group_or_alone',
         'työskentely yksin': 'work_alone',
         'tietokoneen käyttäminen': 'work_at_computer'
     }
@@ -55,6 +55,11 @@ class Kirjasto10Importer(Importer):
                             'tietokonepelit': 'computer_games'}
     PURPOSE_IDS['events_and_exhibitions'] = {'näyttelyt': 'exhibitions',
                                              'yleisötilaisuudet, tapahtumat': 'public_events'}
+    PURPOSE_IDS['sports'] = {
+        'tanssi': 'dance',
+        'maila- ja pallopelit': 'racket_and_ball_games',
+        'voimistelu': 'gymnastics'
+    }
 
     def import_resources(self):
         url = "https://docs.google.com/spreadsheets/d/1mjeCSLQFA82mBvGcbwPkSL3OTZx1kaZtnsq3CF_f4V8/export?format=csv&id=1mjeCSLQFA82mBvGcbwPkSL3OTZx1kaZtnsq3CF_f4V8&gid=0"
@@ -118,14 +123,13 @@ class Kirjasto10Importer(Importer):
                 if not purpose:
                     continue
 
-                purpose = purpose.lower()
-                types = [key for key in self.PURPOSE_IDS if purpose in self.PURPOSE_IDS[key].keys()]
+                types = [key for key in self.PURPOSE_IDS if purpose.lower() in self.PURPOSE_IDS[key].keys()]
                 if not types:
                     print('Main purpose type %s not found' % purpose)
                     continue
                 main_type = types[0]
 
-                purpose_id = self.PURPOSE_IDS[main_type][purpose]
+                purpose_id = self.PURPOSE_IDS[main_type][purpose.lower()]
                 try:
                     purpose_obj = Purpose.objects.get(id=purpose_id)
                 except Purpose.DoesNotExist:
