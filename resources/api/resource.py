@@ -5,112 +5,15 @@ import arrow
 import django_filters
 import pytz
 from arrow.parser import ParserError
-from django.conf import settings
 from django.core.urlresolvers import reverse
-from django.utils import timezone
-from modeltranslation.translator import NotRegistered, translator
 from rest_framework import exceptions, filters, mixins, serializers, viewsets
 
 from munigeo import api as munigeo_api
+from resources.models import Purpose, Resource, ResourceImage, ResourceType
 
-from .models import Purpose, Reservation, Resource, ResourceImage, ResourceType, Unit
-
-all_views = []
-
-
-def register_view(klass, name, base_name=None):
-    entry = {'class': klass, 'name': name}
-    if base_name is not None:
-        entry['base_name'] = base_name
-    all_views.append(entry)
-
-LANGUAGES = [x[0] for x in settings.LANGUAGES]
-
-
-class TranslatedModelSerializer(serializers.ModelSerializer):
-
-    def __init__(self, *args, **kwargs):
-        super(TranslatedModelSerializer, self).__init__(*args, **kwargs)
-        model = self.Meta.model
-        try:
-            trans_opts = translator.get_options_for_model(model)
-        except NotRegistered:
-            self.translated_fields = []
-            return
-
-        self.translated_fields = trans_opts.fields.keys()
-        # Remove the pre-existing data in the bundle.
-        for field_name in self.translated_fields:
-            for lang in LANGUAGES:
-                key = "%s_%s" % (field_name, lang)
-                if key in self.fields:
-                    del self.fields[key]
-
-    def to_representation(self, obj):
-        ret = super(TranslatedModelSerializer, self).to_representation(obj)
-        if obj is None:
-            return ret
-
-        for field_name in self.translated_fields:
-            if field_name not in self.fields:
-                continue
-            d = {}
-            for lang in LANGUAGES:
-                key = "%s_%s" % (field_name, lang)
-                val = getattr(obj, key, None)
-                if val is None:
-                    continue
-                d[lang] = val
-
-            # If no text provided, leave the field as null
-            for key, val in d.items():
-                if val is not None:
-                    break
-            else:
-                d = None
-            ret[field_name] = d
-
-        return ret
-
-
-class NullableTimeField(serializers.TimeField):
-
-    def to_representation(self, value):
-        if not value:
-            return None
-        else:
-            value = timezone.localtime(value)
-        return super().to_representation(value)
-
-
-class NullableDateTimeField(serializers.DateTimeField):
-
-    def to_representation(self, value):
-        if not value:
-            return None
-        else:
-            value = timezone.localtime(value)
-        return super().to_representation(value)
-
-
-class UnitSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
-    opening_hours_today = serializers.DictField(
-        source='get_opening_hours',
-        child=serializers.ListField(
-            child=serializers.DictField(
-                child=NullableDateTimeField())
-        )
-    )
-
-    class Meta:
-        model = Unit
-
-
-class UnitViewSet(munigeo_api.GeoModelAPIView, viewsets.ReadOnlyModelViewSet):
-    queryset = Unit.objects.all()
-    serializer_class = UnitSerializer
-
-register_view(UnitViewSet, 'unit')
+from .base import TranslatedModelSerializer, register_view
+from .reservation import ReservationSerializer
+from .unit import UnitSerializer
 
 
 class PurposeSerializer(TranslatedModelSerializer):
@@ -313,29 +216,3 @@ class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, vi
 
 register_view(ResourceListViewSet, 'resource')
 register_view(ResourceViewSet, 'resource')
-
-
-class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
-    begin = NullableDateTimeField()
-    end = NullableDateTimeField()
-
-    class Meta:
-        model = Reservation
-        fields = ['url', 'resource', 'user', 'begin', 'end']
-
-    def validate(self, data):
-        # if updating a reservation, its identity must be provided to validator
-        try:
-            reservation = self.context['view'].get_object()
-        except AssertionError:
-            # the view is a list, which means that we are POSTing a new reservation
-            reservation = None
-        data['begin'], data['end'] = data['resource'].get_reservation_period(reservation, data=data)
-        return data
-
-
-class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
-    queryset = Reservation.objects.all()
-    serializer_class = ReservationSerializer
-
-register_view(ReservationViewSet, 'reservation')
