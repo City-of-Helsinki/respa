@@ -145,9 +145,7 @@ class NestedResourceImageSerializer(TranslatedModelSerializer):
     url = serializers.SerializerMethodField()
 
     def get_url(self, obj):
-        # FIXME: Get ext from obj.image_format
-        kwargs = {'pk': obj.pk, 'ext': 'jpg'}
-        url = reverse('resource-image-view', kwargs=kwargs)
+        url = reverse('resource-image-view', kwargs={'pk': obj.pk})
         request = self.context.get('request')
         if request:
             return request.build_absolute_uri(url)
