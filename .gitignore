@@ -12,3 +12,4 @@ local_settings.py
 htmlcov
 .cache
 perf*csv
+/*hack*py
