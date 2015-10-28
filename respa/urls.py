@@ -16,10 +16,20 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.admin import site as admin_site
+from django.utils.translation import ugettext_lazy
 
 from resources.api import RespaAPIRouter
-from django.contrib.admin import site as admin_site
 from resources.views.images import ResourceImageView
+
+# Text to put at the end of each page's <title>.
+admin_site.site_title = ugettext_lazy('RESPA Resource booking system')
+
+# Text to put in each page's <h1>.
+admin_site.site_header = ugettext_lazy('RESPA Resource booking system')
+
+# Text to put at the top of the admin index page.
+admin_site.index_title = ugettext_lazy('RESPA Administration')
 
 router = RespaAPIRouter()
 

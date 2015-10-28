@@ -1,20 +1,10 @@
 from django.contrib import admin
 from django.contrib.admin import site as admin_site
 from django.contrib.gis import admin as geo_admin
-from django.utils.translation import ugettext_lazy
 from image_cropping import ImageCroppingMixin
 from modeltranslation.admin import TranslationAdmin
 
 from resources.models import Day, Period, Reservation, Resource, ResourceImage, ResourceType, Unit
-
-# Text to put at the end of each page's <title>.
-admin_site.site_title = ugettext_lazy('RESPA Resource booking system')
-
-# Text to put in each page's <h1>.
-admin_site.site_header = ugettext_lazy('RESPA Resource booking system')
-
-# Text to put at the top of the admin index page.
-admin_site.index_title = ugettext_lazy('RESPA Administration')
 
 
 class PeriodInline(admin.TabularInline):
