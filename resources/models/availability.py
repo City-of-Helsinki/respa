@@ -172,7 +172,7 @@ class Period(models.Model):
         else:
             d_range = DateRange(self.start, self.end)
 
-        overlapping_periods = old_periods.filter(duration__overlap=d_range)
+        overlapping_periods = old_periods.filter(duration__overlap=d_range).exclude(pk=self.pk)
 
         #  Validate periods are not overlapping regular or exceptional periods
         if self.exception:
