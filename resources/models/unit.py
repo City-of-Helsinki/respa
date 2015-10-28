@@ -6,10 +6,10 @@ from django.conf import settings
 from django.contrib.gis.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from autoslug import AutoSlugField
 
 from .base import AutoIdentifiedModel, ModifiableModel
-from .utils import get_translated
-
+from .utils import get_translated, get_translated_name
 
 class Unit(ModifiableModel, AutoIdentifiedModel):
     id = models.CharField(primary_key=True, max_length=50)
@@ -34,6 +34,8 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
                                   null=True, blank=True)
     picture_caption = models.CharField(verbose_name=_('Picture caption'), max_length=200,
                                        null=True, blank=True)
+
+    slug = AutoSlugField(populate_from=get_translated_name, unique=True)
 
     class Meta:
         verbose_name = _("unit")
