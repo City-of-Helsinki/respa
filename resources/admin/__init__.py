@@ -3,12 +3,8 @@ from django.contrib.admin import site as admin_site
 from django.contrib.gis import admin as geo_admin
 from image_cropping import ImageCroppingMixin
 from modeltranslation.admin import TranslationAdmin
-
-from resources.models import Day, Period, Reservation, Resource, ResourceImage, ResourceType, Unit
-
-
-class PeriodInline(admin.TabularInline):
-    model = Period
+from resources.admin.period_inline import PeriodInline
+from resources.models import Day, Reservation, Resource, ResourceImage, ResourceType, Unit
 
 
 class DayInline(admin.TabularInline):
@@ -38,8 +34,8 @@ class UnitAdmin(TranslationAdmin, geo_admin.OSMGeoAdmin):
 class ResourceImageAdmin(ImageCroppingMixin, TranslationAdmin):
     exclude = ('sort_order', 'image_format')
 
-admin_site.register(ResourceImage, ResourceImageAdmin)
 
+admin_site.register(ResourceImage, ResourceImageAdmin)
 admin_site.register(Resource, ResourceAdmin)
 admin_site.register(Reservation)
 admin_site.register(ResourceType)

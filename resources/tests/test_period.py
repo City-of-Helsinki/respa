@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from datetime import date
+
 import pytest
+
 from resources.models import Period
 
 

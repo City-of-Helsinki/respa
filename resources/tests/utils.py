@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-
-
+from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.test.testcases import SimpleTestCase
 from django.utils.six import BytesIO
@@ -67,3 +66,35 @@ def assert_response_contains(response, text, **kwargs):
 
 def assert_response_does_not_contain(response, text, **kwargs):
     _dummy_test_case.assertNotContains(response=response, text=text, **kwargs)
+
+
+def get_form_data(form, prepared=False):
+    data = {}
+    for name, field in form.fields.items():
+        prefixed_name = form.add_prefix(name)
+        data_value = field.widget.value_from_datadict(form.data, form.files, prefixed_name)
+
+        if data_value:
+            value = data_value
+            data[prefixed_name] = value
+        else:
+            if not field.show_hidden_initial:
+                initial_value = form.initial.get(name, field.initial)
+                if callable(initial_value):
+                    initial_value = initial_value()
+            else:
+                initial_prefixed_name = form.add_initial_prefix(name)
+                hidden_widget = field.hidden_widget()
+                try:
+                    initial_value = field.to_python(hidden_widget.value_from_datadict(
+                        form.data, form.files, initial_prefixed_name))
+                except ValidationError:
+                    form._changed_data.append(name)
+                    continue
+            value = initial_value
+        if prepared:
+            value = field.prepare_value(value)
+            if value is None:
+                continue
+        data[prefixed_name] = value
+    return data
