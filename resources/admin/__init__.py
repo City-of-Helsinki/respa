@@ -5,7 +5,7 @@ from django.utils.translation import ugettext_lazy
 from image_cropping import ImageCroppingMixin
 from modeltranslation.admin import TranslationAdmin
 
-from .models import Day, Period, Reservation, Resource, ResourceImage, ResourceType, Unit
+from resources.models import Day, Period, Reservation, Resource, ResourceImage, ResourceType, Unit
 
 # Text to put at the end of each page's <title>.
 admin_site.site_title = ugettext_lazy('RESPA Resource booking system')
