@@ -11,17 +11,12 @@ class RespaAPIRouter(routers.DefaultRouter):
     def __init__(self):
         super(RespaAPIRouter, self).__init__()
         self.registered_api_views = set()
-        self.register_views()
+        self._register_views()
         self.register("search", TypeaheadViewSet, base_name="search")
 
-    def register_views(self):
+    def _register_views(self):
         for view in all_views:
-            kwargs = {}
             if view['class'] in self.registered_api_views:
                 continue
-
             self.registered_api_views.add(view['class'])
-
-            if 'base_name' in view:
-                kwargs['base_name'] = view['base_name']
-            self.register(view['name'], view['class'], **kwargs)
+            self.register(view['name'], view['class'], base_name=view.get("base_name"))
