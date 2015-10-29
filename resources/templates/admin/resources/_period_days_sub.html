@@ -1,0 +1,21 @@
+{% load i18n %}
+<div class="respa-period-days grp-tr">
+    <td colspan="5">
+        <table>
+            <thead>
+            <tr>
+                {% for day_helper in inline_admin_form.form.day_fields.values %}
+                    <th>{{ day_helper.name }}</th>
+                {% endfor %}
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                {% for day_helper in inline_admin_form.form.day_fields.values %}
+                    <td class="respa-period-day-hours">{{ day_helper.opens_field }} &ndash; {{ day_helper.closes_field }}</td>
+                {% endfor %}
+            </tr>
+            </tbody>
+        </table>
+    </td>
+</div>

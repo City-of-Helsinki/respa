@@ -2,7 +2,7 @@
 import pytest
 from rest_framework.test import APIClient, APIRequestFactory
 
-from resources.models import Resource, ResourceType
+from resources.models import Resource, ResourceType, Unit
 
 
 @pytest.fixture
@@ -25,3 +25,9 @@ def space_resource_type():
 @pytest.fixture
 def space_resource(space_resource_type):
     return Resource.objects.create(type=space_resource_type, authentication="none", name="resource")
+
+
+@pytest.mark.django_db
+@pytest.fixture
+def test_unit():
+    return Unit.objects.create(name="unit")

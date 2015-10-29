@@ -102,7 +102,7 @@ class Period(models.Model):
     A period of time to express state of open or closed
     Days that specifies the actual activity hours link here
     """
-    parent = models.ForeignKey('Period', verbose_name=_('period'), null=True, blank=True)
+    parent = models.ForeignKey('Period', verbose_name=_('period'), null=True, blank=True)  # TODO: The verbose_name period may be misleading?
     exception = models.BooleanField(verbose_name=_('Exceptional period'), default=False)
     resource = models.ForeignKey('Resource', verbose_name=_('Resource'), db_index=True,
                                  null=True, blank=True, related_name='periods')
@@ -172,7 +172,7 @@ class Period(models.Model):
         else:
             d_range = DateRange(self.start, self.end)
 
-        overlapping_periods = old_periods.filter(duration__overlap=d_range)
+        overlapping_periods = old_periods.filter(duration__overlap=d_range).exclude(pk=self.pk)
 
         #  Validate periods are not overlapping regular or exceptional periods
         if self.exception:
