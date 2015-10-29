@@ -13,11 +13,12 @@ from django.utils.translation import ugettext_lazy as _
 from image_cropping import ImageRatioField
 from PIL import Image
 from autoslug import AutoSlugField
+from django_hstore import hstore
 
 from resources.errors import InvalidImage
 
 from .base import AutoIdentifiedModel, ModifiableModel
-from .utils import get_translated, get_translated_name
+from .utils import get_translated, get_translated_name, DEFAULT_LANG
 
 
 class ResourceType(ModifiableModel, AutoIdentifiedModel):
@@ -59,6 +60,18 @@ class Purpose(ModifiableModel):
         return "%s (%s)" % (get_translated(self, 'name'), self.id)
 
 
+class Equipment(ModifiableModel, AutoIdentifiedModel):
+    id = models.CharField(primary_key=True, max_length=100)
+    name = models.CharField(verbose_name=_('Name'), max_length=200)
+
+    class Meta:
+        verbose_name = _("equipment")
+        verbose_name_plural = _("equipment")
+
+    def __str__(self):
+        return get_translated(self, 'name')
+
+
 class Resource(ModifiableModel, AutoIdentifiedModel):
     AUTHENTICATION_TYPES = (
         ('none', _('None')),
@@ -86,6 +99,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     max_period = models.DurationField(verbose_name=_('Maximum reservation time'), null=True, blank=True)
 
     slug = AutoSlugField(populate_from=get_translated_name, unique=True)
+    equipment = models.ManyToManyField(Equipment, verbose_name=_('Equipment'), through='ResourceEquipment')
 
     class Meta:
         verbose_name = _("resource")
@@ -378,3 +392,38 @@ class ResourceImage(ModifiableModel):
         verbose_name = _('resource image')
         verbose_name_plural = _('resource images')
         unique_together = (('resource', 'sort_order'),)
+
+
+class ResourceEquipment(ModifiableModel):
+    """This model represents equipment instances in resources.
+
+    Contains data and description related to a specific equipment instance.
+    Data field can be used to set custom attributes for more flexible and fast filtering.
+    """
+    resource = models.ForeignKey(Resource, related_name='resource_equipment')
+    equipment = models.ForeignKey(Equipment, related_name='resource_equipment')
+    data = hstore.DictionaryField(null=True, blank=True)
+    description = models.TextField(blank=True)
+
+    objects = hstore.HStoreGeoManager()
+
+    class Meta:
+        verbose_name = _('resource equipment')
+        verbose_name_plural = _('resource equipment')
+
+    def __str__(self):
+        return "%s / %s" % (self.equipment, self.resource)
+
+
+class EquipmentAlias(ModifiableModel, AutoIdentifiedModel):
+    id = models.CharField(primary_key=True, max_length=100)
+    name = models.CharField(verbose_name=_('Name'), max_length=200)
+    language = models.CharField(choices=settings.LANGUAGES, default=DEFAULT_LANG, max_length=3)
+    equipment = models.ForeignKey(Equipment, related_name='aliases')
+
+    class Meta:
+        verbose_name = _('equipment alias')
+        verbose_name_plural = _('equipment aliases')
+
+    def __str__(self):
+        return "%s (%s)" % (get_translated(self, 'name'), self.equipment)

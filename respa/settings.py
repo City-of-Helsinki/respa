@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'easy_thumbnails',
     'image_cropping',
     'autoslug',
+    'django_hstore',
 
     'allauth',
     'allauth.account',
