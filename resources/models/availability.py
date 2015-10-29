@@ -27,8 +27,6 @@ def get_opening_hours(periods, begin, end=None):
     :type begin: datetime.date
     :type end: datetime.date | None
     """
-    if end:
-        assert begin <= end
 
     periods = periods.filter(start__lte=begin, end__gte=end).order_by('start', 'end')
     days = Day.objects.filter(period__in=periods)
@@ -44,6 +42,8 @@ def get_opening_hours(periods, begin, end=None):
         end_dt = datetime.datetime.combine(end, datetime.time(0, 0))
     else:
         end_dt = begin_dt
+
+    assert begin_dt <= end_dt
 
     # Generates a dict of time range's days as keys and values as active period's days
     dates = {}
@@ -140,13 +140,7 @@ class Period(models.Model):
     #             self.duration = DateRange(self.start, self.end)
     #     return super(Period, self).save(*args, **kwargs)
 
-    def save(self, *args, **kwargs):
-        # Periods are either regular and stand alone or exceptions to regular period and must have a relation to it
-
-        if (self.resource is not None and self.unit is not None) or \
-           (self.resource is None and self.unit is None):
-            raise ValidationError(_("You must set either 'resource' or 'unit', but not both"))
-
+    def _validate_overlaps(self):
         if self.resource:
             old_periods = self.resource.periods
         else:
@@ -165,7 +159,7 @@ class Period(models.Model):
         overlapping_periods_old = old_periods.filter(starts_during | ends_during | larger)
 
         if self.start > self.end:
-            raise ValidationError("Period must start before its end")
+            raise ValidationError("Period must start before its end", code="invalid_date_range")
         elif self.start == self.end:
             # DateRange must end at least one day after its start
             d_range = DateRange(self.start, self.end + datetime.timedelta(days=+1))
@@ -178,12 +172,21 @@ class Period(models.Model):
         if self.exception:
             overlapping_exceptions = overlapping_periods.filter(exception=True)
             if overlapping_exceptions:
-                raise ValidationError("There is already an exceptional period on these dates")
+                raise ValidationError(
+                    "There is already an exceptional period on these dates",
+                    code="multiple_exceptions"
+                )
             regular_periods = overlapping_periods.filter(exception=False)
             if len(regular_periods) > 1:
-                raise ValidationError("Exceptional period can't be exception for more than one period")
+                raise ValidationError(
+                    "Exceptional period can't be exception for more than one period",
+                    code="exception_for_multiple_periods"
+                )
             elif not regular_periods:
-                raise ValidationError("Exceptional period can't be exception without a regular period")
+                raise ValidationError(
+                    "Exceptional period can't be exception without a regular period",
+                    code="no_regular_period"
+                )
             elif len(regular_periods) == 1:
                 parent = regular_periods.first()
                 if (parent.start <= self.start) and (parent.end >= self.end):
@@ -191,20 +194,40 @@ class Period(models.Model):
                     self.parent = parent
                     # continue out of this layer of tests
                 else:
-                    raise ValidationError("Exception period can't have different times from its regular period")
-            else:
+                    raise ValidationError(
+                        "Exception period can't have different times from its regular period",
+                        code="larger_exception_than_parent"
+                    )
+            else:  # pragma: no cover
                 raise ValidationError("Somehow exceptional period is too exceptional")
+        else:
+            self.parent = None  # Not an exception? Reset any parentage
+            if overlapping_periods:
+                raise ValidationError("There is already a period on these dates", code="overlap")
 
-        elif overlapping_periods:
-            raise ValidationError("There is already a period on these dates")
+    def _validate_belonging(self):
+        if not (self.resource_id or self.unit_id):
+            raise ValidationError(_("You must set 'resource' or 'unit'"), code="no_belonging")
 
-        if self.start and self.end:
-            if self.start == self.end:
-                # Range of 1 day must end on next day
-                self.duration = DateRange(self.start,
-                                          self.end + datetime.timedelta(days=+1))
-            else:
-                self.duration = DateRange(self.start, self.end)
+        if self.resource_id and self.unit_id:
+            raise ValidationError(_("You must set either 'resource' or 'unit', but not both"), code="invalid_belonging")
+
+    def full_clean(self, exclude=None, validate_unique=True):
+        super(Period, self).full_clean(exclude, validate_unique)
+        self._validate_belonging()
+        self._validate_overlaps()
+
+    def save(self, *args, **kwargs):
+        # Periods are either regular and stand alone or exceptions to regular period and must have a relation to it
+
+        self._validate_belonging()
+        self._validate_overlaps()
+
+        if self.start == self.end:
+            # Range of 1 day must end on next day
+            self.duration = DateRange(self.start, self.end + datetime.timedelta(days=+1))
+        else:
+            self.duration = DateRange(self.start, self.end)
 
         return super(Period, self).save(*args, **kwargs)
 
