@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'easy_thumbnails',
     'image_cropping',
+    'autoslug',
 
     'allauth',
     'allauth.account',

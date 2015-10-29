@@ -12,11 +12,12 @@ from django.utils.six import BytesIO
 from django.utils.translation import ugettext_lazy as _
 from image_cropping import ImageRatioField
 from PIL import Image
+from autoslug import AutoSlugField
 
 from resources.errors import InvalidImage
 
 from .base import AutoIdentifiedModel, ModifiableModel
-from .utils import get_translated
+from .utils import get_translated, get_translated_name
 
 
 class ResourceType(ModifiableModel, AutoIdentifiedModel):
@@ -83,6 +84,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     min_period = models.DurationField(verbose_name=_('Minimum reservation time'),
                                       default=datetime.timedelta(minutes=30))
     max_period = models.DurationField(verbose_name=_('Maximum reservation time'), null=True, blank=True)
+
+    slug = AutoSlugField(populate_from=get_translated_name, unique=True)
 
     class Meta:
         verbose_name = _("resource")

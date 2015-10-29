@@ -36,6 +36,11 @@ def get_translated(obj, attr):
     return val
 
 
+# Needed for slug fields populating
+def get_translated_name(obj):
+    return get_translated(obj, 'name')
+
+
 def generate_id():
     t = time.time() * 1000000
     b = base64.b32encode(struct.pack(">Q", int(t)).lstrip(b'\x00')).strip(b'=').lower()
