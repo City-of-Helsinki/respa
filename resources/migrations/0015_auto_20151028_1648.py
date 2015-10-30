@@ -11,16 +11,19 @@ def backwards(apps, schema_editor):
     pass
 
 
-def forwards(apps, schema_editor):
+def forwards(apps, schema_editor, **kwargs):
     """
     Add slugs to existing Units and Resources.
     """
+    force = kwargs.get('force', False)
     Resource = apps.get_model('resources', 'Resource')
-    for resource in Resource.objects.filter(slug=''):
+    resources = Resource.objects.all() if force else Resource.objects.filter(slug='')
+    for resource in resources:
         resource.slug = get_prepopulated_value(resource._meta.get_field('slug'), resource)
         resource.save()
     Unit = apps.get_model('resources', 'Unit')
-    for unit in Unit.objects.filter(slug=''):
+    units = Unit.objects.all() if force else Unit.objects.filter(slug='')
+    for unit in units:
         unit.slug = get_prepopulated_value(unit._meta.get_field('slug'), unit)
         unit.save()
 
