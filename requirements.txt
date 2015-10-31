@@ -18,3 +18,4 @@ easy_thumbnails
 -e git+https://github.com/City-of-Helsinki/django-helusers.git#egg=django-helusers
 django-allauth
 django-autoslug==1.9.3
+djangorestframework-jwt

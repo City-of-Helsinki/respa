@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'rest_framework',
+    'rest_framework_jwt',
     'corsheaders',
     'easy_thumbnails',
     'image_cropping',
@@ -169,7 +170,19 @@ REST_FRAMEWORK = {
     'PAGINATE_BY': 20,                 # Default to 10
     'PAGINATE_BY_PARAM': 'page_size',  # Allow client to override, using `?page_size=xxx`.
     'MAX_PAGINATE_BY': 100,             # Maximum limit allowed when using `?page_size=xxx`.
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'helusers.jwt.JWTAuthentication',
+    ),
 }
+
+JWT_AUTH = {
+    'JWT_PAYLOAD_GET_USER_ID_HANDLER': 'helusers.jwt.get_user_id_from_payload_handler',
+    # JWT_AUDIENCE and JWT_SECRET_KEY must be set in local_settings.py
+}
+
 
 CSRF_COOKIE_NAME = 'respa-csrftoken'
 SESSION_COOKIE_NAME = 'respa-sessionid'
