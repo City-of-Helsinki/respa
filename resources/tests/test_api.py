@@ -1,14 +1,53 @@
 import datetime
+import string
+import random
+import jwt
 
 import arrow
 from django.utils import timezone
+from django.conf import settings
 from rest_framework.test import APIClient, APITestCase
+from rest_framework_jwt.settings import api_settings
 
 from resources.models import *
 
 
-class ReservationApiTestCase(APITestCase):
+def generate_random_string(length):
+    chars = string.ascii_letters + string.digits
+    return ''.join(random.choice(chars) for x in range(length))
 
+
+class JWTMixin(object):
+    jwt_token = {
+        "username": "testuser",
+        "email": "test@example.com",
+        "first_name": "Test",
+        "last_name": "User",
+        "department_name": "bestdep",
+        "display_name": "Test User",
+        "iss": "https://test.example.com/sso",
+        "sub": "7af6c103-62aa-47d4-89e2-4bdd45c6ab7b",  # random UUID
+        "aud": "TH11btLwVBZyTCVDMshRaWMIqctoNIyy3xQBvKDD",
+        "exp": 1446421460
+    }
+
+    def authenticated_post(self, url, data, **extra):
+        secret_key = generate_random_string(100)
+        api_settings.JWT_SECRET_KEY = secret_key
+        audience = generate_random_string(40)
+        api_settings.JWT_AUDIENCE = audience
+
+        jwt_token = self.jwt_token.copy()
+        jwt_token['aud'] = audience
+        jwt_token['exp'] = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+
+        encoded_token = jwt.encode(jwt_token, secret_key, algorithm='HS256')
+        auth = 'JWT %s' % encoded_token.decode('utf8')
+        response = self.client.post(url, data, HTTP_AUTHORIZATION=auth, **extra)
+        return response
+
+
+class ReservationApiTestCase(APITestCase, JWTMixin):
     client = APIClient()
 
     def setUp(self):
@@ -42,38 +81,26 @@ class ReservationApiTestCase(APITestCase):
         tz = timezone.get_current_timezone()
         start = tz.localize(arrow.now().floor("day").naive)
         end = start + datetime.timedelta(days=1)
-        format = '%Y-%m-%dT%H:%M:%S%z'
-        print("debug", start.isoformat(), end.isoformat())
 
         # Set opening hours for today (required to make a reservation)
         today = Period.objects.create(start=start.date(), end=end.date(), resource_id='r1a', name='this')
         Day.objects.create(period=today, weekday=start.weekday(), opens='08:00', closes='22:00')
 
-        print("debug", [j for j in Resource.objects.get(id='r1a').reservations.all()])
         # Check that available *and* opening hours are reported correctly for a free resource
         url = '/v1/resource/r1a/?start=' + start.isoformat().replace('+', '%2b') + '&end=' + end.isoformat().replace('+', '%2b')
-        print("request: ", url)
         response = self.client.get(url)
-        print("res starting state", response.content)
 
         # eest_start = start.to(tz="Europe/Helsinki")
         # eest_end = end.to(tz="Europe/Helsinki")
         self.assertContains(response, '"starts":"' + start.isoformat() + '"')
         self.assertContains(response, '"ends":"' + end.isoformat() + '"')
-        # self.assertContains(response, '08:00')
-        # self.assertContains(response, '22:00')
 
         # Make a reservation through the API
         res_start = start + datetime.timedelta(hours=8)
         res_end = res_start + datetime.timedelta(hours=2)
-        # res_start = '2015-06-01T08:00:00'
-        # res_end = '2015-06-01T10:00:00'
-        print("start reservation at ", res_start)
-        print("end reservation at ", res_end)
-        response = self.client.post('/v1/reservation/',
-                                    {'resource': 'r1a',
-                                     'begin': res_start,
-                                     'end': res_end})
+
+        data = {'resource': 'r1a', 'begin': res_start, 'end': res_end}
+        response = self.authenticated_post('/v1/reservation/', data)
         print("reservation", response.content)
         self.assertContains(response, '"resource":"r1a"', status_code=201)
 
@@ -88,7 +115,7 @@ class ReservationApiTestCase(APITestCase):
         self.assertContains(response, '"ends":"' + end.isoformat())
 
 
-class AvailableAPITestCase(APITestCase):
+class AvailableAPITestCase(APITestCase, JWTMixin):
 
     client = APIClient()
 
@@ -107,7 +134,6 @@ class AvailableAPITestCase(APITestCase):
 
     def test_filters(self):
         # Check that correct resources are returned
-
         response = self.client.get('/v1/resource/?purpose=having_fun')
         print("resource response ", response.content)
         self.assertContains(response, 'r1a')
@@ -138,12 +164,9 @@ class AvailableAPITestCase(APITestCase):
         # Make a reservation through the API
         res_start = start + datetime.timedelta(hours=8)
         res_end = res_start + datetime.timedelta(hours=2)
-        # res_start = '2015-06-01T08:00:00'
-        # res_end = '2015-06-01T10:00:00'
-        response = self.client.post('/v1/reservation/',
-                                    {'resource': 'r1a',
-                                     'begin': res_start,
-                                     'end': res_end})
+
+        data = {'resource': 'r1a', 'begin': res_start, 'end': res_end}
+        response = self.authenticated_post('/v1/reservation/', data)
         print("reservation", response.content)
         self.assertContains(response, '"resource":"r1a"', status_code=201)
 

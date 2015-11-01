@@ -19,3 +19,4 @@ easy_thumbnails
 django-allauth
 django-autoslug==1.9.3
 djangorestframework-jwt
+pyjwt
