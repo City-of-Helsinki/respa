@@ -38,8 +38,17 @@ class JWTMixin(object):
         api_settings.JWT_AUDIENCE = audience
 
         jwt_token = self.jwt_token.copy()
-        jwt_token['aud'] = audience
-        jwt_token['exp'] = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+        if 'aud' in extra:
+            jwt_token['aud'] = extra['aud']
+        else:
+            jwt_token['aud'] = api_settings.JWT_AUDIENCE
+        if 'exp' in extra:
+            jwt_token['exp'] = extra['exp']
+        else:
+            jwt_token['exp'] = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+
+        if 'secret_key' in extra:
+            secret_key = extra['secret_key']
 
         encoded_token = jwt.encode(jwt_token, secret_key, algorithm='HS256')
         auth = 'JWT %s' % encoded_token.decode('utf8')
@@ -113,6 +122,21 @@ class ReservationApiTestCase(APITestCase, JWTMixin):
         self.assertContains(response, '"ends":"' + res_start.isoformat())
         self.assertContains(response, '"starts":"' + res_end.isoformat())
         self.assertContains(response, '"ends":"' + end.isoformat())
+
+    def test_jwt_expired(self):
+        exp = datetime.datetime.utcnow() - datetime.timedelta(minutes=15)
+        response = self.authenticated_post('/v1/reservation/', {}, exp=exp)
+        self.assertEqual(response.status_code, 401)
+
+    def test_jwt_invalid_audience(self):
+        response = self.authenticated_post('/v1/reservation/', {},
+                                           aud=generate_random_string(40))
+        self.assertEqual(response.status_code, 401)
+
+    def test_jwt_invalid_secret_key(self):
+        response = self.authenticated_post('/v1/reservation/', {},
+                                           secret_key=generate_random_string(100))
+        self.assertEqual(response.status_code, 401)
 
 
 class AvailableAPITestCase(APITestCase, JWTMixin):
