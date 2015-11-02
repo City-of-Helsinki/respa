@@ -206,7 +206,7 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin, vi
     serializer_class = ResourceSerializer
     filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend, AvailableFilterBackEnd)
     filter_class = ResourceFilterSet
-    search_fields = ('unit', 'name', 'description')
+    search_fields = ('name', 'description', 'unit__name')
 
 
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
