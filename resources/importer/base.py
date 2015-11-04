@@ -36,7 +36,7 @@ class Importer(object):
             return
 
         field = obj._meta.get_field_by_name(field_name)[0]
-        if field.get_internal_type() == 'CharField':
+        if field.get_internal_type() == 'CharField' and val is not None:
             if len(val) > field.max_length:
                 raise Exception("field '%s' too long (max. %d): %s" % field_name, field.max_length, val)
 
