@@ -1,9 +1,7 @@
 from collections import OrderedDict
-
 from django import forms
 from django.contrib.admin.options import InlineModelAdmin
 from django.utils.translation import ugettext_lazy
-
 from resources.models import Day, Period, Resource, Unit
 
 DAYS_OF_WEEK_MAP = dict(Day.DAYS_OF_WEEK)
@@ -15,7 +13,6 @@ def prefix_weekday(weekday, name):
 
 
 class DayFormlet(forms.ModelForm):
-
     class Meta:
         model = Day
         fields = ("opens", "closes",)
@@ -68,10 +65,12 @@ class PeriodModelFormDayHelper(object):
 
 
 class PeriodModelForm(forms.ModelForm):
-
+    """
+    :type instance: Period
+    """
     class Meta:
         model = Period
-        fields = ("name", "start", "end", "closed", "parent", "exception")
+        fields = ("start", "end", "name", "exception")
 
     def __init__(self, **kwargs):
         super(PeriodModelForm, self).__init__(**kwargs)
@@ -91,6 +90,7 @@ class PeriodModelForm(forms.ModelForm):
 
     def save(self, commit=True):
         self.instance = super(PeriodModelForm, self).save(commit=commit)
+        assert isinstance(self.instance, Period)
 
         def save_days():
             for wd, helper in self.day_fields.items():
@@ -109,19 +109,21 @@ class PeriodInline(InlineModelAdmin):
     exclude = PeriodModelForm._meta.exclude
     form = PeriodModelForm
     template = "admin/resources/period_inline.html"
-    ordering = ("start", )
+    ordering = ("start",)
+
+    def get_extra(self, request, obj=None, **kwargs):
+        # Don't show any empty periods if there already are some (they can still be dynamically added).
+        if obj and obj.pk:
+            return (0 if obj.periods.exists() else 1)
+        return 1
 
     def get_formset(self, request, obj=None, **kwargs):
         # Ensure that we don't attempt to convince Django that our Period model has "wd" fields -- it doesn't!
         kwargs["fields"] = list(f for f in PeriodModelForm().base_fields if not f.startswith(WEEKDAY_PREFIX))
         formset = super(PeriodInline, self).get_formset(request, obj, **kwargs)
-        parent_qs = Period.objects.none()
         if obj:  # pragma: no branch
             if isinstance(obj, Unit):  # pragma: no branch
                 formset.form.base_fields.pop("resource", None)
-                parent_qs = Period.objects.filter(unit=obj)
             elif isinstance(obj, Resource):  # pragma: no branch
                 formset.form.base_fields.pop("unit", None)
-                parent_qs = Period.objects.filter(resource=obj)
-        formset.form.base_fields["parent"].queryset = formset.form.base_fields["parent"].widget.queryset = parent_qs
         return formset
