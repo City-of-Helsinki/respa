@@ -1,0 +1,11 @@
+{% if not field.is_hidden %}
+    <div class="{{ field.name }} {% if field.has_errors %} grp-errors{% endif %}">
+        {% if field.is_readonly %}
+            <div class="grp-readonly">{{ field.contents }}</div>
+        {% else %}
+            {{ field }}
+            {{ field.errors.as_ul }}
+        {% endif %}
+        {% if field.help_text %}<p class="grp-help">{{ field.help_text }}</p>{% endif %}
+    </div>
+{% endif %}

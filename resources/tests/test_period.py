@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-from datetime import date, timedelta
+from datetime import date, timedelta, time
 import pytest
 
 from django.core.exceptions import ValidationError
-from resources.models import Period
+from resources.models import Period, Day
 
 
 @pytest.mark.django_db
@@ -18,7 +18,7 @@ def test_period_can_be_resaved(space_resource):
 def test_invalid_date_range(space_resource):
     period = Period(resource=space_resource, start=date(2016, 8, 1), end=date(2015, 11, 1), name="test")
     with pytest.raises(ValidationError) as ei:
-        period.full_clean()
+        period.clean()
     assert ei.value.code == "invalid_date_range"
 
 
@@ -26,13 +26,13 @@ def test_invalid_date_range(space_resource):
 def test_invalid_belongings(space_resource, test_unit):
     period = Period(start=date(2015, 8, 1), end=date(2015, 11, 1), name="test")
     with pytest.raises(ValidationError) as ei:
-        period.full_clean()
+        period.clean()
     assert ei.value.code == "no_belonging"
 
     period.resource = space_resource
     period.unit = test_unit
     with pytest.raises(ValidationError) as ei:
-        period.full_clean()
+        period.clean()
     assert ei.value.code == "invalid_belonging"
 
 
@@ -55,7 +55,7 @@ def test_period_overlaps(space_resource, offsets):
         name="overlap"
     )
     with pytest.raises(ValidationError) as ei:
-        overlap_period.full_clean()
+        overlap_period.clean()
     assert ei.value.code == "overlap"
 
 
@@ -78,7 +78,7 @@ def test_multiple_exceptional_periods(space_resource):
             end=date(2015, 7, 15),
             name="going_fishing",
             exception=True
-        ).full_clean()
+        ).clean()
     assert ei.value.code == "multiple_exceptions"
 
 
@@ -90,7 +90,7 @@ def test_larger_exceptional_period(space_resource):
     with pytest.raises(ValidationError) as ei:
         Period(
             resource=space_resource, start=date(2014, 1, 1), end=date(2016, 12, 1), name="test", exception=True
-        ).full_clean()
+        ).clean()
     assert ei.value.code == "larger_exception_than_parent"
 
 
@@ -106,7 +106,7 @@ def test_exceptional_period_exceptioning_multiple_periods(space_resource):
             end=date(2015, 8, 1),
             name="summer",
             exception=True
-        ).full_clean()
+        ).clean()
     assert ei.value.code == "exception_for_multiple_periods"
 
 
@@ -119,5 +119,19 @@ def test_exceptional_period_without_regular_period(space_resource):
             end=date(2015, 8, 1),
             name="summer",
             exception=True
-        ).full_clean()
+        ).clean()
     assert ei.value.code == "no_regular_period"
+
+
+@pytest.mark.django_db
+def test_dayless_period_closed(space_resource):
+    period = Period.objects.create(
+        resource=space_resource, start=date(2015, 1, 1), end=date(2015, 12, 1), name="test"
+    )
+    assert period.closed  # No days; is closed
+    Day.objects.create(period=period, weekday=0, closed=True)
+    period.save_closedness()
+    assert period.closed  # Closed day added; not closed
+    Day.objects.create(period=period, weekday=1, opens=time(9), closes=time(15))
+    period.save_closedness()
+    assert not period.closed  # Open day added; not closed

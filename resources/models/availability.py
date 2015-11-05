@@ -102,7 +102,7 @@ class Period(models.Model):
     A period of time to express state of open or closed
     Days that specifies the actual activity hours link here
     """
-    parent = models.ForeignKey('Period', verbose_name=_('period'), null=True, blank=True)  # TODO: The verbose_name period may be misleading?
+    parent = models.ForeignKey('Period', verbose_name=_('exception parent period'), null=True, blank=True, editable=False)
     exception = models.BooleanField(verbose_name=_('Exceptional period'), default=False)
     resource = models.ForeignKey('Resource', verbose_name=_('Resource'), db_index=True,
                                  null=True, blank=True, related_name='periods')
@@ -117,7 +117,7 @@ class Period(models.Model):
     name = models.CharField(max_length=200, verbose_name=_('Name'))
     description = models.CharField(verbose_name=_('Description'), null=True,
                                    blank=True, max_length=500)
-    closed = models.BooleanField(verbose_name=_('Closed'), default=False)
+    closed = models.BooleanField(verbose_name=_('Closed'), default=False, editable=False)
 
     class Meta:
         verbose_name = _("period")
@@ -212,16 +212,23 @@ class Period(models.Model):
         if self.resource_id and self.unit_id:
             raise ValidationError(_("You must set either 'resource' or 'unit', but not both"), code="invalid_belonging")
 
-    def full_clean(self, exclude=None, validate_unique=True):
-        super(Period, self).full_clean(exclude, validate_unique)
+    def _check_closed(self):
+        if self.pk:
+            # The period is not `closed` if it has any `open` days
+            self.closed = not self.days.filter(closed=False).exists()
+        else:  # Unsaved period, thus has no days, thus is closed.
+            self.closed = True
+
+    def clean(self):
+        super(Period, self).clean()
         self._validate_belonging()
         self._validate_overlaps()
+        self._check_closed()
 
     def save(self, *args, **kwargs):
         # Periods are either regular and stand alone or exceptions to regular period and must have a relation to it
 
-        self._validate_belonging()
-        self._validate_overlaps()
+        self.clean()
 
         if self.start == self.end:
             # Range of 1 day must end on next day
@@ -231,6 +238,12 @@ class Period(models.Model):
 
         return super(Period, self).save(*args, **kwargs)
 
+    def save_closedness(self):
+        """
+        Recalculate and save the `closed`ness state for the day.
+        """
+        self._check_closed()
+        self.save(force_update=True, update_fields=("closed",))
 
 class Day(models.Model):
     """
