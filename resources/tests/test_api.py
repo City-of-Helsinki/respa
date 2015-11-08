@@ -213,3 +213,6 @@ class AvailableAPITestCase(APITestCase, JWTMixin):
         response = self.client.get(url)
         print("availability response ", response.content)
         self.assertContains(response, 'r1a')
+
+        # FIXME: Check filtering for expired reservations ('all=false')
+        # and user filtering.
