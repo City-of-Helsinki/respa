@@ -2,7 +2,7 @@ import uuid
 import django_filters
 from datetime import datetime
 from django.contrib.auth import get_user_model
-from rest_framework import viewsets, serializers, filters, exceptions
+from rest_framework import viewsets, serializers, filters, exceptions, permissions
 from rest_framework.fields import BooleanField
 
 from munigeo import api as munigeo_api
@@ -71,6 +71,13 @@ class ActiveFilterBackend(filters.BaseFilterBackend):
             now = datetime.now()
             return queryset.filter(end__gte=now)
         return queryset
+
+
+class ReservationPermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return obj.user == request.user
 
 
 class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
