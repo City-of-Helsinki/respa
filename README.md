@@ -12,9 +12,9 @@ Installation
 
 ```shell
 sudo -u postgres createuser -L -R -S respa
+sudo -u postgres psql -d template1 -c "create extension hstore;"
 sudo -u postgres createdb -Orespa respa
-sudo -u postgres psql respa
-  CREATE EXTENSION postgis;
+sudo -u postgres psql respa -c "CREATE EXTENSION postgis;"
 ```
 
 2. Run Django migrations and import data

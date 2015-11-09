@@ -10,6 +10,7 @@ from rest_framework import exceptions, filters, mixins, serializers, viewsets
 
 from munigeo import api as munigeo_api
 from resources.models import Purpose, Resource, ResourceImage, ResourceType
+from resources.models import Equipment, ResourceEquipment, EquipmentAlias
 
 from .base import TranslatedModelSerializer, register_view
 from .reservation import ReservationSerializer
@@ -59,9 +60,48 @@ class NestedResourceImageSerializer(TranslatedModelSerializer):
         ordering = ('resource', 'sort_order')
 
 
+class EquipmentAliasSerializer(TranslatedModelSerializer):
+
+    class Meta:
+        model = EquipmentAlias
+        fields = ('name', 'language')
+
+
+class EquipmentSerializer(TranslatedModelSerializer):
+
+    class Meta:
+        model = Equipment
+        fields = ('name', 'id', 'aliases')
+    aliases = EquipmentAliasSerializer(many=True)
+
+
+class EquipmentViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Equipment.objects.all()
+    serializer_class = EquipmentSerializer
+
+register_view(EquipmentViewSet, 'equipment')
+
+
+class ResourceEquipmentSerializer(TranslatedModelSerializer):
+
+    class Meta:
+        model = ResourceEquipment
+        fields = ('equipment', 'data', 'id', 'description')
+    equipment = EquipmentSerializer()
+
+    def to_representation(self, obj):
+        # remove unnecessary nesting and aliases
+        ret = super().to_representation(obj)
+        ret['name'] = ret['equipment']['name']
+        ret['id'] = ret['equipment']['id']
+        del ret['equipment']
+        return ret
+
+
 class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     purposes = PurposeSerializer(many=True)
     images = NestedResourceImageSerializer(many=True)
+    equipment = ResourceEquipmentSerializer(many=True, read_only=True, source='resource_equipment')
     type = ResourceTypeSerializer()
     # FIXME: location field gets removed by munigeo
     location = serializers.SerializerMethodField()

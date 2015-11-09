@@ -20,3 +20,4 @@ django-allauth
 django-autoslug==1.9.3
 djangorestframework-jwt
 pyjwt
+django-hstore==1.4

@@ -9,6 +9,9 @@ env:
 install:
 - pip install coveralls -r requirements.txt --use-mirrors
 
+before_script:
+  - psql template1 -c 'create extension hstore;'
+
 script: py.test resources
 
 addons:

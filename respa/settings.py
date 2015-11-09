@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'easy_thumbnails',
     'image_cropping',
     'autoslug',
+    'django_hstore',
 
     'allauth',
     'allauth.account',
@@ -167,15 +168,13 @@ SOCIALACCOUNT_ADAPTER = 'helusers.providers.helsinki.provider.SocialAccountAdapt
 # http://www.django-rest-framework.org
 
 REST_FRAMEWORK = {
-    'PAGINATE_BY': 20,                 # Default to 10
-    'PAGINATE_BY_PARAM': 'page_size',  # Allow client to override, using `?page_size=xxx`.
-    'MAX_PAGINATE_BY': 100,             # Maximum limit allowed when using `?page_size=xxx`.
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'helusers.jwt.JWTAuthentication',
     ),
+    'DEFAULT_PAGINATION_CLASS': 'resources.pagination.DefaultPagination',
 }
 
 JWT_AUTH = {

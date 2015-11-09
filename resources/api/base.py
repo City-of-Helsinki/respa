@@ -47,16 +47,12 @@ class TranslatedModelSerializer(serializers.ModelSerializer):
             for lang in LANGUAGES:
                 key = "%s_%s" % (field_name, lang)
                 val = getattr(obj, key, None)
-                if val is None:
+                if val in (None, ""):
                     continue
                 d[lang] = val
 
             # If no text provided, leave the field as null
-            for key, val in d.items():
-                if val is not None:
-                    break
-            else:
-                d = None
+            d = (d or None)
             ret[field_name] = d
 
         return ret
