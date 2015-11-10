@@ -5,7 +5,7 @@ from image_cropping import ImageCroppingMixin
 from modeltranslation.admin import TranslationAdmin
 from resources.admin.period_inline import PeriodInline
 from resources.models import Day, Reservation, Resource, ResourceImage, ResourceType, Unit
-from resources.models import Equipment, ResourceEquipment, EquipmentAlias
+from resources.models import Equipment, ResourceEquipment, EquipmentAlias, EquipmentCategory
 
 
 class DayInline(admin.TabularInline):
@@ -60,6 +60,10 @@ class ResourceEquipmentAdmin(TranslationAdmin):
     pass
 
 
+class EquipmentCategoryAdmin(TranslationAdmin):
+    pass
+
+
 admin_site.register(ResourceImage, ResourceImageAdmin)
 admin_site.register(Resource, ResourceAdmin)
 admin_site.register(Reservation)
@@ -68,3 +72,4 @@ admin_site.register(Day)
 admin_site.register(Unit, UnitAdmin)
 admin_site.register(Equipment, EquipmentAdmin)
 admin_site.register(ResourceEquipment, ResourceEquipmentAdmin)
+admin_site.register(EquipmentCategory, EquipmentCategoryAdmin)
