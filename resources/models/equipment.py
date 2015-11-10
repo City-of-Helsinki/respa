@@ -6,9 +6,22 @@ from .base import AutoIdentifiedModel, ModifiableModel
 from .utils import get_translated, DEFAULT_LANG
 
 
+class EquipmentCategory(ModifiableModel, AutoIdentifiedModel):
+    id = models.CharField(primary_key=True, max_length=100)
+    name = models.CharField(verbose_name=_('Name'), max_length=200)
+
+    class Meta:
+        verbose_name = _('equipment category')
+        verbose_name_plural = _('equipment categories')
+
+    def __str__(self):
+        return "%s (%s)" % (get_translated(self, 'name'), self.id)
+
+
 class Equipment(ModifiableModel, AutoIdentifiedModel):
     id = models.CharField(primary_key=True, max_length=100)
     name = models.CharField(verbose_name=_('Name'), max_length=200)
+    category = models.ForeignKey(EquipmentCategory, verbose_name=_('Category'), related_name='equipment')
 
     class Meta:
         verbose_name = _('equipment')

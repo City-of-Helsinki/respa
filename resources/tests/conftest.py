@@ -2,7 +2,8 @@
 import pytest
 from rest_framework.test import APIClient, APIRequestFactory
 
-from resources.models import Resource, ResourceType, Unit, Equipment, EquipmentAlias, ResourceEquipment
+from resources.models import Resource, ResourceType, Unit
+from resources.models import Equipment, EquipmentAlias, ResourceEquipment, EquipmentCategory
 
 
 @pytest.fixture
@@ -46,8 +47,16 @@ def resource_in_unit(space_resource_type, test_unit):
 
 @pytest.mark.django_db
 @pytest.fixture
-def equipment():
-    equipment = Equipment.objects.create(name='test equipment')
+def equipment_category():
+    return EquipmentCategory.objects.create(
+        name='test equipment category'
+    )
+
+
+@pytest.mark.django_db
+@pytest.fixture
+def equipment(equipment_category):
+    equipment = Equipment.objects.create(name='test equipment', category=equipment_category)
     return equipment
 
 
