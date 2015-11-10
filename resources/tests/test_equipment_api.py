@@ -4,6 +4,8 @@ import pytest
 from resources.models import Equipment, EquipmentAlias, ResourceEquipment
 from django.core.urlresolvers import reverse
 
+from .utils import check_disallowed_methods, UNSAFE_METHODS
+
 
 @pytest.fixture
 def list_url():
@@ -20,25 +22,24 @@ def _check_keys_and_values(result):
     """
     Check that given dict represents equipment data in correct form.
     """
-    assert len(result) == 4
-    assert all(key in result for key in ('id', 'name', 'aliases'))
-    assert result['id'] != ""
+    assert len(result) == 4  # id, name, aliases, category
+    assert result['id'] != ''
     assert result['name'] == {'fi': 'test equipment'}
     aliases = result['aliases']
     assert len(aliases) == 1
     assert aliases[0]['name'] == 'test equipment alias'
     assert aliases[0]['language'] == 'fi'
+    category = result['category']
+    assert category['name'] == {'fi': 'test equipment category'}
+    assert category['id'] != ''
 
 
 @pytest.mark.django_db
-def test_non_allowed_methods(api_client, list_url, detail_url):
+def test_disallowed_methods(api_client, list_url, detail_url):
     """
     Tests that only safe methods are allowed to equipment list and detail endpoints.
     """
-    for url in (list_url, detail_url):
-        for method in ('post', 'put', 'patch', 'delete'):
-            assert getattr(api_client, method)(url).status_code in (401, 405)
-
+    check_disallowed_methods(api_client, (list_url, detail_url), UNSAFE_METHODS)
 
 
 @pytest.mark.django_db
@@ -74,6 +75,7 @@ def test_get_equipment_in_resource(api_client, resource_in_unit, resource_equipm
     equipment = equipments[0]
     assert all(key in equipment for key in ('id', 'name', 'data', 'description'))
     assert 'aliases' not in equipment
+    assert len(equipment['data']) == 1
     assert equipment['data']['test_key'] == 'test_value'
     assert equipment['description'] == {'fi': 'test resource equipment'}
     assert equipment['name'] == {'fi': 'test equipment'}
