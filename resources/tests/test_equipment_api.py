@@ -20,7 +20,7 @@ def _check_keys_and_values(result):
     """
     Check that given dict represents equipment data in correct form.
     """
-    assert len(result) == 3
+    assert len(result) == 4
     assert all(key in result for key in ('id', 'name', 'aliases'))
     assert result['id'] != ""
     assert result['name'] == {'fi': 'test equipment'}

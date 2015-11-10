@@ -3,6 +3,7 @@ from .resource import ResourceListViewSet, ResourceViewSet, PurposeViewSet
 from .reservation import ReservationViewSet
 from .unit import UnitViewSet
 from .search import TypeaheadViewSet
+from .equipment import EquipmentViewSet
 
 from rest_framework import routers
 
