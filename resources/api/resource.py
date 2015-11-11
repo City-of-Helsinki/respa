@@ -214,6 +214,7 @@ class ResourceDetailsSerializer(ResourceSerializer):
 class ResourceFilterSet(django_filters.FilterSet):
     purpose = django_filters.CharFilter(name="purposes__id", lookup_type='iexact')
     type = django_filters.CharFilter(name="type__id", lookup_type='iexact')
+    people = django_filters.NumberFilter(name="people_capacity", lookup_type='gte')
 
     class Meta:
         model = Resource
