@@ -227,6 +227,11 @@ paths:
           description: Use together with `start` and `end`. Only return resources that are free for a consecutive period of `duration` minutes within the specified interval.
           required: false
           type: number
+        - name: people
+          in: query
+          description: Only return resources with greater than equal capacity
+          required: false
+          type: number
         - name: page
           in: query
           description: Result page number
