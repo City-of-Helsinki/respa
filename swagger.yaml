@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  version: 0.1.0
+  version: 0.1.1
   title: 'Respa'
   description: 'Resource reservation system for City of Helsinki'
 host: api.hel.fi
@@ -14,11 +14,52 @@ tags:
     description: Places where resources are located
   - name: filter
     description: Properties you can use in filtering resources
+  - name: search
+    description: Typeahead suggestions for objects
 produces:
   - application/json
 consumes:
   - application/json
 paths:
+  /search:
+    get:
+      tags:
+        - search
+      description:
+        Get typeahead suggestions for objects based on an arbitrary user input (the `input` query parameter).
+
+        Currently supported are "resource" and "unit".
+      parameters:
+        - name: input
+          in: query
+          description: Query search parameter
+          required: true
+          type: string
+        - name: full
+          in: query
+          description: Return all properties with the objects
+          required: false
+          type: boolean
+        - name: types
+          in: query
+          description: Return only objects of the specified types
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Successful response
+          schema:
+            type: object
+            properties:
+              resource:
+                type: array
+                items:
+                  $ref: '#/definitions/resource'
+              unit:
+                type: array
+                items:
+                  $ref: '#/definitions/unit'
+
   /unit:
     get:
       tags:
