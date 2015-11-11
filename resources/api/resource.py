@@ -218,7 +218,7 @@ class ResourceFilterSet(django_filters.FilterSet):
 
     class Meta:
         model = Resource
-        fields = ['purpose', 'type']
+        fields = ['purpose', 'type', 'people']
 
 
 class AvailableFilterBackEnd(filters.BaseFilterBackend):
