@@ -229,7 +229,7 @@ paths:
           type: number
         - name: people
           in: query
-          description: Only return resources with greater than equal capacity
+          description: Only return resources with greater or equal capacity
           required: false
           type: number
         - name: page
