@@ -2,7 +2,8 @@ from django.contrib import admin
 from django.contrib.admin import site as admin_site
 from django.contrib.gis import admin as geo_admin
 from image_cropping import ImageCroppingMixin
-from modeltranslation.admin import TranslationAdmin
+from modeltranslation.admin import TranslationAdmin, TranslationStackedInline
+from .base import CommonExcludeMixin
 from resources.admin.period_inline import PeriodInline
 from resources.models import Day, Reservation, Resource, ResourceImage, ResourceType, Unit
 from resources.models import Equipment, ResourceEquipment, EquipmentAlias, EquipmentCategory
@@ -12,13 +13,13 @@ class DayInline(admin.TabularInline):
     model = Day
 
 
-class ResourceEquipmentInline(admin.StackedInline):
+class ResourceEquipmentInline(CommonExcludeMixin, TranslationStackedInline):
     model = ResourceEquipment
-    exclude = ('id', 'description')
+    fields = ('equipment', 'description', 'data')
     extra = 1
 
 
-class ResourceAdmin(TranslationAdmin, geo_admin.OSMGeoAdmin):
+class ResourceAdmin(CommonExcludeMixin, TranslationAdmin, geo_admin.OSMGeoAdmin):
     inlines = [
         PeriodInline,
         ResourceEquipmentInline,
@@ -29,7 +30,7 @@ class ResourceAdmin(TranslationAdmin, geo_admin.OSMGeoAdmin):
     default_zoom = 12
 
 
-class UnitAdmin(TranslationAdmin, geo_admin.OSMGeoAdmin):
+class UnitAdmin(CommonExcludeMixin, TranslationAdmin, geo_admin.OSMGeoAdmin):
     inlines = [
         PeriodInline
     ]
@@ -39,24 +40,32 @@ class UnitAdmin(TranslationAdmin, geo_admin.OSMGeoAdmin):
     default_zoom = 12
 
 
-class ResourceImageAdmin(ImageCroppingMixin, TranslationAdmin):
+class ResourceImageAdmin(CommonExcludeMixin, ImageCroppingMixin, TranslationAdmin):
     exclude = ('sort_order', 'image_format')
 
 
-class EquipmentAliasInline(admin.TabularInline):
+class EquipmentAliasInline(CommonExcludeMixin, admin.TabularInline):
     model = EquipmentAlias
-    fields = ('name', 'language')
+    readonly_fields = ()
+    exclude = CommonExcludeMixin.exclude + ('id',)
     extra = 1
 
 
-class EquipmentAdmin(TranslationAdmin):
-    fields = ('name',)
+class EquipmentAdmin(CommonExcludeMixin, TranslationAdmin):
     inlines = (
         EquipmentAliasInline,
     )
 
 
-class ResourceEquipmentAdmin(TranslationAdmin):
+class ResourceEquipmentAdmin(CommonExcludeMixin, TranslationAdmin):
+    fields = ('resource', 'equipment', 'description', 'data')
+
+
+class ReservationAdmin(CommonExcludeMixin, admin.ModelAdmin):
+    pass
+
+
+class ResourceTypeAdmin(CommonExcludeMixin, TranslationAdmin):
     pass
 
 
@@ -66,8 +75,8 @@ class EquipmentCategoryAdmin(TranslationAdmin):
 
 admin_site.register(ResourceImage, ResourceImageAdmin)
 admin_site.register(Resource, ResourceAdmin)
-admin_site.register(Reservation)
-admin_site.register(ResourceType)
+admin_site.register(Reservation, ReservationAdmin)
+admin_site.register(ResourceType, ResourceTypeAdmin)
 admin_site.register(Day)
 admin_site.register(Unit, UnitAdmin)
 admin_site.register(Equipment, EquipmentAdmin)
