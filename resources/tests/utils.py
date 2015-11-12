@@ -7,6 +7,8 @@ from PIL import Image
 
 from resources.models import ResourceImage
 
+UNSAFE_METHODS = ('post', 'put', 'patch', 'delete')
+
 
 def get_test_image_data(size=(32, 32), color=(250, 250, 210), format="JPEG"):
     """
@@ -98,3 +100,19 @@ def get_form_data(form, prepared=False):
                 continue
         data[prefixed_name] = value
     return data
+
+
+def check_disallowed_methods(api_client, urls, disallowed_methods):
+    """
+    Checks that given urls return http 401 or 405.
+
+    :param api_client: API client that executes the requests
+    :type api_client: DRF APIClient
+    :param urls: urls to check
+    :type urls: tuple [str]
+    :param disallowed_methods: methods that should ne disallowed
+    :type disallowed_methods: tuple [str]
+    """
+    for url in urls:
+        for method in disallowed_methods:
+            assert getattr(api_client, method)(url).status_code in (401, 405)

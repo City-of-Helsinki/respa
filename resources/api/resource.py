@@ -9,12 +9,11 @@ from django.core.urlresolvers import reverse
 from rest_framework import exceptions, filters, mixins, serializers, viewsets
 
 from munigeo import api as munigeo_api
-from resources.models import Purpose, Resource, ResourceImage, ResourceType
-from resources.models import Equipment, ResourceEquipment, EquipmentAlias
-
+from resources.models import Purpose, Resource, ResourceImage, ResourceType, ResourceEquipment
 from .base import TranslatedModelSerializer, register_view
 from .reservation import ReservationSerializer
 from .unit import UnitSerializer
+from .equipment import EquipmentSerializer
 
 
 class PurposeSerializer(TranslatedModelSerializer):
@@ -58,28 +57,6 @@ class NestedResourceImageSerializer(TranslatedModelSerializer):
         model = ResourceImage
         fields = ('url', 'type', 'caption')
         ordering = ('resource', 'sort_order')
-
-
-class EquipmentAliasSerializer(TranslatedModelSerializer):
-
-    class Meta:
-        model = EquipmentAlias
-        fields = ('name', 'language')
-
-
-class EquipmentSerializer(TranslatedModelSerializer):
-
-    class Meta:
-        model = Equipment
-        fields = ('name', 'id', 'aliases')
-    aliases = EquipmentAliasSerializer(many=True)
-
-
-class EquipmentViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Equipment.objects.all()
-    serializer_class = EquipmentSerializer
-
-register_view(EquipmentViewSet, 'equipment')
 
 
 class ResourceEquipmentSerializer(TranslatedModelSerializer):
