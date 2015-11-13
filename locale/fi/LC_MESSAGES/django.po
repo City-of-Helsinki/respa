@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-11-12 16:38+0200\n"
+"POT-Creation-Date: 2015-11-13 12:41+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,6 +20,10 @@ msgstr ""
 #: resources/admin/period_inline.py:38
 msgid "HH:mm"
 msgstr ""
+
+#: resources/api/reservation.py:53
+msgid "Maximum number of active reservations for this resource exceeded."
+msgstr "Liikaa voimassa olevia varauksia tähän resurssiin."
 
 #: resources/apps.py:7
 msgid "Resource app"
@@ -43,7 +47,7 @@ msgstr "Poikkeusaikaväli"
 msgid "Exceptional period"
 msgstr "Poikkeusaikaväli"
 
-#: resources/models/availability.py:107 resources/models/reservation.py:12
+#: resources/models/availability.py:107 resources/models/reservation.py:18
 #: resources/models/resource.py:307
 msgid "Resource"
 msgstr "Resurssi"
@@ -199,27 +203,27 @@ msgstr ""
 msgid "equipment aliases"
 msgstr ""
 
-#: resources/models/reservation.py:13
+#: resources/models/reservation.py:19
 msgid "Begin time"
 msgstr "Alkuaika"
 
-#: resources/models/reservation.py:14
+#: resources/models/reservation.py:20
 msgid "End time"
 msgstr "Loppuaika"
 
-#: resources/models/reservation.py:15
+#: resources/models/reservation.py:21
 msgid "Length of reservation"
 msgstr "Varauksen kesto"
 
-#: resources/models/reservation.py:17
+#: resources/models/reservation.py:23
 msgid "User"
 msgstr "Käyttäjä"
 
-#: resources/models/reservation.py:63
+#: resources/models/reservation.py:72
 msgid "reservation"
 msgstr "varaus"
 
-#: resources/models/reservation.py:64
+#: resources/models/reservation.py:73
 msgid "reservations"
 msgstr "varaukset"
 
