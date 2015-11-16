@@ -26,6 +26,7 @@ class PurposeSerializer(TranslatedModelSerializer):
 class PurposeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Purpose.objects.all()
     serializer_class = PurposeSerializer
+    paginate_by = 50
 
 register_view(PurposeViewSet, 'purpose')
 
