@@ -26,7 +26,8 @@ class Kirjasto10Importer(Importer):
         'monitoimihuone': 'multipurpose_room',
         'kerhohuone': 'club_room',
         'ateljee': 'art_studio',
-        'keittiö': 'kitchen'
+        'keittiö': 'kitchen',
+        'ryhmävierailu': 'group_visit'
     }
     AUTHENTICATION = {
         'Ei tunnistautumista': 'none',
@@ -52,14 +53,11 @@ class Kirjasto10Importer(Importer):
     PURPOSE_IDS['meet_and_work'] = {
         'kokoukset tai suljetut tilaisuudet': 'private_meetings',
         'työskentely yksin tai ryhmässä': 'work_in_group_or_alone',
-        'työskentely yksin': 'work_alone',
-        'tietokoneen käyttäminen': 'work_at_computer'
+        'ryhmäpalvelut': 'group_services'
     }
     PURPOSE_IDS['games'] = {'konsolipelit': 'console_games',
                             'lauta-, kortti- ja roolipelit': 'board_card_and_role_playing_games',
                             'tietokonepelit': 'computer_games'}
-    PURPOSE_IDS['events_and_exhibitions'] = {'näyttelyt': 'exhibitions',
-                                             'yleisötilaisuudet, tapahtumat': 'public_events'}
     PURPOSE_IDS['sports'] = {
         'tanssi': 'dance',
         'maila- ja pallopelit': 'racket_and_ball_games',
