@@ -10,6 +10,7 @@ from django.core.files.base import ContentFile
 from django.utils import timezone
 from django.utils.six import BytesIO
 from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import pgettext_lazy
 from image_cropping import ImageRatioField
 from PIL import Image
 from autoslug import AutoSlugField
@@ -399,8 +400,8 @@ class ResourceEquipment(ModifiableModel):
     objects = hstore.HStoreGeoManager()
 
     class Meta:
-        verbose_name = _('resource equipment')
-        verbose_name_plural = _('resource equipment')
+        verbose_name = pgettext_lazy('singular', 'resource equipment')
+        verbose_name_plural = pgettext_lazy('plural', 'resource equipment')
 
     def __str__(self):
         return "%s / %s" % (self.equipment, self.resource)
