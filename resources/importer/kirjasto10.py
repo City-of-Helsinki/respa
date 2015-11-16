@@ -41,17 +41,22 @@ class Kirjasto10Importer(Importer):
         'videokuvan käsittely tietokoneella': 'edit_video',
         'digitointi': 'digitizing'
     }
-    PURPOSE_IDS['physical_work'] = {'fyysisten esineiden tekeminen': 'manufacturing'}
+    PURPOSE_IDS['physical_work'] = {'ompelukoneen käyttö': 'use_sewing_machine',
+                                    'saumurin käyttö': 'use_overlocker',
+                                    '3d-tulostimen käyttö': 'use_3d_printer',
+                                    '3d-skannerin käyttö': 'use_3d_scanner',
+                                    'rintanappikoneen käyttö': 'use_buttonmaker',
+                                    'vinyylileikkurin ja lämpöprässin käyttö': 'use_vinylcutter_and_heatpress'}
     PURPOSE_IDS['watch_and_listen']= {'(elokuvien) katselu': 'watch_video',
                                          'musiikin kuuntelu': 'listen_to_music'}
     PURPOSE_IDS['meet_and_work'] = {
         'kokoukset tai suljetut tilaisuudet': 'private_meetings',
-        'työskentely ryhmässä tai yksin': 'work_in_group_or_alone',
+        'työskentely yksin tai ryhmässä': 'work_in_group_or_alone',
         'työskentely yksin': 'work_alone',
         'tietokoneen käyttäminen': 'work_at_computer'
     }
     PURPOSE_IDS['games'] = {'konsolipelit': 'console_games',
-                            'pelaaminen: lauta-, kortti- ja roolipelit': 'board_card_and_role_playing_games',
+                            'lauta-, kortti- ja roolipelit': 'board_card_and_role_playing_games',
                             'tietokonepelit': 'computer_games'}
     PURPOSE_IDS['events_and_exhibitions'] = {'näyttelyt': 'exhibitions',
                                              'yleisötilaisuudet, tapahtumat': 'public_events'}
