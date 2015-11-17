@@ -105,6 +105,10 @@ class Kirjasto10Importer(Importer):
                 max_period = datetime.timedelta(minutes=int(60 * float(res_data['Varausaika max'].replace(',', '.'))))
             except ValueError:
                 max_period = None
+            try:
+                max_reservations_per_user = int(res_data['Max. varaukset per tila (voimassa olevat)'])
+            except ValueError:
+                max_reservations_per_user = None
 
             resource_name = self.clean_text(res_data['Nimi'])
 
@@ -115,7 +119,8 @@ class Kirjasto10Importer(Importer):
                 need_manual_confirmation=confirm,
                 min_period=min_period,
                 max_period=max_period,
-                authentication=self.AUTHENTICATION[res_data['Asiakkuus / tunnistamisen tarve']]
+                authentication=self.AUTHENTICATION[res_data['Asiakkuus / tunnistamisen tarve']],
+                max_reservations_per_user=max_reservations_per_user,
             )
             data['name'] = {'fi': resource_name}
             data['description'] = {'fi': self.clean_text(res_data['Kuvaus'])}

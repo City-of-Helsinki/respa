@@ -1,5 +1,6 @@
 from django.contrib.gis.db import models
 from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import pgettext_lazy
 from django.conf import settings
 
 from .base import AutoIdentifiedModel, ModifiableModel
@@ -24,8 +25,8 @@ class Equipment(ModifiableModel, AutoIdentifiedModel):
     category = models.ForeignKey(EquipmentCategory, verbose_name=_('Category'), related_name='equipment')
 
     class Meta:
-        verbose_name = _('equipment')
-        verbose_name_plural = _('equipment')
+        verbose_name = pgettext_lazy('singular', 'equipment')
+        verbose_name_plural = pgettext_lazy('plural', 'equipment')
 
     def __str__(self):
         return get_translated(self, 'name')

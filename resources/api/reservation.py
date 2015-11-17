@@ -2,6 +2,7 @@ import uuid
 import django_filters
 from datetime import datetime
 from django.contrib.auth import get_user_model
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import viewsets, serializers, filters, exceptions, permissions
 from rest_framework.fields import BooleanField
 
@@ -36,6 +37,21 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             # the view is a list, which means that we are POSTing a new reservation
             reservation = None
         data['begin'], data['end'] = data['resource'].get_reservation_period(reservation, data=data)
+
+        # Check maximum number of active reservations per user per resource.
+        # Only new reservations are taken into account ie. a user can modify an existing reservation
+        # even if it exceeds the limit. (one that was created via admin ui for example)
+        if reservation is None:
+            max_count = data['resource'].max_reservations_per_user
+            if max_count is not None:
+                reservation_count = Reservation.objects.filter(
+                    resource=data['resource'],
+                    user=self.context['request'].user
+                ).active().count()
+                if reservation_count >= max_count:
+                    raise serializers.ValidationError(
+                        _('Maximum number of active reservations for this resource exceeded.')
+                    )
         return data
 
 

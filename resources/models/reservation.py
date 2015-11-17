@@ -1,3 +1,4 @@
+from django.utils import timezone
 import django.contrib.postgres.fields as pgfields
 from django.conf import settings
 from django.contrib.gis.db import models
@@ -6,6 +7,11 @@ from psycopg2.extras import DateTimeTZRange
 
 from .base import ModifiableModel
 from .utils import get_dt, save_dt
+
+
+class ReservationQuerySet(models.QuerySet):
+    def active(self):
+        return self.filter(end__gte=timezone.now())
 
 
 class Reservation(ModifiableModel):
@@ -59,6 +65,9 @@ class Reservation(ModifiableModel):
     def get_end_tz(self, tz):
         return self._get_dt("end", tz)
 
+    def is_active(self):
+        return self.end >= timezone.now()
+
     class Meta:
         verbose_name = _("reservation")
         verbose_name_plural = _("reservations")
@@ -71,3 +80,5 @@ class Reservation(ModifiableModel):
         if self.begin and self.end:
             self.duration = DateTimeTZRange(self.begin, self.end)
         return super(Reservation, self).save(*args, **kwargs)
+
+    objects = ReservationQuerySet.as_manager()
