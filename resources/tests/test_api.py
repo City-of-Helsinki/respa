@@ -152,7 +152,7 @@ class AvailableAPITestCase(APITestCase, JWTMixin):
         r2a = Resource.objects.create(name='Resource 2a', id='r2a', unit=u2, type=rt)
         r2b = Resource.objects.create(name='Resource 2b', id='r2b', unit=u2, type=rt)
 
-        fun = Purpose.objects.create(name='Having fun', id='having_fun', main_type='games')
+        fun = Purpose.objects.create(name='Having fun', id='having_fun', parent=None)
         r1a.purposes.add(fun)
         r2a.purposes.add(fun)
 
