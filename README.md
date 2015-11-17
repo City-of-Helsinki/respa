@@ -57,3 +57,45 @@ $ py.test --cov-report html .
 ```
 
 to generate a HTML coverage report.
+
+Requirements
+------------
+
+Respa uses two files for requirements. The workflow is as follows.
+
+requirements.txt is not edited manually, but is generated
+with 'pip freeze -lr plain-requirements.txt'.
+
+requirements.txt always contains fully tested versions of
+the requirements, including their dependencies as output
+by pip freeze.
+
+plain-requirements.txt contains the primary requirements
+of the project, without version numbers and without their
+dependencies.
+
+In production, deployments should always use requirements.txt
+and the versions pinned therein. In development, new virtualenvs
+and development environments should also be initialised using
+requirements.txt.
+
+In development and testing, to check for new versions
+of requirements, use the command 'pip-review' or requires.io.
+
+To update ​*all*​ of the requirements to the latest versions
+with a single command, use
+
+   pip install -U -r plain-requirements.txt
+
+After verifying that they work and optionally downgrading
+some dependencies, run pip freeze.
+
+To add a dependency, add it to plain-requirements.txt and
+run 'pip install -r plain-requirements.txt'.
+
+To remove a dependency, remove it from plain-requirements.txt
+and run 'pip uninstall <NAME-OF-DEPENDENCY>'.
+
+Important! After all changes, verify & test them, then run
+'pip freeze -lr plain.requirements.txt >requirements.txt'.
+Commit the changes.

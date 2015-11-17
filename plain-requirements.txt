@@ -1,0 +1,23 @@
+Django
+django-modeltranslation
+psycopg2
+-e git+https://github.com/City-of-Helsinki/munigeo#egg=django-munigeo
+djangorestframework
+django-filter
+django-grappelli
+pytest
+pytest-cov
+pytest-django
+flake8
+arrow
+pytz
+coverage
+django-cors-headers
+django-image-cropping
+easy_thumbnails
+-e git+https://github.com/City-of-Helsinki/django-helusers.git#egg=django-helusers
+django-allauth
+django-autoslug
+djangorestframework-jwt
+pyjwt
+django-hstore
