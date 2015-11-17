@@ -122,7 +122,7 @@ paths:
       description: |
         The purpose endpoint returns the possible resource usage purposes registered in the system.
         
-        Returns 20 purposes per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 20 units per page.
+        Returns 50 purposes per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 50 purposes per page.
       parameters:
         - name: page
           in: query
