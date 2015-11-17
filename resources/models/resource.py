@@ -41,16 +41,8 @@ class ResourceType(ModifiableModel, AutoIdentifiedModel):
 
 
 class Purpose(ModifiableModel):
-    MAIN_TYPES = (
-        ('audiovisual_work', _('Audiovisual work')),
-        ('manufacturing', _('Manufacturing')),
-        ('watch_and_listen', _('Watch and listen')),
-        ('meet_and_work', _('Meet and work')),
-        ('games', _('Games')),
-        ('events_and_exhibitions', _('Events and exhibitions'))
-    )
     id = models.CharField(primary_key=True, max_length=100)
-    main_type = models.CharField(verbose_name=_('Main type'), max_length=40, choices=MAIN_TYPES)
+    parent = models.ForeignKey('Purpose', verbose_name=_('Parent'), null=True, blank=True, related_name="children")
     name = models.CharField(verbose_name=_('Name'), max_length=200)
 
     class Meta:

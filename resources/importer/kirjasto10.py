@@ -4,7 +4,7 @@ import io
 
 import requests
 from django.core.exceptions import ObjectDoesNotExist
-
+from django.utils.text import slugify
 from ..models import Purpose, Resource, ResourceType, Unit
 from .base import Importer, register_importer
 
@@ -34,37 +34,36 @@ class Kirjasto10Importer(Importer):
         'Kevyt': 'weak',
         'Vahva': 'strong'
     }
-    PURPOSE_IDS = {}
-    PURPOSE_IDS['audiovisual_work'] = {
-        'musiikin soitto ja tekeminen': 'play_and_record_music',
-        'äänen käsittely tietokoneella': 'edit_sound',
-        'kuvan käsittely tietokoneella': 'edit_image',
-        'videokuvan käsittely tietokoneella': 'edit_video',
-        'digitointi': 'digitizing'
-    }
-    PURPOSE_IDS['physical_work'] = {'ompelukoneen käyttö': 'use_sewing_machine',
-                                    'saumurin käyttö': 'use_overlocker',
-                                    '3d-tulostimen käyttö': 'use_3d_printer',
-                                    '3d-skannerin käyttö': 'use_3d_scanner',
-                                    'rintanappikoneen käyttö': 'use_buttonmaker',
-                                    'vinyylileikkurin ja lämpöprässin käyttö': 'use_vinylcutter_and_heatpress'}
-    PURPOSE_IDS['watch_and_listen']= {'(elokuvien) katselu': 'watch_video',
-                                         'musiikin kuuntelu': 'listen_to_music'}
-    PURPOSE_IDS['meet_and_work'] = {
-        'kokoukset tai suljetut tilaisuudet': 'private_meetings',
-        'työskentely yksin tai ryhmässä': 'work_in_group_or_alone',
-        'ryhmäpalvelut': 'group_services'
-    }
-    PURPOSE_IDS['games'] = {'konsolipelit': 'console_games',
-                            'lauta-, kortti- ja roolipelit': 'board_card_and_role_playing_games',
-                            'tietokonepelit': 'computer_games'}
-    PURPOSE_IDS['sports'] = {
-        'tanssi': 'dance',
-        'maila- ja pallopelit': 'racket_and_ball_games',
-        'voimistelu': 'gymnastics'
-    }
 
     def import_resources(self):
+        # First, create the purpose hierarchy:
+        purpose_url = "https://docs.google.com/spreadsheets/d/1mjeCSLQFA82mBvGcbwPkSL3OTZx1kaZtnsq3CF_f4V8/export?format=csv&id=1mjeCSLQFA82mBvGcbwPkSL3OTZx1kaZtnsq3CF_f4V8&gid=1039480682"
+        resp = requests.get(purpose_url)
+        assert resp.status_code == 200
+        print(str(resp.content))
+        reader = csv.reader(io.StringIO(resp.content.decode('utf8')))
+        data = list(reader)
+        print(str(data))
+        parent = ''
+        for purp_data in data:
+            if purp_data[0]:
+                # create parent purpose
+                parent_fi = purp_data[0]
+                parent_en = purp_data[2]
+                parent = Purpose(id=slugify(parent_en))
+                parent.name_fi = parent_fi
+                parent.name_en = parent_en
+                parent.parent = None
+                parent.save()
+            # create purpose
+            name_fi = purp_data[1]
+            name_en = purp_data[3]
+            purpose = Purpose(id=slugify(name_en))
+            purpose.name_fi = name_fi
+            purpose.name_en = name_en
+            purpose.parent = parent
+            purpose.save()
+
         url = "https://docs.google.com/spreadsheets/d/1mjeCSLQFA82mBvGcbwPkSL3OTZx1kaZtnsq3CF_f4V8/export?format=csv&id=1mjeCSLQFA82mBvGcbwPkSL3OTZx1kaZtnsq3CF_f4V8&gid=0"
         resp = requests.get(url)
         assert resp.status_code == 200
@@ -125,23 +124,10 @@ class Kirjasto10Importer(Importer):
             for purpose in purposes:
                 if not purpose:
                     continue
-
-                types = [key for key in self.PURPOSE_IDS if purpose.lower() in self.PURPOSE_IDS[key].keys()]
-                if not types:
-                    print('Main purpose type %s not found' % purpose)
-                    continue
-                main_type = types[0]
-
-                purpose_id = self.PURPOSE_IDS[main_type][purpose.lower()]
                 try:
-                    purpose_obj = Purpose.objects.get(id=purpose_id)
+                    purpose_obj = Purpose.objects.get(name_fi=purpose)
                 except Purpose.DoesNotExist:
-                    purpose_obj = Purpose(id=purpose_id)
-
-                purpose_obj.name_fi = purpose
-                purpose_obj.main_type = main_type
-                purpose_obj.save()
-
+                    print('Purpose %s not found' % purpose)
                 data['purposes'].append(purpose_obj)
 
             res_type_id = self.RESOURCETYPE_IDS[res_data['Tilatyyppi']]

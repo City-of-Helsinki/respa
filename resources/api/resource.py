@@ -20,7 +20,7 @@ class PurposeSerializer(TranslatedModelSerializer):
 
     class Meta:
         model = Purpose
-        fields = ['name', 'main_type', 'id']
+        fields = ['name', 'parent', 'id']
 
 
 class PurposeViewSet(viewsets.ReadOnlyModelViewSet):
