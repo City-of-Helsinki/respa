@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  version: 0.1.1
+  version: 0.2.0
   title: 'Respa'
   description: 'Resource reservation system for City of Helsinki'
 host: api.hel.fi
@@ -564,13 +564,16 @@ definitions:
       id:
         type: string
         description: 'Unique identifier of the usage purpose'
-      main_type:
+      parent:
         type: string
-        description: 'The main category of this purpose'
+        description: 'The parent purpose of this purpose, or null, if this purpose is main purpose type'
       name:
         type: object
         properties: 
           fi: 
+            type: string
+            description: 'The purpose in Finnish'
+          en:
             type: string
             description: 'The purpose in Finnish'
 
