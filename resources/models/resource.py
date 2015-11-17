@@ -289,6 +289,11 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
         return {'opens': None, 'closes': None}
 
+    def is_admin(self, user):
+        # Currently all staff members are allowed to administrate
+        # all resources. Will be more finegrained in the future.
+        return user.is_staff
+
 
 class ResourceImage(ModifiableModel):
     TYPES = (
