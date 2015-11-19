@@ -101,6 +101,29 @@ def test_old_reservations_are_excluded(api_client, list_url, resource_in_unit, r
 
 
 @pytest.mark.django_db
+def test_staff_has_no_reservation_limit(api_client, list_url, resource_in_unit, reservation_data, user):
+    """
+    Tests that the reservation limits for a resource do not apply to staff.
+    """
+
+    # the user already has this reservation
+    Reservation.objects.create(
+        resource=resource_in_unit,
+        begin=dateparse.parse_datetime('2115-04-04T09:00:00+02:00'),
+        end=dateparse.parse_datetime('2115-04-04T10:00:00+02:00'),
+        user=user,
+    )
+    user.is_staff = True
+    user.save()
+    api_client.force_authenticate(user=user)
+
+    # making another reservation should not be possible as the active reservation limit is one
+    response = api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
+
+    assert response.status_code == 201
+
+
+@pytest.mark.django_db
 def test_normal_user_cannot_make_reservation_outside_open_hours(api_client, list_url, reservation_data, user):
     """
     Tests that a normal user cannot make reservations outside open hours.

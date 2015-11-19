@@ -137,6 +137,23 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             raise ValidationError(_("The maximum reservation length is %(max_period)s") %
                                   {'max_period': self.max_period})
 
+    def validate_max_reservations_per_user(self, user):
+        """
+        Check maximum number of active reservations per user per resource.
+        If the user has too many reservations raises ValidationError.
+
+        Staff members have no reservation limits.
+
+        :type user: User
+        """
+        if self.is_admin(user):
+            return
+
+        max_count = self.max_reservations_per_user
+        if max_count is not None:
+            reservation_count = self.reservations.filter(user=user).active().count()
+            if reservation_count >= max_count:
+                raise ValidationError(_("Maximum number of active reservations for this resource exceeded."))
 
     def is_available(self, begin, end, reservation=None):
         """

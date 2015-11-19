@@ -43,19 +43,10 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         data['resource'].validate_reservation_period(reservation, user, data=data)
 
         # Check maximum number of active reservations per user per resource.
-        # Only new reservations are taken into account ie. a user can modify an existing reservation
-        # even if it exceeds the limit. (one that was created via admin ui for example)
+        # Only new reservations are taken into account ie. a normal user can modify an existing reservation
+        # even if it exceeds the limit. (one that was created via admin ui for example).
         if reservation is None:
-            max_count = data['resource'].max_reservations_per_user
-            if max_count is not None:
-                reservation_count = Reservation.objects.filter(
-                    resource=data['resource'],
-                    user=user
-                ).active().count()
-                if reservation_count >= max_count:
-                    raise serializers.ValidationError(
-                        _('Maximum number of active reservations for this resource exceeded.')
-                    )
+            data['resource'].validate_max_reservations_per_user(user)
 
         # Run model clean
         instance = Reservation(**data)
