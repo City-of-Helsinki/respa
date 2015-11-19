@@ -1,9 +1,9 @@
 import pytest
 from django.utils import dateparse
-from django.utils.encoding import force_text
 from django.core.urlresolvers import reverse
 
 from resources.models import Period, Day, Reservation
+from .utils import assert_non_field_errors_contain
 
 
 @pytest.fixture
@@ -23,8 +23,8 @@ def day_and_period(resource_in_unit):
     Day.objects.create(period=period, weekday=3, opens='08:00', closes='16:00')
 
 
-@pytest.fixture
 @pytest.mark.django_db
+@pytest.fixture
 def reservation_data(resource_in_unit):
     return {
         'resource': resource_in_unit.pk,
@@ -74,13 +74,13 @@ def test_reservation_limit_per_user(api_client, list_url, resource_in_unit, rese
 
     # making another reservation should not be possible as the active reservation limit is one
     response = api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
+
     assert response.status_code == 400
-    error_messages = [force_text(error_message) for error_message in response.data['non_field_errors']]
-    assert 'Maximum number of active reservations for this resource exceeded.' in error_messages
+    assert_non_field_errors_contain(response, 'Maximum number of active reservations for this resource exceeded.')
 
 
 @pytest.mark.django_db
-def test_non_old_reservations_are_excluded(api_client, list_url, resource_in_unit, reservation_data, user):
+def test_old_reservations_are_excluded(api_client, list_url, resource_in_unit, reservation_data, user):
     """
     Tests that a reservation in the past doesn't count when checking reservation limit.
     """
@@ -96,5 +96,58 @@ def test_non_old_reservations_are_excluded(api_client, list_url, resource_in_uni
 
     # making another reservation should be possible because the other reservation is in the past.
     response = api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
+
     assert response.status_code == 201
 
+
+@pytest.mark.django_db
+def test_normal_user_cannot_make_reservation_outside_open_hours(api_client, list_url, reservation_data, user):
+    """
+    Tests that a normal user cannot make reservations outside open hours.
+    """
+    api_client.force_authenticate(user=user)
+
+    # valid begin time, end time after closing time
+    reservation_data['end'] = '2115-04-04T21:00:00+02:00'
+    response = api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 400
+    assert_non_field_errors_contain(response, 'You must start and end the reservation during opening hours')
+
+    # begin time before opens, valid end time
+    reservation_data['begin'] = '2115-04-04T05:00:00+02:00'
+    reservation_data['end'] = '2115-04-04T10:00:00+02:00'
+    response = api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 400
+    assert_non_field_errors_contain(response, 'You must start and end the reservation during opening hours')
+
+
+@pytest.mark.django_db
+def test_normal_user_cannot_make_reservation_longer_than_max_period(api_client, list_url, reservation_data, user):
+    """
+    Tests that a normal user cannot make reservations longer than the resource's max period.
+    """
+    api_client.force_authenticate(user=user)
+
+    # the reservation's length is 3h (11 -> 14) while the maximum is 2h
+    reservation_data['end'] = '2115-04-04T14:00:00+02:00'
+    response = api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 400
+    assert_non_field_errors_contain(response, 'The maximum reservation length is')
+
+
+@pytest.mark.django_db
+def test_staff_user_can_make_reservation_outside_open_hours(api_client, list_url, reservation_data, user):
+    """
+    Tests that a staff member can make reservations outside opening hours.
+
+    Also tests that the resource's max period doesn't limit staff.
+    """
+    user.is_staff = True
+    user.save()
+    api_client.force_authenticate(user=user)
+
+    # begin time before opening time, end time after closing time, longer than max period 2h
+    reservation_data['begin'] = '2115-04-04T05:00:00+02:00'
+    reservation_data['end'] = '2115-04-04T21:00:00+02:00'
+    response = api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 201

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
+import datetime
 from rest_framework.test import APIClient, APIRequestFactory
 
 from resources.models import Resource, ResourceType, Unit
@@ -44,6 +45,7 @@ def resource_in_unit(space_resource_type, test_unit):
         name="resource in unit",
         unit=test_unit,
         max_reservations_per_user=1,
+        max_period=datetime.timedelta(hours=2)
     )
 
 

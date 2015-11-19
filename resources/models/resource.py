@@ -92,20 +92,29 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     def __str__(self):
         return "%s (%s)/%s" % (get_translated(self, 'name'), self.id, self.unit)
 
-    def get_reservation_period(self, reservation, data=None):
+    def validate_reservation_period(self, reservation, user, data=None):
         """
-        Returns accepted start and end times for a suggested reservation.
+        Check that given reservation if valid for given user.
 
-        Suggested reservation may be provided as Reservation or as a data dict.
+        Reservation may be provided as Reservation or as a data dict.
         When providing the data dict from a serializer, reservation
         argument must be present to indicate the reservation being edited,
         or None if we are creating a new reservation.
-        If the reservation cannot be accepted, raises a ValidationError.
+        If the reservation is not valid raises a ValidationError.
 
-        :rtype : list[datetime.datetime]
+        Staff members have no restrictions at least for now.
+
+        Normal users cannot make multi day reservations or reservations
+        outside opening hours.
+
         :type reservation: Reservation
+        :type user: User
         :type data: dict[str, Object]
         """
+
+        # no restrictions for staff
+        if self.is_admin(user):
+            return
 
         # check if data from serializer is present:
         if data:
@@ -116,43 +125,18 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             begin = reservation.begin
             end = reservation.end
 
-        days = self.get_opening_hours(begin.date(), end.date())
-        if not days.values():
-            raise ValidationError(_("No hours for reservation period"))
-        for n, day in enumerate(days.values()):
-            for m, hours in enumerate(day):
-                opening = hours['opens']
-                closing = hours['closes']
-                try:
-                    if end <= begin:
-                        raise ValidationError(_("You must end the reservation after it has begun"))
-                    if opening is None or begin < opening:
-                        raise ValidationError(_("You must start the reservation during opening hours"))
-                    if end > closing:
-                        raise ValidationError(_("You must end the reservation before closing"))
-                    time_since_opening = begin - opening
-                    # We round down to the start of the time slot
-                    time_slots_since_opening = int(time_since_opening / self.min_period)
-                    begin = opening + (time_slots_since_opening * self.min_period)
-                    # Duration is calculated modulo time slot
-                    duration_in_slots = int((end - begin) / self.min_period)
-                    if duration_in_slots <= 0:
-                        raise ValidationError(_("The minimum duration for a reservation is " + str(self.min_period)))
-                    if self.max_period:
-                        if duration_in_slots > self.max_period / self.min_period:
-                            raise ValidationError(_("The maximum reservation length is " + str(self.max_period)))
-                    duration = duration_in_slots * self.min_period
-                    end = begin + duration
-                    if not self.is_available(begin, end, reservation):
-                        # check that the current reservation is the only overlapping one
-                        raise ValidationError(_("The resource is already reserved for some of the period"))
-                    return begin, end
-                except ValidationError as e:
-                    if n + 1 == len(days) and m + 1 == len(day):
-                        # Last of days, no valid opening hours are found
-                        raise e
-                    else:
-                        pass  # other day might work better
+        if begin.date() != end.date():
+            raise ValidationError(_("You cannot make a multi day reservation"))
+
+        opening_hours = self.get_opening_hours(begin.date(), end.date())
+        days = opening_hours[begin.date()]
+        if not any(begin >= day['opens'] and end <= day['closes'] for day in days):
+            raise ValidationError(_("You must start and end the reservation during opening hours"))
+
+        if self.max_period and (end - begin) > self.max_period:
+            raise ValidationError(_("The maximum reservation length is %(max_period)s") %
+                                  {'max_period': self.max_period})
+
 
     def is_available(self, begin, end, reservation=None):
         """

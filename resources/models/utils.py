@@ -56,3 +56,15 @@ def time_to_dtz(time, date=None, arr=None):
             return tz.localize(datetime.datetime(arr.year, arr.month, arr.day, time.hour, time.minute))
     else:
         return None
+
+
+def is_valid_time_slot(time, time_slot_duration, opening_time):
+    """
+    Check if given time is correctly aligned with time slots.
+
+    :type time: datetime.datetime
+    :type time_slot_duration: datetime.timedelta
+    :type opening_time: datetime.datetime
+    :rtype: bool
+    """
+    return not ((time - opening_time) % time_slot_duration)

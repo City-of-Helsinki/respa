@@ -50,30 +50,45 @@ class ReservationTestCase(TestCase):
         begin = tz.localize(datetime.datetime(2015, 6, 1, 8, 0, 0))
         end = begin + datetime.timedelta(hours=2)
 
-        Reservation.objects.create(resource=r1a, begin=begin, end=end)
+        reservation = Reservation.objects.create(resource=r1a, begin=begin, end=end)
+        reservation.clean()
 
         print(Reservation.objects.all())
         # Attempt overlapping reservation
         with self.assertRaises(ValidationError):
-            Reservation.objects.create(resource=r1a, begin=begin,
-                                       end=end)
+            reservation = Reservation(resource=r1a, begin=begin, end=end)
+            reservation.clean()
+
+        valid_begin = begin + datetime.timedelta(hours=3)
+        valid_end = end + datetime.timedelta(hours=3)
+
+        # Attempt incorrectly aligned begin time
+        with self.assertRaises(ValidationError):
+            reservation = Reservation(resource=r1a, begin=valid_begin + datetime.timedelta(minutes=1), end=valid_end)
+            reservation.clean()
+
+        # Attempt incorrectly aligned end time
+        with self.assertRaises(ValidationError):
+            reservation = Reservation(resource=r1a, begin=valid_begin, end=valid_end + datetime.timedelta(minutes=1))
+            reservation.clean()
 
         # Attempt reservation that starts before the resource opens
-        with self.assertRaises(ValidationError):
-            Reservation.objects.create(resource=r1a,
-                                       begin=begin - datetime.timedelta(hours=1),
-                                       end=end)
+        # Should not raise an exception as this check isn't included in model clean
+        reservation = Reservation(
+            resource=r1a,
+            begin=begin - datetime.timedelta(hours=1),
+            end=begin
+        )
+        reservation.clean()
 
         begin = tz.localize(datetime.datetime(2015, 6, 1, 16, 0, 0))
         end = begin + datetime.timedelta(hours=2)
 
-        print("debug", begin.isoformat(), end.isoformat())
-
         # Make a reservation that ends when the resource closes
-        Reservation.objects.create(resource=r1a, begin=begin,
-                                   end=end)
+        reservation = Reservation(resource=r1a, begin=begin, end=end)
+        reservation.clean()
 
         # Attempt reservation that ends after the resource closes
-        with self.assertRaises(ValidationError):
-            Reservation.objects.create(resource=r1a, begin=begin,
-                                       end=end + datetime.timedelta(hours=1))
+        # Should not raise an exception as this check isn't included in model clean
+        reservation = Reservation(resource=r1a, begin=begin, end=end + datetime.timedelta(hours=1))
+        reservation.clean()

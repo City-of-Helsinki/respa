@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.test.testcases import SimpleTestCase
 from django.utils.six import BytesIO
+from django.utils.encoding import force_text
 from PIL import Image
 
 from resources.models import ResourceImage
@@ -104,7 +105,7 @@ def get_form_data(form, prepared=False):
 
 def check_disallowed_methods(api_client, urls, disallowed_methods):
     """
-    Checks that given urls return http 401 or 405.
+    Check that given urls return http 401 or 405.
 
     :param api_client: API client that executes the requests
     :type api_client: DRF APIClient
@@ -116,3 +117,14 @@ def check_disallowed_methods(api_client, urls, disallowed_methods):
     for url in urls:
         for method in disallowed_methods:
             assert getattr(api_client, method)(url).status_code in (401, 405)
+
+
+def assert_non_field_errors_contain(response, text):
+    """
+    Check if any of the response's non field errors contain the given text.
+
+    :type response: Response
+    :type text: str
+    """
+    error_messages = [force_text(error_message) for error_message in response.data['non_field_errors']]
+    assert any(text in error_message for error_message in error_messages)
