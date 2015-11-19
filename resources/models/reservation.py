@@ -86,13 +86,14 @@ class Reservation(ModifiableModel):
             days = opening_hours.get(dt.date(), [])
             day = next((day for day in days if day['opens'] <= dt <= day['closes']), None)
             if day and not is_valid_time_slot(dt, self.resource.min_period, day['opens']):
-                raise ValidationError(_("Times do not match time slots"))
+                raise ValidationError(_("Begin and end time must match time slots"))
 
         if not self.resource.is_available(self.begin, self.end, self):
             raise ValidationError(_("The resource is already reserved for some of the period"))
 
         if (self.end - self.begin) < self.resource.min_period:
-            raise ValidationError(_("The minimum duration for a reservation is " + str(self.resource.min_period)))
+            raise ValidationError(_("The minimum reservation length is %(min_period)s") %
+                                  {'min_period': self.min_period})
 
     def save(self, *args, **kwargs):
         self.duration = DateTimeTZRange(self.begin, self.end)
