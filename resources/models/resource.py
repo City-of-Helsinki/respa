@@ -84,6 +84,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     equipment = models.ManyToManyField(Equipment, verbose_name=_('Equipment'), through='ResourceEquipment')
     max_reservations_per_user = models.IntegerField(verbose_name=_('Maximum number of active reservations per user'),
                                                     null=True)
+    reservable = models.BooleanField(verbose_name=_('Reservable'), default=False)
 
     class Meta:
         verbose_name = _("resource")
@@ -294,6 +295,9 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         # Currently all staff members are allowed to administrate
         # all resources. Will be more finegrained in the future.
         return user.is_staff
+
+    def can_make_reservations(self, user):
+        return self.is_admin(user) or self.reservable
 
 
 class ResourceImage(ModifiableModel):

@@ -86,6 +86,14 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     available_hours = serializers.SerializerMethodField()
     opening_hours = serializers.SerializerMethodField()
     reservations = serializers.SerializerMethodField()
+    user_permissions = serializers.SerializerMethodField()
+
+    def get_user_permissions(self, obj):
+        request = self.context.get('request', None)
+        return {
+            'can_make_reservations': obj.can_make_reservations(request.user) if request else False,
+            'is_admin': obj.is_admin(request.user) if request else False,
+        }
 
     def to_representation(self, obj):
         # we must parse the time parameters before serializing
