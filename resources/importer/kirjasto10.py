@@ -50,19 +50,20 @@ class Kirjasto10Importer(Importer):
                 # create parent purpose
                 parent_fi = purp_data[0]
                 parent_en = purp_data[2]
-                parent = Purpose(id=slugify(parent_en))
-                parent.name_fi = parent_fi
-                parent.name_en = parent_en
-                parent.parent = None
-                parent.save()
+                parent, created = Purpose.objects.get_or_create(id=slugify(parent_en), defaults={
+                    'name_fi': parent_fi,
+                    'name_en': parent_en,
+                    'parent': None,
+                })
             # create purpose
             name_fi = purp_data[1]
             name_en = purp_data[3]
-            purpose = Purpose(id=slugify(name_en))
-            purpose.name_fi = name_fi
-            purpose.name_en = name_en
-            purpose.parent = parent
-            purpose.save()
+            purpose, created = Purpose.objects.get_or_create(id=slugify(name_en), defaults={
+                'name_fi': name_fi,
+                'name_en': name_en,
+                'parent': parent,
+            })
+
 
         url = "https://docs.google.com/spreadsheets/d/1mjeCSLQFA82mBvGcbwPkSL3OTZx1kaZtnsq3CF_f4V8/export?format=csv&id=1mjeCSLQFA82mBvGcbwPkSL3OTZx1kaZtnsq3CF_f4V8&gid=0"
         resp = requests.get(url)
@@ -131,9 +132,9 @@ class Kirjasto10Importer(Importer):
                     continue
                 try:
                     purpose_obj = Purpose.objects.get(name_fi=purpose)
+                    data['purposes'].append(purpose_obj)
                 except Purpose.DoesNotExist:
                     print('Purpose %s not found' % purpose)
-                data['purposes'].append(purpose_obj)
 
             res_type_id = self.RESOURCETYPE_IDS[res_data['Tilatyyppi']]
             try:
