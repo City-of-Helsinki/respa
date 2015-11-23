@@ -8,7 +8,7 @@ from rest_framework import viewsets, serializers, filters, exceptions, permissio
 from rest_framework.fields import BooleanField
 
 from munigeo import api as munigeo_api
-from resources.models import Reservation
+from resources.models import Reservation, Resource
 
 from .base import NullableDateTimeField, TranslatedModelSerializer, register_view
 
@@ -28,7 +28,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
 
     class Meta:
         model = Reservation
-        fields = ['url', 'resource', 'user', 'begin', 'end']
+        fields = ['url', 'id', 'resource', 'user', 'begin', 'end', 'comments']
 
     def validate(self, data):
         # if updating a reservation, its identity must be provided to validator
@@ -48,10 +48,21 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         if reservation is None:
             data['resource'].validate_max_reservations_per_user(user)
 
+        if 'comments' in data:
+            if not data['resource'].is_admin(user):
+                raise ValidationError(dict(comments=_('Only allowed to be set by staff members')))
+
         # Run model clean
         instance = Reservation(**data)
         instance.clean()
 
+        return data
+
+    def to_representation(self, instance):
+        data = super(ReservationSerializer, self).to_representation(instance)
+        # Show the comments field only for staff
+        if not instance.resource.is_admin(self.context['request'].user):
+            del data['comments']
         return data
 
 

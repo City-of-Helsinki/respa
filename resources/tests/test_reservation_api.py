@@ -174,3 +174,24 @@ def test_staff_user_can_make_reservation_outside_open_hours(api_client, list_url
     reservation_data['end'] = '2115-04-04T21:00:00+02:00'
     response = api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
     assert response.status_code == 201
+
+
+@pytest.mark.django_db
+def test_comments_are_only_for_staff(api_client, list_url, reservation_data, user):
+    api_client.force_authenticate(user=user)
+    reservation_data['comments'] = 'test comment'
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+    user.is_staff = True
+    user.save()
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201
+
+    response = api_client.get(response.data['url'])
+    assert response.data['comments'] == 'test comment'
+
+    user.is_staff = False
+    user.save()
+    response = api_client.get(response.data['url'])
+    assert 'comments' not in response.data
+
