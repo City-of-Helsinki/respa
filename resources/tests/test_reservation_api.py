@@ -34,6 +34,17 @@ def reservation_data(resource_in_unit):
 
 
 @pytest.mark.django_db
+@pytest.fixture
+def reservation(resource_in_unit, user):
+    return Reservation.objects.create(
+        resource=resource_in_unit,
+        begin='2115-04-04T09:00:00+02:00',
+        end='2115-04-04T10:00:00+02:00',
+        user=user,
+    )
+
+
+@pytest.mark.django_db
 def test_reservation_requires_authenticated_user(api_client, list_url, reservation_data):
     """
     Tests that an unauthenticated user cannot create a reservation.
@@ -58,21 +69,14 @@ def test_authenticated_user_can_make_reservation(api_client, list_url, reservati
 
 
 @pytest.mark.django_db
-def test_reservation_limit_per_user(api_client, list_url, resource_in_unit, reservation_data, user):
+def test_reservation_limit_per_user(api_client, list_url, reservation, reservation_data, user):
     """
     Tests that a user cannot exceed her active reservation limit for one resource.
     """
-
-    # the user already has this reservation
-    Reservation.objects.create(
-        resource=resource_in_unit,
-        begin=dateparse.parse_datetime('2115-04-04T09:00:00+02:00'),
-        end=dateparse.parse_datetime('2115-04-04T10:00:00+02:00'),
-        user=user,
-    )
     api_client.force_authenticate(user=user)
 
-    # making another reservation should not be possible as the active reservation limit is one
+    # the user already has one reservation, making another reservation should not be possible as the active reservation
+    # limit is one
     response = api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
 
     assert response.status_code == 400
@@ -101,23 +105,16 @@ def test_old_reservations_are_excluded(api_client, list_url, resource_in_unit, r
 
 
 @pytest.mark.django_db
-def test_staff_has_no_reservation_limit(api_client, list_url, resource_in_unit, reservation_data, user):
+def test_staff_has_no_reservation_limit(api_client, list_url, reservation, reservation_data, user):
     """
     Tests that the reservation limits for a resource do not apply to staff.
     """
-
-    # the user already has this reservation
-    Reservation.objects.create(
-        resource=resource_in_unit,
-        begin=dateparse.parse_datetime('2115-04-04T09:00:00+02:00'),
-        end=dateparse.parse_datetime('2115-04-04T10:00:00+02:00'),
-        user=user,
-    )
     user.is_staff = True
     user.save()
     api_client.force_authenticate(user=user)
 
-    # making another reservation should not be possible as the active reservation limit is one
+    # the staff member already has one reservation, and should be able to make a second one regardless of the fact that
+    # that the limit is one.
     response = api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
 
     assert response.status_code == 201
@@ -195,3 +192,24 @@ def test_comments_are_only_for_staff(api_client, list_url, reservation_data, use
     response = api_client.get(response.data['url'])
     assert 'comments' not in response.data
 
+
+@pytest.mark.django_db
+def test_user_data_correct_and_only_for_staff(api_client, reservation, user):
+    """
+    Tests that user object is returned within Reservation data and it is in the correct form.
+
+    Also tests that only staff can see the user object.
+    """
+    api_client.force_authenticate(user=user)
+    detail_url = reverse('reservation-detail', kwargs={'pk': reservation.pk})
+    response = api_client.get(detail_url)
+    assert 'user' not in response.data
+
+    user.is_staff = True
+    user.save()
+    response = api_client.get(detail_url)
+    user_obj = response.data['user']
+    assert len(user_obj) == 3
+    assert user_obj['display_name'] == 'Cem Kaner'
+    assert user_obj['email'] == 'cem@kaner.com'
+    assert user_obj['id'] is not None
