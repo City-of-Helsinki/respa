@@ -5,10 +5,11 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 from rest_framework import viewsets, serializers, filters, exceptions, permissions
-from rest_framework.fields import BooleanField
+from rest_framework.fields import BooleanField, IntegerField
 
 from munigeo import api as munigeo_api
 from resources.models import Reservation, Resource
+from users.models import User
 
 from .base import NullableDateTimeField, TranslatedModelSerializer, register_view
 
@@ -21,10 +22,33 @@ except:
     pass
 
 
+class UserSerializer(TranslatedModelSerializer):
+    display_name = serializers.ReadOnlyField(source='get_display_name')
+    email = serializers.ReadOnlyField()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if USER_ID_ATTRIBUTE == 'id':
+            # id field is read_only by default, that needs to be changed
+            # so that the field will be validated
+            self.fields['id'] = IntegerField(label='ID')
+        else:
+            # if the user id attribute isn't id, modify the id field to point to the right attribute.
+            # the field needs to be of the right type so that validation works correctly
+            model_field_type = type(get_user_model()._meta.get_field(USER_ID_ATTRIBUTE))
+            serializer_field = self.serializer_field_mapping[model_field_type]
+            self.fields['id'] = serializer_field(source=USER_ID_ATTRIBUTE, label='ID')
+
+    class Meta:
+        model = get_user_model()
+        fields = ('id', 'display_name', 'email')
+
+
 class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     begin = NullableDateTimeField()
     end = NullableDateTimeField()
-    user = serializers.ReadOnlyField(source='user.' + USER_ID_ATTRIBUTE)
+    user = UserSerializer(required=False)
 
     class Meta:
         model = Reservation
@@ -52,6 +76,22 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             if not data['resource'].is_admin(user):
                 raise ValidationError(dict(comments=_('Only allowed to be set by staff members')))
 
+        # If a user is given in the request convert it to a User object.
+        # Its data is already validated by UserSerializer.
+        # Currently the user will be changed to the request user when saving,
+        # but that will change in the near future.
+        if 'user' in data and type(data['user'] != User):
+            id = data['user'][USER_ID_ATTRIBUTE]
+            try:
+                user = User.objects.get(**{USER_ID_ATTRIBUTE: id})
+            except User.DoesNotExist:
+                raise serializers.ValidationError({
+                    'user': {
+                        'id': [_('Object with {slug_name}={value} does not exist.').format(slug_name='id', value=id),]
+                    }
+                })
+            data['user'] = user
+
         # Run model clean
         instance = Reservation(**data)
         instance.clean()
@@ -60,9 +100,10 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
 
     def to_representation(self, instance):
         data = super(ReservationSerializer, self).to_representation(instance)
-        # Show the comments field only for staff
+        # Show the comments field and the user object only for staff
         if not instance.resource.is_admin(self.context['request'].user):
             del data['comments']
+            del data['user']
         return data
 
 
