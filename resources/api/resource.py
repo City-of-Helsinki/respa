@@ -5,6 +5,7 @@ import arrow
 import django_filters
 import pytz
 from arrow.parser import ParserError
+from django import forms
 from django.core.urlresolvers import reverse
 from rest_framework import exceptions, filters, mixins, serializers, viewsets
 
@@ -189,8 +190,24 @@ class ResourceDetailsSerializer(ResourceSerializer):
     unit = UnitSerializer()
 
 
+class ParentFilter(django_filters.Filter):
+    """
+    Filter that also checks the parent field
+    """
+
+    def filter(self, qs, value):
+        child_matches = super().filter(qs, value)
+        self.name=self.name.replace('__id', '__parent__id')
+        parent_matches = super().filter(qs, value)
+        return child_matches | parent_matches
+
+
+class ParentCharFilter(ParentFilter):
+    field_class = forms.CharField
+
+
 class ResourceFilterSet(django_filters.FilterSet):
-    purpose = django_filters.CharFilter(name="purposes__id", lookup_type='iexact')
+    purpose = ParentCharFilter(name="purposes__id", lookup_type='iexact')
     type = django_filters.CharFilter(name="type__id", lookup_type='iexact')
     people = django_filters.NumberFilter(name="people_capacity", lookup_type='gte')
 
