@@ -45,7 +45,8 @@ def resource_in_unit(space_resource_type, test_unit):
         name="resource in unit",
         unit=test_unit,
         max_reservations_per_user=1,
-        max_period=datetime.timedelta(hours=2)
+        max_period=datetime.timedelta(hours=2),
+        reservable=True,
     )
 
 
