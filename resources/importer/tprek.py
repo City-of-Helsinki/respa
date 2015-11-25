@@ -59,6 +59,13 @@ class TPRekImporter(Importer):
         assert resp.status_code == 200
         data = resp.json()
 
+        print("Fetching Louhi")
+        url = "http://api.hel.fi/servicemap/v1/unit/44401"
+        resp = requests.get(url)
+        assert resp.status_code == 200
+        louhi = resp.json()
+        data['results'].append(louhi)
+
         unit_list = Unit.objects.filter(identifiers__namespace='tprek').distinct()
         syncher = ModelSyncher(unit_list, generate_tprek_id)
 
