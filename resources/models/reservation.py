@@ -77,7 +77,14 @@ class Reservation(ModifiableModel):
     def __str__(self):
         return "%s -> %s: %s" % (self.begin, self.end, self.resource)
 
-    def clean(self):
+    def clean(self, **kwargs):
+        """
+        Check restrictions that are common to all reservations.
+
+        If this reservation isn't yet saved and it will modify an existing reservation,
+        the original reservation need to be provided in kwargs as 'original_reservation', so
+        that it can be excluded when checking if the resource is available.
+        """
         if self.end <= self.begin:
             raise ValidationError(_("You must end the reservation after it has begun"))
 
@@ -89,7 +96,8 @@ class Reservation(ModifiableModel):
             if day and not is_valid_time_slot(dt, self.resource.min_period, day['opens']):
                 raise ValidationError(_("Begin and end time must match time slots"))
 
-        if not self.resource.is_available(self.begin, self.end, self):
+        original_reservation = self if self.pk else kwargs.get('original_reservation', None)
+        if not self.resource.is_available(self.begin, self.end, original_reservation):
             raise ValidationError(_("The resource is already reserved for some of the period"))
 
         if (self.end - self.begin) < self.resource.min_period:

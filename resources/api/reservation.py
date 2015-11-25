@@ -94,7 +94,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
 
         # Run model clean
         instance = Reservation(**data)
-        instance.clean()
+        instance.clean(original_reservation=reservation)
 
         return data
 
