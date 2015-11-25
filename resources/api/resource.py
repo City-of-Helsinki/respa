@@ -161,8 +161,6 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
         res_list = obj.reservations.all().filter(begin__lte=end)\
             .filter(end__gte=start).order_by('begin')
         res_ser_list = ReservationSerializer(res_list, many=True, context=self.context).data
-        for res in res_ser_list:
-            del res['resource']
         return res_ser_list
 
     def get_available_hours(self, obj):
