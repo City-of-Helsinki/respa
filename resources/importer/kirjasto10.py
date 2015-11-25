@@ -138,7 +138,7 @@ class Kirjasto10Importer(Importer):
                 except Purpose.DoesNotExist:
                     print('Purpose %s not found' % purpose)
 
-            res_type_id = self.RESOURCETYPE_IDS[res_data['Tilatyyppi']]
+            res_type_id = self.RESOURCETYPE_IDS[res_data['Tilatyyppi'].lower()]
             try:
                 res_type = ResourceType.objects.get(id=res_type_id)
             except ResourceType.DoesNotExist:
