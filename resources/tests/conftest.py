@@ -88,4 +88,4 @@ def resource_equipment(resource_in_unit, equipment):
 @pytest.mark.django_db
 @pytest.fixture
 def user():
-    return User.objects.create(username='test_user')
+    return User.objects.create(username='test_user', first_name='Cem', last_name='Kaner', email='cem@kaner.com')

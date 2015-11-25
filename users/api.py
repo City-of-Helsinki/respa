@@ -13,18 +13,13 @@ def register_view(klass, name, base_name=None):
 
 
 class UserSerializer(serializers.ModelSerializer):
-
-    def to_representation(self, obj):
-        ret = super(UserSerializer, self).to_representation(obj)
-        if obj.first_name and obj.last_name:
-            ret['display_name'] = '%s %s' % (obj.first_name, obj.last_name)
-        return ret
+    display_name = serializers.ReadOnlyField(source='get_display_name')
 
     class Meta:
         fields = [
             'last_login', 'username', 'email', 'date_joined',
             'first_name', 'last_name', 'uuid', 'department_name',
-            'is_staff'
+            'is_staff', 'display_name'
         ]
         model = get_user_model()
 
