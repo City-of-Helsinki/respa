@@ -16,7 +16,7 @@ class DayInline(admin.TabularInline):
 class ResourceEquipmentInline(CommonExcludeMixin, TranslationStackedInline):
     model = ResourceEquipment
     fields = ('equipment', 'description', 'data')
-    extra = 1
+    extra = 0
 
 
 class ResourceAdmin(CommonExcludeMixin, TranslationAdmin, geo_admin.OSMGeoAdmin):
