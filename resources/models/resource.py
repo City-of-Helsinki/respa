@@ -83,7 +83,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     slug = AutoSlugField(populate_from=get_translated_name, unique=True)
     equipment = models.ManyToManyField(Equipment, verbose_name=_('Equipment'), through='ResourceEquipment')
     max_reservations_per_user = models.IntegerField(verbose_name=_('Maximum number of active reservations per user'),
-                                                    null=True)
+                                                    null=True, blank=True)
     reservable = models.BooleanField(verbose_name=_('Reservable'), default=False)
 
     class Meta:
