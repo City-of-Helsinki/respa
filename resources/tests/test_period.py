@@ -122,6 +122,24 @@ def test_exceptional_period_without_regular_period(space_resource):
         ).clean()
     assert ei.value.code == "no_regular_period"
 
+@pytest.mark.django_db
+def test_exceptional_period_with_regular_period(space_resource):
+    period = Period(resource=space_resource, start=date(2015, 8, 1), end=date(2015, 11, 1), name="test")
+    period.clean()
+    period.save()
+    exception = Period(
+            resource=space_resource,
+            start=date(2015, 10, 24),
+            end=date(2015, 10, 24),
+            name="united_nations_day",
+            exception=True
+        )
+    exception.clean()
+    exception.save()
+    period.name += "too"
+    period.clean()
+    period.save()
+
 
 @pytest.mark.django_db
 def test_dayless_period_closed(space_resource):
