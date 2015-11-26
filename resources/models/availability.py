@@ -202,7 +202,7 @@ class Period(models.Model):
                 raise ValidationError("Somehow exceptional period is too exceptional")
         else:
             self.parent = None  # Not an exception? Reset any parentage
-            if overlapping_periods:
+            if overlapping_periods.filter(exception=False):
                 raise ValidationError("There is already a period on these dates", code="overlap")
 
     def _validate_belonging(self):
