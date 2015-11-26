@@ -213,3 +213,21 @@ def test_user_data_correct_and_only_for_staff(api_client, reservation, user):
     assert user_obj['display_name'] == 'Cem Kaner'
     assert user_obj['email'] == 'cem@kaner.com'
     assert user_obj['id'] is not None
+
+
+@pytest.mark.django_db
+def test_reservation_can_be_modified_by_overlapping_reservation(api_client, reservation, reservation_data, user):
+    """
+    Tests that a reservation can be modified with times that overlap with the original times.
+    """
+    api_client.force_authenticate(user=user)
+    detail_url = reverse('reservation-detail', kwargs={'pk': reservation.pk})
+
+    # try to extend the original reservation by 1 hour
+    reservation_data['begin'] = '2115-04-04T09:00:00+02:00'
+    reservation_data['end'] = '2115-04-04T11:00:00+02:00'
+    response = api_client.put(detail_url, reservation_data)
+    assert response.status_code == 200
+    reservation = Reservation.objects.get(pk=reservation.pk)
+    assert reservation.begin == dateparse.parse_datetime('2115-04-04T09:00:00+02:00')
+    assert reservation.end == dateparse.parse_datetime('2115-04-04T11:00:00+02:00')

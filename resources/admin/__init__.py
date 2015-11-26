@@ -1,12 +1,16 @@
 from django.contrib import admin
 from django.contrib.admin import site as admin_site
-from django.contrib.gis import admin as geo_admin
+from django.contrib.gis.admin import OSMGeoAdmin
 from image_cropping import ImageCroppingMixin
 from modeltranslation.admin import TranslationAdmin, TranslationStackedInline
 from .base import CommonExcludeMixin
 from resources.admin.period_inline import PeriodInline
 from resources.models import Day, Reservation, Resource, ResourceImage, ResourceType, Unit
 from resources.models import Equipment, ResourceEquipment, EquipmentAlias, EquipmentCategory
+
+
+class HttpsFriendlyGeoAdmin(OSMGeoAdmin):
+    openlayers_url = 'https://cdnjs.cloudflare.com/ajax/libs/openlayers/2.13.1/OpenLayers.js'
 
 
 class DayInline(admin.TabularInline):
@@ -19,7 +23,7 @@ class ResourceEquipmentInline(CommonExcludeMixin, TranslationStackedInline):
     extra = 0
 
 
-class ResourceAdmin(CommonExcludeMixin, TranslationAdmin, geo_admin.OSMGeoAdmin):
+class ResourceAdmin(CommonExcludeMixin, TranslationAdmin, HttpsFriendlyGeoAdmin):
     inlines = [
         PeriodInline,
         ResourceEquipmentInline,
@@ -30,7 +34,7 @@ class ResourceAdmin(CommonExcludeMixin, TranslationAdmin, geo_admin.OSMGeoAdmin)
     default_zoom = 12
 
 
-class UnitAdmin(CommonExcludeMixin, TranslationAdmin, geo_admin.OSMGeoAdmin):
+class UnitAdmin(CommonExcludeMixin, TranslationAdmin, HttpsFriendlyGeoAdmin):
     inlines = [
         PeriodInline
     ]
