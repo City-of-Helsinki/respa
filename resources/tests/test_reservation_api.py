@@ -231,3 +231,157 @@ def test_reservation_can_be_modified_by_overlapping_reservation(api_client, rese
     reservation = Reservation.objects.get(pk=reservation.pk)
     assert reservation.begin == dateparse.parse_datetime('2115-04-04T09:00:00+02:00')
     assert reservation.end == dateparse.parse_datetime('2115-04-04T11:00:00+02:00')
+
+
+@pytest.mark.django_db
+def test_non_reservable_resource_restrictions(api_client, list_url, resource_in_unit, reservation_data, user):
+    """
+    Tests that a normal user cannot make a reservation to a non reservable resource but staff can.
+
+    Creating a new reservation with POST and updating an existing one with PUT are both tested.
+    """
+    resource_in_unit.reservable = False
+    resource_in_unit.save()
+    api_client.force_authenticate(user=user)
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 403
+
+    # Create a reservation and try to change that with PUT
+    reservation = Reservation.objects.create(
+        resource=resource_in_unit,
+        begin=dateparse.parse_datetime('2115-04-07T09:00:00+02:00'),
+        end=dateparse.parse_datetime('2115-04-07T10:00:00+02:00'),
+        user=user,
+    )
+    detail_url = reverse('reservation-detail', kwargs={'pk': reservation.pk})
+    response = api_client.put(detail_url, reservation_data)
+    assert response.status_code == 403
+
+    # a staff member should be allowed to create and update
+    user.is_staff = True
+    user.save()
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201
+    reservation_data['begin'] = dateparse.parse_datetime('2115-04-08T09:00:00+02:00')
+    reservation_data['end'] = dateparse.parse_datetime('2115-04-08T10:00:00+02:00')
+    response = api_client.put(detail_url, data=reservation_data)
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_reservation_restrictions_by_owner(api_client, list_url, reservation, reservation_data, user, user2):
+    """
+    Tests that a normal user can't modify other people's reservations while a staff member can.
+    """
+    detail_url = reverse('reservation-detail', kwargs={'pk': reservation.pk})
+    api_client.force_authenticate(user=user2)
+
+    response = api_client.put(detail_url, reservation_data)
+    assert response.status_code == 403
+    response = api_client.delete(detail_url, reservation_data)
+    assert response.status_code == 403
+
+    # a staff member should be allowed to perform every modifying method even that she is not the user in
+    # the reservation
+    user2.is_staff = True
+    user2.save()
+    response = api_client.put(detail_url, reservation_data)
+    assert response.status_code == 200
+    response = api_client.delete(detail_url, reservation_data)
+    assert response.status_code == 204
+
+
+@pytest.mark.django_db
+def test_normal_users_cannot_make_reservations_for_others(
+        api_client, list_url, reservation, reservation_data, user, user2):
+    """
+    Tests that a normal user cannot make a reservation for other people.
+    """
+    api_client.force_authenticate(user=user)
+    detail_url = reverse('reservation-detail', kwargs={'pk': reservation.pk})
+
+    # set bigger max reservations limit so that it won't be a limiting factor here
+    reservation.resource.max_reservations_per_user = 2
+    reservation.resource.save()
+
+    # set an other user for new reservations
+    reservation_data['user'] = {'id': user2.uuid}
+
+    # modify an existing reservation, and verify that user isn't changed
+    response = api_client.put(detail_url, data=reservation_data, format='json')
+    assert response.status_code == 200
+    new_reservation = Reservation.objects.get(id=response.data['id'])
+    assert new_reservation.user == user
+
+    # make a new reservation and verify that user isn't the other one
+    reservation_data['begin'] = dateparse.parse_datetime('2115-04-04T13:00:00+02:00')
+    reservation_data['end'] = dateparse.parse_datetime('2115-04-04T14:00:00+02:00')
+    response = api_client.post(list_url, data=reservation_data, format='json')
+    assert response.status_code == 201
+    new_reservation = Reservation.objects.get(id=response.data['id'])
+    assert new_reservation.user == user
+
+
+@pytest.mark.django_db
+def test_reservation_normal_users_cannot_create_reservations_for_others(
+        api_client, list_url, reservation, reservation_data, user, user2):
+    """
+    Tests that a staff member can make a reservation for other people without normal user restrictions.
+    """
+    user.is_staff = True
+    user.save()
+    api_client.force_authenticate(user=user)
+
+    # try to modify an other user's reservation
+    reservation.user = user2
+    reservation.save()
+    reservation_data['user'] = {'id': user2.uuid}
+
+    # modify an existing reservation
+    detail_url = reverse('reservation-detail', kwargs={'pk': reservation.pk})
+    response = api_client.put(detail_url, data=reservation_data, format='json')
+    assert response.status_code == 200
+    new_reservation = Reservation.objects.get(id=response.data['id'])
+    assert new_reservation.user == user2
+
+    # create a new reservation, which is also too long, outside the opening hours and exceeds normal user
+    # reservation limit. creating such a reservation for a normal user should be possible for a staff member
+    reservation_data['begin'] = dateparse.parse_datetime('2115-04-04T13:00:00+02:00')
+    reservation_data['end'] = dateparse.parse_datetime('2115-04-04T20:00:00+02:00')
+    response = api_client.post(list_url, data=reservation_data, format='json')
+    assert response.status_code == 201
+    new_reservation = Reservation.objects.get(id=response.data['id'])
+    assert new_reservation.user == user2
+
+
+@pytest.mark.django_db
+def test_reservation_user_filter(api_client, list_url, reservation, resource_in_unit, user, user2):
+    """
+    Tests that reservation user and is_own filtering work correctly.
+    """
+
+    reservation2 = Reservation.objects.create(
+        resource=resource_in_unit,
+        begin=dateparse.parse_datetime('2115-04-07T11:00:00+02:00'),
+        end=dateparse.parse_datetime('2115-04-07T12:00:00+02:00'),
+        user=user2,
+    )
+
+    # even unauthenticated user should see all the reservations
+    response = api_client.get(list_url)
+    print("response data %s" % response.data)
+    assert response.data['count'] == 2
+
+    # filtering by user
+    response = api_client.get(list_url + '?user=%s' % user.uuid)
+    assert response.data['count'] == 1
+    assert response.data['results'][0]['id'] == reservation.id
+
+    # filtering by is_own
+    api_client.force_authenticate(user=user)
+    response = api_client.get(list_url + '?is_own=true')
+    assert response.data['count'] == 1
+    assert response.data['results'][0]['id'] == reservation.id
+    response = api_client.get(list_url + '?is_own=false')
+    assert response.data['count'] == 1
+    assert response.data['results'][0]['id'] == reservation2.id
