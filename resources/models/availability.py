@@ -34,7 +34,7 @@ def get_opening_hours(periods, begin, end=None):
     for period in periods:
         period.range_days = [day for day in days if day.period == period]
 
-    periods = {per: (exper for exper in periods if per.exception and exper.parent == per)
+    periods = {per: [exper for exper in periods if exper.exception and exper.parent == per]
                for per in periods if not per.exception}
 
     begin_dt = datetime.datetime.combine(begin, datetime.time(0, 0))
