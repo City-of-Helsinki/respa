@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import pytest
 import datetime
+from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient, APIRequestFactory
 
 from resources.models import Resource, ResourceType, Unit
 from resources.models import Equipment, EquipmentAlias, ResourceEquipment, EquipmentCategory
-from users.models import User
 
 
 @pytest.fixture
@@ -88,4 +88,20 @@ def resource_equipment(resource_in_unit, equipment):
 @pytest.mark.django_db
 @pytest.fixture
 def user():
-    return User.objects.create(username='test_user', first_name='Cem', last_name='Kaner', email='cem@kaner.com')
+    return get_user_model().objects.create(
+        username='test_user',
+        first_name='Cem',
+        last_name='Kaner',
+        email='cem@kaner.com'
+    )
+
+
+@pytest.mark.django_db
+@pytest.fixture
+def user2():
+    return get_user_model().objects.create(
+        username='test_user2',
+        first_name='Brendan',
+        last_name='Neutra',
+        email='brendan@neutra.com'
+    )

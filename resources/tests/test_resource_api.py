@@ -37,3 +37,5 @@ def test_user_permissions_in_resource_endpoint(api_client, resource_in_unit, use
     user.save()
     api_client.force_authenticate(user=user)
     _check_permissions_dict(api_client, resource_in_unit, True, True)
+
+

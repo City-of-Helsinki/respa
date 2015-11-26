@@ -3,7 +3,7 @@ import django_filters
 from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, PermissionDenied
 from rest_framework import viewsets, serializers, filters, exceptions, permissions
 from rest_framework.fields import BooleanField, IntegerField
 
@@ -49,37 +49,32 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
     begin = NullableDateTimeField()
     end = NullableDateTimeField()
     user = UserSerializer(required=False)
+    is_own = serializers.SerializerMethodField()
 
     class Meta:
         model = Reservation
-        fields = ['url', 'id', 'resource', 'user', 'begin', 'end', 'comments']
+        fields = ['url', 'id', 'resource', 'user', 'begin', 'end', 'comments', 'is_own']
 
     def validate(self, data):
+        print("validate")
         # if updating a reservation, its identity must be provided to validator
         try:
             reservation = self.context['view'].get_object()
         except AssertionError:
             # the view is a list, which means that we are POSTing a new reservation
             reservation = None
-        user = self.context['request'].user
+        request_user = self.context['request'].user
+        resource = data['resource']
 
-        # Check user specific reservation restrictions relating to given period.
-        data['resource'].validate_reservation_period(reservation, user, data=data)
+        if not resource.can_make_reservations(request_user):
+            raise PermissionDenied()
 
-        # Check maximum number of active reservations per user per resource.
-        # Only new reservations are taken into account ie. a normal user can modify an existing reservation
-        # even if it exceeds the limit. (one that was created via admin ui for example).
-        if reservation is None:
-            data['resource'].validate_max_reservations_per_user(user)
-
-        if 'comments' in data:
-            if not data['resource'].is_admin(user):
-                raise ValidationError(dict(comments=_('Only allowed to be set by staff members')))
+        # normal users cannot make reservations for other people
+        if not resource.is_admin(request_user):
+            data.pop('user', None)
 
         # If a user is given in the request convert it to a User object.
         # Its data is already validated by UserSerializer.
-        # Currently the user will be changed to the request user when saving,
-        # but that will change in the near future.
         if 'user' in data and type(data['user'] != User):
             id = data['user'][USER_ID_ATTRIBUTE]
             try:
@@ -91,6 +86,19 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
                     }
                 })
             data['user'] = user
+
+        # Check user specific reservation restrictions relating to given period.
+        resource.validate_reservation_period(reservation, request_user, data=data)
+
+        # Check maximum number of active reservations per user per resource.
+        # Only new reservations are taken into account ie. a normal user can modify an existing reservation
+        # even if it exceeds the limit. (one that was created via admin ui for example).
+        if reservation is None:
+            resource.validate_max_reservations_per_user(request_user)
+
+        if 'comments' in data:
+            if not resource.is_admin(request_user):
+                raise ValidationError(dict(comments=_('Only allowed to be set by staff members')))
 
         # Run model clean
         instance = Reservation(**data)
@@ -106,25 +114,36 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             del data['user']
         return data
 
+    def get_is_own(self, obj):
+        return obj.user == self.context['request'].user
+
 
 class UserFilterBackend(filters.BaseFilterBackend):
     """
-    Filter that only allows users to see their own objects.
+    Filter by user uuid and by is_own.
     """
     def filter_queryset(self, request, queryset, view):
         user = request.query_params.get('user', None)
-        if not user:
-            user = request.user
-            if not user.is_authenticated():
-                return queryset
-            else:
-                return queryset.filter(user=user)
-        else:
+        if user:
             try:
                 user_uuid = uuid.UUID(user)
             except ValueError:
-                raise exceptions.ParseError('invalid user UUID value')
-            return queryset.filter(user__uuid=user_uuid)
+                raise exceptions.ParseError(_('Invalid value in filter %(filter)s') % {'filter': 'user'})
+            queryset = queryset.filter(user__uuid=user_uuid)
+
+        if not request.user.is_authenticated():
+            return queryset
+
+        is_own = request.query_params.get('is_own', None)
+        if is_own is not None:
+            is_own = is_own.lower()
+            if is_own in ('true', 't', 'yes', 'y', '1'):
+                queryset = queryset.filter(user=request.user)
+            elif is_own in ('false', 'f', 'no', 'n', '0'):
+                queryset = queryset.exclude(user=request.user)
+            else:
+                raise exceptions.ParseError(_('Invalid value in filter %(filter)s') % {'filter': 'is_own'})
+        return queryset
 
 
 class ActiveFilterBackend(filters.BaseFilterBackend):
@@ -143,7 +162,7 @@ class ActiveFilterBackend(filters.BaseFilterBackend):
 
 class ReservationPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
+        if request.method in permissions.SAFE_METHODS or obj.resource.is_admin(request.user):
             return True
         return obj.user == request.user
 
@@ -152,9 +171,13 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
     filter_backends = (UserFilterBackend, ActiveFilterBackend)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        if 'user' in serializer.validated_data:
+            serializer.save()
+        else:
+            serializer.save(user=self.request.user)
 
 
 register_view(ReservationViewSet, 'reservation')
