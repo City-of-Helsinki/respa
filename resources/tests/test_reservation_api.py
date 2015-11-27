@@ -3,7 +3,7 @@ from django.utils import dateparse
 from django.core.urlresolvers import reverse
 
 from resources.models import Period, Day, Reservation
-from .utils import assert_non_field_errors_contain
+from .utils import check_disallowed_methods, assert_non_field_errors_contain
 
 
 @pytest.fixture
@@ -42,6 +42,14 @@ def reservation(resource_in_unit, user):
         end='2115-04-04T10:00:00+02:00',
         user=user,
     )
+
+
+@pytest.mark.django_db
+def test_disallowed_methods(staff_api_client, list_url):
+    """
+    Tests that PUT, PATCH and DELETE aren't allowed to reservation list endpoint.
+    """
+    check_disallowed_methods(staff_api_client, (list_url, ), ('put', 'patch', 'delete'))
 
 
 @pytest.mark.django_db

@@ -4,13 +4,29 @@ import datetime
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient, APIRequestFactory
 
-from resources.models import Resource, ResourceType, Unit
+from resources.models import Resource, ResourceType, Unit, Purpose
 from resources.models import Equipment, EquipmentAlias, ResourceEquipment, EquipmentCategory
 
 
 @pytest.fixture
 def api_client():
     return APIClient()
+
+
+@pytest.fixture
+def staff_api_client(staff_user):
+    api_client = APIClient()
+    api_client.force_authenticate(user=staff_user)
+    return api_client
+
+
+@pytest.fixture
+def user_api_client(user):
+    user.is_staff = True
+    user.save()
+    api_client = APIClient()
+    api_client.force_authenticate(user=user)
+    return api_client
 
 
 @pytest.fixture
@@ -105,3 +121,20 @@ def user2():
         last_name='Neutra',
         email='brendan@neutra.com'
     )
+
+
+@pytest.mark.django_db
+@pytest.fixture
+def staff_user():
+    return get_user_model().objects.create(
+        username='test_staff_user',
+        first_name='John',
+        last_name='Staff',
+        email='john@staff.com'
+    )
+
+
+@pytest.mark.django_db
+@pytest.fixture
+def purpose():
+    return Purpose.objects.create(name='test purpose', id='test-purpose')
