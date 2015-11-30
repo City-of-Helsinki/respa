@@ -105,7 +105,7 @@ def get_form_data(form, prepared=False):
 
 def check_disallowed_methods(api_client, urls, disallowed_methods):
     """
-    Check that given urls return http 401 or 405.
+    Check that given urls return http 405.
 
     :param api_client: API client that executes the requests
     :type api_client: DRF APIClient
@@ -116,7 +116,11 @@ def check_disallowed_methods(api_client, urls, disallowed_methods):
     """
     for url in urls:
         for method in disallowed_methods:
-            assert getattr(api_client, method)(url).status_code in (401, 405)
+            assert getattr(api_client, method)(url).status_code == 405
+
+
+def check_only_safe_methods_allowed(api_client, urls):
+    check_disallowed_methods(api_client, urls, UNSAFE_METHODS)
 
 
 def assert_non_field_errors_contain(response, text):
