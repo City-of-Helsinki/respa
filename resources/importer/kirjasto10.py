@@ -110,6 +110,10 @@ class Kirjasto10Importer(Importer):
             except ValueError:
                 max_reservations_per_user = None
             reservable = True if res_data['Varattavuus'] == 'Kyllä' else False
+            try:
+                reservation_info = res_data['Varausinfo / kirjautunut']
+            except ValueError:
+                reservation_info = None
 
             resource_name = self.clean_text(res_data['Nimi'])
 
@@ -123,6 +127,7 @@ class Kirjasto10Importer(Importer):
                 authentication=self.AUTHENTICATION[res_data['Asiakkuus / tunnistamisen tarve']],
                 max_reservations_per_user=max_reservations_per_user,
                 reservable=reservable,
+                reservation_info=reservation_info,
             )
             data['name'] = {'fi': resource_name}
             data['description'] = {'fi': self.clean_text(res_data['Kuvaus'])}
