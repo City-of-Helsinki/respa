@@ -178,10 +178,14 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
 
     def perform_create(self, serializer):
-        if 'user' in serializer.validated_data:
-            serializer.save()
-        else:
-            serializer.save(user=self.request.user)
+        kwargs = {'created_by': self.request.user, 'modified_by': self.request.user}
+        if 'user' not in serializer.validated_data:
+            kwargs['user'] = self.request.user
+        serializer.save(**kwargs)
+
+
+    def perform_update(self, serializer):
+        serializer.save(modified_by=self.request.user)
 
 
 register_view(ReservationViewSet, 'reservation')
