@@ -377,7 +377,6 @@ def test_reservation_user_filter(api_client, list_url, reservation, resource_in_
 
     # even unauthenticated user should see all the reservations
     response = api_client.get(list_url)
-    print("response data %s" % response.data)
     assert response.data['count'] == 2
 
     # filtering by user

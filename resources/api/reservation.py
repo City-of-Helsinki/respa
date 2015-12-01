@@ -56,7 +56,6 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         fields = ['url', 'id', 'resource', 'user', 'begin', 'end', 'comments', 'is_own']
 
     def validate(self, data):
-        print("validate")
         # if updating a reservation, its identity must be provided to validator
         try:
             reservation = self.context['view'].get_object()
