@@ -135,7 +135,15 @@ def test_normal_user_cannot_make_reservation_outside_open_hours(api_client, list
     """
     api_client.force_authenticate(user=user)
 
+    # invalid day
+    reservation_data['begin'] = '2115-06-01T09:00:00+02:00'
+    reservation_data['end'] = '2115-06-01T10:00:00+02:00'
+    response = api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 400
+    assert_non_field_errors_contain(response, 'You must start and end the reservation during opening hours')
+
     # valid begin time, end time after closing time
+    reservation_data['begin'] = '2115-04-04T10:00:00+02:00'
     reservation_data['end'] = '2115-04-04T21:00:00+02:00'
     response = api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
     assert response.status_code == 400
