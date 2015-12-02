@@ -56,7 +56,6 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         fields = ['url', 'id', 'resource', 'user', 'begin', 'end', 'comments', 'is_own']
 
     def validate(self, data):
-        print("validate")
         # if updating a reservation, its identity must be provided to validator
         try:
             reservation = self.context['view'].get_object()
@@ -90,15 +89,20 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         # Check user specific reservation restrictions relating to given period.
         resource.validate_reservation_period(reservation, request_user, data=data)
 
+        if 'comments' in data:
+            if not resource.is_admin(request_user):
+                raise ValidationError(dict(comments=_('Only allowed to be set by staff members')))
+
+        # Mark begin of a critical section. Subsequent calls with this same resource will block here until the first
+        # request is finished. This is needed so that the validations and possible reservation saving are
+        # executed in one block and concurrent requests cannot be validated incorrectly.
+        Resource.objects.select_for_update().get(pk=resource.pk)
+
         # Check maximum number of active reservations per user per resource.
         # Only new reservations are taken into account ie. a normal user can modify an existing reservation
         # even if it exceeds the limit. (one that was created via admin ui for example).
         if reservation is None:
             resource.validate_max_reservations_per_user(request_user)
-
-        if 'comments' in data:
-            if not resource.is_admin(request_user):
-                raise ValidationError(dict(comments=_('Only allowed to be set by staff members')))
 
         # Run model clean
         instance = Reservation(**data)
