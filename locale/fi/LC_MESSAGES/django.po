@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-07 11:54+0200\n"
+"POT-Creation-Date: 2015-12-09 10:19+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -55,7 +55,7 @@ msgstr "Poikkeusaikavälin kohde"
 msgid "Exceptional period"
 msgstr "Poikkeusaikaväli"
 
-#: resources/models/availability.py:107 resources/models/reservation.py:19
+#: resources/models/availability.py:107 resources/models/reservation.py:21
 #: resources/models/resource.py:313
 msgid "Resource"
 msgstr "Resurssi"
@@ -215,46 +215,58 @@ msgstr "varusteen toinen nimi"
 msgid "equipment aliases"
 msgstr "varusteen toiset nimet"
 
-#: resources/models/reservation.py:20
+#: resources/models/reservation.py:22
 msgid "Begin time"
 msgstr "Alkuaika"
 
-#: resources/models/reservation.py:21
+#: resources/models/reservation.py:23
 msgid "End time"
 msgstr "Loppuaika"
 
-#: resources/models/reservation.py:22
+#: resources/models/reservation.py:24
 msgid "Length of reservation"
 msgstr "Varauksen kesto"
 
-#: resources/models/reservation.py:25
+#: resources/models/reservation.py:27
 msgid "User"
 msgstr "Käyttäjä"
 
-#: resources/models/reservation.py:74
+#: resources/models/reservation.py:76
 msgid "reservation"
 msgstr "varaus"
 
-#: resources/models/reservation.py:75
+#: resources/models/reservation.py:77
 msgid "reservations"
 msgstr "varaukset"
 
-#: resources/models/reservation.py:89
+#: resources/models/reservation.py:91
 msgid "You must end the reservation after it has begun"
 msgstr "Varauksen loppuaika ei voi olla ennen alkuaikaa"
 
-#: resources/models/reservation.py:97
+#: resources/models/reservation.py:99
 msgid "Begin and end time must match time slots"
 msgstr "Alku- ja loppuajan täytyy osua aikaikkunoihin"
 
-#: resources/models/reservation.py:101
+#: resources/models/reservation.py:103
 msgid "The resource is already reserved for some of the period"
 msgstr "Tila on jo varattu ainakin osan ajanjaksosta"
 
-#: resources/models/reservation.py:104
+#: resources/models/reservation.py:106
 #, python-format
 msgid "The minimum reservation length is %(min_period)s"
 msgstr "Varauksen minimikesto on %(min_period)s"
+
+#: resources/models/reservation.py:113
+msgid "Reservation created"
+msgstr "Varaus luotu"
+
+#: resources/models/reservation.py:122
+msgid "Reservation updated"
+msgstr "Varausta muutettu"
+
+#: resources/models/reservation.py:129
+msgid "Reservation deleted"
+msgstr "Varaus poistettu"
 
 #: resources/models/resource.py:28
 msgid "Space"
@@ -350,13 +362,11 @@ msgstr "Varauksia enintään per käyttäjä (voimassa olevia)"
 
 #: resources/models/resource.py:87
 msgid "Reservable"
-msgstr ""
+msgstr "Varattavissa"
 
 #: resources/models/resource.py:88
-#, fuzzy
-#| msgid "reservation"
 msgid "Reservation info"
-msgstr "varaus"
+msgstr "Varausinfo"
 
 #: resources/models/resource.py:91
 msgid "resource"
@@ -497,14 +507,14 @@ msgstr "toimipisteen tunniste"
 msgid "unit identifiers"
 msgstr "toimipisteen tunnisteet"
 
-#: resources/models/utils.py:86
+#: resources/models/utils.py:89
 #, python-format
 msgid "%(count)d hour"
 msgid_plural "%(count)d hours"
 msgstr[0] "%(count)d tunti"
 msgstr[1] "%(count)d tuntia"
 
-#: resources/models/utils.py:87
+#: resources/models/utils.py:90
 #, python-format
 msgid "%(count)d minute"
 msgid_plural "%(count)d minutes"
@@ -518,6 +528,59 @@ msgstr "Lisää toinen"
 #: resources/templates/admin/resources/period_inline.html:36
 msgid "Delete Item"
 msgstr "Poista"
+
+#: resources/templates/mail/_reservation_data.txt:1
+#, python-format
+msgid "Resource: %(resource)s"
+msgstr "Tila: %(resource)s"
+
+#: resources/templates/mail/_reservation_data.txt:2
+#, python-format
+msgid "Starts: %(begin)s"
+msgstr "Alkaa: %(begin)s"
+
+#: resources/templates/mail/_reservation_data.txt:3
+#, python-format
+msgid "Ends: %(end)s"
+msgstr "Loppuu: %(end)s"
+
+#: resources/templates/mail/base_message.txt:1
+#, python-format
+msgid "Hello %(user_name)s"
+msgstr "Terve %(user_name)s"
+
+#: resources/templates/mail/base_message.txt:4
+msgid "Best regards, the RESPA bot"
+msgstr "Terveisin Respa-automaatti"
+
+#: resources/templates/mail/base_subject.txt:1
+msgid "RESPA"
+msgstr "RESPA"
+
+#: resources/templates/mail/reservation_created_by_admin.txt:1
+msgid "A new reservation has been created for you."
+msgstr "Sinulle on luotu uusi varaus."
+
+#: resources/templates/mail/reservation_deleted_by_admin.txt:1
+msgid "Your reservation has been deleted."
+msgstr "Varauksesi on poistettu."
+
+#: resources/templates/mail/reservation_deleted_by_admin.txt:3
+
+msgid "The deleted reservation:"
+msgstr "Poistettu varaus:"
+
+#: resources/templates/mail/reservation_updated_by_admin.txt:2
+msgid "Your reservation has been modified."
+msgstr "Varaustasi on muutettu."
+
+#: resources/templates/mail/reservation_updated_by_admin.txt:4
+msgid "The new reservation:"
+msgstr "Uusi varaus:"
+
+#: resources/templates/mail/reservation_updated_by_admin.txt:8
+msgid "The old reservation:"
+msgstr "Vanha varaus:"
 
 #: respa/settings.py:118
 msgid "Finnish"

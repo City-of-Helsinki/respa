@@ -92,7 +92,7 @@ def humanize_duration(duration):
 
 def send_respa_mail(user, subject, message):
     """
-    Send a mail containing common Respa extras and given content to given user.
+    Send a mail containing common Respa extras and given message to given user.
 
     :type user: User
     :type subject: str

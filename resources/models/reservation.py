@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.utils import timezone
 import django.contrib.postgres.fields as pgfields
 from django.conf import settings
@@ -5,9 +6,10 @@ from django.contrib.gis.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 from psycopg2.extras import DateTimeTZRange
+from django.template.loader import render_to_string
 
 from .base import ModifiableModel
-from .utils import get_dt, save_dt, is_valid_time_slot, humanize_duration
+from .utils import get_dt, save_dt, is_valid_time_slot, humanize_duration, send_respa_mail
 
 
 class ReservationQuerySet(models.QuerySet):
@@ -103,6 +105,28 @@ class Reservation(ModifiableModel):
         if (self.end - self.begin) < self.resource.min_period:
             raise ValidationError(_("The minimum reservation length is %(min_period)s") %
                                   {'min_period': humanize_duration(self.min_period)})
+
+    def send_created_by_admin_mail(self):
+        mail_content = render_to_string(
+            'mail/reservation_created_by_admin.txt', {'reservation': self}
+        )
+        send_respa_mail(self.user, _('Reservation created'), mail_content)
+
+    def send_updated_by_admin_mail_if_changed(self, old_reservation):
+        for field in ('resource', 'begin', 'end'):
+            if getattr(old_reservation, field) != getattr(self, field):
+                mail_content = render_to_string(
+                    'mail/reservation_updated_by_admin.txt',
+                    {'reservation': self, 'old_reservation': old_reservation}
+                )
+                send_respa_mail(self.user, _('Reservation updated'), mail_content)
+                break
+
+    def send_deleted_by_admin_mail(self):
+        mail_content = render_to_string(
+            'mail/reservation_deleted_by_admin.txt', {'reservation': self}
+        )
+        send_respa_mail(self.user, _('Reservation deleted'), mail_content)
 
     def save(self, *args, **kwargs):
         self.duration = DateTimeTZRange(self.begin, self.end)

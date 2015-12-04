@@ -181,11 +181,20 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
         kwargs = {'created_by': self.request.user, 'modified_by': self.request.user}
         if 'user' not in serializer.validated_data:
             kwargs['user'] = self.request.user
-        serializer.save(**kwargs)
-
+        instance = serializer.save(**kwargs)
+        if instance.user != self.request.user:
+            instance.send_created_by_admin_mail()
 
     def perform_update(self, serializer):
-        serializer.save(modified_by=self.request.user)
+        old_instance = self.get_object()
+        new_instance = serializer.save(modified_by=self.request.user)
+        if self.request.user != new_instance.user:
+            new_instance.send_updated_by_admin_mail_if_changed(old_instance)
+
+    def perform_destroy(self, instance):
+        instance.delete()
+        if self.request.user != instance.user:
+            instance.send_deleted_by_admin_mail()
 
 
 register_view(ReservationViewSet, 'reservation')
