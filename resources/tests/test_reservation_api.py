@@ -2,14 +2,20 @@ import pytest
 import datetime
 from django.utils import dateparse
 from django.core.urlresolvers import reverse
+from django.core import mail
 
-from resources.models import Period, Day, Reservation
+from resources.models import Period, Day, Reservation, Resource
 from .utils import check_disallowed_methods, assert_non_field_errors_contain
 
 
 @pytest.fixture
 def list_url():
     return reverse('reservation-list')
+
+
+@pytest.fixture
+def detail_url(reservation):
+    return reverse('reservation-detail', kwargs={'pk': reservation.pk})
 
 
 @pytest.mark.django_db
@@ -46,6 +52,19 @@ def reservation(resource_in_unit, user):
 
 
 @pytest.mark.django_db
+@pytest.fixture
+def other_resource(space_resource_type, test_unit):
+    return Resource.objects.create(
+        type=space_resource_type,
+        authentication="none",
+        name="other resource",
+        unit=test_unit,
+        id="otherresourceid",
+    )
+
+
+@pytest.mark.django_db
+
 def test_disallowed_methods(staff_api_client, list_url):
     """
     Tests that PUT, PATCH and DELETE aren't allowed to reservation list endpoint.
@@ -75,6 +94,35 @@ def test_authenticated_user_can_make_reservation(api_client, list_url, reservati
     assert reservation.resource == resource_in_unit
     assert reservation.begin == dateparse.parse_datetime('2115-04-04T11:00:00+02:00')
     assert reservation.end == dateparse.parse_datetime('2115-04-04T12:00:00+02:00')
+
+
+@pytest.mark.django_db
+def test_authenticated_user_can_modify_reservation(
+        api_client, detail_url, reservation_data, resource_in_unit, user):
+    """
+    Tests that an authenticated user can modify her own reservation
+    """
+    api_client.force_authenticate(user=user)
+
+    response = api_client.put(detail_url, data=reservation_data)
+    assert response.status_code == 200
+    reservation = Reservation.objects.get(pk=response.data['id'])
+    assert reservation.resource == resource_in_unit
+    assert reservation.begin == dateparse.parse_datetime('2115-04-04T11:00:00+02:00')
+    assert reservation.end == dateparse.parse_datetime('2115-04-04T12:00:00+02:00')
+
+
+@pytest.mark.django_db
+def test_authenticated_user_can_delete_reservation(api_client, detail_url, reservation, user):
+    """
+    Tests that an authenticated user can delete her own reservation
+    """
+
+    api_client.force_authenticate(user=user)
+    reservation_id = reservation.id
+    response = api_client.delete(detail_url)
+    assert response.status_code == 204
+    assert Reservation.objects.filter(pk=reservation_id).count() == 0
 
 
 @pytest.mark.django_db
@@ -321,7 +369,7 @@ def test_normal_users_cannot_make_reservations_for_others(
     reservation.resource.max_reservations_per_user = 2
     reservation.resource.save()
 
-    # set an other user for new reservations
+    # set another user for new reservations
     reservation_data['user'] = {'id': user2.uuid}
 
     # modify an existing reservation, and verify that user isn't changed
@@ -340,16 +388,16 @@ def test_normal_users_cannot_make_reservations_for_others(
 
 
 @pytest.mark.django_db
-def test_reservation_normal_users_cannot_create_reservations_for_others(
+def test_reservation_staff_members_can_make_reservations_for_others(
         api_client, list_url, reservation, reservation_data, user, user2):
     """
-    Tests that a staff member can make a reservation for other people without normal user restrictions.
+    Tests that a staff member can make reservations for other people without normal user restrictions.
     """
     user.is_staff = True
     user.save()
     api_client.force_authenticate(user=user)
 
-    # try to modify an other user's reservation
+    # dealing with another user's reservation
     reservation.user = user2
     reservation.save()
     reservation_data['user'] = {'id': user2.uuid}
@@ -426,3 +474,103 @@ def test_max_reservation_period_error_message(
     response = api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
     assert response.status_code == 400
     assert response.data['non_field_errors'][0] == 'The maximum reservation length is %s' % expected
+
+
+@pytest.mark.django_db
+def test_reservation_created_or_deleted_by_admin_mails_sent(
+        staff_api_client, list_url, reservation_data, user):
+    """
+    Tests that reservations created and deleted by admins will trigger correct emails for users.
+    """
+
+    reservation_data['user'] = {'id': user.uuid}
+
+    # create a new reservation
+    response = staff_api_client.post(list_url, data=reservation_data, format='json', HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 201
+    assert len(mail.outbox) == 1
+    mail_instance = mail.outbox[0]
+    assert 'Reservation created' in mail_instance.subject
+    assert len(mail_instance.to) == 1
+    assert mail_instance.to[0] == user.email
+    mail_message = str(mail_instance.message())
+    assert 'A new reservation has been created for you' in mail_message
+    assert 'Starts: April 4, 2115, 11 a.m.' in mail_message
+
+    mail.outbox = []
+
+    # delete the existing reservation
+    detail_url = reverse('reservation-detail', kwargs={'pk': response.data['id']})
+    response = staff_api_client.delete(detail_url, data=reservation_data, format='json', HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 204
+    assert len(mail.outbox) == 1
+    mail_instance = mail.outbox[0]
+    assert len(mail_instance.to) == 1
+    assert mail_instance.to[0] == user.email
+    mail_message = str(mail_instance.message())
+    assert 'Your reservation has been deleted' in mail_message
+    assert 'The deleted reservation:' in mail_message
+    assert 'Starts: April 4, 2115, 11 a.m.' in mail_message
+
+
+@pytest.mark.parametrize("input,expected", [
+    ({'begin': '2115-04-04T09:00:00+02:00'}, 'Starts: April 4, 2115, 9 a.m.'),
+    ({'end': '2115-04-04T13:00:00+02:00'}, 'Ends: April 4, 2115, 1 p.m.'),
+    ({'resource': 'otherresourceid'}, 'Resource: other resource'),
+])
+@pytest.mark.django_db
+def test_reservation_modified_by_admin_mail_sent(
+        staff_api_client, reservation_data, user, other_resource, detail_url, input, expected):
+    """
+    Tests that reservations modified by admins will trigger correct emails for users.
+
+    Modifying begin time, end time or resource should trigger a mail.
+    """
+    reservation_data.update(**input)
+    response = staff_api_client.put(detail_url, data=reservation_data, format='json', HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 200
+    assert len(mail.outbox) == 1
+    mail_instance = mail.outbox[0]
+    assert len(mail_instance.to) == 1
+    assert mail_instance.to[0] == user.email
+    mail_message = str(mail_instance.message())
+    assert 'Your reservation has been modified' in mail_message
+    assert expected in mail_message
+
+
+@pytest.mark.django_db
+def test_reservation_modified_by_admin_mails_not_sent(
+        staff_api_client, list_url, reservation, reservation_data, user):
+    """
+    Tests situations where modified by admin mail should not be sent.
+
+    Tested situations:
+        * a staff member modifies her own reservations
+        * a staff member PUTs a reservation for a user but the reservation isn't actually modified
+    """
+
+    # a staff member creates a new reservation for herself, expect no mail
+    response = staff_api_client.post(list_url, data=reservation_data, format='json')
+    assert response.status_code == 201
+    assert len(mail.outbox) == 0
+
+    # a staff member modifies her reservation, expect no mail
+    reservation_data['begin'] = dateparse.parse_datetime('2115-04-04T10:00:00+02:00')
+    detail_url = reverse('reservation-detail', kwargs={'pk': response.data['id']})
+    response = staff_api_client.put(detail_url, data=reservation_data, format='json')
+    assert response.status_code == 200
+    assert len(mail.outbox) == 0
+
+    # a staff member deletes her reservation, expect no mail
+    response = staff_api_client.delete(detail_url, data=reservation_data, format='json')
+    assert response.status_code == 204
+    assert len(mail.outbox) == 0
+
+    # s staff member PUTs a reservation with no modifications for a user, expect no mail
+    reservation_data['user'] = {'id': user.uuid}
+    detail_url = reverse('reservation-detail', kwargs={'pk': reservation.id})
+    reservation_data['begin'] = '2115-04-04T09:00:00+02:00'  # the same data
+    reservation_data['end'] = '2115-04-04T10:00:00+02:00'  # as is in the original reservation
+    response = staff_api_client.put(detail_url, data=reservation_data, format='json')
+    assert response.status_code == 200
+    assert len(mail.outbox) == 0

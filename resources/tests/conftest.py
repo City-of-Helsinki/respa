@@ -22,8 +22,6 @@ def staff_api_client(staff_user):
 
 @pytest.fixture
 def user_api_client(user):
-    user.is_staff = True
-    user.save()
     api_client = APIClient()
     api_client.force_authenticate(user=user)
     return api_client
@@ -130,7 +128,8 @@ def staff_user():
         username='test_staff_user',
         first_name='John',
         last_name='Staff',
-        email='john@staff.com'
+        email='john@staff.com',
+        is_staff=True,
     )
 
 
