@@ -68,3 +68,7 @@ def is_valid_time_slot(time, time_slot_duration, opening_time):
     :rtype: bool
     """
     return not ((time - opening_time) % time_slot_duration)
+
+
+def humanize_timedelta(timedelta):
+    return ':'.join(str(timedelta).split(':')[:2])

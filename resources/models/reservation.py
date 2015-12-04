@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from psycopg2.extras import DateTimeTZRange
 
 from .base import ModifiableModel
-from .utils import get_dt, save_dt, is_valid_time_slot
+from .utils import get_dt, save_dt, is_valid_time_slot, humanize_timedelta
 
 
 class ReservationQuerySet(models.QuerySet):
@@ -102,7 +102,7 @@ class Reservation(ModifiableModel):
 
         if (self.end - self.begin) < self.resource.min_period:
             raise ValidationError(_("The minimum reservation length is %(min_period)s") %
-                                  {'min_period': self.min_period})
+                                  {'min_period': humanize_timedelta(self.min_period)})
 
     def save(self, *args, **kwargs):
         self.duration = DateTimeTZRange(self.begin, self.end)
