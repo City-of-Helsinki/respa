@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-11-26 16:59+0200\n"
+"POT-Creation-Date: 2015-12-04 15:14+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,16 +21,17 @@ msgstr ""
 msgid "HH:mm"
 msgstr "TT:mm"
 
-#: resources/api/reservation.py:85
+#: resources/api/reservation.py:84
 #, python-brace-format
 msgid "Object with {slug_name}={value} does not exist."
 msgstr ""
 
-#: resources/api/reservation.py:101
+#: resources/api/reservation.py:94
 msgid "Only allowed to be set by staff members"
 msgstr ""
 
-#: resources/api/reservation.py:131 resources/api/reservation.py:145
+#: resources/api/reservation.py:135 resources/api/reservation.py:149
+#, python-format
 msgid "Invalid value in filter %(filter)s"
 msgstr "Virheellinen arvo filtterissä %(filter)s"
 
@@ -248,7 +249,7 @@ msgstr "Alku- ja loppuajan täytyy osua aikaikkunoihin"
 
 #: resources/models/reservation.py:101
 msgid "The resource is already reserved for some of the period"
-msgstr "Resurssi on jo varattu ainakin osan ajanjaksosta"
+msgstr "Tila on jo varattu ainakin osan ajanjaksosta"
 
 #: resources/models/reservation.py:104
 #, python-format
@@ -351,15 +352,21 @@ msgstr "Varauksia enintään per käyttäjä (voimassa olevia)"
 msgid "Reservable"
 msgstr ""
 
-#: resources/models/resource.py:90
+#: resources/models/resource.py:88
+#, fuzzy
+#| msgid "reservation"
+msgid "Reservation info"
+msgstr "varaus"
+
+#: resources/models/resource.py:91
 msgid "resource"
 msgstr "resurssi"
 
-#: resources/models/resource.py:91
+#: resources/models/resource.py:92
 msgid "resources"
 msgstr "resurssit"
 
-#: resources/models/resource.py:130
+#: resources/models/resource.py:131
 msgid "You cannot make a multi day reservation"
 msgstr "Varaus ei saa ulottua useammalle päivälle"
 
@@ -374,7 +381,7 @@ msgstr "Varauksen maksimikesto on %(max_period)s"
 
 #: resources/models/resource.py:157
 msgid "Maximum number of active reservations for this resource exceeded."
-msgstr "Liikaa voimassa olevia varauksia tähän resurssiin."
+msgstr "Liikaa voimassa olevia varauksia tähän tilaan."
 
 #: resources/models/resource.py:308
 msgid "Main photo"
@@ -498,15 +505,15 @@ msgstr "Lisää toinen"
 msgid "Delete Item"
 msgstr "Poista"
 
-#: respa/settings.py:117 respa/settings_local.py:116
+#: respa/settings.py:118
 msgid "Finnish"
 msgstr "suomi"
 
-#: respa/settings.py:118 respa/settings_local.py:117
+#: respa/settings.py:119
 msgid "English"
 msgstr "englanti"
 
-#: respa/settings.py:119 respa/settings_local.py:118
+#: respa/settings.py:120
 msgid "Swedish"
 msgstr "ruotsi"
 
