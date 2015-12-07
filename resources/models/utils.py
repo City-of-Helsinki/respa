@@ -6,6 +6,8 @@ import time
 import arrow
 from django.conf import settings
 from django.utils import timezone
+from django.utils.translation import ungettext
+
 
 DEFAULT_LANG = settings.LANGUAGES[0][0]
 
@@ -70,5 +72,17 @@ def is_valid_time_slot(time, time_slot_duration, opening_time):
     return not ((time - opening_time) % time_slot_duration)
 
 
-def humanize_timedelta(timedelta):
-    return ':'.join(str(timedelta).split(':')[:2])
+def humanize_duration(duration):
+    """
+    Return the given duration in a localized humanized form.
+
+    Examples: "2 hours 30 minutes", "1 hour", "30 minutes"
+
+    :type duration: datetime.timedelta
+    :rtype: str
+    """
+    hours = duration.days * 24 + duration.seconds // 3600
+    mins = duration.seconds // 60 % 60
+    hours_string = ungettext('%(count)d hour', '%(count)d hours', hours) % {'count': hours} if hours else None
+    mins_string = ungettext('%(count)d minute', '%(count)d minutes', mins) % {'count': mins} if mins else None
+    return ' '.join(filter(None, (hours_string, mins_string)))
