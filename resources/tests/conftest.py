@@ -27,6 +27,14 @@ def user_api_client(user):
     return api_client
 
 
+@pytest.fixture(params=[None, 'user', 'staff_user'])
+def all_user_types_api_client(request):
+    api_client = APIClient()
+    if request.param:
+        api_client.force_authenticate(request.getfuncargvalue(request.param))
+    return api_client
+
+
 @pytest.fixture
 def api_rf():
     return APIRequestFactory()

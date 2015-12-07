@@ -64,12 +64,11 @@ def other_resource(space_resource_type, test_unit):
 
 
 @pytest.mark.django_db
-
-def test_disallowed_methods(staff_api_client, list_url):
+def test_disallowed_methods(all_user_types_api_client, list_url):
     """
     Tests that PUT, PATCH and DELETE aren't allowed to reservation list endpoint.
     """
-    check_disallowed_methods(staff_api_client, (list_url, ), ('put', 'patch', 'delete'))
+    check_disallowed_methods(all_user_types_api_client, (list_url, ), ('put', 'patch', 'delete'))
 
 
 @pytest.mark.django_db
