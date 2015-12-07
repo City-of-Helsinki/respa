@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-04 15:14+0200\n"
+"POT-Creation-Date: 2015-12-07 11:54+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -496,6 +496,20 @@ msgstr "toimipisteen tunniste"
 #: resources/models/unit.py:69
 msgid "unit identifiers"
 msgstr "toimipisteen tunnisteet"
+
+#: resources/models/utils.py:86
+#, python-format
+msgid "%(count)d hour"
+msgid_plural "%(count)d hours"
+msgstr[0] "%(count)d tunti"
+msgstr[1] "%(count)d tuntia"
+
+#: resources/models/utils.py:87
+#, python-format
+msgid "%(count)d minute"
+msgid_plural "%(count)d minutes"
+msgstr[0] "%(count)d minuutti"
+msgstr[1] "%(count)d minuuttia"
 
 #: resources/templates/admin/resources/period_inline.html:10
 msgid "Add Another"

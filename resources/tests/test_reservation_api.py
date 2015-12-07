@@ -1,4 +1,5 @@
 import pytest
+import datetime
 from django.utils import dateparse
 from django.core.urlresolvers import reverse
 
@@ -400,3 +401,28 @@ def test_reservation_user_filter(api_client, list_url, reservation, resource_in_
     response = api_client.get(list_url + '?is_own=false')
     assert response.data['count'] == 1
     assert response.data['results'][0]['id'] == reservation2.id
+
+
+@pytest.mark.parametrize("input_hours,input_mins,expected", [
+    (2, 30, '2 hours 30 minutes'),
+    (1, 30, '1 hour 30 minutes'),
+    (1, 0, '1 hour'),
+    (0, 30, '30 minutes'),
+    (0, 1, '1 minute'),
+])
+@pytest.mark.django_db
+def test_max_reservation_period_error_message(
+        api_client, list_url, resource_in_unit, reservation_data, user, input_hours, input_mins, expected):
+    """
+    Tests that maximum reservation period error is returned in correct humanized form.
+    """
+
+    reservation_data['end'] = '2115-04-04T16:00:00+02:00'  # too long reservation
+
+    resource_in_unit.max_period=datetime.timedelta(hours=input_hours, minutes=input_mins)
+    resource_in_unit.save()
+
+    api_client.force_authenticate(user=user)
+    response = api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 400
+    assert response.data['non_field_errors'][0] == 'The maximum reservation length is %s' % expected

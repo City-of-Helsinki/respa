@@ -19,7 +19,7 @@ from django_hstore import hstore
 from resources.errors import InvalidImage
 
 from .base import AutoIdentifiedModel, ModifiableModel
-from .utils import get_translated, get_translated_name, humanize_timedelta
+from .utils import get_translated, get_translated_name, humanize_duration
 from .equipment import Equipment
 
 
@@ -136,7 +136,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
         if self.max_period and (end - begin) > self.max_period:
             raise ValidationError(_("The maximum reservation length is %(max_period)s") %
-                                  {'max_period': humanize_timedelta(self.max_period)})
+                                  {'max_period': humanize_duration(self.max_period)})
 
     def validate_max_reservations_per_user(self, user):
         """
