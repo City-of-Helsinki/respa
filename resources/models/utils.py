@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.utils.translation import ungettext
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
+from django.contrib.sites.models import Site
 
 
 DEFAULT_LANG = settings.LANGUAGES[0][0]
@@ -98,6 +99,12 @@ def send_respa_mail(user, subject, message):
     :type subject: str
     :type message: str
     """
+    if not getattr(settings, 'RESPA_MAILS_ENABLED', False):
+        return
+
     final_message = render_to_string('mail/base_message.txt', {'user': user, 'content': message})
     final_subject = render_to_string('mail/base_subject.txt', {'subject': subject})
-    send_mail(final_subject, final_message, 'info@respa.com', [user.email])
+    from_address = (getattr(settings, 'RESPA_MAILS_FROM_ADDRESS', None) or
+                    'noreply@%s' % Site.objects.get_current().domain)
+
+    send_mail(final_subject, final_message, from_address, [user.email])

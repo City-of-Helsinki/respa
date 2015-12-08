@@ -3,6 +3,7 @@ import datetime
 from django.utils import dateparse
 from django.core.urlresolvers import reverse
 from django.core import mail
+from django.test.utils import override_settings
 
 from resources.models import Period, Day, Reservation, Resource
 from .utils import check_disallowed_methods, assert_non_field_errors_contain
@@ -475,6 +476,7 @@ def test_max_reservation_period_error_message(
     assert response.data['non_field_errors'][0] == 'The maximum reservation length is %s' % expected
 
 
+@override_settings(RESPA_MAILS_ENABLED=True)
 @pytest.mark.django_db
 def test_reservation_created_or_deleted_by_admin_mails_sent(
         staff_api_client, list_url, reservation_data, user):
@@ -517,6 +519,7 @@ def test_reservation_created_or_deleted_by_admin_mails_sent(
     ({'end': '2115-04-04T13:00:00+02:00'}, 'Ends: April 4, 2115, 1 p.m.'),
     ({'resource': 'otherresourceid'}, 'Resource: other resource'),
 ])
+@override_settings(RESPA_MAILS_ENABLED=True)
 @pytest.mark.django_db
 def test_reservation_modified_by_admin_mail_sent(
         staff_api_client, reservation_data, user, other_resource, detail_url, input, expected):
@@ -537,6 +540,7 @@ def test_reservation_modified_by_admin_mail_sent(
     assert expected in mail_message
 
 
+@override_settings(RESPA_MAILS_ENABLED=True)
 @pytest.mark.django_db
 def test_reservation_modified_by_admin_mails_not_sent(
         staff_api_client, list_url, reservation, reservation_data, user):
