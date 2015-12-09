@@ -12,6 +12,8 @@ tags:
     description: Make or change your reservations
   - name: unit
     description: Places where resources are located
+  - name: equipment
+    description: Equipment available for use in the resources
   - name: filter
     description: Properties you can use in filtering resources
   - name: search
@@ -225,6 +227,116 @@ paths:
           description: Successful response
           schema:
             $ref: '#/definitions/type'
+  /equipment:
+    get:
+      tags:
+        - equipment
+      description:
+        The equipment endpoint returns the pieces of equipment of the resources.
+
+        Returns 20 pieces of equipment per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 20 pieces of equipment per page.
+      parameters:
+        - name: page
+          in: query
+          description: Result page number
+          required: false
+          type: integer
+        - name: page_size
+          in: query
+          description: Number of pieces of equipment per page
+          required: false
+          type: integer
+      responses:
+        '200':
+          description: Successful response
+          schema:
+            type: object
+            properties:
+              count:
+                type: integer
+                description: 'The total number of results'
+              next:
+                type: string
+                description: 'URL for the next page'
+              prev:
+                type: string
+                description: 'URL for the previous page'
+              results:
+                type: array
+                items:
+                  $ref: '#/definitions/equipment'
+  /equipment/{id}:
+    get:
+      tags:
+        - equipment
+      description:
+        The equipment endpoint returns the pieces of equipment of the resources.
+      parameters:
+        - name: id
+          in: path
+          type: string
+          description: Unique identifier for the piece of equipment.
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          schema:
+            $ref: '#/definitions/equipment'
+  /equipmentcategory:
+    get:
+      tags:
+        - equipment
+      description:
+        The equipment category endpoint returns the possible categories for the pieces of equipment.
+
+        Returns 20 equipment categories per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 20 equipment categories per page.
+      parameters:
+        - name: page
+          in: query
+          description: Result page number
+          required: false
+          type: integer
+        - name: page_size
+          in: query
+          description: Number of equipment categories per page
+          required: false
+          type: integer
+      responses:
+        '200':
+          description: Successful response
+          schema:
+            type: object
+            properties:
+              count:
+                type: integer
+                description: 'The total number of results'
+              next:
+                type: string
+                description: 'URL for the next page'
+              prev:
+                type: string
+                description: 'URL for the previous page'
+              results:
+                type: array
+                items:
+                  $ref: '#/definitions/equipmentcategory'
+  /equipmentcategory/{id}:
+    get:
+      tags:
+        - equipment
+      description:
+        The equipment category endpoint returns the possible categories for the pieces of equipment.
+      parameters:
+        - name: id
+          in: path
+          type: string
+          description: Unique identifier for the City of Helsinki equipment category in the City of Helsinki service registry.
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          schema:
+            $ref: '#/definitions/equipmentcategory'
   /resource:
     get:
       tags:
@@ -689,3 +801,120 @@ definitions:
         description: 'Unique identifier for the City of Helsinki unit where the resource is located'
       location:
         $ref: '#/definitions/location'
+      equipment:
+        type: object
+        description: 'The resource specific equipment instances'
+        properties:
+          id:
+            type: string
+            description: 'Unique identifier of the piece of equipment'
+          name:
+            type: object
+            properties:
+              fi:
+                type: string
+                description: 'Finnish name for the piece of equipment'
+              en:
+                type: string
+                description: 'English name for the piece of equipment'
+              sv:
+                type: string
+                description: 'Swedish name for the piece of equipment'
+          description:
+            type: string
+            description: 'Description of the resource specific equipment instance'
+          data:
+            type: object
+            additionalProperties:
+              type: string
+            description: 'Additional data related to the resource specific equipment instance'
+
+  equipment:
+    type: object
+    properties:
+      id:
+        type: string
+        description: 'Unique identifier of the piece of equipment'
+      category:
+        type: object
+        description: 'The equipment category the piece of equipment belongs to'
+        properties:
+          id:
+            type: string
+            description: 'Unique identifier of the equipment category'
+          name:
+            type: object
+            properties:
+              fi:
+                type: string
+                description: 'Finnish name for the equipment category'
+              en:
+                type: string
+                description: 'English name for the equipment category'
+              sv:
+                type: string
+                description: 'Swedish name for the equipment category'
+      name:
+        type: object
+        properties:
+          fi:
+            type: string
+            description: 'Finnish name for the piece of equipment'
+          en:
+            type: string
+            description: 'English name for the piece of equipment'
+          sv:
+            type: string
+            description: 'Swedish name for the piece of equipment'
+      aliases:
+        type: array
+        description: 'Aliases for the piece of equipment'
+        items:
+          type: object
+          properties:
+            name:
+              type: string
+              description: 'The name of the equipment alias'
+            language:
+              type: string
+              description: 'The language of the equipment alias. "fi", "sv" or "en".'
+
+  equipmentcategory:
+    type: object
+    properties:
+      id:
+        type: string
+        description: 'Unique identifier of the equipment category'
+      name:
+        type: object
+        properties:
+          fi:
+            type: string
+            description: 'Finnish name for the equipment category'
+          en:
+            type: string
+            description: 'English name for the equipment category'
+          sv:
+            type: string
+            description: 'Swedish name for the equipment category'
+      equipment:
+        type: array
+        description: 'The pieces of equipment that belong to the equipment category'
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+              description: 'Unique identifier of the piece of equipment'
+            name:
+              type: object
+              properties:
+               fi:
+                 type: string
+                 description: 'Finnish name for the piece of equipment'
+               en:
+                 type: string
+                 description: 'English name for the piece of equipment'
+               sv:
+                 type: string
+                 description: 'Swedish name for the piece of equipment'
