@@ -4,12 +4,16 @@ from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError, PermissionDenied
+from django.http import HttpResponse
 from rest_framework import viewsets, serializers, filters, exceptions, permissions
 from rest_framework.fields import BooleanField, IntegerField
+from rest_framework import renderers
+from rest_framework.exceptions import NotAcceptable
 
 from munigeo import api as munigeo_api
 from resources.models import Reservation, Resource
 from users.models import User
+from resources.models.utils import generate_reservation_xlsx
 
 from .base import NullableDateTimeField, TranslatedModelSerializer, register_view
 
@@ -112,10 +116,24 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
 
     def to_representation(self, instance):
         data = super(ReservationSerializer, self).to_representation(instance)
+
+        if self.context['request'].accepted_renderer.format == 'xlsx':
+            # Return somewhat different data in case we are dealing with xlsx.
+            # The excel renderer needs datetime objects, so begin and end are passed as objects
+            # to avoid needing to convert them back and forth.
+            data.update(**{
+                'unit': instance.resource.unit.name,  # additional
+                'resource': instance.resource.name,  # resource name instead of id
+                'begin': instance.begin,  # datetime object
+                'end': instance.end,  # datetime object
+                'user': instance.user.email,  # just email
+            })
+
         # Show the comments field and the user object only for staff
         if not instance.resource.is_admin(self.context['request'].user):
             del data['comments']
             del data['user']
+
         return data
 
     def get_is_own(self, obj):
@@ -171,11 +189,29 @@ class ReservationPermission(permissions.BasePermission):
         return obj.user == request.user
 
 
+class ReservationExcelRenderer(renderers.BaseRenderer):
+    media_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    format = 'xlsx'
+    charset = None
+    render_style = 'binary'
+
+    def render(self, data, media_type=None, renderer_context=None):
+        if not renderer_context or renderer_context['response'].status_code == 404:
+            return bytes()
+        if renderer_context['view'].action == 'retrieve':
+            return generate_reservation_xlsx([data])
+        elif renderer_context['view'].action == 'list':
+            return generate_reservation_xlsx(data['results'])
+        else:
+            return NotAcceptable()
+
+
 class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
     filter_backends = (UserFilterBackend, ActiveFilterBackend)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
+    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, ReservationExcelRenderer)
 
     def perform_create(self, serializer):
         kwargs = {'created_by': self.request.user, 'modified_by': self.request.user}
@@ -196,5 +232,17 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
         if self.request.user != instance.user:
             instance.send_deleted_by_admin_mail()
 
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        if request.accepted_renderer.format == 'xlsx':
+            response['Content-Disposition'] = 'attachment; filename={}.xlsx'.format(_('reservations'))
+        return response
+
+    def retrieve(self, request, *args, **kwargs):
+        response = super().retrieve(request, *args, **kwargs)
+        if request.accepted_renderer.format == 'xlsx':
+            response['Content-Disposition'] = 'attachment; filename={}-{}.xlsx'.format(_('reservation'), kwargs['pk'])
+        return response
 
 register_view(ReservationViewSet, 'reservation')
+

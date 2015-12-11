@@ -21,3 +21,4 @@ django-autoslug
 djangorestframework-jwt
 pyjwt
 django-hstore
+XlsxWriter
