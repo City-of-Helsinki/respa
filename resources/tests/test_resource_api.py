@@ -1,3 +1,4 @@
+import json
 import pytest
 from django.core.urlresolvers import reverse
 
@@ -60,3 +61,38 @@ def test_user_permissions_in_resource_endpoint(api_client, resource_in_unit, use
     _check_permissions_dict(api_client, resource_in_unit, True, True)
 
 
+@pytest.mark.django_db
+def test_non_public_resource_visibility(api_client, resource_in_unit, user):
+    """
+    Tests that non-public resources are not returned for non-staff.
+    """
+
+    resource_in_unit.public = False
+    resource_in_unit.save()
+
+    url = reverse('resource-detail', kwargs={'pk': resource_in_unit.pk})
+    response = api_client.get(url)
+    assert response.status_code == 404
+
+    # Unauthenticated
+    url = reverse('resource-list')
+    response = api_client.get(url)
+    assert response.status_code == 200
+    assert response.data['count'] == 0
+
+    # Authenticated as non-staff
+    api_client.force_authenticate(user=user)
+    response = api_client.get(url)
+    assert response.status_code == 200
+    assert response.data['count'] == 0
+
+    # Authenticated as staff
+    user.is_staff = True
+    user.save()
+    response = api_client.get(url)
+    assert response.status_code == 200
+    assert response.data['count'] == 1
+
+    url = reverse('resource-detail', kwargs={'pk': resource_in_unit.pk})
+    response = api_client.get(url)
+    assert response.status_code == 200

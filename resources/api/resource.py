@@ -250,11 +250,22 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin, vi
     filter_class = ResourceFilterSet
     search_fields = ('name', 'description', 'unit__name')
 
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return self.queryset
+        else:
+            return self.queryset.filter(public=True)
+
 
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
-    queryset = Resource.objects.all()
     serializer_class = ResourceDetailsSerializer
+    queryset = Resource.objects.all()
 
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return self.queryset
+        else:
+            return self.queryset.filter(public=True)
 
 register_view(ResourceListViewSet, 'resource')
 register_view(ResourceViewSet, 'resource')
