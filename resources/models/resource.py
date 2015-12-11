@@ -61,6 +61,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         ('strong', _('Strong'))
     )
     id = models.CharField(primary_key=True, max_length=100)
+    public = models.BooleanField(default=True, verbose_name=_('Public'))
     unit = models.ForeignKey('Unit', verbose_name=_('Unit'), db_index=True, null=True, blank=True,
                              related_name="resources")
     type = models.ForeignKey(ResourceType, verbose_name=_('Resource type'), db_index=True)
