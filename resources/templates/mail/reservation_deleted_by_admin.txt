@@ -1,0 +1,5 @@
+{% load i18n %}{% trans "Your reservation has been deleted." %}
+
+{% trans "The deleted reservation:" %}
+
+{% include "mail/_reservation_data.txt" %}

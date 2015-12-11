@@ -35,11 +35,11 @@ def _check_keys_and_values(result):
 
 
 @pytest.mark.django_db
-def test_disallowed_methods(staff_api_client, list_url, detail_url):
+def test_disallowed_methods(all_user_types_api_client, list_url, detail_url):
     """
     Tests that only safe methods are allowed to equipment list and detail endpoints.
     """
-    check_only_safe_methods_allowed(staff_api_client, (list_url, detail_url))
+    check_only_safe_methods_allowed(all_user_types_api_client, (list_url, detail_url))
 
 
 @pytest.mark.django_db

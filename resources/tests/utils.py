@@ -105,7 +105,7 @@ def get_form_data(form, prepared=False):
 
 def check_disallowed_methods(api_client, urls, disallowed_methods):
     """
-    Check that given urls return http 405.
+    Check that given urls return http 405 (or 401 for unauthenticad users)
 
     :param api_client: API client that executes the requests
     :type api_client: DRF APIClient
@@ -114,9 +114,12 @@ def check_disallowed_methods(api_client, urls, disallowed_methods):
     :param disallowed_methods: methods that should ne disallowed
     :type disallowed_methods: tuple [str]
     """
+
+    # endpoints return 401 instead of 405 if there is no user
+    expected_status_codes = (401, 405) if api_client.handler._force_user is None else (405, )
     for url in urls:
         for method in disallowed_methods:
-            assert getattr(api_client, method)(url).status_code == 405
+            assert getattr(api_client, method)(url).status_code in expected_status_codes
 
 
 def check_only_safe_methods_allowed(api_client, urls):

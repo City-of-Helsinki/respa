@@ -1,0 +1,3 @@
+{% load i18n %}{% blocktrans with resource=reservation.resource.name %}Resource: {{ resource }}{% endblocktrans %}
+{% blocktrans with begin=reservation.begin %}Starts: {{ begin }}{% endblocktrans %}
+{% blocktrans with end=reservation.end %}Ends: {{ end }}{% endblocktrans %}

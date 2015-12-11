@@ -7,6 +7,9 @@ import arrow
 from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import ungettext
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
+from django.contrib.sites.models import Site
 
 
 DEFAULT_LANG = settings.LANGUAGES[0][0]
@@ -86,3 +89,22 @@ def humanize_duration(duration):
     hours_string = ungettext('%(count)d hour', '%(count)d hours', hours) % {'count': hours} if hours else None
     mins_string = ungettext('%(count)d minute', '%(count)d minutes', mins) % {'count': mins} if mins else None
     return ' '.join(filter(None, (hours_string, mins_string)))
+
+
+def send_respa_mail(user, subject, message):
+    """
+    Send a mail containing common Respa extras and given message to given user.
+
+    :type user: User
+    :type subject: str
+    :type message: str
+    """
+    if not getattr(settings, 'RESPA_MAILS_ENABLED', False):
+        return
+
+    final_message = render_to_string('mail/base_message.txt', {'user': user, 'content': message})
+    final_subject = render_to_string('mail/base_subject.txt', {'subject': subject})
+    from_address = (getattr(settings, 'RESPA_MAILS_FROM_ADDRESS', None) or
+                    'noreply@%s' % Site.objects.get_current().domain)
+
+    send_mail(final_subject, final_message, from_address, [user.email])

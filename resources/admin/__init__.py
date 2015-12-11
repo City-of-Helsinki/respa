@@ -3,7 +3,7 @@ from django.contrib.admin import site as admin_site
 from django.contrib.gis.admin import OSMGeoAdmin
 from image_cropping import ImageCroppingMixin
 from modeltranslation.admin import TranslationAdmin, TranslationStackedInline
-from .base import CommonExcludeMixin
+from .base import CommonExcludeMixin, PopulateCreatedAndModifiedMixin
 from resources.admin.period_inline import PeriodInline
 from resources.models import Day, Reservation, Resource, ResourceImage, ResourceType, Unit
 from resources.models import Equipment, ResourceEquipment, EquipmentAlias, EquipmentCategory
@@ -17,13 +17,13 @@ class DayInline(admin.TabularInline):
     model = Day
 
 
-class ResourceEquipmentInline(CommonExcludeMixin, TranslationStackedInline):
+class ResourceEquipmentInline(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationStackedInline):
     model = ResourceEquipment
     fields = ('equipment', 'description', 'data')
     extra = 0
 
 
-class ResourceAdmin(CommonExcludeMixin, TranslationAdmin, HttpsFriendlyGeoAdmin):
+class ResourceAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin, HttpsFriendlyGeoAdmin):
     inlines = [
         PeriodInline,
         ResourceEquipmentInline,
@@ -34,7 +34,7 @@ class ResourceAdmin(CommonExcludeMixin, TranslationAdmin, HttpsFriendlyGeoAdmin)
     default_zoom = 12
 
 
-class UnitAdmin(CommonExcludeMixin, TranslationAdmin, HttpsFriendlyGeoAdmin):
+class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin, HttpsFriendlyGeoAdmin):
     inlines = [
         PeriodInline
     ]
@@ -44,36 +44,36 @@ class UnitAdmin(CommonExcludeMixin, TranslationAdmin, HttpsFriendlyGeoAdmin):
     default_zoom = 12
 
 
-class ResourceImageAdmin(CommonExcludeMixin, ImageCroppingMixin, TranslationAdmin):
+class ResourceImageAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, ImageCroppingMixin, TranslationAdmin):
     exclude = ('sort_order', 'image_format')
 
 
-class EquipmentAliasInline(CommonExcludeMixin, admin.TabularInline):
+class EquipmentAliasInline(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, admin.TabularInline):
     model = EquipmentAlias
     readonly_fields = ()
     exclude = CommonExcludeMixin.exclude + ('id',)
     extra = 1
 
 
-class EquipmentAdmin(CommonExcludeMixin, TranslationAdmin):
+class EquipmentAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):
     inlines = (
         EquipmentAliasInline,
     )
 
 
-class ResourceEquipmentAdmin(CommonExcludeMixin, TranslationAdmin):
+class ResourceEquipmentAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):
     fields = ('resource', 'equipment', 'description', 'data')
 
 
-class ReservationAdmin(CommonExcludeMixin, admin.ModelAdmin):
+class ReservationAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, admin.ModelAdmin):
     pass
 
 
-class ResourceTypeAdmin(CommonExcludeMixin, TranslationAdmin):
+class ResourceTypeAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):
     pass
 
 
-class EquipmentCategoryAdmin(TranslationAdmin):
+class EquipmentCategoryAdmin(PopulateCreatedAndModifiedMixin, TranslationAdmin):
     pass
 
 
