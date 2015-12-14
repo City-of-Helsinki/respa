@@ -577,3 +577,29 @@ def test_reservation_modified_by_admin_mails_not_sent(
     response = staff_api_client.put(detail_url, data=reservation_data, format='json')
     assert response.status_code == 200
     assert len(mail.outbox) == 0
+
+
+@pytest.mark.django_db
+def test_reservation_excels(staff_api_client, list_url, detail_url, reservation, user):
+    """
+    Tests that reservation list and detail endpoints return .xlsx files when requested
+    """
+
+    response = staff_api_client.get(
+        list_url,
+        HTTP_ACCEPT='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        HTTP_ACCEPT_LANGUAGE='en',
+    )
+    assert response.status_code == 200
+    assert response._headers['content-disposition'] == ('Content-Disposition', 'attachment; filename=reservations.xlsx')
+    assert len(response.content) > 0
+
+    response = staff_api_client.get(
+        detail_url,
+        HTTP_ACCEPT='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        HTTP_ACCEPT_LANGUAGE='en',
+    )
+    assert response.status_code == 200
+    assert response._headers['content-disposition'] == (
+        'Content-Disposition', 'attachment; filename=reservation-{}.xlsx'.format(reservation.pk))
+    assert len(response.content) > 0
