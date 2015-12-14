@@ -182,6 +182,18 @@ class ActiveFilterBackend(filters.BaseFilterBackend):
         return queryset
 
 
+class ResourceFilterBackend(filters.BaseFilterBackend):
+    """
+    Filter reservations by resource.
+    """
+
+    def filter_queryset(self, request, queryset, view):
+        resource = request.query_params.get('resource', None)
+        if resource:
+            return queryset.filter(resource__id=resource)
+        return queryset
+
+
 class ReservationPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS or obj.resource.is_admin(request.user):
@@ -209,7 +221,7 @@ class ReservationExcelRenderer(renderers.BaseRenderer):
 class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
-    filter_backends = (UserFilterBackend, ActiveFilterBackend)
+    filter_backends = (UserFilterBackend, ActiveFilterBackend, ResourceFilterBackend)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, ReservationExcelRenderer)
 
