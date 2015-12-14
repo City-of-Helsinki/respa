@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-11 12:31+0200\n"
+"POT-Creation-Date: 2015-12-14 14:38+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,19 +21,27 @@ msgstr ""
 msgid "HH:mm"
 msgstr "TT:mm"
 
-#: resources/api/reservation.py:84
+#: resources/api/reservation.py:88
 #, python-brace-format
 msgid "Object with {slug_name}={value} does not exist."
 msgstr ""
 
-#: resources/api/reservation.py:94
+#: resources/api/reservation.py:98
 msgid "Only allowed to be set by staff members"
 msgstr ""
 
-#: resources/api/reservation.py:135 resources/api/reservation.py:149
+#: resources/api/reservation.py:153 resources/api/reservation.py:167
 #, python-format
 msgid "Invalid value in filter %(filter)s"
 msgstr "Virheellinen arvo filtterissä %(filter)s"
+
+#: resources/api/reservation.py:250 resources/models/reservation.py:77
+msgid "reservations"
+msgstr "varaukset"
+
+#: resources/api/reservation.py:256 resources/models/reservation.py:76
+msgid "reservation"
+msgstr "varaus"
 
 #: resources/apps.py:7
 msgid "Resource app"
@@ -227,17 +235,13 @@ msgstr "Loppuaika"
 msgid "Length of reservation"
 msgstr "Varauksen kesto"
 
+#: resources/models/reservation.py:26
+msgid "Comments"
+msgstr "Kommentit"
+
 #: resources/models/reservation.py:27
 msgid "User"
 msgstr "Käyttäjä"
-
-#: resources/models/reservation.py:76
-msgid "reservation"
-msgstr "varaus"
-
-#: resources/models/reservation.py:77
-msgid "reservations"
-msgstr "varaukset"
 
 #: resources/models/reservation.py:91
 msgid "You must end the reservation after it has begun"
@@ -511,14 +515,14 @@ msgstr "toimipisteen tunniste"
 msgid "unit identifiers"
 msgstr "toimipisteen tunnisteet"
 
-#: resources/models/utils.py:89
+#: resources/models/utils.py:93
 #, python-format
 msgid "%(count)d hour"
 msgid_plural "%(count)d hours"
 msgstr[0] "%(count)d tunti"
 msgstr[1] "%(count)d tuntia"
 
-#: resources/models/utils.py:90
+#: resources/models/utils.py:94
 #, python-format
 msgid "%(count)d minute"
 msgid_plural "%(count)d minutes"
