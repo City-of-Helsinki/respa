@@ -23,7 +23,7 @@ class Reservation(ModifiableModel):
     end = models.DateTimeField(verbose_name=_('End time'))
     duration = pgfields.DateTimeRangeField(verbose_name=_('Length of reservation'), null=True,
                                            blank=True, db_index=True)
-    comments = models.TextField(null=True, blank=True)
+    comments = models.TextField(null=True, blank=True, verbose_name=_('Comments'))
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('User'), null=True,
                              blank=True, db_index=True)
 

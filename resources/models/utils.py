@@ -2,6 +2,7 @@ import base64
 import datetime
 import struct
 import time
+import io
 
 import arrow
 from django.conf import settings
@@ -10,6 +11,9 @@ from django.utils.translation import ungettext
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.contrib.sites.models import Site
+from django.utils.translation import ugettext_lazy as _
+from django.utils.timezone import localtime
+import xlsxwriter
 
 
 DEFAULT_LANG = settings.LANGUAGES[0][0]
@@ -108,3 +112,49 @@ def send_respa_mail(user, subject, message):
                     'noreply@%s' % Site.objects.get_current().domain)
 
     send_mail(final_subject, final_message, from_address, [user.email])
+
+
+def generate_reservation_xlsx(reservations):
+    """
+    Return reservations in Excel xlsx format
+
+    The parameter is expected to be a list of dicts with fields:
+      * unit: unit name str
+      * resource: resource name str
+      * begin: begin time datetime
+      * end: end time datetime
+      * user: user email str (optional)
+      * comments: comments str (optional)
+
+    :rtype: bytes
+    """
+    output = io.BytesIO()
+    workbook = xlsxwriter.Workbook(output)
+    worksheet = workbook.add_worksheet()
+
+    headers = (
+        ('Unit', 30),
+        ('Resource', 30),
+        ('Begin time', 15),
+        ('End time', 15),
+        ('User', 30),
+        ('Comments', 30)
+    )
+    header_format = workbook.add_format({'bold': True})
+    for column, header in enumerate(headers):
+        worksheet.write(0, column, str(_(header[0])), header_format)
+        worksheet.set_column(column, column, header[1])
+
+    date_format = workbook.add_format({'num_format': 'dd.mm.yyyy hh:mm', 'align': 'left'})
+    for row, reservation in enumerate(reservations, 1):
+        worksheet.write(row, 0, reservation['unit'])
+        worksheet.write(row, 1, reservation['resource'])
+        worksheet.write(row, 2, localtime(reservation['begin']).replace(tzinfo=None), date_format)
+        worksheet.write(row, 3, localtime(reservation['end']).replace(tzinfo=None), date_format)
+        if 'user' in reservation:
+            worksheet.write(row, 4, reservation['user'])
+        if 'comments' in reservation:
+            worksheet.write(row, 5, reservation['comments'])
+    workbook.close()
+    return output.getvalue()
+
