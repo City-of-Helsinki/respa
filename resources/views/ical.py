@@ -61,7 +61,7 @@ class ICalFeedView(APIView):
             user = User.objects.get(ical_token=ical_token)
         except User.DoesNotExist:
             raise PermissionDenied
-        reservations = Reservation.objects.filter(user=user)
+        reservations = Reservation.objects.filter(user=user).active()
         ical_file = build_reservations_ical_file(reservations)
         response = Response(ical_file)
         return response
