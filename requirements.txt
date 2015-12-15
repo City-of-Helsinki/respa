@@ -21,6 +21,7 @@ django-autoslug==1.9.3
 djangorestframework-jwt==1.7.2
 django-hstore==1.4
 XlsxWriter==0.7.7
+icalendar==3.9.1
 ## The following requirements were added by pip freeze:
 argh==0.26.1
 defusedxml==0.4.1
