@@ -21,6 +21,7 @@ from django.utils.translation import ugettext_lazy
 
 from resources.api import RespaAPIRouter
 from resources.views.images import ResourceImageView
+from resources.views.ical import ICalFeedView
 
 # Text to put at the end of each page's <title>.
 admin_site.site_title = ugettext_lazy('RESPA Resource booking system')
@@ -39,6 +40,7 @@ urlpatterns = [
     url(r'^grappelli/', include('grappelli.urls')),
     url(r'^resource_image/(?P<pk>\d+)$', ResourceImageView.as_view(), name='resource-image-view'),
     url(r'^v1/', include(router.urls)),
+    url(r'^v1/reservation/ical/(?P<ical_token>[-\w\d]+).ics$', ICalFeedView.as_view(), name='ical-feed'),
 ]
 
 if settings.DEBUG:

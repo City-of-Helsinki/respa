@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from rest_framework import permissions, serializers, generics, mixins, viewsets
 
+from resources.views.ical import build_ical_feed_url
+
 
 all_views = []
 
@@ -14,14 +16,18 @@ def register_view(klass, name, base_name=None):
 
 class UserSerializer(serializers.ModelSerializer):
     display_name = serializers.ReadOnlyField(source='get_display_name')
+    ical_feed_url = serializers.SerializerMethodField()
 
     class Meta:
         fields = [
             'last_login', 'username', 'email', 'date_joined',
             'first_name', 'last_name', 'uuid', 'department_name',
-            'is_staff', 'display_name'
+            'is_staff', 'display_name', 'ical_feed_url',
         ]
         model = get_user_model()
+
+    def get_ical_feed_url(self, obj):
+        return build_ical_feed_url(obj.get_or_create_ical_token(), self.context['request'])
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
