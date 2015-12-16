@@ -4,7 +4,7 @@ import datetime
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient, APIRequestFactory
 
-from resources.models import Resource, ResourceType, Unit, Purpose
+from resources.models import Resource, ResourceType, Unit, Purpose, Day, Period
 from resources.models import Equipment, EquipmentAlias, ResourceEquipment, EquipmentCategory
 
 
@@ -55,7 +55,7 @@ def space_resource(space_resource_type):
 @pytest.mark.django_db
 @pytest.fixture
 def test_unit():
-    return Unit.objects.create(name="unit")
+    return Unit.objects.create(name="unit", time_zone='Europe/Helsinki')
 
 
 @pytest.mark.django_db
@@ -70,6 +70,40 @@ def resource_in_unit(space_resource_type, test_unit):
         max_period=datetime.timedelta(hours=2),
         reservable=True,
     )
+
+
+@pytest.mark.django_db
+@pytest.fixture
+def resource_with_opening_hours(resource_in_unit):
+    p1 = Period.objects.create(start=datetime.date(2115, 1, 1),
+                               end=datetime.date(2115, 12, 31),
+                               unit=resource_in_unit, name='regular hours')
+    for weekday in range(0, 7):
+        Day.objects.create(period=p1, weekday=weekday,
+                           opens=datetime.time(8, 0),
+                           closes=datetime.time(18, 0))
+
+
+@pytest.mark.django_db
+@pytest.fixture
+def exceptional_period(resource_with_opening_hours):
+    parent = resource_with_opening_hours.periods.first()
+    period = Period.objects.create(start='2115-01-10', end='2115-01-12',
+                                   unit=resource_with_opening_hours,
+                                   name='exceptional hours',
+                                   exceptional=True, parent=parent)
+
+    date = period.start
+    Day.objects.create(period=period, weekday=date.weekday(),
+                       closed=True)
+    date = date + datetime.timedelta(days=1)
+    Day.objects.create(period=period, weekday=date.weekday(),
+                       opens='12:00', closes='13:00')
+    date = date + datetime.timedelta(days=1)
+    Day.objects.create(period=period, weekday=date.weekday(),
+                       closed=True)
+
+    return period
 
 
 @pytest.mark.django_db

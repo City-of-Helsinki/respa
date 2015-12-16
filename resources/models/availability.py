@@ -1,20 +1,33 @@
 import datetime
 
 import arrow
+import pytz
 import django.contrib.postgres.fields as pgfields
 import django.db.models as dbm
+from django.db.models import Q
 from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.utils.dateformat import time_format
 from django.utils.translation import ugettext_lazy as _
 from psycopg2.extras import DateRange, NumericRange
 
-from .utils import time_to_dtz
 
 STATE_BOOLS = {False: _('open'), True: _('closed')}
 
 
-def get_opening_hours(periods, begin, end=None):
+def combine_datetime(date, time, tz):
+    return tz.localize(datetime.datetime.combine(date, time))
+
+
+def datetime_to_date(dt, tz):
+    if dt.tzinfo is None:
+        dt = tz.localize(dt)
+    else:
+        dt = dt.astimezone(tz)
+    return dt.date()
+
+
+def get_opening_hours(time_zone, periods, begin, end=None):
     """
     Returns opening and closing times for a given date range
 
@@ -24,75 +37,64 @@ def get_opening_hours(periods, begin, end=None):
 
     :rtype : dict[str, list[dict[str, datetime.datetime]]]
     :type periods: list[Period]
-    :type begin: datetime.date
+    :type begin: datetime.date | datetime.datetime
     :type end: datetime.date | None
     """
 
-    periods = periods.filter(start__lte=begin, end__gte=end).order_by('start', 'end')
+    tz = pytz.timezone(time_zone)
+    if begin is not None:
+        if isinstance(begin, datetime.datetime):
+            begin = datetime_to_date(begin, tz)
+        assert isinstance(begin, datetime.date)
+
+    if end is not None:
+        if isinstance(end, datetime.datetime):
+            end = datetime_to_date(end, tz)
+        assert isinstance(end, datetime.date)
+
+    if begin is None:
+        begin = tz.localize(datetime.datetime.now()).date()
+    if end is None:
+        end = begin
+
+    assert begin <= end
+
+    if begin == end:
+        d_range = DateRange(begin, end + datetime.timedelta(days=1))
+    else:
+        d_range = DateRange(begin, end)
+
+    # Periods are taken into account the shortest first.
+    periods = periods.filter(duration__overlap=d_range)\
+        .annotate(length=dbm.F('end')-dbm.F('start'))\
+        .order_by('length')
     days = Day.objects.filter(period__in=periods)
 
+    periods = list(periods)
     for period in periods:
-        period.range_days = [day for day in days if day.period == period]
+        period.range_days = {day.weekday: day for day in days if day.period == period}
 
-    periods = {per: [exper for exper in periods if exper.exception and exper.parent == per]
-               for per in periods if not per.exception}
-
-    begin_dt = datetime.datetime.combine(begin, datetime.time(0, 0))
-    if end:
-        end_dt = datetime.datetime.combine(end, datetime.time(0, 0))
-    else:
-        end_dt = begin_dt
-
-    assert begin_dt <= end_dt
-
-    # Generates a dict of time range's days as keys and values as active period's days
+    date = begin
     dates = {}
-    for period, exception_periods in periods.items():
+    while date <= end:
+        opens = None
+        closes = None
+        for period in periods:
+            if period.start > date or period.end < date:
+                continue
+            # Currently the 'closed' field of periods do not
+            # always contain sensible data. Ignore it for now.
+            if False and period.closed:
+                break
+            day = period.range_days.get(date.weekday())
+            if day is None or day.closed:
+                break
+            opens = combine_datetime(date, day.opens, tz)
+            closes = combine_datetime(date, day.closes, tz)
+            break
 
-        # Date range for periods needs to be given start and end days, but other periods get to keep their range
-        if period.start < begin_dt.date():
-            start = begin_dt
-        else:
-            start = arrow.get(period.start)
-        if period.end > end_dt.date():
-            end = end_dt
-        else:
-            end = arrow.get(period.end)
-
-        # For one period, generate all of its days and for given day, put its hours into the dict
-        for r in arrow.Arrow.range('day', start, end):
-            dates[r.date()] = [{'opens': time_to_dtz(day.opens, arr=r),
-                                'closes': time_to_dtz(day.closes, arr=r)}
-                               for day in period.range_days
-                               if day.weekday is r.weekday()]
-
-        if exception_periods:
-            # For period's exceptional periods, generate a new dict for those days
-            exception_dates = {}
-            for exception_period in exception_periods:
-                # Exceptions happen inside date range of their periods so same mulling of start and end days occur
-                if period.start < begin_dt.date():
-                    start = begin_dt
-                else:
-                    start = arrow.get(period.start)
-                if period.end > end_dt.date():
-                    end = end_dt
-                else:
-                    end = arrow.get(period.end)
-
-                # Updating dict of exceptional dates with current exception period's days
-                for r in arrow.Arrow.range('day', start, end):
-                    exception_dates[r.date()] = [{'opens': time_to_dtz(day.opens, arr=r),
-                                                  'closes': time_to_dtz(day.closes, arr=r)}
-                                                 for day in exception_period.range_days
-                                                 if day.weekday is r.weekday()]
-
-            # And override full day list with exceptions where applicable
-            dates.update(exception_dates)
-
-    # Old format for memory, does not quite cut it for resources with intermittent open/closed periods during one day
-    # These would be places that close for lunch, for instance
-    # date_list.append({'date': date.isoformat(), 'opens': opens, 'closes': closes})
+        dates[date] = [{'opens': opens, 'closes': closes}]
+        date += datetime.timedelta(days=1)
 
     return dates
 

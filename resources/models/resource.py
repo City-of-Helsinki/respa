@@ -21,6 +21,7 @@ from resources.errors import InvalidImage
 from .base import AutoIdentifiedModel, ModifiableModel
 from .utils import get_translated, get_translated_name, humanize_duration
 from .equipment import Equipment
+from .availability import get_opening_hours
 
 
 class ResourceType(ModifiableModel, AutoIdentifiedModel):
@@ -119,6 +120,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         if self.is_admin(user):
             return
 
+        tz = self.unit.get_tz()
         # check if data from serializer is present:
         if data:
             begin = data['begin']
@@ -128,11 +130,21 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             begin = reservation.begin
             end = reservation.end
 
+        if begin.tzinfo:
+            begin = begin.astimezone(tz)
+        else:
+            begin = tz.localize(begin)
+        if end.tzinfo:
+            end = end.astimezone(tz)
+        else:
+            end = tz.localize(end)
+
         if begin.date() != end.date():
             raise ValidationError(_("You cannot make a multi day reservation"))
+
         opening_hours = self.get_opening_hours(begin.date(), end.date())
         days = opening_hours.get(begin.date(), None)
-        if days is None or not any(begin >= day['opens'] and end <= day['closes'] for day in days):
+        if days is None or not any(day['opens'] and begin >= day['opens'] and end <= day['closes'] for day in days):
             raise ValidationError(_("You must start and end the reservation during opening hours"))
 
         if self.max_period and (end - begin) > self.max_period:
@@ -252,13 +264,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         else:
             periods = self.unit.periods
 
-        today = arrow.get()
-        if begin is None:
-            begin = today.floor('day').datetime
-        if end is None:
-            end = begin  # today.replace(days=+1).floor('day').datetime
-        from .availability import get_opening_hours
-        return get_opening_hours(periods, begin, end)
+        return get_opening_hours(self.unit.time_zone, periods, begin, end)
 
     def get_open_from_now(self, dt):
         """

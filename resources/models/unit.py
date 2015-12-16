@@ -10,6 +10,8 @@ from autoslug import AutoSlugField
 
 from .base import AutoIdentifiedModel, ModifiableModel
 from .utils import get_translated, get_translated_name
+from .availability import get_opening_hours
+
 
 class Unit(ModifiableModel, AutoIdentifiedModel):
     id = models.CharField(primary_key=True, max_length=50)
@@ -50,13 +52,10 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
         :type begin: datetime.date
         :type end: datetime.date
         """
-        today = arrow.get()
-        if begin is None:
-            begin = today.floor('day').datetime
-        if end is None:
-            end = begin  # today.replace(days=+1).floor('day').datetime
-        from .availability import get_opening_hours
-        return get_opening_hours(self.periods, begin, end)
+        return get_opening_hours(self.time_zone, self.periods, begin, end)
+
+    def get_tz(self):
+        return pytz.timezone(self.time_zone)
 
 
 class UnitIdentifier(models.Model):
