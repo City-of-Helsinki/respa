@@ -129,7 +129,7 @@ class Reservation(ModifiableModel):
         send_respa_mail(self.user, _('Reservation deleted'), mail_content)
 
     def save(self, *args, **kwargs):
-        self.duration = DateTimeTZRange(self.begin, self.end)
+        self.duration = DateTimeTZRange(self.begin, self.end, '[)')
         return super().save(*args, **kwargs)
 
     objects = ReservationQuerySet.as_manager()

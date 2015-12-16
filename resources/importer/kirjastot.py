@@ -34,7 +34,7 @@ class KirjastotImporter(Importer):
     name = "kirjastot"
 
     def import_units(self):
-        print("hrm")
+        raise Exception("Importer disabled until verified that it works")
         url = "http://api.kirjastot.fi/v2/search/libraries?consortium=helmet&with=periods"
         resp = requests.get(url)
         assert resp.status_code == 200
@@ -90,15 +90,8 @@ class KirjastotImporter(Importer):
             print("debug handling split period")
 
         for period in exceptional_periods:
-
-            if period.start == period.end:
-                # DateRange must end at least one day after its start
-                d_range = DateRange(period.start, period.end + datetime.timedelta(days=+1))
-            else:
-                d_range = DateRange(period.start, period.end)
-
+            d_range = DateRange(period.start, period.end, '[]')
             overlapping_periods = period.unit.periods.filter(duration__overlap=d_range)
-
             if len(overlapping_periods) == 1:
                 try:
                     self.save_period(period, parent=overlapping_periods[0])

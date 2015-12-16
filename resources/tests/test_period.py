@@ -97,7 +97,7 @@ def test_larger_exceptional_period(space_resource):
 @pytest.mark.django_db
 def test_exceptional_period_exceptioning_multiple_periods(space_resource):
     Period.objects.create(resource=space_resource, start=date(2015, 1, 1), end=date(2015, 7, 1), name="test1")
-    Period.objects.create(resource=space_resource, start=date(2015, 7, 1), end=date(2015, 12, 1), name="test2")
+    Period.objects.create(resource=space_resource, start=date(2015, 7, 2), end=date(2015, 12, 1), name="test2")
 
     with pytest.raises(ValidationError) as ei:
         Period(

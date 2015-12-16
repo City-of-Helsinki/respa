@@ -60,7 +60,7 @@ def get_opening_hours(time_zone, periods, begin, end=None):
     assert begin <= end
 
     if begin == end:
-        d_range = DateRange(begin, end + datetime.timedelta(days=1))
+        d_range = DateRange(begin, end, '[]')
     else:
         d_range = DateRange(begin, end)
 
@@ -129,24 +129,13 @@ class Period(models.Model):
         # FIXME: output date in locale-specific format
         return "{0}, {3}: {1:%d.%m.%Y} - {2:%d.%m.%Y}".format(self.name, self.start, self.end, STATE_BOOLS[self.closed])
 
-    # def save(self, *args, **kwargs):
-    #     if (self.resource is not None and self.unit is not None) or \
-    #             (self.resource is None and self.unit is None):
-    #         raise ValidationError(_("You must set either 'resource' or 'unit', but not both"))
-    #     if self.start and self.end:
-    #         if self.start == self.end:
-    #             # Range of 1 day must end on next day
-    #             self.duration = DateRange(self.start,
-    #                                       self.end + datetime.timedelta(days=+1))
-    #         else:
-    #             self.duration = DateRange(self.start, self.end)
-    #     return super(Period, self).save(*args, **kwargs)
-
-    def _validate_overlaps(self):
+    def _validate_overlaps(self, ignore_overlap):
         if self.resource:
             old_periods = self.resource.periods
         else:
             old_periods = self.unit.periods
+
+        old_periods = old_periods.exclude(pk=self.pk)
 
         # period has an end during the time range
         ends_during = dbm.Q(end__gte=self.start, end__lte=self.end)
@@ -162,18 +151,14 @@ class Period(models.Model):
 
         if self.start > self.end:
             raise ValidationError("Period must start before its end", code="invalid_date_range")
-        elif self.start == self.end:
-            # DateRange must end at least one day after its start
-            d_range = DateRange(self.start, self.end + datetime.timedelta(days=+1))
-        else:
-            d_range = DateRange(self.start, self.end)
 
-        overlapping_periods = old_periods.filter(duration__overlap=d_range).exclude(pk=self.pk)
+        d_range = DateRange(self.start, self.end, '[]')
+        overlapping_periods = old_periods.filter(duration__overlap=d_range)
 
         #  Validate periods are not overlapping regular or exceptional periods
         if self.exception:
             overlapping_exceptions = overlapping_periods.filter(exception=True)
-            if overlapping_exceptions:
+            if overlapping_exceptions and not ignore_overlap:
                 raise ValidationError(
                     "There is already an exceptional period on these dates",
                     code="multiple_exceptions"
@@ -204,7 +189,7 @@ class Period(models.Model):
                 raise ValidationError("Somehow exceptional period is too exceptional")
         else:
             self.parent = None  # Not an exception? Reset any parentage
-            if overlapping_periods.filter(exception=False):
+            if not ignore_overlap and overlapping_periods.filter(exception=False):
                 raise ValidationError("There is already a period on these dates", code="overlap")
 
     def _validate_belonging(self):
@@ -221,22 +206,18 @@ class Period(models.Model):
         else:  # Unsaved period, thus has no days, thus is closed.
             self.closed = True
 
-    def clean(self):
+    def clean(self, ignore_overlap=False):
         super(Period, self).clean()
         self._validate_belonging()
-        self._validate_overlaps()
+        self._validate_overlaps(ignore_overlap=ignore_overlap)
         self._check_closed()
 
     def save(self, *args, **kwargs):
         # Periods are either regular and stand alone or exceptions to regular period and must have a relation to it
 
-        self.clean()
-
-        if self.start == self.end:
-            # Range of 1 day must end on next day
-            self.duration = DateRange(self.start, self.end + datetime.timedelta(days=+1))
-        else:
-            self.duration = DateRange(self.start, self.end)
+        ignore_overlap = kwargs.pop('ignore_overlap', False)
+        self.clean(ignore_overlap=ignore_overlap)
+        self.duration = DateRange(self.start, self.end, '[]')
 
         return super(Period, self).save(*args, **kwargs)
 
