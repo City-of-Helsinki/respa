@@ -2,29 +2,30 @@ language: python
 
 python:
 - '3.4'
-
-sudo: false
-cache:
-  directories:
-    - $HOME/.cache/pip
-
 env:
 - DJANGO=Django>=1.8
+addons:
+  postgresql: "9.4"
+
+sudo: false
+
+cache:
+  directories:
+  - $HOME/.cache/pip
+before_cache:
+- rm -f $HOME/.cache/pip/log/debug.log
 
 install:
-- pip install coveralls -r requirements.txt --use-mirrors
+- pip install --upgrade pip
+- pip install coveralls -r requirements.txt
 
 before_script:
   - psql template1 -c 'create extension hstore;'
 
 script: py.test resources
 
-addons:
-  postgresql: "9.4"
-
 notifications:
   slack:
     secure: gm6+6ekPIw0WcNuul94MoAzsAJ1/rlP0++UdnB01uf5boXIJiQjKZn+BVyhpMX1CN3KQFyf2tXEsMj2AY8IEF0YzJJXc9+ae70p+5OQXInLUcea7SZJ/7q7Tuw2AJoXUxbDmoto83N828waEIdWjCKW5qCxM248+FG9wKNipkjswv/obASOBzlhGQ67kzRaUpCsCHYlpbgxhlg1lPZs32vKL9YOtjCjyCerxnE+SIomANE+djpd8eGFUz90SEcfR5ypGHeuIic4xsX6VhGHyzevfgEix5aq3QDiNSbH8GWClyMeiU82ov3dEsRvMheRH9vRYl6xzdKuAgWRfW61biApki8sPn2w7W6AMtD0MaHMNi3QsQVW4z0saKNICtvi7ZQXtw8DvajEYLn1GuyF6hBUh9LEoqFXN52HlBVjZ/0XnCPyCdyQy03u3pOxz/OQ1/9gOH2SQMkQUqMYbiHeELXg4KHnPpvfgNBmFAA8WybbAzLXAqF2/67nMiNOi1a0oHOMfHlEAFnxITzYcU4eQxfapHHzXdfObZXwcna7T6RXdCVEX5LmOUN35oJkKe4y4T3ngumD8thbVX07HDYrbAaeE85JoT5ok5xe7WHimf2XTuOUNogNALnsop19EROrHcRB6d88BluVoS5S3e6uS7SliUCjH2HqMkDMR0T5zRy0=
 
-after_success:
-  coveralls
+after_success: coveralls
