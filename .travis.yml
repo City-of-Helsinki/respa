@@ -3,6 +3,11 @@ language: python
 python:
 - '3.4'
 
+sudo: false
+cache:
+  directories:
+    - $HOME/.cache/pip
+
 env:
 - DJANGO=Django>=1.8
 
