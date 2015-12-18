@@ -1,5 +1,5 @@
 Django
-django-modeltranslation
+django-modeltranslation>=0.11rc2
 psycopg2
 -e git+https://github.com/City-of-Helsinki/munigeo#egg=django-munigeo
 djangorestframework
@@ -23,3 +23,4 @@ pyjwt
 django-hstore
 XlsxWriter
 icalendar
+pip-tools
