@@ -99,7 +99,7 @@ class Reservation(ModifiableModel):
                 raise ValidationError(_("Begin and end time must match time slots"))
 
         original_reservation = self if self.pk else kwargs.get('original_reservation', None)
-        if not self.resource.is_available(self.begin, self.end, original_reservation):
+        if self.resource.check_reservation_collision(self.begin, self.end, original_reservation):
             raise ValidationError(_("The resource is already reserved for some of the period"))
 
         if (self.end - self.begin) < self.resource.min_period:

@@ -169,24 +169,11 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             if reservation_count >= max_count:
                 raise ValidationError(_("Maximum number of active reservations for this resource exceeded."))
 
-    def is_available(self, begin, end, reservation=None):
-        """
-        Returns whether the resource is available between the two datetimes
-
-        Will also return true when the resource is closed, if it is not reserved.
-        The optional reservation argument is for disregarding a given
-        reservation.
-
-        :rtype : bool
-        :type begin: datetime.datetime
-        :type end: datetime.datetime
-        :type reservation: Reservation
-        """
-        hours = self.get_available_hours(begin, end, reservation=reservation)
-        if hours:
-            if begin == hours[0]['starts'] and end == hours[0]['ends']:
-                return True
-        return False
+    def check_reservation_collision(self, begin, end, reservation):
+        overlapping = self.reservations.filter(end__gt=begin, begin__lt=end)
+        if reservation:
+            overlapping = overlapping.exclude(pk=reservation.pk)
+        return overlapping.exists()
 
     def get_available_hours(self, start=None, end=None, duration=None, reservation=None):
         """
