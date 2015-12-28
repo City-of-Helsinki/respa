@@ -96,7 +96,7 @@ class ReservationApiTestCase(APITestCase, JWTMixin):
         Day.objects.create(period=today, weekday=start.weekday(), opens='08:00', closes='22:00')
 
         # Check that available *and* opening hours are reported correctly for a free resource
-        url = '/v1/resource/r1a/?start=' + start.isoformat().replace('+', '%2b') + '&end=' + end.isoformat().replace('+', '%2b')
+        url = '/v1/resource/r1a/?start=' + start.isoformat().replace('+', '%2b') + '&end=' + end.isoformat().replace('+', '%2b') + '&during_closing=true'
         response = self.client.get(url)
 
         # eest_start = start.to(tz="Europe/Helsinki")
@@ -114,7 +114,7 @@ class ReservationApiTestCase(APITestCase, JWTMixin):
         self.assertContains(response, '"resource":"r1a"', status_code=201)
 
         # Check that available hours are reported correctly for a reserved resource
-        url = '/v1/resource/r1a/?start=' + start.isoformat().replace('+', '%2b') + '&end=' + end.isoformat().replace('+', '%2b')
+        url = '/v1/resource/r1a/?start=' + start.isoformat().replace('+', '%2b') + '&end=' + end.isoformat().replace('+', '%2b') + '&during_closing=true'
         response = self.client.get(url)
         print("res after reservation", response.content)
         print("res debug", res_start, res_end)
@@ -174,13 +174,13 @@ class AvailableAPITestCase(APITestCase, JWTMixin):
         Day.objects.create(period=today, weekday=start.weekday(), opens='08:00', closes='22:00')
 
         # Check that the resource is available for all-day fun-having
-        url = '/v1/resource/?purpose=having_fun&duration=1440&start=' + start.isoformat().replace('+', '%2b') + '&end=' + end.isoformat().replace('+', '%2b')
+        url = '/v1/resource/?purpose=having_fun&duration=1440&start=' + start.isoformat().replace('+', '%2b') + '&end=' + end.isoformat().replace('+', '%2b') + '&during_closing=true'
         response = self.client.get(url)
         print("availability response ", response.content)
         self.assertContains(response, 'r1a')
 
         # Check that the duration cannot be longer than the datetimes specified
-        url = '/v1/resource/?purpose=having_fun&duration=1450&start=' + start.isoformat().replace('+', '%2b') + '&end=' + end.isoformat().replace('+', '%2b')
+        url = '/v1/resource/?purpose=having_fun&duration=1450&start=' + start.isoformat().replace('+', '%2b') + '&end=' + end.isoformat().replace('+', '%2b') + '&during_closing=true'
         response = self.client.get(url)
         print("availability response ", response.content)
         self.assertNotContains(response, 'r1a')
@@ -195,7 +195,7 @@ class AvailableAPITestCase(APITestCase, JWTMixin):
         self.assertContains(response, '"resource":"r1a"', status_code=201)
 
         # Check that available hours are reported correctly for a reserved resource
-        url = '/v1/resource/?purpose=having_fun&start=' + start.isoformat().replace('+', '%2b') + '&end=' + end.isoformat().replace('+', '%2b')
+        url = '/v1/resource/?purpose=having_fun&start=' + start.isoformat().replace('+', '%2b') + '&end=' + end.isoformat().replace('+', '%2b') + '&during_closing=true'
         response = self.client.get(url)
         print("resource after reservation", response.content)
         print("reservation debug", res_start, res_end)
@@ -203,13 +203,13 @@ class AvailableAPITestCase(APITestCase, JWTMixin):
         self.assertContains(response, '"ends":"' + (res_end + datetime.timedelta(hours=14)).isoformat())
 
         # Check that all-day fun is no longer to be had
-        url = '/v1/resource/?purpose=having_fun&duration=1440&start=' + start.isoformat().replace('+', '%2b') + '&end=' + end.isoformat().replace('+', '%2b')
+        url = '/v1/resource/?purpose=having_fun&duration=1440&start=' + start.isoformat().replace('+', '%2b') + '&end=' + end.isoformat().replace('+', '%2b') + '&during_closing=true'
         response = self.client.get(url)
         print("availability response ", response.content)
         self.assertNotContains(response, 'r1a')
 
         # Check that our intrepid tester can still have fun for a more limited amount of time
-        url = '/v1/resource/?purpose=having_fun&duration=720&start=' + start.isoformat().replace('+', '%2b') + '&end=' + end.isoformat().replace('+', '%2b')
+        url = '/v1/resource/?purpose=having_fun&duration=720&start=' + start.isoformat().replace('+', '%2b') + '&end=' + end.isoformat().replace('+', '%2b') + '&during_closing=true'
         response = self.client.get(url)
         print("availability response ", response.content)
         self.assertContains(response, 'r1a')

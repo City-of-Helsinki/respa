@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  version: 0.2.0
+  version: 0.3.0
   title: 'Respa'
   description: 'Resource reservation system for City of Helsinki'
 host: api.hel.fi
@@ -380,6 +380,11 @@ paths:
           description: Use together with `start` and `end`. Only return resources that are free for a consecutive period of `duration` minutes within the specified interval.
           required: false
           type: number
+        - name: during_closing
+          in: query
+          description: Use together with `start` and `end`. Include resources that are free but closed within the specified interval.
+          required: false
+          type: boolean
         - name: people
           in: query
           description: Only return resources with greater or equal capacity

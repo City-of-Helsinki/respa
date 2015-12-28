@@ -129,6 +129,11 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
         if 'duration' in params:
             times['duration'] = params['duration']
 
+        if 'during_closing' in params:
+            during_closing = params['during_closing'].lower()
+            if during_closing == 'true' or during_closing == 'yes' or during_closing == '1':
+                times['during_closing'] = True
+
         if len(times):
             if len(times) < 2:
                 raise exceptions.ParseError("You must supply both 'start' and 'end'")
@@ -179,9 +184,15 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
         except KeyError:
             duration = None
 
+        try:
+            during_closing = self.context['during_closing']
+        except KeyError:
+            during_closing = False
+
         hour_list = obj.get_available_hours(start=self.context['start'],
                                             end=self.context['end'],
-                                            duration=duration)
+                                            duration=duration,
+                                            during_closing=during_closing)
         # the hours must be localized when serializing
         for hours in hour_list:
             hours['starts'] = hours['starts'].astimezone(zone)

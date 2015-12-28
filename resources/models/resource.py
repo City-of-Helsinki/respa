@@ -175,11 +175,11 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             overlapping = overlapping.exclude(pk=reservation.pk)
         return overlapping.exists()
 
-    def get_available_hours(self, start=None, end=None, duration=None, reservation=None):
+    def get_available_hours(self, start=None, end=None, duration=None, reservation=None, during_closing=False):
         """
         Returns hours that the resource is not reserved for a given date range
 
-        Will also return hours when the resource is closed, if it is not reserved.
+        If include_closed=True, will also return hours when the resource is closed, if it is not reserved.
         This is so that admins can book resources during closing hours. Returns
         the available hours as a list of dicts. The optional reservation argument
         is for disregarding a given reservation during checking, if we wish to
@@ -191,6 +191,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         :type end: datetime.datetime
         :type duration: datetime.timedelta
         :type reservation: Reservation
+        :type during_closing: bool
         """
         today = arrow.get(timezone.now())
         if start is None:
@@ -204,6 +205,27 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             tz = timezone.get_current_timezone()
             start = tz.localize(start)
             end = tz.localize(end)
+
+        if not during_closing:
+            """
+            Check open hours only
+            """
+            open_hours = self.get_opening_hours(start, end)
+            hours_list = []
+            for date, open_during_date in open_hours.items():
+                for period in open_during_date:
+                    if period['opens']:
+                        # if the start or end straddle opening hours
+                        opens = period['opens'] if period['opens'] > start else start
+                        closes = period['closes'] if period['closes'] < end else end
+                        # include_closed to prevent recursion, opening hours need not be rechecked
+                        hours_list.extend(self.get_available_hours(start=opens,
+                                                                   end=closes,
+                                                                   duration=duration,
+                                                                   reservation=reservation,
+                                                                   during_closing=True))
+            return hours_list
+
         reservations = self.reservations.filter(
             end__gte=start, begin__lte=end).order_by('begin')
         hours_list = [({'starts': start})]
