@@ -5,8 +5,12 @@ import arrow
 import django_filters
 import pytz
 from arrow.parser import ParserError
+
 from django import forms
+from django.db.models import Q
 from django.core.urlresolvers import reverse
+from django.contrib.gis.db.models.functions import Distance
+from django.contrib.gis.geos import Point
 from rest_framework import exceptions, filters, mixins, serializers, viewsets
 
 from munigeo import api as munigeo_api
@@ -103,6 +107,12 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
             # resource is already serialized
             return obj
         ret = super().to_representation(obj)
+        if hasattr(obj, 'distance'):
+            if obj.distance is not None:
+                ret['distance'] = int(obj.distance.m)
+            elif obj.unit_distance is not None:
+                ret['distance'] = int(obj.unit_distance.m)
+
         return ret
 
     def get_location(self, obj):
@@ -214,7 +224,7 @@ class ParentFilter(django_filters.Filter):
 
     def filter(self, qs, value):
         child_matches = super().filter(qs, value)
-        self.name=self.name.replace('__id', '__parent__id')
+        self.name = self.name.replace('__id', '__parent__id')
         parent_matches = super().filter(qs, value)
         return child_matches | parent_matches
 
@@ -233,7 +243,7 @@ class ResourceFilterSet(django_filters.FilterSet):
         fields = ['purpose', 'type', 'people']
 
 
-class AvailableFilterBackEnd(filters.BaseFilterBackend):
+class AvailableFilterBackend(filters.BaseFilterBackend):
     """
     Filters resource availability based on request parameters, requiring
     serializing.
@@ -254,10 +264,44 @@ class AvailableFilterBackEnd(filters.BaseFilterBackend):
         return queryset
 
 
-class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin, viewsets.GenericViewSet):
+class LocationFilterBackend(filters.BaseFilterBackend):
+    """
+    Filters based on resource (or resource unit) location.
+    """
+
+    def filter_queryset(self, request, queryset, view):
+        query_params = request.query_params
+        if 'lat' not in query_params and 'lon' not in query_params:
+            return queryset
+
+        try:
+            lat = float(query_params['lat'])
+            lon = float(query_params['lon'])
+        except ValueError:
+            raise exceptions.ParseError("'lat' and 'lon' need to be floating point numbers")
+        point = Point(lon, lat, srid=4326)
+        queryset = queryset.annotate(distance=Distance('location', point))
+        queryset = queryset.annotate(unit_distance=Distance('unit__location', point))
+        queryset = queryset.order_by('distance', 'unit_distance')
+
+        if 'distance' in query_params:
+            try:
+                distance = float(query_params['distance'])
+                if not distance > 0:
+                    raise ValueError()
+            except ValueError:
+                raise exceptions.ParseError("'distance' needs to be a floating point number")
+            q = Q(location__distance_lte=(point, distance)) | Q(unit__location__distance_lte=(point, distance))
+            queryset = queryset.filter(q)
+        return queryset
+
+
+class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
+                          viewsets.GenericViewSet):
     queryset = Resource.objects.all()
     serializer_class = ResourceSerializer
-    filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend, AvailableFilterBackEnd)
+    filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend,
+                       AvailableFilterBackend, LocationFilterBackend)
     filter_class = ResourceFilterSet
     search_fields = ('name', 'description', 'unit__name')
 

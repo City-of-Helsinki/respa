@@ -1,6 +1,7 @@
 import json
 import pytest
 from django.core.urlresolvers import reverse
+from django.contrib.gis.geos import Point
 
 from .utils import check_only_safe_methods_allowed
 
@@ -96,3 +97,58 @@ def test_non_public_resource_visibility(api_client, resource_in_unit, user):
     url = reverse('resource-detail', kwargs={'pk': resource_in_unit.pk})
     response = api_client.get(url)
     assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_api_resource_geo_queries(api_client, resource_in_unit):
+    id_base = resource_in_unit.pk
+    res = resource_in_unit
+
+    res.location = None
+    res.save()
+
+    res.pk = id_base + "r2"
+    res.location = Point(24, 60, srid=4326)
+    res.save()
+
+    res.pk = id_base + "r3"
+    res.location = Point(25, 60, srid=4326)
+    res.save()
+
+    unit = resource_in_unit.unit
+    unit.location = None
+    unit.save()
+
+    unit.pk = unit.pk + "u2"
+    unit.location = Point(24, 61, srid=4326)
+    unit.save()
+    res.pk = id_base + "r4"
+    res.location = None
+    res.unit = unit
+    res.save()
+
+    base_url = reverse('resource-list')
+
+    response = api_client.get(base_url)
+    assert response.data['count'] == 4
+    results = response.data['results']
+    assert 'distance' not in results[0]
+
+    url = base_url + '?lat=60&lon=24'
+    response = api_client.get(url)
+    assert response.data['count'] == 4
+    results = response.data['results']
+    assert results[0]['id'].endswith('r2')
+    assert results[0]['distance'] == 0
+    assert results[1]['id'].endswith('r3')
+    assert results[1]['distance'] == 55597
+    assert results[2]['distance'] == 111195
+    assert 'distance' not in results[3]
+
+    # Check that location is inherited from the resource's unit
+    url = base_url + '?lat=61&lon=25&distance=100000'
+    response = api_client.get(url)
+    assert response.data['count'] == 1
+    results = response.data['results']
+    assert results[0]['id'].endswith('r4')
+    assert results[0]['distance'] == 53907
