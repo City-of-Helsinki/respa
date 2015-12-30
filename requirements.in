@@ -24,3 +24,4 @@ django-hstore
 XlsxWriter
 icalendar
 pip-tools
+fake-factory

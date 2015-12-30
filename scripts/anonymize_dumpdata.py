@@ -5,16 +5,18 @@ import json
 from faker import Factory
 from faker.providers.person.fi_FI import Provider as PersonProvider
 
+fake = Factory.create('fi_FI')
+
+email_by_user = {}
 
 def anonymize_users(users):
-    fake = Factory.create('fi_FI')
     usernames = set()
     emails = set()
-    for user in users:
-        if user['model'] != 'users.user':
+    for data in users:
+        if data['model'] != 'users.user':
             continue
 
-        user = user['fields']
+        user = data['fields']
 
         user['password'] = "!"
         username = fake.user_name()
@@ -28,8 +30,25 @@ def anonymize_users(users):
         if user['last_name']:
             user['last_name'] = fake.last_name()
         user['email'] = fake.email()
+        email_by_user[data['pk']] = user['email']
 
+
+def remove_secrets(data):
+    for model in data:
+        fields = model['fields']
+        if model['model'] == 'socialaccount.socialapp':
+            fields['client_id'] = fake.md5()
+            fields['secret'] = fake.md5()
+        elif model['model'] == 'socialaccount.socialapp':
+            fields['token_secret'] = fake.md5()
+            fields['token'] = fake.md5()
+        elif model['model'] == 'account.emailaddress':
+            fields['email'] = email_by_user[fields['user']]
+        elif model['model'] == 'sessions.session':
+            fields['session_data'] = "!"
+            model['pk'] = fake.md5()
 
 data = json.load(sys.stdin)
 anonymize_users(data)
-json.dump(data, sys.stdout)
+remove_secrets(data)
+json.dump(data, sys.stdout, indent=4)
