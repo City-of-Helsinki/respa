@@ -245,8 +245,8 @@ class ResourceFilterSet(django_filters.FilterSet):
 
 class AvailableFilterBackend(filters.BaseFilterBackend):
     """
-    Filters resource availability based on request parameters, requiring
-    serializing.
+    Filters resource availability based on request parameters, serializing the queryset
+    in the process. Therefore, AvailableFilterBackend must always be the final filter.
     """
 
     def filter_queryset(self, request, queryset, view):
@@ -301,7 +301,7 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
     queryset = Resource.objects.all()
     serializer_class = ResourceSerializer
     filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend,
-                       AvailableFilterBackend, LocationFilterBackend)
+                       LocationFilterBackend, AvailableFilterBackend)
     filter_class = ResourceFilterSet
     search_fields = ('name', 'description', 'unit__name')
 
