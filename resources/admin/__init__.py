@@ -5,7 +5,7 @@ from image_cropping import ImageCroppingMixin
 from modeltranslation.admin import TranslationAdmin, TranslationStackedInline
 from .base import CommonExcludeMixin, PopulateCreatedAndModifiedMixin
 from resources.admin.period_inline import PeriodInline
-from resources.models import Day, Reservation, Resource, ResourceImage, ResourceType, Unit
+from resources.models import Day, Reservation, Resource, ResourceImage, ResourceType, Unit, Purpose
 from resources.models import Equipment, ResourceEquipment, EquipmentAlias, EquipmentCategory
 
 
@@ -77,10 +77,15 @@ class EquipmentCategoryAdmin(PopulateCreatedAndModifiedMixin, TranslationAdmin):
     pass
 
 
+class PurposeAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):
+    pass
+
+
 admin_site.register(ResourceImage, ResourceImageAdmin)
 admin_site.register(Resource, ResourceAdmin)
 admin_site.register(Reservation, ReservationAdmin)
 admin_site.register(ResourceType, ResourceTypeAdmin)
+admin_site.register(Purpose, PurposeAdmin)
 admin_site.register(Day)
 admin_site.register(Unit, UnitAdmin)
 admin_site.register(Equipment, EquipmentAdmin)
