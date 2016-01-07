@@ -33,6 +33,12 @@ class PurposeViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PurposeSerializer
     paginate_by = 50
 
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return self.queryset
+        else:
+            return self.queryset.filter(public=True)
+
 register_view(PurposeViewSet, 'purpose')
 
 

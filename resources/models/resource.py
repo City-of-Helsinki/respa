@@ -46,6 +46,7 @@ class Purpose(ModifiableModel):
     id = models.CharField(primary_key=True, max_length=100)
     parent = models.ForeignKey('Purpose', verbose_name=_('Parent'), null=True, blank=True, related_name="children")
     name = models.CharField(verbose_name=_('Name'), max_length=200)
+    public = models.BooleanField(default=True, verbose_name=_('Public'))
 
     class Meta:
         verbose_name = _("purpose")
