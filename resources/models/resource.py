@@ -18,7 +18,7 @@ from django_hstore import hstore
 
 from resources.errors import InvalidImage
 
-from .base import AutoIdentifiedModel, ModifiableModel
+from .base import AutoIdentifiedModel, NameIdentifiedModel, ModifiableModel
 from .utils import get_translated, get_translated_name, humanize_duration
 from .equipment import Equipment
 from .availability import get_opening_hours
@@ -42,7 +42,7 @@ class ResourceType(ModifiableModel, AutoIdentifiedModel):
         return "%s (%s)" % (get_translated(self, 'name'), self.id)
 
 
-class Purpose(ModifiableModel):
+class Purpose(ModifiableModel, NameIdentifiedModel):
     id = models.CharField(primary_key=True, max_length=100)
     parent = models.ForeignKey('Purpose', verbose_name=_('Parent'), null=True, blank=True, related_name="children")
     name = models.CharField(verbose_name=_('Name'), max_length=200)
