@@ -28,6 +28,7 @@ class ResourceImageTranslationOptions(TranslationOptions):
 @register(Purpose)
 class PurposeTranslationOptions(TranslationOptions):
     fields = ('name',)
+    required_languages = ('fi', 'en')
 
 
 @register(Equipment)
