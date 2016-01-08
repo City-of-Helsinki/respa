@@ -243,10 +243,11 @@ class ResourceFilterSet(django_filters.FilterSet):
     purpose = ParentCharFilter(name="purposes__id", lookup_type='iexact')
     type = django_filters.CharFilter(name="type__id", lookup_type='iexact')
     people = django_filters.NumberFilter(name="people_capacity", lookup_type='gte')
+    need_manual_confirmation = django_filters.BooleanFilter(name="need_manual_confirmation", widget=django_filters.widgets.BooleanWidget)
 
     class Meta:
         model = Resource
-        fields = ['purpose', 'type', 'people']
+        fields = ['purpose', 'type', 'people', 'need_manual_confirmation']
 
 
 class AvailableFilterBackend(filters.BaseFilterBackend):

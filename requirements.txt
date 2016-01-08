@@ -14,7 +14,7 @@ django-allauth==0.24.1
 django-appconf==1.0.1     # via django-image-cropping
 django-autoslug==1.9.3
 django-cors-headers==1.1.0
-django-filter==0.11.0
+django-filter==0.12.0
 django-grappelli==2.7.2
 django-hstore==1.4.1
 django-image-cropping==1.0.3
