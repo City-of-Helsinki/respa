@@ -11,6 +11,7 @@ from django.db.models import Q
 from django.core.urlresolvers import reverse
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
+from resources.pagination import PurposePagination
 from rest_framework import exceptions, filters, mixins, serializers, viewsets
 
 from munigeo import api as munigeo_api
@@ -31,7 +32,7 @@ class PurposeSerializer(TranslatedModelSerializer):
 class PurposeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Purpose.objects.all()
     serializer_class = PurposeSerializer
-    paginate_by = 50
+    pagination_class = PurposePagination
 
     def get_queryset(self):
         if self.request.user.is_staff:
