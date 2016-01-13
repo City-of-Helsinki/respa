@@ -239,15 +239,19 @@ class ParentFilter(django_filters.Filter):
 class ParentCharFilter(ParentFilter):
     field_class = forms.CharField
 
+class DRFFilterBooleanWidget(django_filters.widgets.BooleanWidget):
+    def render(self, *args, **kwargs):
+        return None
 
 class ResourceFilterSet(django_filters.FilterSet):
     purpose = ParentCharFilter(name="purposes__id", lookup_type='iexact')
     type = django_filters.CharFilter(name="type__id", lookup_type='iexact')
     people = django_filters.NumberFilter(name="people_capacity", lookup_type='gte')
+    need_manual_confirmation = django_filters.BooleanFilter(name="need_manual_confirmation", widget=DRFFilterBooleanWidget)
 
     class Meta:
         model = Resource
-        fields = ['purpose', 'type', 'people']
+        fields = ['purpose', 'type', 'people', 'need_manual_confirmation']
 
 
 class AvailableFilterBackend(filters.BaseFilterBackend):
