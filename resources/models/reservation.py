@@ -18,6 +18,17 @@ class ReservationQuerySet(models.QuerySet):
 
 
 class Reservation(ModifiableModel):
+    CANCELLED = 'cancelled'
+    CONFIRMED = 'confirmed'
+    DENIED = 'denied'
+    REQUESTED = 'requested'
+    STATE_CHOICES = (
+        (CANCELLED, _('cancelled')),
+        (CONFIRMED, _('confirmed')),
+        (DENIED, _('denied')),
+        (REQUESTED, _('requested')),
+    )
+
     resource = models.ForeignKey('Resource', verbose_name=_('Resource'), db_index=True, related_name='reservations')
     begin = models.DateTimeField(verbose_name=_('Begin time'))
     end = models.DateTimeField(verbose_name=_('End time'))
@@ -26,6 +37,7 @@ class Reservation(ModifiableModel):
     comments = models.TextField(null=True, blank=True, verbose_name=_('Comments'))
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('User'), null=True,
                              blank=True, db_index=True)
+    state = models.CharField(max_length=16, choices=STATE_CHOICES, verbose_name=_('State'), default=CONFIRMED)
 
     def _save_dt(self, attr, dt):
         """
