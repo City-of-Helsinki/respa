@@ -603,3 +603,34 @@ def test_reservation_excels(staff_api_client, list_url, detail_url, reservation,
     assert response._headers['content-disposition'] == (
         'Content-Disposition', 'attachment; filename=reservation-{}.xlsx'.format(reservation.pk))
     assert len(response.content) > 0
+
+
+@pytest.mark.parametrize('need_manual_confirmation, expected_state', [
+    (False, Reservation.CONFIRMED),
+    (True, Reservation.REQUESTED)
+])
+@pytest.mark.django_db
+def test_state_on_new_reservations(user_api_client, list_url, reservation_data, resource_in_unit,
+                                   need_manual_confirmation, expected_state):
+    resource_in_unit.need_manual_confirmation = need_manual_confirmation
+    resource_in_unit.save()
+    response = user_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201
+    reservation = Reservation.objects.latest('created_at')
+    assert reservation.state == expected_state
+
+
+@pytest.mark.parametrize('state', [
+    'illegal_state',
+    '',
+    None,
+])
+@pytest.mark.django_db
+def test_illegal_state_set(user_api_client, list_url, detail_url, reservation_data, state):
+    reservation_data['state'] = state
+    response = user_api_client.post(list_url, data=reservation_data, format='json')
+    assert response.status_code == 400
+    assert 'state' in response.data
+    response = user_api_client.put(detail_url, data=reservation_data, format='json')
+    assert response.status_code == 400
+    assert 'state' in response.data

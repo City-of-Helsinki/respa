@@ -54,10 +54,11 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
     end = NullableDateTimeField()
     user = UserSerializer(required=False)
     is_own = serializers.SerializerMethodField()
+    state = serializers.ChoiceField(choices=Reservation.STATE_CHOICES, required=False)
 
     class Meta:
         model = Reservation
-        fields = ['url', 'id', 'resource', 'user', 'begin', 'end', 'comments', 'is_own']
+        fields = ['url', 'id', 'resource', 'user', 'begin', 'end', 'comments', 'is_own', 'state']
 
     def validate(self, data):
         # if updating a reservation, its identity must be provided to validator
@@ -229,6 +230,10 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
         kwargs = {'created_by': self.request.user, 'modified_by': self.request.user}
         if 'user' not in serializer.validated_data:
             kwargs['user'] = self.request.user
+        if serializer.validated_data['resource'].need_manual_confirmation:
+            kwargs['state'] = Reservation.REQUESTED
+        else:
+            kwargs['state'] = Reservation.CONFIRMED
         instance = serializer.save(**kwargs)
         if instance.user != self.request.user:
             instance.send_created_by_admin_mail()
