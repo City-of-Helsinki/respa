@@ -12,6 +12,12 @@ from .base import ModifiableModel
 from .utils import get_dt, save_dt, is_valid_time_slot, humanize_duration, send_respa_mail
 
 
+RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street', 'reserver_address_zip',
+                            'reserver_address_city', 'billing_address_street',  'billing_address_zip',
+                            'billing_address_city', 'company', 'event_description', 'business_id',
+                            'number_of_participants')
+
+
 class ReservationQuerySet(models.QuerySet):
     def active(self):
         return self.filter(end__gte=timezone.now())

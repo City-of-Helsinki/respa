@@ -12,8 +12,9 @@ from rest_framework.exceptions import NotAcceptable
 
 from munigeo import api as munigeo_api
 from resources.models import Reservation, Resource
+from resources.models.reservation import RESERVATION_EXTRA_FIELDS
 from users.models import User
-from resources.models.utils import generate_reservation_xlsx
+from resources.models.utils import generate_reservation_xlsx, get_object_or_none
 
 from .base import NullableDateTimeField, TranslatedModelSerializer, register_view
 
@@ -58,7 +59,30 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
 
     class Meta:
         model = Reservation
-        fields = ['url', 'id', 'resource', 'user', 'begin', 'end', 'comments', 'is_own', 'state']
+        fields = ['url', 'id', 'resource', 'user', 'begin', 'end', 'comments', 'is_own', 'state'] + list(
+            RESERVATION_EXTRA_FIELDS
+        )
+        read_only_fields = RESERVATION_EXTRA_FIELDS
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        data = self.get_initial()
+        resource = None
+
+        # try to find out the related resource using initial data if that is given
+        resource_id = data.get('resource') if data else None
+        if resource_id:
+            resource = get_object_or_none(Resource, id=resource_id)
+
+        # if that didn't work out use the reservation's old resource it such exists
+        if not resource and isinstance(self.instance, Resource):
+            resource = self.instance.resource
+
+        # set extra fields required if the related resource is found and it needs manual confirmation
+        if resource and resource.need_manual_confirmation:
+            for field_name in RESERVATION_EXTRA_FIELDS:
+                self.fields[field_name].required = True
+                self.fields[field_name].read_only = False
 
     def validate(self, data):
         # if updating a reservation, its identity must be provided to validator
@@ -134,6 +158,10 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         if not instance.resource.is_admin(self.context['request'].user):
             del data['comments']
             del data['user']
+
+        if not instance.resource.need_manual_confirmation:
+            for field_name in RESERVATION_EXTRA_FIELDS:
+                data.pop(field_name, None)
 
         return data
 
