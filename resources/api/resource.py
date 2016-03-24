@@ -15,7 +15,7 @@ from resources.pagination import PurposePagination
 from rest_framework import exceptions, filters, mixins, serializers, viewsets
 
 from munigeo import api as munigeo_api
-from resources.models import Purpose, Resource, ResourceImage, ResourceType, ResourceEquipment
+from resources.models import Purpose, Resource, ResourceImage, ResourceType, ResourceEquipment, RESERVATION_EXTRA_FIELDS
 from .base import TranslatedModelSerializer, register_view
 from .reservation import ReservationSerializer
 from .unit import UnitSerializer
@@ -99,6 +99,7 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     opening_hours = serializers.SerializerMethodField()
     reservations = serializers.SerializerMethodField()
     user_permissions = serializers.SerializerMethodField()
+    required_reservation_extra_fields = serializers.SerializerMethodField()
 
     def get_user_permissions(self, obj):
         request = self.context.get('request', None)
@@ -106,6 +107,10 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
             'can_make_reservations': obj.can_make_reservations(request.user) if request else False,
             'is_admin': obj.is_admin(request.user) if request else False,
         }
+
+    def get_required_reservation_extra_fields(self, obj):
+        # all extra fields required for every paid resource for now
+        return RESERVATION_EXTRA_FIELDS if obj.need_manual_confirmation else []
 
     def to_representation(self, obj):
         # we must parse the time parameters before serializing
