@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse
 from django.core import mail
 from django.test.utils import override_settings
 
-from resources.models import Period, Day, Reservation, Resource
+from resources.models import Period, Day, Reservation, Resource, RESERVATION_EXTRA_FIELDS
 from .utils import check_disallowed_methods, assert_non_field_errors_contain
 
 
@@ -39,6 +39,26 @@ def reservation_data(resource_in_unit):
         'begin': '2115-04-04T11:00:00+02:00',
         'end': '2115-04-04T12:00:00+02:00'
     }
+
+
+@pytest.fixture
+def reservation_data_extra(reservation_data):
+    extra_data = reservation_data.copy()
+    extra_data.update({
+        'reserver_name': 'Test Reserver',
+        'reserver_phone_number': '0700555555',
+        'reserver_address_street': 'Omenatie 102',
+        'reserver_address_zip': '00930',
+        'reserver_address_city': 'Helsinki',
+        'event_description': 'a very secret meeting',
+        'business_id': '1234567-8',
+        'number_of_participants': 5000,
+        'billing_address_street': 'Pihlajakatu',
+        'billing_address_zip': '00001',
+        'billing_address_city': 'Tampere',
+        'company': 'a very secret association'
+    })
+    return extra_data
 
 
 @pytest.mark.django_db
@@ -610,11 +630,11 @@ def test_reservation_excels(staff_api_client, list_url, detail_url, reservation,
     (True, Reservation.REQUESTED)
 ])
 @pytest.mark.django_db
-def test_state_on_new_reservations(user_api_client, list_url, reservation_data, resource_in_unit,
+def test_state_on_new_reservations(user_api_client, list_url, reservation_data_extra, resource_in_unit,
                                    need_manual_confirmation, expected_state):
     resource_in_unit.need_manual_confirmation = need_manual_confirmation
     resource_in_unit.save()
-    response = user_api_client.post(list_url, data=reservation_data)
+    response = user_api_client.post(list_url, data=reservation_data_extra)
     assert response.status_code == 201
     reservation = Reservation.objects.latest('created_at')
     assert reservation.state == expected_state
@@ -634,3 +654,60 @@ def test_illegal_state_set(user_api_client, list_url, detail_url, reservation_da
     response = user_api_client.put(detail_url, data=reservation_data, format='json')
     assert response.status_code == 400
     assert 'state' in response.data
+
+
+@pytest.mark.parametrize('need_manual_confirmation', [
+    False,
+    True
+])
+@pytest.mark.django_db
+def test_extra_fields_visibility(user_api_client, list_url, detail_url, reservation, resource_in_unit,
+                                 need_manual_confirmation):
+    resource_in_unit.need_manual_confirmation = need_manual_confirmation
+    resource_in_unit.save()
+
+    for url in (list_url, detail_url):
+        response = user_api_client.get(url)
+        assert response.status_code == 200
+        reservation_data = response.data['results'][0] if 'results' in response.data else response.data
+        for field_name in RESERVATION_EXTRA_FIELDS:
+            assert (field_name in reservation_data) is need_manual_confirmation
+
+
+@pytest.mark.django_db
+def test_extra_fields_required_for_paid_reservations(user_api_client, list_url, resource_in_unit, reservation_data):
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+    response = user_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+    for field_name in RESERVATION_EXTRA_FIELDS:
+        assert field_name in response.data
+
+
+@pytest.mark.django_db
+def test_extra_fields_can_be_set_for_paid_reservations(user_api_client, list_url, reservation_data_extra,
+                                                      resource_in_unit):
+    resource_in_unit.max_reservations_per_user = 2
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+
+    response = user_api_client.post(list_url, data=reservation_data_extra)
+    assert response.status_code == 201
+    reservation = Reservation.objects.latest('created_at')
+    assert reservation.reserver_address_street == 'Omenatie 102'
+
+    reservation_data_extra['reserver_address_street'] = 'Karhutie 8'
+    response = user_api_client.put('%s%s/' % (list_url, reservation.pk), data=reservation_data_extra)
+    assert response.status_code == 200
+    reservation.refresh_from_db()
+    assert reservation.reserver_address_street == 'Karhutie 8'
+
+
+@pytest.mark.django_db
+def test_extra_fields_ignored_for_non_paid_reservations(user_api_client, list_url, reservation_data_extra,
+                                                        resource_in_unit):
+    response = user_api_client.post(list_url, data=reservation_data_extra)
+    assert response.status_code == 201
+    reservation = Reservation.objects.latest('created_at')
+    assert reservation.reserver_name == ''
+    assert reservation.number_of_participants is None
