@@ -42,6 +42,9 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
     class Meta:
         verbose_name = _("unit")
         verbose_name_plural = _("units")
+        permissions = (
+            ('can_approve_reservation', _('Can approve reservation')),
+        )
 
     def __str__(self):
         return "%s (%s)" % (get_translated(self, 'name'), self.id)
