@@ -84,6 +84,21 @@ def other_resource(space_resource_type, test_unit):
     )
 
 
+@pytest.fixture
+def reservations_in_all_states(resource_in_unit, user):
+    all_states = (Reservation.CANCELLED, Reservation.CONFIRMED, Reservation.DENIED, Reservation.REQUESTED)
+    reservations = dict()
+    for i, state in enumerate(all_states, 4):
+        reservations[state] = Reservation.objects.create(
+            resource=resource_in_unit,
+            begin='2115-04-0%sT09:00:00+02:00' % i,
+            end='2115-04-0%sT10:00:00+02:00' % i,
+            user=user,
+            state=state
+        )
+    return reservations
+
+
 @pytest.mark.django_db
 def test_disallowed_methods(all_user_types_api_client, list_url):
     """
@@ -711,3 +726,27 @@ def test_extra_fields_ignored_for_non_paid_reservations(user_api_client, list_ur
     reservation = Reservation.objects.latest('created_at')
     assert reservation.reserver_name == ''
     assert reservation.number_of_participants is None
+
+
+@pytest.mark.django_db
+def test_user_can_see_her_reservations_in_all_states(user_api_client, list_url, reservations_in_all_states):
+    response = user_api_client.get(list_url)
+    assert response.status_code == 200
+    assert response.data['count'] == 4
+
+
+@pytest.mark.django_db
+def test_user_cannot_see_others_denied_or_cancelled_reservations(api_client, user2, list_url,
+                                                                 reservations_in_all_states):
+    api_client.force_authenticate(user=user2)
+    response = api_client.get(list_url)
+    assert response.status_code == 200
+    assert response.data['count'] == 2
+    assert set([Reservation.CONFIRMED, Reservation.REQUESTED]) == set(r['state'] for r in response.data['results'])
+
+
+@pytest.mark.django_db
+def test_staff_can_see_reservations_in_all_states(staff_api_client, list_url, reservations_in_all_states):
+    response = staff_api_client.get(list_url)
+    assert response.status_code == 200
+    assert response.data['count'] == 4

@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError, PermissionDenied
 from django.http import HttpResponse
+from django.db.models import Q
 from rest_framework import viewsets, serializers, filters, exceptions, permissions
 from rest_framework.fields import BooleanField, IntegerField
 from rest_framework import renderers
@@ -253,6 +254,22 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
     filter_backends = (UserFilterBackend, ActiveFilterBackend, ResourceFilterBackend)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, ReservationExcelRenderer)
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user = self.request.user
+
+        # staff members can see all reservations
+        if user.is_staff:
+            return queryset
+
+        # normal users can see only their own reservations and reservations that are confirmed or requested
+        filters = Q(state__in=(Reservation.CONFIRMED, Reservation.REQUESTED))
+        if user.is_authenticated():
+            filters |= Q(user=user)
+
+        queryset = queryset.filter(filters)
+        return queryset
 
     def perform_create(self, serializer):
         kwargs = {'created_by': self.request.user, 'modified_by': self.request.user}
