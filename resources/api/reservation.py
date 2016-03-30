@@ -105,12 +105,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         raise ValidationError(_('Illegal state change'))
 
     def validate(self, data):
-        # if updating a reservation, its identity must be provided to validator
-        try:
-            reservation = self.context['view'].get_object()
-        except AssertionError:
-            # the view is a list, which means that we are POSTing a new reservation
-            reservation = None
+        reservation = self.instance
         request_user = self.context['request'].user
         resource = data['resource']
 
@@ -120,20 +115,6 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         # normal users cannot make reservations for other people
         if not resource.is_admin(request_user):
             data.pop('user', None)
-
-        # If a user is given in the request convert it to a User object.
-        # Its data is already validated by UserSerializer.
-        if 'user' in data and type(data['user'] != User):
-            id = data['user'][USER_ID_ATTRIBUTE]
-            try:
-                user = User.objects.get(**{USER_ID_ATTRIBUTE: id})
-            except User.DoesNotExist:
-                raise serializers.ValidationError({
-                    'user': {
-                        'id': [_('Object with {slug_name}={value} does not exist.').format(slug_name='id', value=id),]
-                    }
-                })
-            data['user'] = user
 
         # Check user specific reservation restrictions relating to given period.
         resource.validate_reservation_period(reservation, request_user, data=data)
@@ -158,6 +139,23 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         instance.clean(original_reservation=reservation)
 
         return data
+
+    def to_internal_value(self, data):
+        user_data = data.pop('user', None)  # handle user manually
+        deserialized_data = super().to_internal_value(data)
+
+        # validate user and convert it to User object
+        if user_data:
+            UserSerializer(data=user_data).is_valid(raise_exception=True)
+            try:
+                deserialized_data['user'] = User.objects.get(**{USER_ID_ATTRIBUTE: user_data['id']})
+            except User.DoesNotExist:
+                raise serializers.ValidationError({
+                    'user': {
+                        'id': [_('Invalid pk "{pk_value}" - object does not exist.').format(pk_value=user_data['id'])]
+                    }
+                })
+        return deserialized_data
 
     def to_representation(self, instance):
         data = super(ReservationSerializer, self).to_representation(instance)
