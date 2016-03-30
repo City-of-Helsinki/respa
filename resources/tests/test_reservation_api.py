@@ -781,3 +781,4 @@ def test_reservation_can_be_confirmed_with_permission(staff_api_client, staff_us
     assert response.status_code == 200
     reservation.refresh_from_db()
     assert reservation.state == Reservation.CONFIRMED
+    assert reservation.approver == staff_user
