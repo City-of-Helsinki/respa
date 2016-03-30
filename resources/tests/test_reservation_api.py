@@ -4,6 +4,7 @@ from django.utils import dateparse
 from django.core.urlresolvers import reverse
 from django.core import mail
 from django.test.utils import override_settings
+from guardian.shortcuts import assign_perm
 
 from resources.models import Period, Day, Reservation, Resource, RESERVATION_EXTRA_FIELDS
 from .utils import check_disallowed_methods, assert_non_field_errors_contain
@@ -750,3 +751,33 @@ def test_staff_can_see_reservations_in_all_states(staff_api_client, list_url, re
     response = staff_api_client.get(list_url)
     assert response.status_code == 200
     assert response.data['count'] == 4
+
+
+@pytest.mark.django_db
+def test_reservation_cannot_be_confirmed_without_permission(user_api_client, staff_api_client, detail_url, reservation,
+                                                            reservation_data):
+    reservation.state = Reservation.REQUESTED
+    reservation.save()
+    reservation_data['state'] = Reservation.CONFIRMED
+
+    response = user_api_client.put(detail_url, data=reservation_data)
+    assert response.status_code == 400
+    assert 'state' in response.data
+
+    response = staff_api_client.put(detail_url, data=reservation_data)
+    assert response.status_code == 400
+    assert 'state' in response.data
+
+
+@pytest.mark.django_db
+def test_reservation_can_be_confirmed_with_permission(staff_api_client, staff_user, detail_url, reservation,
+                                                      reservation_data):
+    reservation.state = Reservation.REQUESTED
+    reservation.save()
+    reservation_data['state'] = Reservation.CONFIRMED
+    assign_perm('can_approve_reservation', staff_user, reservation.resource.unit)
+
+    response = staff_api_client.put(detail_url, data=reservation_data)
+    assert response.status_code == 200
+    reservation.refresh_from_db()
+    assert reservation.state == Reservation.CONFIRMED
