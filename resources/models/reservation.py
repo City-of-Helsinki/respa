@@ -107,6 +107,9 @@ class Reservation(ModifiableModel):
     def is_active(self):
         return self.end >= timezone.now()
 
+    def need_manual_confirmation(self):
+        return self.resource.need_manual_confirmation
+
     class Meta:
         verbose_name = _("reservation")
         verbose_name_plural = _("reservations")

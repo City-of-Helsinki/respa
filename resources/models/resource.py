@@ -320,7 +320,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         return self.is_admin(user) or self.reservable
 
     def can_approve_reservations(self, user):
-        return user.has_perm('can_approve_reservation', self.unit)
+        return self.is_admin(user) and user.has_perm('can_approve_reservation', self.unit)
+
 
 class ResourceImage(ModifiableModel):
     TYPES = (

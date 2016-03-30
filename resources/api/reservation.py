@@ -112,6 +112,12 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         if not resource.can_make_reservations(request_user):
             raise PermissionDenied()
 
+        # reservations that need manual confirmation and are confirmed cannot be
+        # modified without reservation approve permission
+        if reservation and reservation.need_manual_confirmation() and reservation.state == Reservation.CONFIRMED:
+            if not resource.can_approve_reservations(request_user):
+                raise PermissionDenied()
+
         # normal users cannot make reservations for other people
         if not resource.is_admin(request_user):
             data.pop('user', None)

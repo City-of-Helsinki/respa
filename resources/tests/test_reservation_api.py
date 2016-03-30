@@ -784,3 +784,13 @@ def test_reservation_can_be_confirmed_with_permission(staff_api_client, staff_us
     reservation.refresh_from_db()
     assert reservation.state == Reservation.CONFIRMED
     assert reservation.approver == staff_user
+
+
+@pytest.mark.django_db
+def test_user_cannot_modify_paid_and_confirmed_reservation(user_api_client, detail_url, reservation,
+                                                           reservation_data_extra, resource_in_unit):
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+
+    response = user_api_client.put(detail_url, data=reservation_data_extra)
+    assert response.status_code == 403
