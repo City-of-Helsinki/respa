@@ -158,7 +158,9 @@ def test_authenticated_user_can_delete_reservation(api_client, detail_url, reser
     reservation_id = reservation.id
     response = api_client.delete(detail_url)
     assert response.status_code == 204
-    assert Reservation.objects.filter(pk=reservation_id).count() == 0
+    assert Reservation.objects.filter(pk=reservation_id).count() == 1
+    reservation.refresh_from_db()
+    assert reservation.state == Reservation.CANCELLED
 
 
 @pytest.mark.django_db

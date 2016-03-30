@@ -314,7 +314,10 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
             new_instance.send_updated_by_admin_mail_if_changed(old_instance)
 
     def perform_destroy(self, instance):
-        instance.delete()
+        if instance.state == Reservation.CANCELLED:
+            return
+        instance.state = Reservation.CANCELLED
+        instance.save()
         if self.request.user != instance.user:
             instance.send_deleted_by_admin_mail()
 
