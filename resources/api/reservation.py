@@ -301,8 +301,15 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
             instance.send_created_by_admin_mail()
 
     def perform_update(self, serializer):
+        kwargs = {'modified_by': self.request.user}
         old_instance = self.get_object()
-        new_instance = serializer.save(modified_by=self.request.user)
+        new_state = serializer.validated_data.get('state', old_instance.state)
+        if new_state == Reservation.CONFIRMED and old_instance.state != Reservation.CONFIRMED:
+            kwargs['approver'] = self.request.user
+        elif old_instance.state == Reservation.CONFIRMED and new_state != Reservation.CONFIRMED:
+            kwargs['approver'] = None
+        new_instance = serializer.save(**kwargs)
+
         if self.request.user != new_instance.user:
             new_instance.send_updated_by_admin_mail_if_changed(old_instance)
 

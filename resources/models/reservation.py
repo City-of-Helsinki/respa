@@ -44,6 +44,8 @@ class Reservation(ModifiableModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('User'), null=True,
                              blank=True, db_index=True)
     state = models.CharField(max_length=16, choices=STATE_CHOICES, verbose_name=_('State'), default=CONFIRMED)
+    approver = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Approver'),
+                                 related_name='approved_reservations', null=True, blank=True)
 
     # extra detail fields for paid reservations
     reserver_name = models.CharField(verbose_name=_('Reserver name'), max_length=100, blank=True)
