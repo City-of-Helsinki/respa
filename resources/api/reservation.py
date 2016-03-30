@@ -85,6 +85,25 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
                 self.fields[field_name].required = True
                 self.fields[field_name].read_only = False
 
+    def validate_state(self, value):
+        instance = self.instance
+        request_user = self.context['request'].user
+
+        # new reservations will get their value regardless of this value
+        if not instance:
+            return value
+
+        # state not changed
+        if instance.state == value:
+            return value
+
+        if instance.resource.can_approve_reservations(request_user):
+            allowed_states = (Reservation.REQUESTED, Reservation.CONFIRMED, Reservation.DENIED)
+            if instance.state in allowed_states and value in allowed_states:
+                return value
+
+        raise ValidationError(_('Illegal state change'))
+
     def validate(self, data):
         # if updating a reservation, its identity must be provided to validator
         try:
