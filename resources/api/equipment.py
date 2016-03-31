@@ -29,7 +29,7 @@ class EquipmentCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = EquipmentCategory.objects.all()
     serializer_class = EquipmentCategorySerializer
 
-register_view(EquipmentCategoryViewSet, 'equipmentcategory')
+register_view(EquipmentCategoryViewSet, 'equipment_category')
 
 
 class EquipmentAliasSerializer(TranslatedModelSerializer):

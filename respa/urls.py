@@ -22,6 +22,7 @@ from django.utils.translation import ugettext_lazy
 from resources.api import RespaAPIRouter
 from resources.views.images import ResourceImageView
 from resources.views.ical import ICalFeedView
+from resources.views import testing as testing_views
 
 # Text to put at the end of each page's <title>.
 admin_site.site_title = ugettext_lazy('RESPA Resource booking system')
@@ -45,6 +46,6 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns.append(
-        url(r'test/availability$', 'resources.views.testing.testing_view')
+        url(r'test/availability$', testing_views.testing_view)
     )
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

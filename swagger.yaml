@@ -471,6 +471,16 @@ paths:
           description: Number of reservations per page
           required: false
           type: integer
+        - name: resource
+          in: query
+          description: Resource id, for filtering reservations by resource
+          required: false
+          type: string
+        - name: all
+          in: query
+          description: Display also past reservations. Default to false.
+          required: false
+          type: boolean
       responses:
         '200':
           description: Successful response
