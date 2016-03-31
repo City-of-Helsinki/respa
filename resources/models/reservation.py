@@ -110,6 +110,13 @@ class Reservation(ModifiableModel):
     def need_manual_confirmation(self):
         return self.resource.need_manual_confirmation
 
+    def are_extra_fields_visible(self, user=None):
+        if not self.need_manual_confirmation():
+            return False
+        if not (user and user.is_authenticated()):
+            return False
+        return user == self.user or self.resource.is_admin(user)
+
     class Meta:
         verbose_name = _("reservation")
         verbose_name_plural = _("reservations")

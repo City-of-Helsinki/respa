@@ -7,6 +7,7 @@ from django.test.utils import override_settings
 from guardian.shortcuts import assign_perm
 
 from resources.models import Period, Day, Reservation, Resource, RESERVATION_EXTRA_FIELDS
+from users.models import User
 from .utils import check_disallowed_methods, assert_non_field_errors_contain
 
 
@@ -794,3 +795,25 @@ def test_user_cannot_modify_paid_and_confirmed_reservation(user_api_client, deta
 
     response = user_api_client.put(detail_url, data=reservation_data_extra)
     assert response.status_code == 403
+
+
+@pytest.mark.parametrize('username, expected_visibility', [
+    (None, False),  # unauthenticated user
+    ('test_user', True),  # own reservation
+    ('test_user2', False),  # someone else's reservation
+    ('test_staff_user', True)  # staff
+])
+@pytest.mark.django_db
+def test_extra_fields_visibility_for_different_user_types(api_client, user, user2, staff_user, list_url, detail_url,
+                                                          reservation, resource_in_unit, username, expected_visibility):
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+    if username:
+        api_client.force_authenticate(user=User.objects.get(username=username))
+
+    for url in (list_url, detail_url):
+        response = api_client.get(url)
+        assert response.status_code == 200
+        reservation_data = response.data['results'][0] if 'results' in response.data else response.data
+        for field_name in RESERVATION_EXTRA_FIELDS:
+            assert (field_name in reservation_data) is expected_visibility

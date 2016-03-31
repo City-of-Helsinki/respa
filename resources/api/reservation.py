@@ -183,7 +183,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             del data['comments']
             del data['user']
 
-        if not instance.resource.need_manual_confirmation:
+        if not instance.are_extra_fields_visible(self.context['request'].user):
             for field_name in RESERVATION_EXTRA_FIELDS:
                 data.pop(field_name, None)
 
