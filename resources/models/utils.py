@@ -158,3 +158,9 @@ def generate_reservation_xlsx(reservations):
     workbook.close()
     return output.getvalue()
 
+
+def get_object_or_none(cls, **kwargs):
+    try:
+        return cls.objects.get(**kwargs)
+    except cls.DoesNotExist:
+        return None

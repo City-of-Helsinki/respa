@@ -12,6 +12,12 @@ from .base import ModifiableModel
 from .utils import get_dt, save_dt, is_valid_time_slot, humanize_duration, send_respa_mail
 
 
+RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street', 'reserver_address_zip',
+                            'reserver_address_city', 'billing_address_street',  'billing_address_zip',
+                            'billing_address_city', 'company', 'event_description', 'business_id',
+                            'number_of_participants')
+
+
 class ReservationQuerySet(models.QuerySet):
     def active(self):
         return self.filter(end__gte=timezone.now())
@@ -38,6 +44,21 @@ class Reservation(ModifiableModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('User'), null=True,
                              blank=True, db_index=True)
     state = models.CharField(max_length=16, choices=STATE_CHOICES, verbose_name=_('State'), default=CONFIRMED)
+
+    # extra detail fields for paid reservations
+    reserver_name = models.CharField(verbose_name=_('Reserver name'), max_length=100, blank=True)
+    reserver_phone_number = models.CharField(verbose_name=_('Reserver phone number'), max_length=30, blank=True)
+    reserver_address_street = models.CharField(verbose_name=_('Reserver address street'), max_length=100, blank=True)
+    reserver_address_zip = models.CharField(verbose_name=_('Reserver address zip'), max_length=30, blank=True)
+    reserver_address_city = models.CharField(verbose_name=_('Reserver address city'), max_length=100, blank=True)
+    billing_address_street = models.CharField(verbose_name=_('Billing address street'), max_length=100, blank=True)
+    billing_address_zip = models.CharField(verbose_name=_('Billing address zip'), max_length=30, blank=True)
+    billing_address_city = models.CharField(verbose_name=_('Billing address city'), max_length=100, blank=True)
+    company = models.CharField(verbose_name=_('Company'), max_length=100, blank=True)
+    event_description = models.TextField(verbose_name=_('Event description'), blank=True)
+    business_id = models.CharField(verbose_name=_('Business ID'), max_length=9, blank=True)
+    number_of_participants = models.PositiveSmallIntegerField(verbose_name=_('Number of participants'), blank=True,
+                                                              null=True)
 
     def _save_dt(self, attr, dt):
         """
