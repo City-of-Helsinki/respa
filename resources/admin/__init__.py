@@ -3,6 +3,7 @@ from django.contrib.admin import site as admin_site
 from django.contrib.gis.admin import OSMGeoAdmin
 from image_cropping import ImageCroppingMixin
 from modeltranslation.admin import TranslationAdmin, TranslationStackedInline
+from guardian.admin import GuardedModelAdminMixin
 from .base import CommonExcludeMixin, PopulateCreatedAndModifiedMixin
 from resources.admin.period_inline import PeriodInline
 from resources.models import Day, Reservation, Resource, ResourceImage, ResourceType, Unit, Purpose
@@ -34,7 +35,8 @@ class ResourceAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Transla
     default_zoom = 12
 
 
-class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin, HttpsFriendlyGeoAdmin):
+class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, GuardedModelAdminMixin, TranslationAdmin,
+                HttpsFriendlyGeoAdmin):
     inlines = [
         PeriodInline
     ]

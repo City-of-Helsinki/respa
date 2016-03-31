@@ -44,6 +44,8 @@ class Reservation(ModifiableModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('User'), null=True,
                              blank=True, db_index=True)
     state = models.CharField(max_length=16, choices=STATE_CHOICES, verbose_name=_('State'), default=CONFIRMED)
+    approver = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Approver'),
+                                 related_name='approved_reservations', null=True, blank=True)
 
     # extra detail fields for paid reservations
     reserver_name = models.CharField(verbose_name=_('Reserver name'), max_length=100, blank=True)
@@ -104,6 +106,26 @@ class Reservation(ModifiableModel):
 
     def is_active(self):
         return self.end >= timezone.now()
+
+    def need_manual_confirmation(self):
+        return self.resource.need_manual_confirmation
+
+    def are_extra_fields_visible(self, user=None):
+        if not self.need_manual_confirmation():
+            return False
+        if not (user and user.is_authenticated()):
+            return False
+        return user == self.user or self.resource.is_admin(user)
+
+    def set_state(self, new_state, user):
+        if new_state == self.state:
+            return
+        if new_state == Reservation.CONFIRMED:
+            self.approver = user
+        elif self.state == Reservation.CONFIRMED:
+            self.approver = None
+        self.state = new_state
+        self.save()
 
     class Meta:
         verbose_name = _("reservation")

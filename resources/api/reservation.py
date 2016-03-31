@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError, PermissionDenied
 from django.http import HttpResponse
+from django.db.models import Q
 from rest_framework import viewsets, serializers, filters, exceptions, permissions
 from rest_framework.fields import BooleanField, IntegerField
 from rest_framework import renderers
@@ -84,36 +85,42 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
                 self.fields[field_name].required = True
                 self.fields[field_name].read_only = False
 
+    def validate_state(self, value):
+        instance = self.instance
+        request_user = self.context['request'].user
+
+        # new reservations will get their value regardless of this value
+        if not instance:
+            return value
+
+        # state not changed
+        if instance.state == value:
+            return value
+
+        if instance.resource.can_approve_reservations(request_user):
+            allowed_states = (Reservation.REQUESTED, Reservation.CONFIRMED, Reservation.DENIED)
+            if instance.state in allowed_states and value in allowed_states:
+                return value
+
+        raise ValidationError(_('Illegal state change'))
+
     def validate(self, data):
-        # if updating a reservation, its identity must be provided to validator
-        try:
-            reservation = self.context['view'].get_object()
-        except AssertionError:
-            # the view is a list, which means that we are POSTing a new reservation
-            reservation = None
+        reservation = self.instance
         request_user = self.context['request'].user
         resource = data['resource']
 
         if not resource.can_make_reservations(request_user):
             raise PermissionDenied()
 
+        # reservations that need manual confirmation and are confirmed cannot be
+        # modified without reservation approve permission
+        if reservation and reservation.need_manual_confirmation() and reservation.state == Reservation.CONFIRMED:
+            if not resource.can_approve_reservations(request_user):
+                raise PermissionDenied()
+
         # normal users cannot make reservations for other people
         if not resource.is_admin(request_user):
             data.pop('user', None)
-
-        # If a user is given in the request convert it to a User object.
-        # Its data is already validated by UserSerializer.
-        if 'user' in data and type(data['user'] != User):
-            id = data['user'][USER_ID_ATTRIBUTE]
-            try:
-                user = User.objects.get(**{USER_ID_ATTRIBUTE: id})
-            except User.DoesNotExist:
-                raise serializers.ValidationError({
-                    'user': {
-                        'id': [_('Object with {slug_name}={value} does not exist.').format(slug_name='id', value=id),]
-                    }
-                })
-            data['user'] = user
 
         # Check user specific reservation restrictions relating to given period.
         resource.validate_reservation_period(reservation, request_user, data=data)
@@ -139,6 +146,23 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
 
         return data
 
+    def to_internal_value(self, data):
+        user_data = data.pop('user', None)  # handle user manually
+        deserialized_data = super().to_internal_value(data)
+
+        # validate user and convert it to User object
+        if user_data:
+            UserSerializer(data=user_data).is_valid(raise_exception=True)
+            try:
+                deserialized_data['user'] = User.objects.get(**{USER_ID_ATTRIBUTE: user_data['id']})
+            except User.DoesNotExist:
+                raise serializers.ValidationError({
+                    'user': {
+                        'id': [_('Invalid pk "{pk_value}" - object does not exist.').format(pk_value=user_data['id'])]
+                    }
+                })
+        return deserialized_data
+
     def to_representation(self, instance):
         data = super(ReservationSerializer, self).to_representation(instance)
 
@@ -159,7 +183,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             del data['comments']
             del data['user']
 
-        if not instance.resource.need_manual_confirmation:
+        if not instance.are_extra_fields_visible(self.context['request'].user):
             for field_name in RESERVATION_EXTRA_FIELDS:
                 data.pop(field_name, None)
 
@@ -254,6 +278,22 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, ReservationExcelRenderer)
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user = self.request.user
+
+        # staff members can see all reservations
+        if user.is_staff:
+            return queryset
+
+        # normal users can see only their own reservations and reservations that are confirmed or requested
+        filters = Q(state__in=(Reservation.CONFIRMED, Reservation.REQUESTED))
+        if user.is_authenticated():
+            filters |= Q(user=user)
+
+        queryset = queryset.filter(filters)
+        return queryset
+
     def perform_create(self, serializer):
         kwargs = {'created_by': self.request.user, 'modified_by': self.request.user}
         if 'user' not in serializer.validated_data:
@@ -268,12 +308,14 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         old_instance = self.get_object()
+        new_state = serializer.validated_data.pop('state', old_instance.state)
         new_instance = serializer.save(modified_by=self.request.user)
+        new_instance.set_state(new_state, self.request.user)
         if self.request.user != new_instance.user:
             new_instance.send_updated_by_admin_mail_if_changed(old_instance)
 
     def perform_destroy(self, instance):
-        instance.delete()
+        instance.set_state(Reservation.CANCELLED, self.request.user)
         if self.request.user != instance.user:
             instance.send_deleted_by_admin_mail()
 

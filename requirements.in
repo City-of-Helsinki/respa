@@ -25,3 +25,4 @@ XlsxWriter
 icalendar
 pip-tools
 fake-factory
+django-guardian

@@ -4,8 +4,10 @@ from django.utils import dateparse
 from django.core.urlresolvers import reverse
 from django.core import mail
 from django.test.utils import override_settings
+from guardian.shortcuts import assign_perm
 
 from resources.models import Period, Day, Reservation, Resource, RESERVATION_EXTRA_FIELDS
+from users.models import User
 from .utils import check_disallowed_methods, assert_non_field_errors_contain
 
 
@@ -84,6 +86,21 @@ def other_resource(space_resource_type, test_unit):
     )
 
 
+@pytest.fixture
+def reservations_in_all_states(resource_in_unit, user):
+    all_states = (Reservation.CANCELLED, Reservation.CONFIRMED, Reservation.DENIED, Reservation.REQUESTED)
+    reservations = dict()
+    for i, state in enumerate(all_states, 4):
+        reservations[state] = Reservation.objects.create(
+            resource=resource_in_unit,
+            begin='2115-04-0%sT09:00:00+02:00' % i,
+            end='2115-04-0%sT10:00:00+02:00' % i,
+            user=user,
+            state=state
+        )
+    return reservations
+
+
 @pytest.mark.django_db
 def test_disallowed_methods(all_user_types_api_client, list_url):
     """
@@ -142,7 +159,9 @@ def test_authenticated_user_can_delete_reservation(api_client, detail_url, reser
     reservation_id = reservation.id
     response = api_client.delete(detail_url)
     assert response.status_code == 204
-    assert Reservation.objects.filter(pk=reservation_id).count() == 0
+    assert Reservation.objects.filter(pk=reservation_id).count() == 1
+    reservation.refresh_from_db()
+    assert reservation.state == Reservation.CANCELLED
 
 
 @pytest.mark.django_db
@@ -711,3 +730,90 @@ def test_extra_fields_ignored_for_non_paid_reservations(user_api_client, list_ur
     reservation = Reservation.objects.latest('created_at')
     assert reservation.reserver_name == ''
     assert reservation.number_of_participants is None
+
+
+@pytest.mark.django_db
+def test_user_can_see_her_reservations_in_all_states(user_api_client, list_url, reservations_in_all_states):
+    response = user_api_client.get(list_url)
+    assert response.status_code == 200
+    assert response.data['count'] == 4
+
+
+@pytest.mark.django_db
+def test_user_cannot_see_others_denied_or_cancelled_reservations(api_client, user2, list_url,
+                                                                 reservations_in_all_states):
+    api_client.force_authenticate(user=user2)
+    response = api_client.get(list_url)
+    assert response.status_code == 200
+    assert response.data['count'] == 2
+    assert set([Reservation.CONFIRMED, Reservation.REQUESTED]) == set(r['state'] for r in response.data['results'])
+
+
+@pytest.mark.django_db
+def test_staff_can_see_reservations_in_all_states(staff_api_client, list_url, reservations_in_all_states):
+    response = staff_api_client.get(list_url)
+    assert response.status_code == 200
+    assert response.data['count'] == 4
+
+
+@pytest.mark.django_db
+def test_reservation_cannot_be_confirmed_without_permission(user_api_client, staff_api_client, detail_url, reservation,
+                                                            reservation_data):
+    reservation.state = Reservation.REQUESTED
+    reservation.save()
+    reservation_data['state'] = Reservation.CONFIRMED
+
+    response = user_api_client.put(detail_url, data=reservation_data)
+    assert response.status_code == 400
+    assert 'state' in response.data
+
+    response = staff_api_client.put(detail_url, data=reservation_data)
+    assert response.status_code == 400
+    assert 'state' in response.data
+
+
+@pytest.mark.django_db
+def test_reservation_can_be_confirmed_with_permission(staff_api_client, staff_user, detail_url, reservation,
+                                                      reservation_data):
+    reservation.state = Reservation.REQUESTED
+    reservation.save()
+    reservation_data['state'] = Reservation.CONFIRMED
+    assign_perm('can_approve_reservation', staff_user, reservation.resource.unit)
+
+    response = staff_api_client.put(detail_url, data=reservation_data)
+    assert response.status_code == 200
+    reservation.refresh_from_db()
+    assert reservation.state == Reservation.CONFIRMED
+    assert reservation.approver == staff_user
+
+
+@pytest.mark.django_db
+def test_user_cannot_modify_paid_and_confirmed_reservation(user_api_client, detail_url, reservation,
+                                                           reservation_data_extra, resource_in_unit):
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+
+    response = user_api_client.put(detail_url, data=reservation_data_extra)
+    assert response.status_code == 403
+
+
+@pytest.mark.parametrize('username, expected_visibility', [
+    (None, False),  # unauthenticated user
+    ('test_user', True),  # own reservation
+    ('test_user2', False),  # someone else's reservation
+    ('test_staff_user', True)  # staff
+])
+@pytest.mark.django_db
+def test_extra_fields_visibility_for_different_user_types(api_client, user, user2, staff_user, list_url, detail_url,
+                                                          reservation, resource_in_unit, username, expected_visibility):
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+    if username:
+        api_client.force_authenticate(user=User.objects.get(username=username))
+
+    for url in (list_url, detail_url):
+        response = api_client.get(url)
+        assert response.status_code == 200
+        reservation_data = response.data['results'][0] if 'results' in response.data else response.data
+        for field_name in RESERVATION_EXTRA_FIELDS:
+            assert (field_name in reservation_data) is expected_visibility
