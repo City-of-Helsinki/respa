@@ -117,6 +117,16 @@ class Reservation(ModifiableModel):
             return False
         return user == self.user or self.resource.is_admin(user)
 
+    def set_state(self, new_state, user):
+        if new_state == self.state:
+            return
+        if new_state == Reservation.CONFIRMED:
+            self.approver = user
+        elif self.state == Reservation.CONFIRMED:
+            self.approver = None
+        self.state = new_state
+        self.save()
+
     class Meta:
         verbose_name = _("reservation")
         verbose_name_plural = _("reservations")
