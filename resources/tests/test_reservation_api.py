@@ -854,3 +854,33 @@ def test_cannot_make_reservation_in_the_past(user_api_client, reservation_data, 
     response = user_api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
     assert response.status_code == 400
     assert_non_field_errors_contain(response, 'past')
+
+
+@pytest.mark.django_db
+def test_need_manual_confirmation_filter(user_api_client, user, list_url, reservation, other_resource):
+    other_resource.need_manual_confirmation = True
+    other_resource.save()
+    reservation_needing_confirmation = Reservation.objects.create(
+        resource=other_resource,
+        begin='2115-04-05T09:00:00+02:00',
+        end='2115-04-05T10:00:00+02:00',
+        user=user,
+    )
+
+    # no filter, expect both reservations
+    response = user_api_client.get(list_url)
+    assert response.status_code == 200
+    reservation_ids = set([res['id'] for res in response.data['results']])
+    assert reservation_ids == {reservation.id, reservation_needing_confirmation.id}
+
+    # filter false, expect only first reservation
+    response = user_api_client.get('%s%s' % (list_url, '?need_manual_confirmation=false'))
+    assert response.status_code == 200
+    reservation_ids = set([res['id'] for res in response.data['results']])
+    assert reservation_ids == {reservation.id}
+
+    # filter true, expect only second reservation
+    response = user_api_client.get('%s%s' % (list_url, '?need_manual_confirmation=true'))
+    assert response.status_code == 200
+    reservation_ids = set([res['id'] for res in response.data['results']])
+    assert reservation_ids == {reservation_needing_confirmation.id}

@@ -245,6 +245,15 @@ class ResourceFilterBackend(filters.BaseFilterBackend):
         return queryset
 
 
+class NeedManualConfirmationFilterBackend(filters.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        filter_value = request.query_params.get('need_manual_confirmation', None)
+        if filter_value is not None:
+            need_manual_confirmation = BooleanField().to_internal_value(filter_value)
+            return queryset.filter(resource__need_manual_confirmation=need_manual_confirmation)
+        return queryset
+
+
 class ReservationPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
@@ -279,7 +288,8 @@ class ReservationExcelRenderer(renderers.BaseRenderer):
 class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
-    filter_backends = (UserFilterBackend, ExcludePastFilterBackend, ResourceFilterBackend)
+    filter_backends = (UserFilterBackend, ExcludePastFilterBackend, ResourceFilterBackend,
+                       NeedManualConfirmationFilterBackend)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, ReservationExcelRenderer)
 
