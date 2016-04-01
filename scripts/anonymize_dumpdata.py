@@ -8,6 +8,7 @@ from faker.providers.person.fi_FI import Provider as PersonProvider
 fake = Factory.create('fi_FI')
 
 email_by_user = {}
+users_by_id = {}
 
 def anonymize_users(users):
     usernames = set()
@@ -31,7 +32,7 @@ def anonymize_users(users):
             user['last_name'] = fake.last_name()
         user['email'] = fake.email()
         email_by_user[data['pk']] = user['email']
-
+        users_by_id[data['pk']] = user
 
 def remove_secrets(data):
     for model in data:
@@ -44,6 +45,9 @@ def remove_secrets(data):
             fields['token'] = fake.md5()
         elif model['model'] == 'account.emailaddress':
             fields['email'] = email_by_user[fields['user']]
+        elif model['model'] == 'socialaccount.socialaccount':
+            fields['extra_data'] = '{}'
+            fields['uid'] = users_by_id[fields['user']]['uuid']
         elif model['model'] == 'sessions.session':
             fields['session_data'] = "!"
             model['pk'] = fake.md5()
