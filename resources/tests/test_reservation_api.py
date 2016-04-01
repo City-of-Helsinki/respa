@@ -820,3 +820,26 @@ def test_extra_fields_visibility_for_different_user_types(api_client, user, user
         reservation_data = response.data['results'][0] if 'results' in response.data else response.data
         for field_name in RESERVATION_EXTRA_FIELDS:
             assert (field_name in reservation_data) is expected_visibility
+
+
+@pytest.mark.parametrize('state', [
+    Reservation.CANCELLED,
+    Reservation.DENIED
+])
+@pytest.mark.django_db
+def test_denied_and_cancelled_reservations_not_active(user_api_client, reservation, reservation_data, list_url,
+                                                      resource_in_unit, state):
+    reservation.state = state
+    reservation.save()
+
+    # test reservation max limit
+    response = user_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201
+
+    # test overlapping reservation
+    resource_in_unit.max_reservations_per_user = 2
+    resource_in_unit.save()
+    reservation_data['begin'] = reservation.begin
+    reservation_data['end'] = reservation.end
+    response = user_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201

@@ -22,6 +22,7 @@ from .base import AutoIdentifiedModel, NameIdentifiedModel, ModifiableModel
 from .utils import get_translated, get_translated_name, humanize_duration
 from .equipment import Equipment
 from .availability import get_opening_hours
+from .reservation import Reservation
 
 
 class ResourceType(ModifiableModel, AutoIdentifiedModel):
@@ -171,7 +172,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                 raise ValidationError(_("Maximum number of active reservations for this resource exceeded."))
 
     def check_reservation_collision(self, begin, end, reservation):
-        overlapping = self.reservations.filter(end__gt=begin, begin__lt=end)
+        overlapping = self.reservations.filter(end__gt=begin, begin__lt=end).active()
         if reservation:
             overlapping = overlapping.exclude(pk=reservation.pk)
         return overlapping.exists()

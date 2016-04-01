@@ -20,7 +20,7 @@ RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_
 
 class ReservationQuerySet(models.QuerySet):
     def active(self):
-        return self.filter(end__gte=timezone.now())
+        return self.filter(end__gte=timezone.now()).exclude(state__in=(Reservation.CANCELLED, Reservation.DENIED))
 
 
 class Reservation(ModifiableModel):
@@ -105,7 +105,7 @@ class Reservation(ModifiableModel):
         return self._get_dt("end", tz)
 
     def is_active(self):
-        return self.end >= timezone.now()
+        return self.end >= timezone.now() and self.state not in (Reservation.CANCELLED, Reservation.DENIED)
 
     def need_manual_confirmation(self):
         return self.resource.need_manual_confirmation

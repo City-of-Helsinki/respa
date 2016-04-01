@@ -215,9 +215,9 @@ class UserFilterBackend(filters.BaseFilterBackend):
         return queryset
 
 
-class ActiveFilterBackend(filters.BaseFilterBackend):
+class ExcludePastFilterBackend(filters.BaseFilterBackend):
     """
-    Filter only active reservations.
+    Exclude reservations in the past.
     """
 
     def filter_queryset(self, request, queryset, view):
@@ -275,7 +275,7 @@ class ReservationExcelRenderer(renderers.BaseRenderer):
 class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
-    filter_backends = (UserFilterBackend, ActiveFilterBackend, ResourceFilterBackend)
+    filter_backends = (UserFilterBackend, ExcludePastFilterBackend, ResourceFilterBackend)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, ReservationExcelRenderer)
 
