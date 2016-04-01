@@ -843,3 +843,14 @@ def test_denied_and_cancelled_reservations_not_active(user_api_client, reservati
     reservation_data['end'] = reservation.end
     response = user_api_client.post(list_url, data=reservation_data)
     assert response.status_code == 201
+
+
+@pytest.mark.django_db
+def test_cannot_make_reservation_in_the_past(user_api_client, reservation_data, list_url):
+    reservation_data.update(
+        begin='2010-04-04T11:00:00+02:00',
+        end='2010-04-04T12:00:00+02:00'
+    )
+    response = user_api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 400
+    assert_non_field_errors_contain(response, 'past')

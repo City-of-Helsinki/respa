@@ -88,12 +88,12 @@ class ReservationApiTestCase(APITestCase, JWTMixin):
 
         # Check that available hours are reported correctly for a free resource
         tz = timezone.get_current_timezone()
-        start = tz.localize(arrow.now().floor("day").naive)
+        start = tz.localize(arrow.now().floor("day").naive) + datetime.timedelta(days=1)
         end = start + datetime.timedelta(days=1)
 
-        # Set opening hours for today (required to make a reservation)
-        today = Period.objects.create(start=start.date(), end=end.date(), resource_id='r1a', name='this')
-        Day.objects.create(period=today, weekday=start.weekday(), opens='08:00', closes='22:00')
+        # Set opening hours for tomorrow (required to make a reservation)
+        tomorrow = Period.objects.create(start=start.date(), end=end.date(), resource_id='r1a', name='this')
+        Day.objects.create(period=tomorrow, weekday=start.weekday(), opens='08:00', closes='22:00')
 
         # Check that available *and* opening hours are reported correctly for a free resource
         url = '/v1/resource/r1a/?start=' + start.isoformat().replace('+', '%2b') + '&end=' + end.isoformat().replace('+', '%2b') + '&during_closing=true'
@@ -166,12 +166,12 @@ class AvailableAPITestCase(APITestCase, JWTMixin):
         self.assertNotContains(response, 'r2b')
 
         tz = timezone.get_current_timezone()
-        start = tz.localize(arrow.now().floor("day").naive)
+        start = tz.localize(arrow.now().floor("day").naive) + datetime.timedelta(days=1)
         end = start + datetime.timedelta(days=1)
 
-        # Set opening hours for today (required to make a reservation)
-        today = Period.objects.create(start=start.date(), end=end.date(), resource_id='r1a', name='')
-        Day.objects.create(period=today, weekday=start.weekday(), opens='08:00', closes='22:00')
+        # Set opening hours for tomorrow (required to make a reservation)
+        tomorrow = Period.objects.create(start=start.date(), end=end.date(), resource_id='r1a', name='')
+        Day.objects.create(period=tomorrow, weekday=start.weekday(), opens='08:00', closes='22:00')
 
         # Check that the resource is available for all-day fun-having
         url = '/v1/resource/?purpose=having_fun&duration=1440&start=' + start.isoformat().replace('+', '%2b') + '&end=' + end.isoformat().replace('+', '%2b') + '&during_closing=true'

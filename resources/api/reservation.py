@@ -6,6 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError, PermissionDenied
 from django.http import HttpResponse
 from django.db.models import Q
+from django.utils import timezone
 from rest_framework import viewsets, serializers, filters, exceptions, permissions
 from rest_framework.fields import BooleanField, IntegerField
 from rest_framework import renderers
@@ -111,6 +112,9 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
 
         if not resource.can_make_reservations(request_user):
             raise PermissionDenied()
+
+        if data['end'] < timezone.now():
+            raise ValidationError(_('Cannot make a reservation in the past'))
 
         # normal users cannot make reservations for other people
         if not resource.is_admin(request_user):
