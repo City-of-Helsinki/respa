@@ -112,12 +112,6 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         if not resource.can_make_reservations(request_user):
             raise PermissionDenied()
 
-        # reservations that need manual confirmation and are confirmed cannot be
-        # modified without reservation approve permission
-        if reservation and reservation.need_manual_confirmation() and reservation.state == Reservation.CONFIRMED:
-            if not resource.can_approve_reservations(request_user):
-                raise PermissionDenied()
-
         # normal users cannot make reservations for other people
         if not resource.is_admin(request_user):
             data.pop('user', None)
@@ -249,9 +243,16 @@ class ResourceFilterBackend(filters.BaseFilterBackend):
 
 class ReservationPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS or obj.resource.is_admin(request.user):
+        if request.method in permissions.SAFE_METHODS:
             return True
-        return obj.user == request.user
+
+        # reservations that need manual confirmation and are confirmed cannot be
+        # modified or cancelled without reservation approve permission
+        cannot_approve = not obj.resource.can_approve_reservations(request.user)
+        if obj.need_manual_confirmation() and obj.state == Reservation.CONFIRMED and cannot_approve:
+            return False
+
+        return obj.resource.is_admin(request.user) or obj.user == request.user
 
 
 class ReservationExcelRenderer(renderers.BaseRenderer):
