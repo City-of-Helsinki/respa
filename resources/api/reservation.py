@@ -23,7 +23,7 @@ from .base import NullableDateTimeField, TranslatedModelSerializer, register_vie
 # FIXME: Make this configurable?
 USER_ID_ATTRIBUTE = 'id'
 try:
-    get_user_model()._meta.get_field_by_name('uuid')
+    get_user_model()._meta.get_field('uuid')
     USER_ID_ATTRIBUTE = 'uuid'
 except:
     pass
