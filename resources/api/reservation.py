@@ -58,12 +58,12 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
     user = UserSerializer(required=False)
     is_own = serializers.SerializerMethodField()
     state = serializers.ChoiceField(choices=Reservation.STATE_CHOICES, required=False)
+    need_manual_confirmation = serializers.ReadOnlyField()
 
     class Meta:
         model = Reservation
-        fields = ['url', 'id', 'resource', 'user', 'begin', 'end', 'comments', 'is_own', 'state'] + list(
-            RESERVATION_EXTRA_FIELDS
-        )
+        fields = ['url', 'id', 'resource', 'user', 'begin', 'end', 'comments', 'is_own', 'state',
+                  'need_manual_confirmation'] + list(RESERVATION_EXTRA_FIELDS)
         read_only_fields = RESERVATION_EXTRA_FIELDS
 
     def __init__(self, *args, **kwargs):
