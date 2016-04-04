@@ -17,7 +17,7 @@ class KirjastotImporter(Importer):
     """
     Importer tries to convert kirjastot.fi opening hours information to into database
 
-    Since respa has somewhat stricter rules for Period overlaps, this requires some fidling
+    Since Respa has somewhat stricter rules for Period overlaps, this requires some fiddling
 
     If period is fully overlapping existing, larger period, the new one becomes its exception
 
@@ -34,7 +34,7 @@ class KirjastotImporter(Importer):
     name = "kirjastot"
 
     def import_units(self):
-        raise Exception("Importer disabled until verified that it works")
+        # TODO: Fix importer for problematic libraries 8294 and 8324
         url = "http://api.kirjastot.fi/v2/search/libraries?consortium=helmet&with=periods"
         resp = requests.get(url)
         assert resp.status_code == 200
@@ -48,7 +48,8 @@ class KirjastotImporter(Importer):
                 unit = Unit.objects.get(identifiers=id_qs)
             except ObjectDoesNotExist:
                 continue
-            print(unit)
+            if unit.id in ["tprek:8294", "tprek:8324"]:
+                continue
             unit.periods.all().delete()
             periods = []
             for period in unit_data['periods']:
@@ -150,7 +151,7 @@ class KirjastotImporter(Importer):
 
     def save_period(self, period, parent=None):
 
-        print("debug save", period.start, period.end, parent)
+        print("debug save", period.start, period.end, parent, period.unit)
 
         if parent:
 
