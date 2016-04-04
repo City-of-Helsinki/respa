@@ -19,9 +19,9 @@ class ReservationTestCase(TestCase):
         Resource.objects.create(name='Resource 2a', id='r2a', unit=u2, type=rt)
         Resource.objects.create(name='Resource 2b', id='r2b', unit=u2, type=rt)
 
-        p1 = Period.objects.create(start='2015-06-01', end='2015-09-01', unit=u1, name='')
-        p2 = Period.objects.create(start='2015-06-01', end='2015-09-01', unit=u2, name='')
-        p3 = Period.objects.create(start='2015-06-01', end='2015-09-01', resource_id='r1a', name='')
+        p1 = Period.objects.create(start='2116-06-01', end='2116-09-01', unit=u1, name='')
+        p2 = Period.objects.create(start='2116-06-01', end='2116-09-01', unit=u2, name='')
+        p3 = Period.objects.create(start='2116-06-01', end='2116-09-01', resource_id='r1a', name='')
         Day.objects.create(period=p1, weekday=0, opens='08:00', closes='22:00')
         Day.objects.create(period=p2, weekday=1, opens='08:00', closes='16:00')
         Day.objects.create(period=p3, weekday=0, opens='08:00', closes='18:00')
@@ -30,8 +30,8 @@ class ReservationTestCase(TestCase):
         r1a = Resource.objects.get(id='r1a')
         r1b = Resource.objects.get(id='r1b')
 
-        date = arrow.get('2015-06-01').date()
-        end = arrow.get('2015-06-02').date()
+        date = arrow.get('2116-06-01').date()
+        end = arrow.get('2116-06-02').date()
         days = r1a.get_opening_hours(begin=date, end=end)  # Monday
         hours = days[date][0]  # first day object of chosen days
         self.assertEqual(hours['opens'].time(), datetime.time(8, 00))
@@ -47,7 +47,7 @@ class ReservationTestCase(TestCase):
         r1b = Resource.objects.get(id='r1b')
 
         tz = timezone.get_current_timezone()
-        begin = tz.localize(datetime.datetime(2015, 6, 1, 8, 0, 0))
+        begin = tz.localize(datetime.datetime(2116, 6, 1, 8, 0, 0))
         end = begin + datetime.timedelta(hours=2)
 
         reservation = Reservation.objects.create(resource=r1a, begin=begin, end=end)
@@ -81,7 +81,7 @@ class ReservationTestCase(TestCase):
         )
         reservation.clean()
 
-        begin = tz.localize(datetime.datetime(2015, 6, 1, 16, 0, 0))
+        begin = tz.localize(datetime.datetime(2116, 6, 1, 16, 0, 0))
         end = begin + datetime.timedelta(hours=2)
 
         # Make a reservation that ends when the resource closes

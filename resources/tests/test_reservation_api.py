@@ -820,3 +820,81 @@ def test_extra_fields_visibility_for_different_user_types(api_client, user, user
         reservation_data = response.data['results'][0] if 'results' in response.data else response.data
         for field_name in RESERVATION_EXTRA_FIELDS:
             assert (field_name in reservation_data) is expected_visibility
+
+
+@pytest.mark.parametrize('state', [
+    Reservation.CANCELLED,
+    Reservation.DENIED
+])
+@pytest.mark.django_db
+def test_denied_and_cancelled_reservations_not_active(user_api_client, reservation, reservation_data, list_url,
+                                                      resource_in_unit, state):
+    reservation.state = state
+    reservation.save()
+
+    # test reservation max limit
+    response = user_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201
+
+    # test overlapping reservation
+    resource_in_unit.max_reservations_per_user = 2
+    resource_in_unit.save()
+    reservation_data['begin'] = reservation.begin
+    reservation_data['end'] = reservation.end
+    response = user_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201
+
+
+@pytest.mark.django_db
+def test_cannot_make_reservation_in_the_past(user_api_client, reservation_data, list_url):
+    reservation_data.update(
+        begin='2010-04-04T11:00:00+02:00',
+        end='2010-04-04T12:00:00+02:00'
+    )
+    response = user_api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 400
+    assert_non_field_errors_contain(response, 'past')
+
+
+@pytest.mark.django_db
+def test_need_manual_confirmation_filter(user_api_client, user, list_url, reservation, other_resource):
+    other_resource.need_manual_confirmation = True
+    other_resource.save()
+    reservation_needing_confirmation = Reservation.objects.create(
+        resource=other_resource,
+        begin='2115-04-05T09:00:00+02:00',
+        end='2115-04-05T10:00:00+02:00',
+        user=user,
+    )
+
+    # no filter, expect both reservations
+    response = user_api_client.get(list_url)
+    assert response.status_code == 200
+    reservation_ids = set([res['id'] for res in response.data['results']])
+    assert reservation_ids == {reservation.id, reservation_needing_confirmation.id}
+
+    # filter false, expect only first reservation
+    response = user_api_client.get('%s%s' % (list_url, '?need_manual_confirmation=false'))
+    assert response.status_code == 200
+    reservation_ids = set([res['id'] for res in response.data['results']])
+    assert reservation_ids == {reservation.id}
+
+    # filter true, expect only second reservation
+    response = user_api_client.get('%s%s' % (list_url, '?need_manual_confirmation=true'))
+    assert response.status_code == 200
+    reservation_ids = set([res['id'] for res in response.data['results']])
+    assert reservation_ids == {reservation_needing_confirmation.id}
+
+
+@pytest.mark.parametrize('state_filter, expected_states', [
+    ('', ['requested', 'confirmed', 'denied', 'cancelled']),
+    ('?state=requested', ['requested']),
+    ('?state=confirmed,requested', ['confirmed', 'requested']),
+    ('?state=confirmed,   requested    ,', ['confirmed', 'requested'])
+])
+@pytest.mark.django_db
+def test_state_filters(user_api_client, user, list_url, reservations_in_all_states, state_filter, expected_states):
+    response = user_api_client.get('%s%s' % (list_url, state_filter))
+    assert response.status_code == 200
+    reservation_ids = set([res['id'] for res in response.data['results']])
+    assert reservation_ids == set(reservations_in_all_states[state].id for state in expected_states)

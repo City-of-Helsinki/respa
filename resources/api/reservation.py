@@ -6,6 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError, PermissionDenied
 from django.http import HttpResponse
 from django.db.models import Q
+from django.utils import timezone
 from rest_framework import viewsets, serializers, filters, exceptions, permissions
 from rest_framework.fields import BooleanField, IntegerField
 from rest_framework import renderers
@@ -22,7 +23,7 @@ from .base import NullableDateTimeField, TranslatedModelSerializer, register_vie
 # FIXME: Make this configurable?
 USER_ID_ATTRIBUTE = 'id'
 try:
-    get_user_model()._meta.get_field_by_name('uuid')
+    get_user_model()._meta.get_field('uuid')
     USER_ID_ATTRIBUTE = 'uuid'
 except:
     pass
@@ -57,12 +58,12 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
     user = UserSerializer(required=False)
     is_own = serializers.SerializerMethodField()
     state = serializers.ChoiceField(choices=Reservation.STATE_CHOICES, required=False)
+    need_manual_confirmation = serializers.ReadOnlyField()
 
     class Meta:
         model = Reservation
-        fields = ['url', 'id', 'resource', 'user', 'begin', 'end', 'comments', 'is_own', 'state'] + list(
-            RESERVATION_EXTRA_FIELDS
-        )
+        fields = ['url', 'id', 'resource', 'user', 'begin', 'end', 'comments', 'is_own', 'state',
+                  'need_manual_confirmation'] + list(RESERVATION_EXTRA_FIELDS)
         read_only_fields = RESERVATION_EXTRA_FIELDS
 
     def __init__(self, *args, **kwargs):
@@ -111,6 +112,9 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
 
         if not resource.can_make_reservations(request_user):
             raise PermissionDenied()
+
+        if data['end'] < timezone.now():
+            raise ValidationError(_('You cannot make a reservation in the past'))
 
         # normal users cannot make reservations for other people
         if not resource.is_admin(request_user):
@@ -215,9 +219,9 @@ class UserFilterBackend(filters.BaseFilterBackend):
         return queryset
 
 
-class ActiveFilterBackend(filters.BaseFilterBackend):
+class ExcludePastFilterBackend(filters.BaseFilterBackend):
     """
-    Filter only active reservations.
+    Exclude reservations in the past.
     """
 
     def filter_queryset(self, request, queryset, view):
@@ -238,6 +242,23 @@ class ResourceFilterBackend(filters.BaseFilterBackend):
         resource = request.query_params.get('resource', None)
         if resource:
             return queryset.filter(resource__id=resource)
+        return queryset
+
+
+class NeedManualConfirmationFilterBackend(filters.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        filter_value = request.query_params.get('need_manual_confirmation', None)
+        if filter_value is not None:
+            need_manual_confirmation = BooleanField().to_internal_value(filter_value)
+            return queryset.filter(resource__need_manual_confirmation=need_manual_confirmation)
+        return queryset
+
+
+class StateFilterBackend(filters.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        state = request.query_params.get('state', None)
+        if state:
+            queryset = queryset.filter(state__in=state.replace(' ', '').split(','))
         return queryset
 
 
@@ -275,7 +296,8 @@ class ReservationExcelRenderer(renderers.BaseRenderer):
 class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
-    filter_backends = (UserFilterBackend, ActiveFilterBackend, ResourceFilterBackend)
+    filter_backends = (UserFilterBackend, ExcludePastFilterBackend, ResourceFilterBackend,
+                       NeedManualConfirmationFilterBackend, StateFilterBackend)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, ReservationExcelRenderer)
 
