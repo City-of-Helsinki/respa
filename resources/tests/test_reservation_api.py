@@ -884,3 +884,17 @@ def test_need_manual_confirmation_filter(user_api_client, user, list_url, reserv
     assert response.status_code == 200
     reservation_ids = set([res['id'] for res in response.data['results']])
     assert reservation_ids == {reservation_needing_confirmation.id}
+
+
+@pytest.mark.parametrize('state_filter, expected_states', [
+    ('', ['requested', 'confirmed', 'denied', 'cancelled']),
+    ('?state=requested', ['requested']),
+    ('?state=confirmed,requested', ['confirmed', 'requested']),
+    ('?state=confirmed,   requested    ,', ['confirmed', 'requested'])
+])
+@pytest.mark.django_db
+def test_state_filters(user_api_client, user, list_url, reservations_in_all_states, state_filter, expected_states):
+    response = user_api_client.get('%s%s' % (list_url, state_filter))
+    assert response.status_code == 200
+    reservation_ids = set([res['id'] for res in response.data['results']])
+    assert reservation_ids == set(reservations_in_all_states[state].id for state in expected_states)
