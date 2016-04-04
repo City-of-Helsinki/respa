@@ -114,7 +114,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             raise PermissionDenied()
 
         if data['end'] < timezone.now():
-            raise ValidationError(_('Cannot make a reservation in the past'))
+            raise ValidationError(_('You cannot make a reservation in the past'))
 
         # normal users cannot make reservations for other people
         if not resource.is_admin(request_user):
