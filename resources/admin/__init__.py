@@ -1,13 +1,26 @@
 from django.contrib import admin
 from django.contrib.admin import site as admin_site
+from django.contrib.auth import get_user_model
 from django.contrib.gis.admin import OSMGeoAdmin
+from django import forms
+from guardian import admin as guardian_admin
 from image_cropping import ImageCroppingMixin
 from modeltranslation.admin import TranslationAdmin, TranslationStackedInline
-from guardian.admin import GuardedModelAdminMixin
 from .base import CommonExcludeMixin, PopulateCreatedAndModifiedMixin
 from resources.admin.period_inline import PeriodInline
 from resources.models import Day, Reservation, Resource, ResourceImage, ResourceType, Unit, Purpose
 from resources.models import Equipment, ResourceEquipment, EquipmentAlias, EquipmentCategory
+
+
+class EmailChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.email
+
+
+# monkey patch django-guardian user form for better UX
+class UserManage(forms.Form):
+    user = EmailChoiceField(queryset=get_user_model().objects.filter(is_staff=True).order_by('email'))
+guardian_admin.UserManage = UserManage
 
 
 class HttpsFriendlyGeoAdmin(OSMGeoAdmin):
@@ -35,8 +48,8 @@ class ResourceAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Transla
     default_zoom = 12
 
 
-class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, GuardedModelAdminMixin, TranslationAdmin,
-                HttpsFriendlyGeoAdmin):
+class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, guardian_admin.GuardedModelAdminMixin,
+                TranslationAdmin, HttpsFriendlyGeoAdmin):
     inlines = [
         PeriodInline
     ]
