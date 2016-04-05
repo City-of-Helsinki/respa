@@ -58,7 +58,8 @@ def reservation_data_extra(reservation_data):
         'billing_address_street': 'Pihlajakatu',
         'billing_address_zip': '00001',
         'billing_address_city': 'Tampere',
-        'company': 'a very secret association'
+        'company': 'a very secret association',
+        'reserver_email_address': 'test.reserver@test.com',
     })
     return extra_data
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-04-05 16:09+0300\n"
+"POT-Creation-Date: 2016-04-05 16:34+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -38,11 +38,11 @@ msgstr "Ainoastaan virkailijat saavat asettaa"
 msgid "Invalid value in filter %(filter)s"
 msgstr "Virheellinen arvo filtterissä %(filter)s"
 
-#: resources/api/reservation.py:348 resources/models/reservation.py:132
+#: resources/api/reservation.py:348 resources/models/reservation.py:133
 msgid "reservations"
 msgstr "varaukset"
 
-#: resources/api/reservation.py:354 resources/models/reservation.py:131
+#: resources/api/reservation.py:354 resources/models/reservation.py:132
 msgid "reservation"
 msgstr "varaus"
 
@@ -318,32 +318,36 @@ msgstr "Y-tunnus"
 msgid "Number of participants"
 msgstr "Osallistujamäärä"
 
-#: resources/models/reservation.py:146
+#: resources/models/reservation.py:64
+msgid "Reserver email"
+msgstr "Varaajan sähköpostiosoite"
+
+#: resources/models/reservation.py:147
 msgid "You must end the reservation after it has begun"
 msgstr "Varauksen loppuaika ei voi olla ennen alkuaikaa"
 
-#: resources/models/reservation.py:154
+#: resources/models/reservation.py:155
 msgid "Begin and end time must match time slots"
 msgstr "Alku- ja loppuajan täytyy osua aikaikkunoihin"
 
-#: resources/models/reservation.py:158
+#: resources/models/reservation.py:159
 msgid "The resource is already reserved for some of the period"
 msgstr "Tila on jo varattu ainakin osan ajanjaksosta"
 
-#: resources/models/reservation.py:161
+#: resources/models/reservation.py:162
 #, python-format
 msgid "The minimum reservation length is %(min_period)s"
 msgstr "Varauksen minimikesto on %(min_period)s"
 
-#: resources/models/reservation.py:168
+#: resources/models/reservation.py:169
 msgid "Reservation created"
 msgstr "Varaus luotu"
 
-#: resources/models/reservation.py:177
+#: resources/models/reservation.py:178
 msgid "Reservation updated"
 msgstr "Varausta muutettu"
 
-#: resources/models/reservation.py:184
+#: resources/models/reservation.py:185
 msgid "Reservation deleted"
 msgstr "Varaus poistettu"
 
