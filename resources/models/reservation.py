@@ -166,7 +166,7 @@ class Reservation(ModifiableModel):
         mail_content = render_to_string(
             'mail/reservation_created_by_admin.txt', {'reservation': self}
         )
-        send_respa_mail(self.user, _('Reservation created'), mail_content)
+        send_respa_mail(self.user.email, _('Reservation created'), mail_content)
 
     def send_updated_by_admin_mail_if_changed(self, old_reservation):
         for field in ('resource', 'begin', 'end'):
@@ -175,14 +175,14 @@ class Reservation(ModifiableModel):
                     'mail/reservation_updated_by_admin.txt',
                     {'reservation': self, 'old_reservation': old_reservation}
                 )
-                send_respa_mail(self.user, _('Reservation updated'), mail_content)
+                send_respa_mail(self.user.email, _('Reservation updated'), mail_content)
                 break
 
     def send_deleted_by_admin_mail(self):
         mail_content = render_to_string(
             'mail/reservation_deleted_by_admin.txt', {'reservation': self}
         )
-        send_respa_mail(self.user, _('Reservation deleted'), mail_content)
+        send_respa_mail(self.user.email, _('Reservation deleted'), mail_content)
 
     def save(self, *args, **kwargs):
         self.duration = DateTimeTZRange(self.begin, self.end, '[)')

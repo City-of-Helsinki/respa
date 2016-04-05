@@ -1,4 +1,4 @@
-{% load i18n %}{% blocktrans with user_name=user.get_display_name %}Hello {{ user_name }}{% endblocktrans %}
+{% load i18n %}{% trans "Hello" %}
 {{ content }}
 
 {% trans "Best regards, the RESPA bot" %}

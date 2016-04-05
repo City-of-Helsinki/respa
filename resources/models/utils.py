@@ -95,23 +95,23 @@ def humanize_duration(duration):
     return ' '.join(filter(None, (hours_string, mins_string)))
 
 
-def send_respa_mail(user, subject, message):
+def send_respa_mail(email_address, subject, message):
     """
     Send a mail containing common Respa extras and given message to given user.
 
-    :type user: User
+    :type email_address: str
     :type subject: str
     :type message: str
     """
     if not getattr(settings, 'RESPA_MAILS_ENABLED', False):
         return
 
-    final_message = render_to_string('mail/base_message.txt', {'user': user, 'content': message})
+    final_message = render_to_string('mail/base_message.txt', {'content': message})
     final_subject = render_to_string('mail/base_subject.txt', {'subject': subject})
     from_address = (getattr(settings, 'RESPA_MAILS_FROM_ADDRESS', None) or
                     'noreply@%s' % Site.objects.get_current().domain)
 
-    send_mail(final_subject, final_message, from_address, [user.email])
+    send_mail(final_subject, final_message, from_address, [email_address])
 
 
 def generate_reservation_xlsx(reservations):
