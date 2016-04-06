@@ -1017,3 +1017,21 @@ def test_reservation_mails_to_customers(staff_api_client, staff_user, list_url, 
         'test.reserver@test.com',
         'has been confirmed.'
     )
+
+
+@pytest.mark.django_db
+def test_can_approve_filter(staff_api_client, staff_user, list_url, reservation):
+    reservation.resource.need_manual_confirmation = True
+    reservation.resource.save()
+    reservation.state = Reservation.REQUESTED
+    reservation.save()
+
+    response = staff_api_client.get('%s%s' % (list_url, '?can_approve=true'))
+    assert response.status_code == 200
+    assert len(response.data['results']) == 0
+
+    assign_perm('can_approve_reservation', staff_user, reservation.resource.unit)
+
+    response = staff_api_client.get('%s%s' % (list_url, '?can_approve=true'))
+    assert response.status_code == 200
+    assert len(response.data['results']) == 1

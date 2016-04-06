@@ -11,9 +11,10 @@ from rest_framework import viewsets, serializers, filters, exceptions, permissio
 from rest_framework.fields import BooleanField, IntegerField
 from rest_framework import renderers
 from rest_framework.exceptions import NotAcceptable
+from guardian.shortcuts import get_objects_for_user
 
 from munigeo import api as munigeo_api
-from resources.models import Reservation, Resource
+from resources.models import Reservation, Resource, Unit
 from resources.models.reservation import RESERVATION_EXTRA_FIELDS
 from users.models import User
 from resources.models.utils import generate_reservation_xlsx, get_object_or_none
@@ -270,6 +271,20 @@ class StateFilterBackend(filters.BaseFilterBackend):
         return queryset
 
 
+class CanApproveFilterBackend(filters.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        filter_value = request.query_params.get('can_approve', None)
+        if filter_value:
+            queryset = queryset.filter(resource__need_manual_confirmation=True)
+            units = get_objects_for_user(user=request.user, perms=['can_approve_reservation'], klass=Unit)
+            can_approve = BooleanField().to_internal_value(filter_value)
+            if can_approve:
+                queryset = queryset.filter(resource__unit__in=units)
+            else:
+                queryset = queryset.exclude(resource__unit__in=units)
+        return queryset
+
+
 class ReservationPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
@@ -305,7 +320,7 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
     filter_backends = (UserFilterBackend, ExcludePastFilterBackend, ResourceFilterBackend,
-                       NeedManualConfirmationFilterBackend, StateFilterBackend)
+                       NeedManualConfirmationFilterBackend, StateFilterBackend, CanApproveFilterBackend)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, ReservationExcelRenderer)
 
