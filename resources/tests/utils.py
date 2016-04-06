@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
+from django.core import mail
 from django.test.testcases import SimpleTestCase
 from django.utils.six import BytesIO
 from django.utils.encoding import force_text
@@ -135,3 +136,15 @@ def assert_non_field_errors_contain(response, text):
     """
     error_messages = [force_text(error_message) for error_message in response.data['non_field_errors']]
     assert any(text in error_message for error_message in error_messages)
+
+
+def check_received_mail(subject, to, message, clear_outbox=True):
+    assert len(mail.outbox) == 1
+    mail_instance = mail.outbox[0]
+    assert subject in mail_instance.subject
+    assert len(mail_instance.to) == 1
+    assert mail_instance.to[0] == to
+    mail_message = str(mail_instance.message())
+    assert message in mail_message
+    if clear_outbox:
+        mail.outbox = []

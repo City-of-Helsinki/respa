@@ -8,7 +8,7 @@ from guardian.shortcuts import assign_perm
 
 from resources.models import Period, Day, Reservation, Resource, RESERVATION_EXTRA_FIELDS
 from users.models import User
-from .utils import check_disallowed_methods, assert_non_field_errors_contain
+from .utils import check_disallowed_methods, assert_non_field_errors_contain, check_received_mail
 
 
 @pytest.fixture
@@ -899,3 +899,60 @@ def test_state_filters(user_api_client, user, list_url, reservations_in_all_stat
     assert response.status_code == 200
     reservation_ids = set([res['id'] for res in response.data['results']])
     assert reservation_ids == set(reservations_in_all_states[state].id for state in expected_states)
+
+
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
+def test_requested_mail(staff_api_client, staff_user, list_url, resource_in_unit, reservation,
+                        reservation_data_extra):
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+    assign_perm('can_approve_reservation', staff_user, reservation.resource.unit)
+    reservation_data_extra['state'] = Reservation.REQUESTED
+
+    response = staff_api_client.post(list_url, data=reservation_data_extra, format='json', HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 201
+    assert len(mail.outbox) == 1
+    mail_instance = mail.outbox[0]
+    assert 'Reservation requested' in mail_instance.subject
+    assert len(mail_instance.to) == 1
+    assert mail_instance.to[0] == 'test.reserver@test.com'
+    mail_message = str(mail_instance.message())
+    assert 'You have created a preliminary reservation' in mail_message
+
+
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
+def test_reservation_mails_to_customers(staff_api_client, staff_user, list_url, resource_in_unit,
+                                        reservation_data_extra):
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+    assign_perm('can_approve_reservation', staff_user, resource_in_unit.unit)
+    reservation_data_extra['state'] = Reservation.REQUESTED
+
+    response = staff_api_client.post(list_url, data=reservation_data_extra, format='json', HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 201
+    check_received_mail(
+        'Reservation requested',
+        'test.reserver@test.com',
+        'You have created a preliminary reservation'
+    )
+
+    detail_url = '%s%s/' % (list_url, response.data['id'])
+    reservation_data_extra['state'] = Reservation.DENIED
+    response = staff_api_client.put(detail_url, data=reservation_data_extra, format='json', HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 200
+    check_received_mail(
+        'Reservation denied',
+        'test.reserver@test.com',
+        'has been denied.'
+    )
+
+    reservation_data_extra['state'] = Reservation.CONFIRMED
+    response = staff_api_client.put(detail_url, data=reservation_data_extra, format='json', HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 200
+    check_received_mail(
+        'Reservation confirmed',
+        'test.reserver@test.com',
+        'has been confirmed.'
+    )

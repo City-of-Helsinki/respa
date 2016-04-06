@@ -328,6 +328,8 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
         instance = serializer.save(**kwargs)
         if instance.user != self.request.user:
             instance.send_created_by_admin_mail()
+        if instance.state == Reservation.REQUESTED:
+            instance.send_reservation_requested_mail()
 
     def perform_update(self, serializer):
         old_instance = self.get_object()

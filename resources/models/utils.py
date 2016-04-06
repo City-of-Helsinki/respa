@@ -114,7 +114,7 @@ def send_respa_mail(email_address, subject, template_name, context):
     from_address = (getattr(settings, 'RESPA_MAILS_FROM_ADDRESS', None) or
                     'noreply@%s' % Site.objects.get_current().domain)
 
-    send_mail(subject, final_message, from_address, [email_address])
+    send_mail(str(subject), final_message, from_address, [email_address])
 
 
 def generate_reservation_xlsx(reservations):

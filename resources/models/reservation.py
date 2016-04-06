@@ -121,10 +121,16 @@ class Reservation(ModifiableModel):
     def set_state(self, new_state, user):
         if new_state == self.state:
             return
+
         if new_state == Reservation.CONFIRMED:
             self.approver = user
+            self.send_reservation_confirmed_mail()
         elif self.state == Reservation.CONFIRMED:
             self.approver = None
+
+        if new_state == Reservation.DENIED:
+            self.send_reservation_denied_mail()
+
         self.state = new_state
         self.save()
 
@@ -162,20 +168,39 @@ class Reservation(ModifiableModel):
             raise ValidationError(_("The minimum reservation length is %(min_period)s") %
                                   {'min_period': humanize_duration(self.min_period)})
 
-    def send_created_by_admin_mail(self):
+    def send_reservation_mail(self, subject, template_name, extra_context=None):
+        """
+        Stuff common to all reservation related mails.
+        """
+        if not (self.reserver_email_address or self.user):
+            return
+        email_address = self.reserver_email_address or self.user.email
         context = {'reservation': self}
-        send_respa_mail(self.user.email, _('Reservation created'), 'reservation_created_by_admin', context)
+        if extra_context:
+            context.update(extra_context)
+        send_respa_mail(email_address, subject, template_name, context)
+
+    def send_created_by_admin_mail(self):
+        self.send_reservation_mail(_('Reservation created'), 'reservation_created_by_admin')
 
     def send_updated_by_admin_mail_if_changed(self, old_reservation):
         for field in ('resource', 'begin', 'end'):
             if getattr(old_reservation, field) != getattr(self, field):
-                context = {'reservation': self, 'old_reservation': old_reservation}
-                send_respa_mail(self.user.email, _('Reservation updated'), 'reservation_updated_by_admin', context)
-                break
+                self.send_reservation_mail(_('Reservation updated'), 'reservation_updated_by_admin',
+                                           {'old_reservation': old_reservation})
+                return
 
     def send_deleted_by_admin_mail(self):
-        context = {'reservation': self}
-        send_respa_mail(self.user.email, _('Reservation deleted'), 'reservation_deleted_by_admin', context)
+        self.send_reservation_mail(_('Reservation deleted'), 'reservation_deleted_by_admin')
+
+    def send_reservation_requested_mail(self):
+        self.send_reservation_mail(_('Reservation requested'), 'reservation_requested')
+
+    def send_reservation_denied_mail(self):
+        self.send_reservation_mail(_('Reservation denied'), 'reservation_denied')
+
+    def send_reservation_confirmed_mail(self):
+        self.send_reservation_mail(_('Reservation confirmed'), 'reservation_confirmed')
 
     def save(self, *args, **kwargs):
         self.duration = DateTimeTZRange(self.begin, self.end, '[)')
