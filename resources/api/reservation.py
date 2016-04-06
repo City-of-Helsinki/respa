@@ -59,11 +59,12 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
     is_own = serializers.SerializerMethodField()
     state = serializers.ChoiceField(choices=Reservation.STATE_CHOICES, required=False)
     need_manual_confirmation = serializers.ReadOnlyField()
+    staff_event = serializers.BooleanField(required=False, write_only=True)
 
     class Meta:
         model = Reservation
         fields = ['url', 'id', 'resource', 'user', 'begin', 'end', 'comments', 'is_own', 'state',
-                  'need_manual_confirmation'] + list(RESERVATION_EXTRA_FIELDS)
+                  'need_manual_confirmation', 'staff_event'] + list(RESERVATION_EXTRA_FIELDS)
         read_only_fields = RESERVATION_EXTRA_FIELDS
 
     def __init__(self, *args, **kwargs):
@@ -81,9 +82,15 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             resource = self.instance.resource
 
         # set extra fields required if the related resource is found and it needs manual confirmation
+        # and the request user isn't an admin
         if resource and resource.need_manual_confirmation:
+            can_approve = resource.can_approve_reservations(self.context['request'].user)
+            staff_event = data.get('staff_event', False) and can_approve
             for field_name in RESERVATION_EXTRA_FIELDS:
-                self.fields[field_name].required = True
+                # all fields are required if this is not an own event,
+                # reserver_name and event_description are the only required fields for own events.
+                required = True if not staff_event else field_name in ('reserver_name', 'event_description')
+                self.fields[field_name].required = required
                 self.fields[field_name].read_only = False
 
     def validate_state(self, value):
@@ -139,6 +146,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             resource.validate_max_reservations_per_user(request_user)
 
         # Run model clean
+        data.pop('staff_event', None)
         instance = Reservation(**data)
         instance.clean(original_reservation=reservation)
 
@@ -321,11 +329,17 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
         kwargs = {'created_by': self.request.user, 'modified_by': self.request.user}
         if 'user' not in serializer.validated_data:
             kwargs['user'] = self.request.user
-        if serializer.validated_data['resource'].need_manual_confirmation:
+
+        resource = serializer.validated_data['resource']
+        staff_event = (self.request.data.get('staff_event', False) and
+                     resource.can_approve_reservations(self.request.user))
+        if resource.need_manual_confirmation and not staff_event:
             kwargs['state'] = Reservation.REQUESTED
         else:
             kwargs['state'] = Reservation.CONFIRMED
+
         instance = serializer.save(**kwargs)
+
         if instance.user != self.request.user:
             instance.send_created_by_admin_mail()
         if instance.state == Reservation.REQUESTED:

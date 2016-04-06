@@ -695,13 +695,74 @@ def test_extra_fields_visibility(user_api_client, list_url, detail_url, reservat
 
 
 @pytest.mark.django_db
-def test_extra_fields_required_for_paid_reservations(user_api_client, list_url, resource_in_unit, reservation_data):
+def test_extra_fields_required_for_paid_reservations(user_api_client, staff_api_client, staff_user, list_url,
+                                                     resource_in_unit, reservation_data):
     resource_in_unit.need_manual_confirmation = True
     resource_in_unit.save()
+
     response = user_api_client.post(list_url, data=reservation_data)
     assert response.status_code == 400
     for field_name in RESERVATION_EXTRA_FIELDS:
         assert field_name in response.data
+
+    response = staff_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+    for field_name in RESERVATION_EXTRA_FIELDS:
+        assert field_name in response.data
+
+    assign_perm('can_approve_reservation', staff_user, resource_in_unit.unit)
+    response = staff_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+    for field_name in RESERVATION_EXTRA_FIELDS:
+        assert field_name in response.data
+
+
+@pytest.mark.django_db
+def test_staff_event_restrictions(user_api_client, staff_api_client, staff_user, list_url, resource_in_unit,
+                                  reservation_data):
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+    reservation_data['staff_event'] = True
+
+    # normal user
+    response = user_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+    assert set(RESERVATION_EXTRA_FIELDS) == set(response.data)
+
+    # staff member
+    response = staff_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+    assert set(RESERVATION_EXTRA_FIELDS) == set(response.data)
+
+    # staff with permission but reserver_name and event_description missing
+    assign_perm('can_approve_reservation', staff_user, resource_in_unit.unit)
+    response = staff_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+    assert {'reserver_name', 'event_description'} == set(response.data)
+
+
+@pytest.mark.django_db
+def test_new_staff_event_gets_confirmed(user_api_client, staff_api_client, staff_user, list_url, resource_in_unit,
+                                      reservation_data, reservation_data_extra):
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+    reservation_data['staff_event'] = True
+
+    # reservation should not be be confirmed if the user doesn't have approve permission
+    response = staff_api_client.post(list_url, data=reservation_data_extra)
+    assert response.status_code == 201
+    reservation = Reservation.objects.get(id=response.data['id'])
+    assert reservation.state == Reservation.REQUESTED
+
+    reservation.delete()
+
+    assign_perm('can_approve_reservation', staff_user, resource_in_unit.unit)
+    reservation_data['reserver_name'] = 'herra huu'
+    reservation_data['event_description'] = 'herra huun bileet'
+    response = staff_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201
+    reservation = Reservation.objects.get(id=response.data['id'])
+    assert reservation.state == Reservation.CONFIRMED
 
 
 @pytest.mark.django_db
