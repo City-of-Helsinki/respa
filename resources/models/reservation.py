@@ -163,26 +163,19 @@ class Reservation(ModifiableModel):
                                   {'min_period': humanize_duration(self.min_period)})
 
     def send_created_by_admin_mail(self):
-        mail_content = render_to_string(
-            'mail/reservation_created_by_admin.jinja', {'reservation': self}
-        )
-        send_respa_mail(self.user.email, _('Reservation created'), mail_content)
+        context = {'reservation': self}
+        send_respa_mail(self.user.email, _('Reservation created'), 'reservation_created_by_admin', context)
 
     def send_updated_by_admin_mail_if_changed(self, old_reservation):
         for field in ('resource', 'begin', 'end'):
             if getattr(old_reservation, field) != getattr(self, field):
-                mail_content = render_to_string(
-                    'mail/reservation_updated_by_admin.jinja',
-                    {'reservation': self, 'old_reservation': old_reservation}
-                )
-                send_respa_mail(self.user.email, _('Reservation updated'), mail_content)
+                context = {'reservation': self, 'old_reservation': old_reservation}
+                send_respa_mail(self.user.email, _('Reservation updated'), 'reservation_updated_by_admin', context)
                 break
 
     def send_deleted_by_admin_mail(self):
-        mail_content = render_to_string(
-            'mail/reservation_deleted_by_admin.jinja', {'reservation': self}
-        )
-        send_respa_mail(self.user.email, _('Reservation deleted'), mail_content)
+        context = {'reservation': self}
+        send_respa_mail(self.user.email, _('Reservation deleted'), 'reservation_deleted_by_admin', context)
 
     def save(self, *args, **kwargs):
         self.duration = DateTimeTZRange(self.begin, self.end, '[)')
