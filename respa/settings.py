@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'autoslug',
     'django_hstore',
     'guardian',
+    'django_jinja',
 
     'allauth',
     'allauth.account',
@@ -77,8 +78,18 @@ MIDDLEWARE_CLASSES = (
 )
 
 ROOT_URLCONF = 'respa.urls'
+from django_jinja.builtins import DEFAULT_EXTENSIONS
 
 TEMPLATES = [
+    {
+        'BACKEND': 'django_jinja.backend.Jinja2',
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'extensions': DEFAULT_EXTENSIONS + ["jinja2.ext.i18n"],
+            'translation_engine': 'django.utils.translation',
+            "match_extension": ".jinja",
+        },
+    },
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [],

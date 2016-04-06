@@ -1,4 +1,0 @@
-{% load i18n %}{% trans "Hello" %}
-{{ content }}
-
-{% trans "Best regards, the RESPA bot" %}

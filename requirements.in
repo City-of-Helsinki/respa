@@ -26,3 +26,5 @@ icalendar
 pip-tools
 fake-factory
 django-guardian
+Jinja2
+django-jinja

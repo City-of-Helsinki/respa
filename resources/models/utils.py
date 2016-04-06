@@ -106,12 +106,11 @@ def send_respa_mail(email_address, subject, message):
     if not getattr(settings, 'RESPA_MAILS_ENABLED', False):
         return
 
-    final_message = render_to_string('mail/base_message.txt', {'content': message})
-    final_subject = render_to_string('mail/base_subject.txt', {'subject': subject})
+    final_message = render_to_string('mail/base_message.jinja', {'content': message})
     from_address = (getattr(settings, 'RESPA_MAILS_FROM_ADDRESS', None) or
                     'noreply@%s' % Site.objects.get_current().domain)
 
-    send_mail(final_subject, final_message, from_address, [email_address])
+    send_mail(subject, final_message, from_address, [email_address])
 
 
 def generate_reservation_xlsx(reservations):

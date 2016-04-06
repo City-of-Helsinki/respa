@@ -164,7 +164,7 @@ class Reservation(ModifiableModel):
 
     def send_created_by_admin_mail(self):
         mail_content = render_to_string(
-            'mail/reservation_created_by_admin.txt', {'reservation': self}
+            'mail/reservation_created_by_admin.jinja', {'reservation': self}
         )
         send_respa_mail(self.user.email, _('Reservation created'), mail_content)
 
@@ -172,7 +172,7 @@ class Reservation(ModifiableModel):
         for field in ('resource', 'begin', 'end'):
             if getattr(old_reservation, field) != getattr(self, field):
                 mail_content = render_to_string(
-                    'mail/reservation_updated_by_admin.txt',
+                    'mail/reservation_updated_by_admin.jinja',
                     {'reservation': self, 'old_reservation': old_reservation}
                 )
                 send_respa_mail(self.user.email, _('Reservation updated'), mail_content)
@@ -180,7 +180,7 @@ class Reservation(ModifiableModel):
 
     def send_deleted_by_admin_mail(self):
         mail_content = render_to_string(
-            'mail/reservation_deleted_by_admin.txt', {'reservation': self}
+            'mail/reservation_deleted_by_admin.jinja', {'reservation': self}
         )
         send_respa_mail(self.user.email, _('Reservation deleted'), mail_content)
 
