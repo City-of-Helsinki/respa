@@ -355,8 +355,6 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
 
         instance = serializer.save(**kwargs)
 
-        if instance.user != self.request.user:
-            instance.send_created_by_admin_mail()
         if instance.state == Reservation.REQUESTED:
             instance.send_reservation_requested_mail()
 
@@ -365,13 +363,9 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
         new_state = serializer.validated_data.pop('state', old_instance.state)
         new_instance = serializer.save(modified_by=self.request.user)
         new_instance.set_state(new_state, self.request.user)
-        if self.request.user != new_instance.user:
-            new_instance.send_updated_by_admin_mail_if_changed(old_instance)
 
     def perform_destroy(self, instance):
         instance.set_state(Reservation.CANCELLED, self.request.user)
-        if self.request.user != instance.user:
-            instance.send_deleted_by_admin_mail()
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)

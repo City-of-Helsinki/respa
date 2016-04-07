@@ -180,19 +180,6 @@ class Reservation(ModifiableModel):
             context.update(extra_context)
         send_respa_mail(email_address, subject, template_name, context)
 
-    def send_created_by_admin_mail(self):
-        self.send_reservation_mail(_('Reservation created'), 'reservation_created_by_admin')
-
-    def send_updated_by_admin_mail_if_changed(self, old_reservation):
-        for field in ('resource', 'begin', 'end'):
-            if getattr(old_reservation, field) != getattr(self, field):
-                self.send_reservation_mail(_('Reservation updated'), 'reservation_updated_by_admin',
-                                           {'old_reservation': old_reservation})
-                return
-
-    def send_deleted_by_admin_mail(self):
-        self.send_reservation_mail(_('Reservation deleted'), 'reservation_deleted_by_admin')
-
     def send_reservation_requested_mail(self):
         self.send_reservation_mail(_('Reservation requested'), 'reservation_requested')
 

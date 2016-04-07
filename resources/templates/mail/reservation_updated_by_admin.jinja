@@ -1,9 +1,0 @@
-{% trans %}Your reservation has been modified.{% endtrans %}
-
-{% trans %}The new reservation:{% endtrans %}
-
-{% include "mail/_reservation_data.jinja" %}
-
-{% trans %}The old reservation:{% endtrans %}
-
-{% with reservation=old_reservation %}{% include "mail/_reservation_data.jinja" %}{% endwith %}
