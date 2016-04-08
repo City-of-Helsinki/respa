@@ -127,7 +127,8 @@ class Reservation(ModifiableModel):
 
         if new_state == Reservation.CONFIRMED:
             self.approver = user
-            self.send_reservation_confirmed_mail()
+            if self.need_manual_confirmation():
+                self.send_reservation_confirmed_mail()
         elif self.state == Reservation.CONFIRMED:
             self.approver = None
 
