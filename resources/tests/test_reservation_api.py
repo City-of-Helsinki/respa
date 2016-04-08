@@ -6,7 +6,8 @@ from django.core import mail
 from django.test.utils import override_settings
 from guardian.shortcuts import assign_perm
 
-from resources.models import Period, Day, Reservation, Resource, RESERVATION_EXTRA_FIELDS
+from resources.models import (Period, Day, Reservation, Resource, RESERVATION_EXTRA_FIELDS,
+                              REQUIRED_RESERVATION_EXTRA_FIELDS)
 from users.models import User
 from .utils import check_disallowed_methods, assert_non_field_errors_contain, check_received_mail
 
@@ -599,19 +600,16 @@ def test_extra_fields_required_for_paid_reservations(user_api_client, staff_api_
 
     response = user_api_client.post(list_url, data=reservation_data)
     assert response.status_code == 400
-    for field_name in RESERVATION_EXTRA_FIELDS:
-        assert field_name in response.data
+    assert set(REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
 
     response = staff_api_client.post(list_url, data=reservation_data)
     assert response.status_code == 400
-    for field_name in RESERVATION_EXTRA_FIELDS:
-        assert field_name in response.data
+    assert set(REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
 
     assign_perm('can_approve_reservation', staff_user, resource_in_unit.unit)
     response = staff_api_client.post(list_url, data=reservation_data)
     assert response.status_code == 400
-    for field_name in RESERVATION_EXTRA_FIELDS:
-        assert field_name in response.data
+    assert set(REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
 
 
 @pytest.mark.django_db
@@ -624,12 +622,12 @@ def test_staff_event_restrictions(user_api_client, staff_api_client, staff_user,
     # normal user
     response = user_api_client.post(list_url, data=reservation_data)
     assert response.status_code == 400
-    assert set(RESERVATION_EXTRA_FIELDS) == set(response.data)
+    assert set(REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
 
     # staff member
     response = staff_api_client.post(list_url, data=reservation_data)
     assert response.status_code == 400
-    assert set(RESERVATION_EXTRA_FIELDS) == set(response.data)
+    assert set(REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
 
     # staff with permission but reserver_name and event_description missing
     assign_perm('can_approve_reservation', staff_user, resource_in_unit.unit)

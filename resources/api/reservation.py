@@ -15,7 +15,7 @@ from guardian.shortcuts import get_objects_for_user
 
 from munigeo import api as munigeo_api
 from resources.models import Reservation, Resource, Unit
-from resources.models.reservation import RESERVATION_EXTRA_FIELDS
+from resources.models.reservation import RESERVATION_EXTRA_FIELDS, REQUIRED_RESERVATION_EXTRA_FIELDS
 from users.models import User
 from resources.models.utils import generate_reservation_xlsx, get_object_or_none
 
@@ -83,16 +83,14 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             resource = self.instance.resource
 
         # set extra fields required if the related resource is found and it needs manual confirmation
-        # and the request user isn't an admin
         if resource and resource.need_manual_confirmation:
+            for field_name in RESERVATION_EXTRA_FIELDS:
+                self.fields[field_name].read_only = False
             can_approve = resource.can_approve_reservations(self.context['request'].user)
             staff_event = data.get('staff_event', False) and can_approve
-            for field_name in RESERVATION_EXTRA_FIELDS:
-                # all fields are required if this is not an own event,
-                # reserver_name and event_description are the only required fields for own events.
+            for field_name in REQUIRED_RESERVATION_EXTRA_FIELDS:
                 required = True if not staff_event else field_name in ('reserver_name', 'event_description')
                 self.fields[field_name].required = required
-                self.fields[field_name].read_only = False
 
     def validate_state(self, value):
         instance = self.instance
