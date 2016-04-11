@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  version: 0.3.0
+  version: 0.4.0
   title: 'Respa'
   description: 'Resource reservation system for City of Helsinki'
 host: api.hel.fi
@@ -66,7 +66,7 @@ paths:
     get:
       tags:
         - unit
-      description: 
+      description:
         The unit endpoint returns City of Helsinki units (libraries, youth centers etc.) listed in the reservation system.
 
         Returns 20 units per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 20 units per page.
@@ -104,7 +104,7 @@ paths:
     get:
       tags:
         - unit
-      description: 
+      description:
         The unit endpoint returns City of Helsinki units (libraries, youth centers etc.) listed in the reservation system.
       parameters:
         - name: id
@@ -123,7 +123,7 @@ paths:
         - filter
       description: |
         The purpose endpoint returns the possible resource usage purposes registered in the system.
-        
+
         Returns 50 purposes per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 50 purposes per page.
       parameters:
         - name: page
@@ -159,7 +159,7 @@ paths:
     get:
       tags:
         - filter
-      description: 
+      description:
         The purpose endpoint returns the possible resource usage purposes registered in the system.
       parameters:
         - name: id
@@ -178,7 +178,7 @@ paths:
         - filter
       description: |
         The type endpoint returns the possible resource types registered in the system.
-        
+
         Returns 20 types per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 20 units per page.
       parameters:
         - name: page
@@ -214,7 +214,7 @@ paths:
     get:
       tags:
         - filter
-      description: 
+      description:
         The type endpoint returns the possible resource types registered in the system.
       parameters:
         - name: id
@@ -343,9 +343,9 @@ paths:
         - resource
       description: |
         The resource endpoint returns resources (meeting rooms, workstations, reservable spaces etc.) listed in the reservation system.
-        
+
         The endpoint allows queries based on resource purpose, type, name and availability. Availability can be specified for a desired duration in a desired time interval. This allows fetching only the resources that match a particular need at a particular time.
-        
+
         Returns 20 resources per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 20 units per page.
       parameters:
         - name: purpose
@@ -423,7 +423,7 @@ paths:
     get:
       tags:
         - resource
-      description: 
+      description:
         The resource endpoint returns resources (meeting rooms, workstations, reservable spaces etc.) listed in the reservation system.
       parameters:
         - name: id
@@ -458,7 +458,7 @@ paths:
         - reservation
       description: |
         The reservation endpoint returns reservations listed in the reservation system.
-        
+
         Returns 20 reservations per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 20 units per page.
       parameters:
         - name: page
@@ -479,6 +479,21 @@ paths:
         - name: all
           in: query
           description: Display also past reservations. Default to false.
+          required: false
+          type: boolean
+        - name: need_manual_confirmation
+          in: query
+          description: Filter reservations based on their need of a manual confirmation from unit personnel.
+          required: false
+          type: boolean
+        - name: state
+          in: query
+          description: 'Display only reservation(s) in given state(s). Possible values: cancelled, confirmed, denied and requested.'
+          required: false
+          type: string
+        - name: can_approve
+          in: query
+          description: Display reservations that the request user has the right to approve.
           required: false
           type: boolean
       responses:
@@ -530,7 +545,7 @@ paths:
     get:
       tags:
         - reservation
-      description: 
+      description:
         The reservation endpoint returns reservations listed in the reservation system.
       parameters:
         - name: id
@@ -606,14 +621,14 @@ definitions:
         description: ''
       name:
         type: object
-        properties: 
-          sv: 
+        properties:
+          sv:
             type: string
             description: 'Swedish name for the unit'
-          fi: 
+          fi:
             type: string
             description: 'Finnish name for the unit'
-          en: 
+          en:
             type: string
             description: 'English name for the unit'
       description:
@@ -625,19 +640,19 @@ definitions:
       street_address:
         type: object
         properties:
-          sv: 
+          sv:
             type: string
             description: 'Swedish address for the unit'
-          fi: 
+          fi:
             type: string
             description: 'Finnish address for the unit'
-          en: 
+          en:
             type: string
             description: 'English address for the unit'
       address_zip:
         type: string
         description: 'Zip code for the street address'
-      phone: 
+      phone:
         type: string
         description: 'Phone number'
       email:
@@ -646,13 +661,13 @@ definitions:
       www_url:
         type: object
         properties:
-          sv: 
+          sv:
             type: string
             description: 'Swedish WWW URL for the unit'
-          fi: 
+          fi:
             type: string
             description: 'Finnish WWW URL for the unit'
-          en: 
+          en:
             type: string
             description: 'English WWW URL for the unit'
       address_postal_full:
@@ -696,8 +711,8 @@ definitions:
         description: 'The parent purpose of this purpose, or null, if this purpose is main purpose type'
       name:
         type: object
-        properties: 
-          fi: 
+        properties:
+          fi:
             type: string
             description: 'The purpose in Finnish'
           en:
@@ -715,8 +730,8 @@ definitions:
         description: 'The main category of this resource type'
       name:
         type: object
-        properties: 
-          fi: 
+        properties:
+          fi:
             type: string
             description: 'Resource type in Finnish'
 
@@ -738,6 +753,57 @@ definitions:
       end:
         type: string
         description: 'The ending time of the reservation in ISO 8601 format'
+      is_own:
+        type: boolean
+        description: 'Is the reservation is made by the current user.'
+        readOnly: true
+      state:
+        type: string
+        description: 'The state the reservation is currently in.'
+        enum: ['cancelled', 'confirmed', 'denied', 'requested']
+      need_manual_confirmation:
+        type: boolean
+        description: 'Does the reservation require a confirmation from the unit personnel?'
+        readOnly: true
+      reserver_name:
+        type: string
+        description: 'Reserver name'
+      reserver_phone_number:
+        type: string
+        description: 'Reserver phone number'
+      reserver_address_street:
+        type: string
+        description: 'Reserver street address'
+      reserver_address_zip:
+        type: string
+        description: 'Reserver address zip code'
+      reserver_address_city:
+        type: string
+        description: 'Reserver address city'
+      billing_address_street:
+        type: string
+        description: 'Billing street address'
+      billing_address_zip:
+        type: string
+        description: 'Billing address zip code'
+      billing_address_city:
+        type: string
+        description: 'Billing address city'
+      company:
+        type: string
+        description: 'Reserver company'
+      event_description:
+        type: string
+        description: 'Description of the event the reservation is for'
+      business_id:
+        type: string
+        description: 'Business ID of the reserver company'
+      number_of_participants:
+        type: integer
+        description: 'Number of participants in the reservation'
+      reserver_email_address:
+        type: string
+        description: 'Reserver email address'
 
   resource:
     type: object

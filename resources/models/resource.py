@@ -90,6 +90,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                                                     null=True, blank=True)
     reservable = models.BooleanField(verbose_name=_('Reservable'), default=False)
     reservation_info = models.TextField(verbose_name=_('Reservation info'), null=True, blank=True)
+    responsible_contact_info = models.TextField(verbose_name=_('Responsible contact info'), blank=True)
 
     class Meta:
         verbose_name = _("resource")

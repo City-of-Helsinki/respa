@@ -15,7 +15,10 @@ from .utils import get_dt, save_dt, is_valid_time_slot, humanize_duration, send_
 RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street', 'reserver_address_zip',
                             'reserver_address_city', 'billing_address_street',  'billing_address_zip',
                             'billing_address_city', 'company', 'event_description', 'business_id',
-                            'number_of_participants')
+                            'number_of_participants', 'reserver_email_address')
+
+REQUIRED_RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street',
+                                     'reserver_address_zip', 'reserver_address_city', 'event_description')
 
 
 class ReservationQuerySet(models.QuerySet):
@@ -61,6 +64,7 @@ class Reservation(ModifiableModel):
     business_id = models.CharField(verbose_name=_('Business ID'), max_length=9, blank=True)
     number_of_participants = models.PositiveSmallIntegerField(verbose_name=_('Number of participants'), blank=True,
                                                               null=True)
+    reserver_email_address = models.EmailField(verbose_name=_('Reserver email address'), blank=True)
 
     def _save_dt(self, attr, dt):
         """
@@ -120,10 +124,17 @@ class Reservation(ModifiableModel):
     def set_state(self, new_state, user):
         if new_state == self.state:
             return
+
         if new_state == Reservation.CONFIRMED:
             self.approver = user
+            if self.need_manual_confirmation():
+                self.send_reservation_confirmed_mail()
         elif self.state == Reservation.CONFIRMED:
             self.approver = None
+
+        if new_state == Reservation.DENIED:
+            self.send_reservation_denied_mail()
+
         self.state = new_state
         self.save()
 
@@ -161,27 +172,26 @@ class Reservation(ModifiableModel):
             raise ValidationError(_("The minimum reservation length is %(min_period)s") %
                                   {'min_period': humanize_duration(self.min_period)})
 
-    def send_created_by_admin_mail(self):
-        mail_content = render_to_string(
-            'mail/reservation_created_by_admin.txt', {'reservation': self}
-        )
-        send_respa_mail(self.user, _('Reservation created'), mail_content)
+    def send_reservation_mail(self, subject, template_name, extra_context=None):
+        """
+        Stuff common to all reservation related mails.
+        """
+        if not (self.reserver_email_address or self.user):
+            return
+        email_address = self.reserver_email_address or self.user.email
+        context = {'reservation': self}
+        if extra_context:
+            context.update(extra_context)
+        send_respa_mail(email_address, subject, template_name, context)
 
-    def send_updated_by_admin_mail_if_changed(self, old_reservation):
-        for field in ('resource', 'begin', 'end'):
-            if getattr(old_reservation, field) != getattr(self, field):
-                mail_content = render_to_string(
-                    'mail/reservation_updated_by_admin.txt',
-                    {'reservation': self, 'old_reservation': old_reservation}
-                )
-                send_respa_mail(self.user, _('Reservation updated'), mail_content)
-                break
+    def send_reservation_requested_mail(self):
+        self.send_reservation_mail(_('Reservation requested'), 'reservation_requested')
 
-    def send_deleted_by_admin_mail(self):
-        mail_content = render_to_string(
-            'mail/reservation_deleted_by_admin.txt', {'reservation': self}
-        )
-        send_respa_mail(self.user, _('Reservation deleted'), mail_content)
+    def send_reservation_denied_mail(self):
+        self.send_reservation_mail(_('Reservation denied'), 'reservation_denied')
+
+    def send_reservation_confirmed_mail(self):
+        self.send_reservation_mail(_('Reservation confirmed'), 'reservation_confirmed')
 
     def save(self, *args, **kwargs):
         self.duration = DateTimeTZRange(self.begin, self.end, '[)')

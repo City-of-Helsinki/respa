@@ -6,9 +6,10 @@ from django.core import mail
 from django.test.utils import override_settings
 from guardian.shortcuts import assign_perm
 
-from resources.models import Period, Day, Reservation, Resource, RESERVATION_EXTRA_FIELDS
+from resources.models import (Period, Day, Reservation, Resource, RESERVATION_EXTRA_FIELDS,
+                              REQUIRED_RESERVATION_EXTRA_FIELDS)
 from users.models import User
-from .utils import check_disallowed_methods, assert_non_field_errors_contain
+from .utils import check_disallowed_methods, assert_non_field_errors_contain, check_received_mail
 
 
 @pytest.fixture
@@ -58,7 +59,8 @@ def reservation_data_extra(reservation_data):
         'billing_address_street': 'Pihlajakatu',
         'billing_address_zip': '00001',
         'billing_address_city': 'Tampere',
-        'company': 'a very secret association'
+        'company': 'a very secret association',
+        'reserver_email_address': 'test.reserver@test.com',
     })
     return extra_data
 
@@ -515,109 +517,6 @@ def test_max_reservation_period_error_message(
     assert response.data['non_field_errors'][0] == 'The maximum reservation length is %s' % expected
 
 
-@override_settings(RESPA_MAILS_ENABLED=True)
-@pytest.mark.django_db
-def test_reservation_created_or_deleted_by_admin_mails_sent(
-        staff_api_client, list_url, reservation_data, user):
-    """
-    Tests that reservations created and deleted by admins will trigger correct emails for users.
-    """
-
-    reservation_data['user'] = {'id': user.uuid}
-
-    # create a new reservation
-    response = staff_api_client.post(list_url, data=reservation_data, format='json', HTTP_ACCEPT_LANGUAGE='en')
-    assert response.status_code == 201
-    assert len(mail.outbox) == 1
-    mail_instance = mail.outbox[0]
-    assert 'Reservation created' in mail_instance.subject
-    assert len(mail_instance.to) == 1
-    assert mail_instance.to[0] == user.email
-    mail_message = str(mail_instance.message())
-    assert 'A new reservation has been created for you' in mail_message
-    assert 'Starts: April 4, 2115, 11 a.m.' in mail_message
-
-    mail.outbox = []
-
-    # delete the existing reservation
-    detail_url = reverse('reservation-detail', kwargs={'pk': response.data['id']})
-    response = staff_api_client.delete(detail_url, data=reservation_data, format='json', HTTP_ACCEPT_LANGUAGE='en')
-    assert response.status_code == 204
-    assert len(mail.outbox) == 1
-    mail_instance = mail.outbox[0]
-    assert len(mail_instance.to) == 1
-    assert mail_instance.to[0] == user.email
-    mail_message = str(mail_instance.message())
-    assert 'Your reservation has been deleted' in mail_message
-    assert 'The deleted reservation:' in mail_message
-    assert 'Starts: April 4, 2115, 11 a.m.' in mail_message
-
-
-@pytest.mark.parametrize("input,expected", [
-    ({'begin': '2115-04-04T09:00:00+02:00'}, 'Starts: April 4, 2115, 9 a.m.'),
-    ({'end': '2115-04-04T13:00:00+02:00'}, 'Ends: April 4, 2115, 1 p.m.'),
-    ({'resource': 'otherresourceid'}, 'Resource: other resource'),
-])
-@override_settings(RESPA_MAILS_ENABLED=True)
-@pytest.mark.django_db
-def test_reservation_modified_by_admin_mail_sent(
-        staff_api_client, reservation_data, user, other_resource, detail_url, input, expected):
-    """
-    Tests that reservations modified by admins will trigger correct emails for users.
-
-    Modifying begin time, end time or resource should trigger a mail.
-    """
-    reservation_data.update(**input)
-    response = staff_api_client.put(detail_url, data=reservation_data, format='json', HTTP_ACCEPT_LANGUAGE='en')
-    assert response.status_code == 200
-    assert len(mail.outbox) == 1
-    mail_instance = mail.outbox[0]
-    assert len(mail_instance.to) == 1
-    assert mail_instance.to[0] == user.email
-    mail_message = str(mail_instance.message())
-    assert 'Your reservation has been modified' in mail_message
-    assert expected in mail_message
-
-
-@override_settings(RESPA_MAILS_ENABLED=True)
-@pytest.mark.django_db
-def test_reservation_modified_by_admin_mails_not_sent(
-        staff_api_client, list_url, reservation, reservation_data, user):
-    """
-    Tests situations where modified by admin mail should not be sent.
-
-    Tested situations:
-        * a staff member modifies her own reservations
-        * a staff member PUTs a reservation for a user but the reservation isn't actually modified
-    """
-
-    # a staff member creates a new reservation for herself, expect no mail
-    response = staff_api_client.post(list_url, data=reservation_data, format='json')
-    assert response.status_code == 201
-    assert len(mail.outbox) == 0
-
-    # a staff member modifies her reservation, expect no mail
-    reservation_data['begin'] = dateparse.parse_datetime('2115-04-04T10:00:00+02:00')
-    detail_url = reverse('reservation-detail', kwargs={'pk': response.data['id']})
-    response = staff_api_client.put(detail_url, data=reservation_data, format='json')
-    assert response.status_code == 200
-    assert len(mail.outbox) == 0
-
-    # a staff member deletes her reservation, expect no mail
-    response = staff_api_client.delete(detail_url, data=reservation_data, format='json')
-    assert response.status_code == 204
-    assert len(mail.outbox) == 0
-
-    # s staff member PUTs a reservation with no modifications for a user, expect no mail
-    reservation_data['user'] = {'id': user.uuid}
-    detail_url = reverse('reservation-detail', kwargs={'pk': reservation.id})
-    reservation_data['begin'] = '2115-04-04T09:00:00+02:00'  # the same data
-    reservation_data['end'] = '2115-04-04T10:00:00+02:00'  # as is in the original reservation
-    response = staff_api_client.put(detail_url, data=reservation_data, format='json')
-    assert response.status_code == 200
-    assert len(mail.outbox) == 0
-
-
 @pytest.mark.django_db
 def test_reservation_excels(staff_api_client, list_url, detail_url, reservation, user):
     """
@@ -694,13 +593,71 @@ def test_extra_fields_visibility(user_api_client, list_url, detail_url, reservat
 
 
 @pytest.mark.django_db
-def test_extra_fields_required_for_paid_reservations(user_api_client, list_url, resource_in_unit, reservation_data):
+def test_extra_fields_required_for_paid_reservations(user_api_client, staff_api_client, staff_user, list_url,
+                                                     resource_in_unit, reservation_data):
     resource_in_unit.need_manual_confirmation = True
     resource_in_unit.save()
+
     response = user_api_client.post(list_url, data=reservation_data)
     assert response.status_code == 400
-    for field_name in RESERVATION_EXTRA_FIELDS:
-        assert field_name in response.data
+    assert set(REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
+
+    response = staff_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+    assert set(REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
+
+    assign_perm('can_approve_reservation', staff_user, resource_in_unit.unit)
+    response = staff_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+    assert set(REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
+
+
+@pytest.mark.django_db
+def test_staff_event_restrictions(user_api_client, staff_api_client, staff_user, list_url, resource_in_unit,
+                                  reservation_data):
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+    reservation_data['staff_event'] = True
+
+    # normal user
+    response = user_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+    assert set(REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
+
+    # staff member
+    response = staff_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+    assert set(REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
+
+    # staff with permission but reserver_name and event_description missing
+    assign_perm('can_approve_reservation', staff_user, resource_in_unit.unit)
+    response = staff_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+    assert {'reserver_name', 'event_description'} == set(response.data)
+
+
+@pytest.mark.django_db
+def test_new_staff_event_gets_confirmed(user_api_client, staff_api_client, staff_user, list_url, resource_in_unit,
+                                      reservation_data, reservation_data_extra):
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+    reservation_data['staff_event'] = True
+
+    # reservation should not be be confirmed if the user doesn't have approve permission
+    response = staff_api_client.post(list_url, data=reservation_data_extra)
+    assert response.status_code == 201
+    reservation = Reservation.objects.get(id=response.data['id'])
+    assert reservation.state == Reservation.REQUESTED
+
+    reservation.delete()
+
+    assign_perm('can_approve_reservation', staff_user, resource_in_unit.unit)
+    reservation_data['reserver_name'] = 'herra huu'
+    reservation_data['event_description'] = 'herra huun bileet'
+    response = staff_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201
+    reservation = Reservation.objects.get(id=response.data['id'])
+    assert reservation.state == Reservation.CONFIRMED
 
 
 @pytest.mark.django_db
@@ -898,3 +855,78 @@ def test_state_filters(user_api_client, user, list_url, reservations_in_all_stat
     assert response.status_code == 200
     reservation_ids = set([res['id'] for res in response.data['results']])
     assert reservation_ids == set(reservations_in_all_states[state].id for state in expected_states)
+
+
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
+def test_requested_mail(staff_api_client, staff_user, list_url, resource_in_unit, reservation,
+                        reservation_data_extra):
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+    assign_perm('can_approve_reservation', staff_user, reservation.resource.unit)
+    reservation_data_extra['state'] = Reservation.REQUESTED
+
+    response = staff_api_client.post(list_url, data=reservation_data_extra, format='json', HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 201
+    assert len(mail.outbox) == 1
+    mail_instance = mail.outbox[0]
+    assert 'Reservation requested' in mail_instance.subject
+    assert len(mail_instance.to) == 1
+    assert mail_instance.to[0] == 'test.reserver@test.com'
+    mail_message = str(mail_instance.message())
+    assert 'You have created a preliminary reservation' in mail_message
+
+
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
+def test_reservation_mails_to_customers(staff_api_client, staff_user, list_url, resource_in_unit,
+                                        reservation_data_extra):
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+    assign_perm('can_approve_reservation', staff_user, resource_in_unit.unit)
+    reservation_data_extra['state'] = Reservation.REQUESTED
+
+    response = staff_api_client.post(list_url, data=reservation_data_extra, format='json', HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 201
+    check_received_mail(
+        'Reservation requested',
+        'test.reserver@test.com',
+        'You have created a preliminary reservation'
+    )
+
+    detail_url = '%s%s/' % (list_url, response.data['id'])
+    reservation_data_extra['state'] = Reservation.DENIED
+    response = staff_api_client.put(detail_url, data=reservation_data_extra, format='json', HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 200
+    check_received_mail(
+        'Reservation denied',
+        'test.reserver@test.com',
+        'has been denied.'
+    )
+
+    reservation_data_extra['state'] = Reservation.CONFIRMED
+    response = staff_api_client.put(detail_url, data=reservation_data_extra, format='json', HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 200
+    check_received_mail(
+        'Reservation confirmed',
+        'test.reserver@test.com',
+        'has been confirmed.'
+    )
+
+
+@pytest.mark.django_db
+def test_can_approve_filter(staff_api_client, staff_user, list_url, reservation):
+    reservation.resource.need_manual_confirmation = True
+    reservation.resource.save()
+    reservation.state = Reservation.REQUESTED
+    reservation.save()
+
+    response = staff_api_client.get('%s%s' % (list_url, '?can_approve=true'))
+    assert response.status_code == 200
+    assert len(response.data['results']) == 0
+
+    assign_perm('can_approve_reservation', staff_user, reservation.resource.unit)
+
+    response = staff_api_client.get('%s%s' % (list_url, '?can_approve=true'))
+    assert response.status_code == 200
+    assert len(response.data['results']) == 1

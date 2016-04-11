@@ -19,6 +19,7 @@ django-grappelli==2.7.2
 django-guardian==1.4.2
 django-hstore==1.4.1
 django-image-cropping==1.0.3
+django-jinja==2.1.2
 django-modeltranslation==0.11rc2
 django-mptt==0.8.0
 django==1.9
@@ -29,6 +30,8 @@ fake-factory==0.5.3
 first==2.0.1              # via pip-tools
 flake8==2.5.1
 icalendar==3.9.1
+Jinja2==2.8               # via django-jinja
+MarkupSafe==0.23          # via jinja2
 mccabe==0.3.1             # via flake8
 oauthlib==1.0.3           # via requests-oauthlib
 pep8==1.5.7               # via flake8

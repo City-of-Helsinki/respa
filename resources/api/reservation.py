@@ -11,10 +11,11 @@ from rest_framework import viewsets, serializers, filters, exceptions, permissio
 from rest_framework.fields import BooleanField, IntegerField
 from rest_framework import renderers
 from rest_framework.exceptions import NotAcceptable
+from guardian.shortcuts import get_objects_for_user
 
 from munigeo import api as munigeo_api
-from resources.models import Reservation, Resource
-from resources.models.reservation import RESERVATION_EXTRA_FIELDS
+from resources.models import Reservation, Resource, Unit
+from resources.models.reservation import RESERVATION_EXTRA_FIELDS, REQUIRED_RESERVATION_EXTRA_FIELDS
 from users.models import User
 from resources.models.utils import generate_reservation_xlsx, get_object_or_none
 
@@ -59,11 +60,12 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
     is_own = serializers.SerializerMethodField()
     state = serializers.ChoiceField(choices=Reservation.STATE_CHOICES, required=False)
     need_manual_confirmation = serializers.ReadOnlyField()
+    staff_event = serializers.BooleanField(required=False, write_only=True)
 
     class Meta:
         model = Reservation
         fields = ['url', 'id', 'resource', 'user', 'begin', 'end', 'comments', 'is_own', 'state',
-                  'need_manual_confirmation'] + list(RESERVATION_EXTRA_FIELDS)
+                  'need_manual_confirmation', 'staff_event'] + list(RESERVATION_EXTRA_FIELDS)
         read_only_fields = RESERVATION_EXTRA_FIELDS
 
     def __init__(self, *args, **kwargs):
@@ -83,8 +85,12 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         # set extra fields required if the related resource is found and it needs manual confirmation
         if resource and resource.need_manual_confirmation:
             for field_name in RESERVATION_EXTRA_FIELDS:
-                self.fields[field_name].required = True
                 self.fields[field_name].read_only = False
+            can_approve = resource.can_approve_reservations(self.context['request'].user)
+            staff_event = data.get('staff_event', False) and can_approve
+            for field_name in REQUIRED_RESERVATION_EXTRA_FIELDS:
+                required = True if not staff_event else field_name in ('reserver_name', 'event_description')
+                self.fields[field_name].required = required
 
     def validate_state(self, value):
         instance = self.instance
@@ -139,6 +145,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             resource.validate_max_reservations_per_user(request_user)
 
         # Run model clean
+        data.pop('staff_event', None)
         instance = Reservation(**data)
         instance.clean(original_reservation=reservation)
 
@@ -262,6 +269,20 @@ class StateFilterBackend(filters.BaseFilterBackend):
         return queryset
 
 
+class CanApproveFilterBackend(filters.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        filter_value = request.query_params.get('can_approve', None)
+        if filter_value:
+            queryset = queryset.filter(resource__need_manual_confirmation=True)
+            units = get_objects_for_user(user=request.user, perms=['can_approve_reservation'], klass=Unit)
+            can_approve = BooleanField().to_internal_value(filter_value)
+            if can_approve:
+                queryset = queryset.filter(resource__unit__in=units)
+            else:
+                queryset = queryset.exclude(resource__unit__in=units)
+        return queryset
+
+
 class ReservationPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
@@ -297,7 +318,7 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
     filter_backends = (UserFilterBackend, ExcludePastFilterBackend, ResourceFilterBackend,
-                       NeedManualConfirmationFilterBackend, StateFilterBackend)
+                       NeedManualConfirmationFilterBackend, StateFilterBackend, CanApproveFilterBackend)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, ReservationExcelRenderer)
 
@@ -321,26 +342,28 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
         kwargs = {'created_by': self.request.user, 'modified_by': self.request.user}
         if 'user' not in serializer.validated_data:
             kwargs['user'] = self.request.user
-        if serializer.validated_data['resource'].need_manual_confirmation:
+
+        resource = serializer.validated_data['resource']
+        staff_event = (self.request.data.get('staff_event', False) and
+                     resource.can_approve_reservations(self.request.user))
+        if resource.need_manual_confirmation and not staff_event:
             kwargs['state'] = Reservation.REQUESTED
         else:
             kwargs['state'] = Reservation.CONFIRMED
+
         instance = serializer.save(**kwargs)
-        if instance.user != self.request.user:
-            instance.send_created_by_admin_mail()
+
+        if instance.state == Reservation.REQUESTED:
+            instance.send_reservation_requested_mail()
 
     def perform_update(self, serializer):
         old_instance = self.get_object()
         new_state = serializer.validated_data.pop('state', old_instance.state)
         new_instance = serializer.save(modified_by=self.request.user)
         new_instance.set_state(new_state, self.request.user)
-        if self.request.user != new_instance.user:
-            new_instance.send_updated_by_admin_mail_if_changed(old_instance)
 
     def perform_destroy(self, instance):
         instance.set_state(Reservation.CANCELLED, self.request.user)
-        if self.request.user != instance.user:
-            instance.send_deleted_by_admin_mail()
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
