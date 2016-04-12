@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import permissions, serializers, generics, mixins, viewsets
 
 from resources.views.ical import build_ical_feed_url
+from resources.models import Unit
 
 
 all_views = []
@@ -17,17 +18,31 @@ def register_view(klass, name, base_name=None):
 class UserSerializer(serializers.ModelSerializer):
     display_name = serializers.ReadOnlyField(source='get_display_name')
     ical_feed_url = serializers.SerializerMethodField()
+    staff_perms = serializers.SerializerMethodField()
 
     class Meta:
         fields = [
             'last_login', 'username', 'email', 'date_joined',
             'first_name', 'last_name', 'uuid', 'department_name',
-            'is_staff', 'display_name', 'ical_feed_url',
+            'is_staff', 'display_name', 'ical_feed_url', 'staff_perms'
         ]
         model = get_user_model()
 
     def get_ical_feed_url(self, obj):
         return build_ical_feed_url(obj.get_or_create_ical_token(), self.context['request'])
+
+    def get_staff_perms(self, obj):
+        perm_objs = obj.userobjectpermission_set.all()
+        perms = {}
+        # We support only units for now
+        for p in perm_objs:
+            if p.content_type.model_class() != Unit:
+                continue
+            obj_perms = perms.setdefault(p.object_pk, [])
+            obj_perms.append(p.permission.codename)
+        if not perms:
+            return {}
+        return {'unit': perms}
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
