@@ -1,4 +1,9 @@
+from django.conf import settings
+
+
 def handle_reservation_save(instance, **kwargs):
+    if not getattr(settings, "RESPA_EXCHANGE_ENABLED", True):
+        return
     from respa_exchange.models import ExchangeResource, ExchangeReservation
     exchange_reservation = ExchangeReservation.objects.filter(reservation=instance).first()
     if not exchange_reservation:  # First sync? How exciting!
@@ -16,6 +21,8 @@ def handle_reservation_save(instance, **kwargs):
 
 
 def handle_reservation_delete(instance, **kwargs):
+    if not getattr(settings, "RESPA_EXCHANGE_ENABLED", True):
+        return
     from respa_exchange.models import ExchangeReservation
     exchange_reservation = ExchangeReservation.objects.filter(reservation=instance).first()
     if exchange_reservation:
