@@ -53,4 +53,4 @@ class EWSRequest(object):
         :param sess: The EWSSession to send this request with.
         :return:
         """
-        raise NotImplementedError("%r does not implement send()" % self)
+        raise NotImplementedError("%r does not implement send()" % self)  # pragma: no cover

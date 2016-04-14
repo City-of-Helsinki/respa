@@ -14,10 +14,10 @@ class ExchangeReservationAdmin(ModelAdmin):
     readonly_fields = [f.attname for f in ExchangeReservation._meta.get_fields()]
 
     def has_add_permission(self, request):
-        return False
+        return False  # pragma: no cover
 
     def has_delete_permission(self, request, obj=None):
-        return False
+        return False  # pragma: no cover
 
 
 site.register(ExchangeReservation, ExchangeReservationAdmin)

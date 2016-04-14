@@ -17,7 +17,7 @@ class CreateAndDeleteItemHandlers(object):
     def handle_create(self, request):
         # Handle CreateItem responses; always return success
         if not request.xpath("//m:CreateItem", namespaces=NAMESPACES):
-            return
+            return  # pragma: no cover
 
         return M.CreateItemResponse(
             M.ResponseMessages(
@@ -39,7 +39,7 @@ class CreateAndDeleteItemHandlers(object):
     def handle_delete(self, request):
         # Handle DeleteItem responses; always return success
         if not request.xpath("//m:DeleteItem", namespaces=NAMESPACES):
-            return
+            return  # pragma: no cover
         return M.DeleteItemResponse(
             M.ResponseMessages(
                 M.DeleteItemResponseMessage(
