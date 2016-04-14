@@ -63,6 +63,8 @@ INSTALLED_APPS = [
     'reports',
     'resources',
     'users',
+
+    'respa_exchange',
 ]
 
 MIDDLEWARE_CLASSES = (
