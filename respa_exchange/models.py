@@ -4,7 +4,9 @@ from django.utils.encoding import force_text, python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from resources.models import Reservation, Resource
+from respa_exchange.ews.calendar import CreateCalendarItemRequest, DeleteCalendarItemRequest
 from respa_exchange.ews.objs import ItemID
+from respa_exchange.session import get_ews_session
 
 
 @python_2_unicode_compatible
@@ -48,6 +50,36 @@ class ExchangeReservationQuerySet(models.QuerySet):
         :return:
         """
         return self.filter(item_id_hash=item_id.hash)
+
+
+def _build_subject(res):
+    """
+    :type res: resources.models.Reservation
+    :return: str
+    """
+    bits = ["Respa"]
+    if res.reserver_name:
+        bits.append(res.reserver_name)
+    if res.user_id:
+        bits.append(res.user)
+    return " - ".join(bits)
+
+
+def _build_body(res):
+    """
+    :type res: resources.models.Reservation
+    :return: str
+    """
+    bits = []
+    for field in Reservation._meta.get_fields():
+        try:
+            val = getattr(res, field.attname)
+        except AttributeError:
+            continue
+        if not val:
+            continue
+        bits.append("%s: %s" % (field.verbose_name, val))
+    return "\n".join(bits)
 
 
 @python_2_unicode_compatible
@@ -101,3 +133,33 @@ class ExchangeReservation(models.Model):
         self._item_id = value.id
         self._change_key = value.change_key
         self.item_id_hash = value.hash
+
+    def create_on_remote(self):
+        res = self.reservation
+        if res.state != Reservation.CONFIRMED:
+            return
+
+        ccir = CreateCalendarItemRequest(
+            principal=self.principal_email,
+            start=res.begin,
+            end=res.end,
+            subject=_build_subject(res),
+            body=_build_body(res),
+            location=force_text(res.resource)
+        )
+        self.item_id = ccir.send(get_ews_session())
+        self.save()
+
+    def update_on_remote(self):
+        res = self.reservation
+        if res.state in (Reservation.DENIED, Reservation.CANCELLED):
+            return self.delete_on_remote()
+            # TODO: Implement updates
+
+    def delete_on_remote(self):
+        dcir = DeleteCalendarItemRequest(
+            principal=self.principal_email,
+            item_id=self.item_id
+        )
+        dcir.send(get_ews_session())
+        self.delete()
