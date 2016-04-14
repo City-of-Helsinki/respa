@@ -29,7 +29,7 @@ python manage.py resources_import --all kirjastot
 
 3. Ready to roll!
 
-h3. Setting up PostGIS/GEOS/GDAL on Windows (x64) / Python 3
+### Setting up PostGIS/GEOS/GDAL on Windows (x64) / Python 3
 
 * Install PGSQL from http://get.enterprisedb.com/postgresql/postgresql-9.4.5-1-windows-x64.exe
   * At the end of installation, agree to run Stack Builder and have it install the PostGIS bundle

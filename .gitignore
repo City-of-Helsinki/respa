@@ -13,3 +13,7 @@ htmlcov
 .cache
 perf*csv
 /*hack*py
+*.egg-info
+/build
+/dist
+/src
