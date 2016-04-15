@@ -9,10 +9,21 @@ from respa_exchange.models import ExchangeReservation, ExchangeResource
 from respa_exchange.tests.session import SoapSeller
 
 
-class CreateAndDeleteItemHandlers(object):
-    def __init__(self, item_id, change_key):
+class CRUDItemHandlers(object):
+    def __init__(self, item_id, change_key, update_change_key):
         self.item_id = item_id
         self.change_key = change_key
+        self.update_change_key = update_change_key
+
+    def _generate_items_fragment(self, change_key):
+        return M.Items(
+            T.CalendarItem(
+                T.ItemId(
+                    Id=self.item_id,
+                    ChangeKey=change_key
+                )
+            )
+        )
 
     def handle_create(self, request):
         # Handle CreateItem responses; always return success
@@ -24,14 +35,7 @@ class CreateAndDeleteItemHandlers(object):
                 M.CreateItemResponseMessage(
                     {"ResponseClass": "Success"},
                     M.ResponseCode("NoError"),
-                    M.Items(
-                        T.CalendarItem(
-                            T.ItemId(
-                                Id=self.item_id,
-                                ChangeKey=self.change_key
-                            )
-                        )
-                    )
+                    self._generate_items_fragment(change_key=self.change_key)
                 )
             )
         )
@@ -49,19 +53,38 @@ class CreateAndDeleteItemHandlers(object):
             )
         )
 
+    def handle_update(self, request):
+        # Handle UpdateItem responses; return success
+        if not request.xpath("//m:UpdateItem", namespaces=NAMESPACES):
+            return  # pragma: no cover
+        return M.UpdateItemResponse(
+            M.ResponseMessages(
+                M.UpdateItemResponseMessage(
+                    {"ResponseClass": "Success"},
+                    M.ResponseCode("NoError"),
+                    self._generate_items_fragment(change_key=self.update_change_key),
+                    M.ConflictResults(M.Count("0"))
+                )
+            )
+        )
+
+
+
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("master_switch", (False, True))
 @pytest.mark.parametrize("is_exchange_resource", (False, True))
 @pytest.mark.parametrize("cancel_instead_of_delete", (False, True))
-def test_create_and_delete_reservation(
+@pytest.mark.parametrize("update_too", (False, True))
+def test_crud_reservation(
     settings, space_resource, exchange,
-    master_switch, is_exchange_resource, cancel_instead_of_delete
+    master_switch, is_exchange_resource, cancel_instead_of_delete, update_too
 ):
     settings.RESPA_EXCHANGE_ENABLED = master_switch
-    delegate = CreateAndDeleteItemHandlers(
+    delegate = CRUDItemHandlers(
         item_id=get_random_string(),
-        change_key=get_random_string()
+        change_key=get_random_string(),
+        update_change_key=get_random_string(),
     )
     SoapSeller.wire(settings, delegate)
     if is_exchange_resource:
@@ -86,6 +109,15 @@ def test_create_and_delete_reservation(
         assert ex_resv.item_id.change_key == delegate.change_key
     else:
         assert not ExchangeReservation.objects.filter(reservation=res).exists()
+
+    if update_too:
+        res.end += timedelta(minutes=30)
+        res.reserver_name = "John Doe"
+        res.save()
+        if master_switch and is_exchange_resource:
+            # Our exchange reservation's change key should have changed
+            ex_resv = ExchangeReservation.objects.get(reservation=res)
+            assert ex_resv.item_id.change_key == delegate.update_change_key
 
     if cancel_instead_of_delete:  # But let's cancel it...
         res.set_state(Reservation.CANCELLED, user=None)
