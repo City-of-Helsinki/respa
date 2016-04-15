@@ -36,43 +36,77 @@ class GetCalendarItemsRequest(EWSRequest):
         return resp.xpath("//t:CalendarItem", namespaces=NAMESPACES)
 
 
-class CreateCalendarItemRequest(EWSRequest):
-    def __init__(
+class BaseCalendarItemRequest(EWSRequest):
+    PROP_MAP = [  # The order is significant.
+        ("subject", ("item:Subject", (lambda value: T.Subject(value)))),
+        ("body", ("item:Body", (lambda value: T.Body(value, BodyType="HTML")))),
+        ("reminder", ("item:ReminderIsSet", (lambda value: T.ReminderIsSet(str(bool(value)).lower())))),
+        ("start", ("calendar:Start", (lambda value: T.Start(format_date_for_xml(value))))),
+        ("end", ("calendar:End", (lambda value: T.End(format_date_for_xml(value))))),
+        ("all_day", ("calendar:IsAllDayEvent", (lambda value: T.IsAllDayEvent(str(bool(value)).lower())))),
+        ("location", ("calendar:Location", (lambda value: T.Location(value)))),
+    ]
+    PROP_DEFAULTS = {
+        "all_day": False,
+        "reminder": False,
+    }
+
+    def _convert_props(
         self,
-        principal,
-        start,
-        end,
-        subject,
-        body="",
-        location="",
+        props,
+        add_defaults=False,
     ):
-        # See http://msdn.microsoft.com/en-us/library/aa564690(v=exchg.140).aspx
+        """
+        Convert a calendar property bag to an iterable of (field_uri, Node) tuples.
 
-        calendar_node = T.CalendarItem(
-            T.Subject(subject),
-            T.Body(body, BodyType="HTML"),
-            T.ReminderIsSet('false'),
-            T.Start(format_date_for_xml(start)),
-            T.End(format_date_for_xml(end)),
-            T.IsAllDayEvent('false'),
-            T.Location(location)
+        None values in props are ignored.
 
-        )
-        root = M.CreateItem(
-            M.SavedItemFolderId(get_distinguished_folder_id_element(principal, "calendar")),
-            M.Items(calendar_node),
-            SendMeetingInvitations="SendToAllAndSaveCopy"
-        )
-        super(CreateCalendarItemRequest, self).__init__(body=root, impersonation=principal)
+        :type props: dict[str, object]
+        :rtype: Iterable[tuple[str, object]]
+        """
+        if add_defaults:
+            props = dict(self.PROP_DEFAULTS, **props)
+        for key, (field_uri, node_ctor) in self.PROP_MAP:
+            value = props.get(key)
+            if value is None:
+                continue
+            yield (field_uri, node_ctor(value))
 
     def send(self, sess):
         """
-        Send the item creation request and return the Item ID object (for further manipulation)
+        Send the item manipulation request and return the Item ID object (for further manipulation)
 
         :type sess: respa_exchange.session.ExchangeSession
         :rtype: ItemID
         """
         return ItemID.from_tree(sess.soap(self))
+
+
+class CreateCalendarItemRequest(BaseCalendarItemRequest):
+    def __init__(
+        self,
+        principal,
+        item_props
+    ):
+        """
+        :param principal: Principal email to impersonate
+        :type principal: str
+        :param item_props: Dict of calendar item properties
+        :type item_props: dict[str, object]
+        """
+        # See http://msdn.microsoft.com/en-us/library/aa564690(v=exchg.140).aspx
+
+        fields = [
+            node
+            for (field_id, node)
+            in self._convert_props(item_props, add_defaults=True)
+            ]
+        root = M.CreateItem(
+            M.SavedItemFolderId(get_distinguished_folder_id_element(principal, "calendar")),
+            M.Items(T.CalendarItem(*fields)),
+            SendMeetingInvitations="SendToAllAndSaveCopy"
+        )
+        super(CreateCalendarItemRequest, self).__init__(body=root, impersonation=principal)
 
 
 class DeleteCalendarItemRequest(EWSRequest):

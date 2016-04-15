@@ -205,15 +205,17 @@ class ExchangeReservation(models.Model):
         res = self.reservation
         if res.state != Reservation.CONFIRMED:
             return
+        assert isinstance(res, Reservation)
 
         ccir = CreateCalendarItemRequest(
-            principal=self.principal_email,
-            start=res.begin,
-            end=res.end,
-            subject=_build_subject(res),
-            body=_build_body(res),
-            location=force_text(res.resource)
-        )
+            principal=force_text(self.principal_email),
+            item_props=dict(
+                start=res.begin,
+                end=res.end,
+                subject=_build_subject(res),
+                body=_build_body(res),
+                location=force_text(res.resource)
+            ))
         self.item_id = ccir.send(self.exchange.get_ews_session())
         self.save()
 
