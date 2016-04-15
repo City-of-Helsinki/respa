@@ -119,6 +119,11 @@ class ExchangeReservation(models.Model):
         on_delete=models.PROTECT,
         editable=False
     )
+    managed_in_exchange = models.BooleanField(  # Whether or not this reservation came from Exchange
+        db_index=True,
+        editable=False,
+        default=False
+    )
     principal_email = models.EmailField(editable=False)  # Cached resource principal email
     _item_id = models.CharField(max_length=200, blank=True, editable=False, db_column='item_id')
     _change_key = models.CharField(max_length=100, blank=True, editable=False, db_column='change_key')
