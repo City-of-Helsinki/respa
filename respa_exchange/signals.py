@@ -7,6 +7,11 @@ def handle_reservation_save(instance, **kwargs):
     from respa_exchange.models import ExchangeResource, ExchangeReservation
     from respa_exchange.uploader import create_on_remote, update_on_remote
 
+    if getattr(instance, "_from_exchange", False):
+        # If we're creating this instance _from_ Exchange (in the Downloader),
+        # we don't want to push it back up!
+        return
+
     exchange_reservation = ExchangeReservation.objects.filter(reservation=instance).first()
     if not exchange_reservation:  # First sync? How exciting!
         exchange_resource = ExchangeResource.objects.filter(
