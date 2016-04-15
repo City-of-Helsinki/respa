@@ -1,12 +1,22 @@
 import hashlib
 
+from django.utils.functional import cached_property
+
 from .xml import NAMESPACES, T
 
 
 class ItemID:
     def __init__(self, id, change_key):
-        self.id = id
-        self.change_key = change_key
+        self._id = id
+        self._change_key = change_key
+
+    @property
+    def change_key(self):
+        return self._change_key
+
+    @property
+    def id(self):
+        return self._id
 
     def to_xml(self):
         return T.ItemId(Id=self.id, ChangeKey=self.change_key)
@@ -27,7 +37,7 @@ class ItemID:
             change_key=item_id.attrib.get("ChangeKey")
         )
 
-    @property
+    @cached_property
     def hash(self):
         """
         The hash of this item id's ID component.
