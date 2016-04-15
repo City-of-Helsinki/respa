@@ -73,12 +73,13 @@ class CRUDItemHandlers(object):
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("master_switch", (False, True))
+@pytest.mark.parametrize("authed_res", (False, True))
 @pytest.mark.parametrize("is_exchange_resource", (False, True))
 @pytest.mark.parametrize("cancel_instead_of_delete", (False, True))
 @pytest.mark.parametrize("update_too", (False, True))
 def test_crud_reservation(
-    settings, space_resource, exchange,
-    master_switch, is_exchange_resource, cancel_instead_of_delete, update_too
+    settings, space_resource, exchange, admin_user,
+    master_switch, authed_res, is_exchange_resource, cancel_instead_of_delete, update_too
 ):
     settings.RESPA_EXCHANGE_ENABLED = master_switch
     delegate = CRUDItemHandlers(
@@ -98,6 +99,7 @@ def test_crud_reservation(
         resource=space_resource,
         begin=datetime.now(),
         end=datetime.now() + timedelta(minutes=30),
+        user=(admin_user if authed_res else None),
     )
     if master_switch and is_exchange_resource:
         # so now we should have a reservation in Exchange

@@ -120,9 +120,9 @@ def _build_subject(res):
     bits = ["Respa"]
     if res.reserver_name:
         bits.append(res.reserver_name)
-    if res.user_id:
+    elif res.user_id:
         bits.append(res.user)
-    return " - ".join(bits)
+    return " - ".join(force_text(bit) for bit in bits)
 
 
 def _build_body(res):
