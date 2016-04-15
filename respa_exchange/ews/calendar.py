@@ -109,6 +109,45 @@ class CreateCalendarItemRequest(BaseCalendarItemRequest):
         super(CreateCalendarItemRequest, self).__init__(body=root, impersonation=principal)
 
 
+class UpdateCalendarItemRequest(BaseCalendarItemRequest):
+    def __init__(
+        self,
+        principal,
+        item_id,
+        update_props
+    ):
+        """
+        :param principal: Principal email to impersonate
+        :type principal: str
+        :param item_id: Item ID object
+        :type item_id: respa_exchange.objs.ItemID
+        :param update_props: Dict of properties to update
+        :type update_props: dict[str, object]
+        """
+        updates = []
+        for field_uri, node in self._convert_props(update_props):
+            updates.append(T.SetItemField(
+                T.FieldURI(FieldURI=field_uri),
+                T.CalendarItem(node)
+            ))
+        if not updates:
+            raise ValueError("No updates")
+
+        root = M.UpdateItem(
+            M.ItemChanges(
+                T.ItemChange(
+                    item_id.to_xml(),
+                    T.Updates(*updates)
+                )
+            ),
+            ConflictResolution=u"AlwaysOverwrite",
+            MessageDisposition=u"SendAndSaveCopy",
+            SendMeetingInvitationsOrCancellations="SendToAllAndSaveCopy"
+        )
+
+        super(UpdateCalendarItemRequest, self).__init__(root, impersonation=principal)
+
+
 class DeleteCalendarItemRequest(EWSRequest):
     def __init__(
         self,
