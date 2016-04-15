@@ -1,7 +1,7 @@
 from django.apps.config import AppConfig
 from django.db.models.signals import post_save, pre_delete
 
-from respa_exchange.signals import handle_reservation_save, handle_reservation_delete
+from respa_exchange.signals import handle_reservation_delete, handle_reservation_save
 
 
 class RespaExchangeAppConfig(AppConfig):

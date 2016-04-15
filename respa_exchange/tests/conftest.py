@@ -1,8 +1,8 @@
 import pytest
-from resources.models import ResourceType, Resource
+from django.utils.crypto import get_random_string
 
-
-# Fixtures snarfed from Respa.
+from resources.models import Resource, ResourceType
+from respa_exchange.models import ExchangeConfiguration
 
 
 @pytest.mark.django_db
@@ -15,3 +15,13 @@ def space_resource_type():
 @pytest.fixture
 def space_resource(space_resource_type):
     return Resource.objects.create(type=space_resource_type, authentication="none", name="resource")
+
+
+@pytest.mark.django_db
+@pytest.fixture
+def exchange():
+    return ExchangeConfiguration.objects.create(
+        url="https://127.0.0.1:8000/%s.asmx" % get_random_string(),
+        password=get_random_string(),
+        username=get_random_string(),
+    )

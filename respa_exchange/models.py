@@ -1,16 +1,75 @@
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.encoding import force_text, python_2_unicode_compatible
+from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
 
 from resources.models import Reservation, Resource
 from respa_exchange.ews.calendar import CreateCalendarItemRequest, DeleteCalendarItemRequest
 from respa_exchange.ews.objs import ItemID
-from respa_exchange.session import get_ews_session
+
+
+@python_2_unicode_compatible
+class ExchangeConfiguration(models.Model):
+    name = models.CharField(
+        verbose_name=_('name'),
+        unique=True,
+        max_length=70,
+        help_text=_('a descriptive name for this Exchange configuration')
+    )
+    url = models.URLField(
+        verbose_name=_('EWS URL'),
+        help_text=_('the URL to the Exchange Web Service (e.g. https://contoso.com/EWS/Exchange.asmx)')
+    )
+    username = models.CharField(
+        verbose_name=_('username'),
+        max_length=64,
+        help_text=_('the service user to authenticate as, in domain\\username format')
+    )
+    password = models.CharField(
+        verbose_name=_('password'),
+        max_length=256,
+        help_text=_('the user\'s password (stored as plain-text)'),
+    )
+    enabled = models.BooleanField(
+        verbose_name=_('enabled'),
+        default=True,
+        db_index=True,
+        help_text=_('whether synchronization is enabled at all against this Exchange instance')
+    )
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _("Exchange configuration")
+        verbose_name_plural = _("Exchange configurations")
+
+    def get_ews_session(self):
+        """
+        Get a configured EWS session.
+
+        :rtype:   respa_exchange.ews.session.ExchangeSession
+        """
+        # TODO: Maybe cache or something? NTLM handshakes can take some time...
+        session_class = import_string(
+            getattr(settings, "RESPA_EXCHANGE_EWS_SESSION_CLASS", "respa_exchange.ews.session.ExchangeSession")
+        )
+        return session_class(
+            url=self.url,
+            username=self.username,
+            password=self.password,
+        )
 
 
 @python_2_unicode_compatible
 class ExchangeResource(models.Model):
+    exchange = models.ForeignKey(
+        verbose_name=_('Exchange configuration'),
+        to=ExchangeConfiguration,
+        on_delete=models.PROTECT,
+    )
     resource = models.OneToOneField(
         verbose_name=_('resource'),
         to=Resource,
@@ -24,7 +83,8 @@ class ExchangeResource(models.Model):
     )
     sync_from_respa = models.BooleanField(
         verbose_name=_('sync Respa to Exchange'),
-        help_text=_('if disabled, new events will not be synced from Respa to the Exchange calendar; pre-existing events continue to be updated'),
+        help_text=_(
+            'if disabled, new events will not be synced from Respa to the Exchange calendar; pre-existing events continue to be updated'),
         default=True,
         db_index=True
     )
@@ -95,6 +155,11 @@ class ExchangeReservation(models.Model):
         db_index=True,
         editable=False
     )
+    exchange = models.ForeignKey(  # Cached Exchange configuration
+        to=ExchangeConfiguration,
+        on_delete=models.PROTECT,
+        editable=False
+    )
     principal_email = models.EmailField(editable=False)  # Cached resource principal email
     _item_id = models.CharField(max_length=200, blank=True, editable=False, db_column='item_id')
     _change_key = models.CharField(max_length=100, blank=True, editable=False, db_column='change_key')
@@ -120,6 +185,8 @@ class ExchangeReservation(models.Model):
         return force_text(self.reservation)
 
     def save(self, *args, **kwargs):
+        if not self.exchange_id:
+            self.exchange = ExchangeResource.objects.get(resource=self.reservation.resource).exchange
         self.clean()
         return super(ExchangeReservation, self).save(*args, **kwargs)
 
@@ -147,7 +214,7 @@ class ExchangeReservation(models.Model):
             body=_build_body(res),
             location=force_text(res.resource)
         )
-        self.item_id = ccir.send(get_ews_session())
+        self.item_id = ccir.send(self.exchange.get_ews_session())
         self.save()
 
     def update_on_remote(self):
@@ -161,5 +228,5 @@ class ExchangeReservation(models.Model):
             principal=self.principal_email,
             item_id=self.item_id
         )
-        dcir.send(get_ews_session())
+        dcir.send(self.exchange.get_ews_session())
         self.delete()

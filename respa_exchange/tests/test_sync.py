@@ -2,10 +2,10 @@ from datetime import datetime, timedelta
 
 import pytest
 from django.utils.crypto import get_random_string
-from resources.models.reservation import Reservation
 
-from respa_exchange.ews.xml import NAMESPACES, M, T
-from respa_exchange.models import ExchangeResource, ExchangeReservation
+from resources.models.reservation import Reservation
+from respa_exchange.ews.xml import M, NAMESPACES, T
+from respa_exchange.models import ExchangeReservation, ExchangeResource
 from respa_exchange.tests.session import SoapSeller
 
 
@@ -54,7 +54,10 @@ class CreateAndDeleteItemHandlers(object):
 @pytest.mark.parametrize("master_switch", (False, True))
 @pytest.mark.parametrize("is_exchange_resource", (False, True))
 @pytest.mark.parametrize("cancel_instead_of_delete", (False, True))
-def test_create_and_delete_reservation(settings, master_switch, is_exchange_resource, space_resource, cancel_instead_of_delete):
+def test_create_and_delete_reservation(
+    settings, space_resource, exchange,
+    master_switch, is_exchange_resource, cancel_instead_of_delete
+):
     settings.RESPA_EXCHANGE_ENABLED = master_switch
     delegate = CreateAndDeleteItemHandlers(
         item_id=get_random_string(),
@@ -64,7 +67,8 @@ def test_create_and_delete_reservation(settings, master_switch, is_exchange_reso
     if is_exchange_resource:
         ex_resource = ExchangeResource.objects.create(
             resource=space_resource,
-            principal_email="test@example.com"
+            principal_email="test@example.com",
+            exchange=exchange
         )
     # Signals are called at creation time...
     res = Reservation.objects.create(

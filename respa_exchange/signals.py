@@ -7,11 +7,16 @@ def handle_reservation_save(instance, **kwargs):
     from respa_exchange.models import ExchangeResource, ExchangeReservation
     exchange_reservation = ExchangeReservation.objects.filter(reservation=instance).first()
     if not exchange_reservation:  # First sync? How exciting!
-        exchange_resource = ExchangeResource.objects.filter(sync_from_respa=True, resource=instance.resource).first()
+        exchange_resource = ExchangeResource.objects.filter(
+            sync_from_respa=True, resource=instance.resource
+        ).select_related("exchange").first()
+
         if not exchange_resource:  # Not an Exchange-enabled resource; never mind.
             return
+
         exchange_reservation = ExchangeReservation(
             reservation=instance,
+            exchange=exchange_resource.exchange,
             principal_email=exchange_resource.principal_email
         )
 
