@@ -101,16 +101,6 @@ class ExchangeResource(models.Model):
         return "%s (%s)" % (self.principal_email, self.resource)
 
 
-class ExchangeReservationQuerySet(models.QuerySet):
-    def for_item_id(self, item_id):
-        """
-
-        :type item_id: respa_exchange.ews.objs.ItemID
-        :return:
-        """
-        return self.filter(item_id_hash=item_id.hash)
-
-
 @python_2_unicode_compatible
 class ExchangeReservation(models.Model):
     reservation = models.OneToOneField(
@@ -144,7 +134,6 @@ class ExchangeReservation(models.Model):
         editable=False
     )
 
-    objects = ExchangeReservationQuerySet.as_manager()
 
     class Meta:
         verbose_name = _("Exchange reservation")
