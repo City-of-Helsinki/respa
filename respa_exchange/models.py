@@ -4,9 +4,8 @@ from django.utils import timezone
 from django.utils.encoding import force_text, python_2_unicode_compatible
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
-
 from resources.models import Reservation, Resource
-from respa_exchange.ews.calendar import CreateCalendarItemRequest, DeleteCalendarItemRequest, UpdateCalendarItemRequest
+
 from respa_exchange.ews.objs import ItemID
 
 
@@ -112,36 +111,6 @@ class ExchangeReservationQuerySet(models.QuerySet):
         return self.filter(item_id_hash=item_id.hash)
 
 
-def _build_subject(res):
-    """
-    :type res: resources.models.Reservation
-    :return: str
-    """
-    bits = ["Respa"]
-    if res.reserver_name:
-        bits.append(res.reserver_name)
-    elif res.user_id:
-        bits.append(res.user)
-    return " - ".join(force_text(bit) for bit in bits)
-
-
-def _build_body(res):
-    """
-    :type res: resources.models.Reservation
-    :return: str
-    """
-    bits = []
-    for field in Reservation._meta.get_fields():
-        try:
-            val = getattr(res, field.attname)
-        except AttributeError:
-            continue
-        if not val:
-            continue
-        bits.append("%s: %s" % (field.verbose_name, val))
-    return "\n".join(bits)
-
-
 @python_2_unicode_compatible
 class ExchangeReservation(models.Model):
     reservation = models.OneToOneField(
@@ -200,48 +169,3 @@ class ExchangeReservation(models.Model):
         self._item_id = value.id
         self._change_key = value.change_key
         self.item_id_hash = value.hash
-
-    def create_on_remote(self):
-        res = self.reservation
-        if res.state != Reservation.CONFIRMED:
-            return
-        assert isinstance(res, Reservation)
-
-        ccir = CreateCalendarItemRequest(
-            principal=force_text(self.principal_email),
-            item_props=self._get_calendar_item_props()
-        )
-        self.item_id = ccir.send(self.exchange.get_ews_session())
-        self.save()
-
-    def _get_calendar_item_props(self):
-        res = self.reservation
-        assert isinstance(res, Reservation)
-        return dict(
-            start=res.begin,
-            end=res.end,
-            subject=_build_subject(res),
-            body=_build_body(res),
-            location=force_text(res.resource)
-        )
-
-    def update_on_remote(self):
-        res = self.reservation
-        if res.state in (Reservation.DENIED, Reservation.CANCELLED):
-            return self.delete_on_remote()
-        # TODO: Should we try and track the state of the object to avoid sending superfluous updates?
-        ucir = UpdateCalendarItemRequest(
-            principal=force_text(self.principal_email),
-            item_id=self.item_id,
-            update_props=self._get_calendar_item_props()
-        )
-        self.item_id = ucir.send(self.exchange.get_ews_session())
-        self.save()
-
-    def delete_on_remote(self):
-        dcir = DeleteCalendarItemRequest(
-            principal=self.principal_email,
-            item_id=self.item_id
-        )
-        dcir.send(self.exchange.get_ews_session())
-        self.delete()

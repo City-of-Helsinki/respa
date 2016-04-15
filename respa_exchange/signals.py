@@ -5,6 +5,8 @@ def handle_reservation_save(instance, **kwargs):
     if not getattr(settings, "RESPA_EXCHANGE_ENABLED", True):
         return
     from respa_exchange.models import ExchangeResource, ExchangeReservation
+    from respa_exchange.uploader import create_on_remote, update_on_remote
+
     exchange_reservation = ExchangeReservation.objects.filter(reservation=instance).first()
     if not exchange_reservation:  # First sync? How exciting!
         exchange_resource = ExchangeResource.objects.filter(
@@ -20,16 +22,18 @@ def handle_reservation_save(instance, **kwargs):
             principal_email=exchange_resource.principal_email
         )
 
-        exchange_reservation.create_on_remote()
+        create_on_remote(exchange_reservation)
     else:
-        exchange_reservation.update_on_remote()
+        update_on_remote(exchange_reservation)
 
 
 def handle_reservation_delete(instance, **kwargs):
     if not getattr(settings, "RESPA_EXCHANGE_ENABLED", True):
         return
     from respa_exchange.models import ExchangeReservation
+    from respa_exchange.uploader import delete_on_remote
+
     exchange_reservation = ExchangeReservation.objects.filter(reservation=instance).first()
     if exchange_reservation:
-        exchange_reservation.delete_on_remote()
+        delete_on_remote(exchange_reservation)
         assert not exchange_reservation.pk
