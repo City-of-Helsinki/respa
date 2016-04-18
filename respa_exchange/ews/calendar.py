@@ -121,7 +121,7 @@ class CreateCalendarItemRequest(BaseCalendarItemRequest):
             node
             for (field_id, node)
             in self._convert_props(item_props, add_defaults=True)
-            ]
+        ]
         root = M.CreateItem(
             M.SavedItemFolderId(get_distinguished_folder_id_element(principal, "calendar")),
             M.Items(T.CalendarItem(*fields)),

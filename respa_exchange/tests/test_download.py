@@ -8,8 +8,8 @@ from django.utils.timezone import now
 from respa_exchange.downloader import sync_from_exchange
 from respa_exchange.ews.objs import ItemID
 from respa_exchange.ews.utils import format_date_for_xml
-from respa_exchange.ews.xml import M, T, NAMESPACES
-from respa_exchange.models import ExchangeResource, ExchangeReservation
+from respa_exchange.ews.xml import M, NAMESPACES, T
+from respa_exchange.models import ExchangeReservation, ExchangeResource
 from respa_exchange.tests.session import SoapSeller
 from respa_exchange.tests.utils import moments_close_enough
 
@@ -27,7 +27,7 @@ class FindItemsHandler(object):
             self._generate_calendar_item(props)
             for props
             in self._email_to_props.get(email_address, {}).values()
-            ]
+        ]
         return M.FindItemResponse(
             M.ResponseMessages(
                 M.FindItemResponseMessage(

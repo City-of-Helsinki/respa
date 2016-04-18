@@ -1,7 +1,7 @@
 from django.conf import settings
 
 from respa_exchange.models import ExchangeReservation, ExchangeResource
-from respa_exchange.uploader import create_on_remote, update_on_remote, delete_on_remote
+from respa_exchange.uploader import create_on_remote, delete_on_remote, update_on_remote
 
 
 def handle_reservation_save(instance, **kwargs):

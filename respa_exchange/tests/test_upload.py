@@ -69,8 +69,6 @@ class CRUDItemHandlers(object):
         )
 
 
-
-
 @pytest.mark.django_db
 @pytest.mark.parametrize("master_switch", (False, True))
 @pytest.mark.parametrize("authed_res", (False, True))

@@ -2,7 +2,6 @@ from django.apps.config import AppConfig
 from django.db.models.signals import post_save, pre_delete
 
 
-
 class RespaExchangeAppConfig(AppConfig):
     name = 'respa_exchange'
     verbose_name = 'Respa-Exchange'

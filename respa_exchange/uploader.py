@@ -3,8 +3,8 @@ Upload Respa reservations into Exchange as calendar events.
 """
 
 from django.utils.encoding import force_text
-from resources.models import Reservation
 
+from resources.models import Reservation
 from respa_exchange.ews.calendar import CreateCalendarItemRequest, DeleteCalendarItemRequest, UpdateCalendarItemRequest
 
 
