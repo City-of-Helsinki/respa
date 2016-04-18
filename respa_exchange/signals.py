@@ -1,5 +1,8 @@
 from django.conf import settings
 
+from respa_exchange.models import ExchangeReservation, ExchangeResource
+from respa_exchange.uploader import create_on_remote, update_on_remote, delete_on_remote
+
 
 def handle_reservation_save(instance, **kwargs):
     """
@@ -12,8 +15,6 @@ def handle_reservation_save(instance, **kwargs):
     """
     if not getattr(settings, "RESPA_EXCHANGE_ENABLED", True):
         return
-    from respa_exchange.models import ExchangeResource, ExchangeReservation
-    from respa_exchange.uploader import create_on_remote, update_on_remote
 
     if getattr(instance, "_from_exchange", False):
         # If we're creating this instance _from_ Exchange (in the Downloader),
@@ -51,8 +52,6 @@ def handle_reservation_delete(instance, **kwargs):
     """
     if not getattr(settings, "RESPA_EXCHANGE_ENABLED", True):
         return
-    from respa_exchange.models import ExchangeReservation
-    from respa_exchange.uploader import delete_on_remote
 
     exchange_reservation = ExchangeReservation.objects.filter(reservation=instance).first()
     if exchange_reservation:

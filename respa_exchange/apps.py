@@ -1,7 +1,6 @@
 from django.apps.config import AppConfig
 from django.db.models.signals import post_save, pre_delete
 
-from respa_exchange.signals import handle_reservation_delete, handle_reservation_save
 
 
 class RespaExchangeAppConfig(AppConfig):
@@ -12,6 +11,7 @@ class RespaExchangeAppConfig(AppConfig):
         """
         Wire up the signals for uploading reservations.
         """
+        from respa_exchange.signals import handle_reservation_delete, handle_reservation_save
         post_save.connect(
             handle_reservation_save,
             sender='resources.Reservation',
