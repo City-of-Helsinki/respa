@@ -1,7 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import pytest
 from django.utils.crypto import get_random_string
+from django.utils.timezone import now
 
 from resources.models.reservation import Reservation
 from respa_exchange.ews.xml import M, NAMESPACES, T
@@ -95,8 +96,8 @@ def test_crud_reservation(
     # Signals are called at creation time...
     res = Reservation.objects.create(
         resource=space_resource,
-        begin=datetime.now(),
-        end=datetime.now() + timedelta(minutes=30),
+        begin=now(),
+        end=now() + timedelta(minutes=30),
         user=(admin_user if authed_res else None),
     )
     if master_switch and is_exchange_resource:
