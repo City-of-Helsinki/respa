@@ -189,6 +189,8 @@ class ExchangeReservation(models.Model):
     @item_id.setter
     def item_id(self, value):
         assert isinstance(value, ItemID)
+        if self._item_id and self._item_id != value.id:
+            raise ValueError("Can't mutate a reservation's item ID!")
         self._item_id = value.id
         self._change_key = value.change_key
         self.item_id_hash = value.hash
