@@ -21,7 +21,12 @@ def handle_reservation_save(instance, **kwargs):
         # we don't want to push it back up!
         return
 
-    exchange_reservation = ExchangeReservation.objects.filter(reservation=instance).first()
+    exchange_reservation = ExchangeReservation.objects.filter(
+        reservation=instance,
+        # If this reservation has come from Exchange,
+        # we don't want to upload changes made to it.
+        managed_in_exchange=False
+    ).first()
     if not exchange_reservation:  # First sync? How exciting!
         exchange_resource = ExchangeResource.objects.filter(
             sync_from_respa=True, resource=instance.resource
@@ -53,7 +58,12 @@ def handle_reservation_delete(instance, **kwargs):
     if not getattr(settings, "RESPA_EXCHANGE_ENABLED", True):
         return
 
-    exchange_reservation = ExchangeReservation.objects.filter(reservation=instance).first()
+    exchange_reservation = ExchangeReservation.objects.filter(
+        reservation=instance,
+        # If this reservation has come from Exchange,
+        # we don't want to upload deletions.
+        managed_in_exchange=False
+    ).first()
     if exchange_reservation:
         delete_on_remote(exchange_reservation)
         assert not exchange_reservation.pk
