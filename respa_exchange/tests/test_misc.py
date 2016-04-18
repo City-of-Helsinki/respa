@@ -2,8 +2,8 @@ from datetime import timedelta
 
 import pytest
 from django.utils.timezone import now
-from resources.models import Reservation
 
+from resources.models import Reservation
 from respa_exchange.ews.objs import ItemID
 from respa_exchange.models import ExchangeReservation, ExchangeResource
 

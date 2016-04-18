@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from respa_exchange.ews.utils import format_date_for_xml
-from respa_exchange.ews.xml import M, T, NAMESPACES
+from respa_exchange.ews.xml import M, NAMESPACES, T
 
 
 class CRUDItemHandlers(object):
@@ -77,7 +77,7 @@ class FindItemsHandler(object):
             self._generate_calendar_item(props)
             for props
             in self._email_to_props.get(email_address, {}).values()
-            ]
+        ]
         return M.FindItemResponse(
             M.ResponseMessages(
                 M.FindItemResponseMessage(

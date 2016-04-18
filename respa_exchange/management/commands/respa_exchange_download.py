@@ -1,10 +1,10 @@
 import logging
-
 import sys
+
 from django.core.management.base import BaseCommand
 
 from respa_exchange.downloader import sync_from_exchange
-from respa_exchange.models import ExchangeResource, ExchangeConfiguration
+from respa_exchange.models import ExchangeConfiguration, ExchangeResource
 
 rx_logger = logging.getLogger("respa_exchange")
 

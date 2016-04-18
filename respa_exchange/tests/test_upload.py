@@ -3,8 +3,8 @@ from datetime import timedelta
 import pytest
 from django.utils.crypto import get_random_string
 from django.utils.timezone import now
-from resources.models.reservation import Reservation
 
+from resources.models.reservation import Reservation
 from respa_exchange.models import ExchangeReservation, ExchangeResource
 from respa_exchange.tests.handlers import CRUDItemHandlers
 from respa_exchange.tests.session import SoapSeller

@@ -4,8 +4,8 @@ from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
-from resources.models import Reservation, Resource
 
+from resources.models import Reservation, Resource
 from respa_exchange.ews.objs import ItemID
 
 
