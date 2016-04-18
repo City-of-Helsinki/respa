@@ -88,10 +88,14 @@ def test_download(
     settings, space_resource, exchange
 ):
     email = "%s@example.com" % get_random_string()
+    other_email = "%s@example.com" % get_random_string()
     item_dict = _generate_item_dict()
+    other_item_dict = _generate_item_dict()
     item_id = item_dict["id"]
     delegate = FindItemsHandler()
     delegate.add_item(email, item_dict)
+    delegate.add_item(email, other_item_dict)
+    delegate.add_item(other_email, _generate_item_dict())  # We should never see this one
 
     SoapSeller.wire(settings, delegate)
     ex_resource = ExchangeResource.objects.create(
@@ -99,22 +103,28 @@ def test_download(
         principal_email=email,
         exchange=exchange
     )
-    assert ExchangeReservation.objects.count() == 0
+    assert ex_resource.reservations.count() == 0
+
     # First sync...
     sync_from_exchange(ex_resource)
-    assert ExchangeReservation.objects.count() == 1
+    assert ex_resource.reservations.count() == 2
     ex = _check_imported_reservation(item_id, item_dict)
+
     # Resync, with nothing changed:
     sync_from_exchange(ex_resource)
-    assert ExchangeReservation.objects.count() == 1
+    assert ex_resource.reservations.count() == 2
     assert _check_imported_reservation(item_id, item_dict).modified_at == ex.modified_at  # No resave occurred
-
 
     # Simulate a change on the Exchange end
     item_dict["end"] += timedelta(hours=2)
     sync_from_exchange(ex_resource)
-    assert ExchangeReservation.objects.count() == 1
+    assert ex_resource.reservations.count() == 2
     _check_imported_reservation(item_id, item_dict)
+
+    # And simulate deleting one of our two items
+    delegate.delete_item(email, item_id)
+    sync_from_exchange(ex_resource)
+    assert ex_resource.reservations.count() == 1
 
 
 def _check_imported_reservation(item_id, item_dict):
