@@ -67,6 +67,8 @@ def sync_from_exchange(ex_resource, future_days=30):
     :param future_days: How many days into the future to look
     :type future_days: int
     """
+    if not ex_resource.sync_to_respa:
+        return
     start_date = now()
     end_date = start_date + datetime.timedelta(days=future_days)
     gcir = GetCalendarItemsRequest(

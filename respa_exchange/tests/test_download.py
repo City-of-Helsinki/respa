@@ -84,8 +84,10 @@ def _generate_item_dict():
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("sync_enabled", (False, True))
 def test_download(
-    settings, space_resource, exchange
+    settings, space_resource, exchange,
+    sync_enabled
 ):
     email = "%s@example.com" % get_random_string()
     other_email = "%s@example.com" % get_random_string()
@@ -101,12 +103,16 @@ def test_download(
     ex_resource = ExchangeResource.objects.create(
         resource=space_resource,
         principal_email=email,
-        exchange=exchange
+        exchange=exchange,
+        sync_to_respa=sync_enabled
     )
     assert ex_resource.reservations.count() == 0
 
     # First sync...
     sync_from_exchange(ex_resource)
+    if not sync_enabled:
+        assert ex_resource.reservations.count() == 0
+        return  # No need to test the rest.
     assert ex_resource.reservations.count() == 2
     ex = _check_imported_reservation(item_id, item_dict)
 
