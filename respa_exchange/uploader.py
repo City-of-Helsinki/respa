@@ -1,11 +1,14 @@
 """
 Upload Respa reservations into Exchange as calendar events.
 """
+import logging
 
 from django.utils.encoding import force_text
 
 from resources.models import Reservation
 from respa_exchange.ews.calendar import CreateCalendarItemRequest, DeleteCalendarItemRequest, UpdateCalendarItemRequest
+
+log = logging.getLogger(__name__)
 
 
 def _build_subject(res):
@@ -72,6 +75,7 @@ def create_on_remote(exres):
     )
     exres.item_id = ccir.send(exres.exchange.get_ews_session())
     exres.save()
+    log.info("Created calendar item for %s", exres)
 
 
 def update_on_remote(exres):
@@ -93,6 +97,8 @@ def update_on_remote(exres):
     exres.item_id = ucir.send(exres.exchange.get_ews_session())
     exres.save()
 
+    log.info("Updated calendar item for %s", exres)
+
 
 def delete_on_remote(exres):
     """
@@ -106,4 +112,5 @@ def delete_on_remote(exres):
         item_id=exres.item_id
     )
     dcir.send(exres.exchange.get_ews_session())
+    log.info("Deleted %s", exres)
     exres.delete()

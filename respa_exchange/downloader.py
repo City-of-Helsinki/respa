@@ -2,6 +2,7 @@
 Download Exchange events into Respa as reservations.
 """
 import datetime
+import logging
 
 import iso8601
 from django.db.transaction import atomic
@@ -12,6 +13,8 @@ from respa_exchange.ews.calendar import GetCalendarItemsRequest
 from respa_exchange.ews.objs import ItemID
 from respa_exchange.ews.xml import NAMESPACES
 from respa_exchange.models import ExchangeReservation
+
+log = logging.getLogger(__name__)
 
 
 def _populate_reservation(reservation, ex_resource, item_props):
@@ -38,6 +41,8 @@ def _update_reservation_from_exchange(item_id, ex_reservation, ex_resource, item
     ex_reservation.item_id = item_id
     ex_reservation.save()
 
+    logging.info("Updated: %s", ex_reservation)
+
 
 def _create_reservation_from_exchange(item_id, ex_resource, item_props):
     reservation = Reservation(resource=ex_resource.resource)
@@ -51,6 +56,8 @@ def _create_reservation_from_exchange(item_id, ex_resource, item_props):
     )
     ex_reservation.item_id = item_id
     ex_reservation.save()
+
+    logging.info("Created: %s", ex_reservation)
     return ex_reservation
 
 
@@ -71,6 +78,13 @@ def sync_from_exchange(ex_resource, future_days=30):
         return
     start_date = now()
     end_date = start_date + datetime.timedelta(days=future_days)
+
+    log.info(
+        "%s: Requesting items between (%s..%s)",
+        ex_resource.principal_email,
+        start_date,
+        end_date
+    )
     gcir = GetCalendarItemsRequest(
         principal=ex_resource.principal_email,
         start_date=start_date,
@@ -83,6 +97,11 @@ def sync_from_exchange(ex_resource, future_days=30):
 
     hashes = set(item_id.hash for item_id in calendar_items.keys())
 
+    log.info(
+        "%s: Received %d items",
+        ex_resource.principal_email,
+        len(calendar_items)
+    )
     # First handle deletions . . .
 
     items_to_delete = ExchangeReservation.objects.select_related("reservation").filter(
@@ -92,6 +111,7 @@ def sync_from_exchange(ex_resource, future_days=30):
     ).exclude(item_id_hash__in=hashes)  # but aren't ones we're going to mangle
 
     for ex_reservation in items_to_delete:
+        logging.info("Deleting: %s", ex_reservation)
         reservation = ex_reservation.reservation
         ex_reservation.delete()
         reservation.delete()

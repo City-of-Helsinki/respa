@@ -1,11 +1,11 @@
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
-from django.utils.encoding import force_text, python_2_unicode_compatible
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
-
 from resources.models import Reservation, Resource
+
 from respa_exchange.ews.objs import ItemID
 
 
@@ -169,7 +169,7 @@ class ExchangeReservation(models.Model):
         verbose_name_plural = _("Exchange reservations")
 
     def __str__(self):
-        return force_text(self.reservation)
+        return "ExchangeReservation %s for %s (%s)" % (self.pk, self.reservation, self.principal_email)
 
     def save(self, *args, **kwargs):
         if not self.exchange_id:
