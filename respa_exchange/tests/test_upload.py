@@ -3,71 +3,11 @@ from datetime import timedelta
 import pytest
 from django.utils.crypto import get_random_string
 from django.utils.timezone import now
-
 from resources.models.reservation import Reservation
-from respa_exchange.ews.xml import M, NAMESPACES, T
+
 from respa_exchange.models import ExchangeReservation, ExchangeResource
+from respa_exchange.tests.handlers import CRUDItemHandlers
 from respa_exchange.tests.session import SoapSeller
-
-
-class CRUDItemHandlers(object):
-    def __init__(self, item_id, change_key, update_change_key):
-        self.item_id = item_id
-        self.change_key = change_key
-        self.update_change_key = update_change_key
-
-    def _generate_items_fragment(self, change_key):
-        return M.Items(
-            T.CalendarItem(
-                T.ItemId(
-                    Id=self.item_id,
-                    ChangeKey=change_key
-                )
-            )
-        )
-
-    def handle_create(self, request):
-        # Handle CreateItem responses; always return success
-        if not request.xpath("//m:CreateItem", namespaces=NAMESPACES):
-            return  # pragma: no cover
-
-        return M.CreateItemResponse(
-            M.ResponseMessages(
-                M.CreateItemResponseMessage(
-                    {"ResponseClass": "Success"},
-                    M.ResponseCode("NoError"),
-                    self._generate_items_fragment(change_key=self.change_key)
-                )
-            )
-        )
-
-    def handle_delete(self, request):
-        # Handle DeleteItem responses; always return success
-        if not request.xpath("//m:DeleteItem", namespaces=NAMESPACES):
-            return  # pragma: no cover
-        return M.DeleteItemResponse(
-            M.ResponseMessages(
-                M.DeleteItemResponseMessage(
-                    {"ResponseClass": "Success"},
-                    M.ResponseCode("NoError"),
-                )
-            )
-        )
-
-    def handle_update(self, request):
-        # Handle UpdateItem responses; return success
-        if not request.xpath("//m:UpdateItem", namespaces=NAMESPACES):
-            return  # pragma: no cover
-        return M.UpdateItemResponse(
-            M.ResponseMessages(
-                M.UpdateItemResponseMessage(
-                    {"ResponseClass": "Success"},
-                    M.ResponseCode("NoError"),
-                    self._generate_items_fragment(change_key=self.update_change_key),
-                    M.ConflictResults(M.Count("0"))
-                )
-            )
-        )
 
 
 @pytest.mark.django_db

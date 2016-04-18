@@ -1,4 +1,3 @@
-from collections import defaultdict
 from datetime import timedelta
 
 import pytest
@@ -7,69 +6,10 @@ from django.utils.timezone import now
 
 from respa_exchange.downloader import sync_from_exchange
 from respa_exchange.ews.objs import ItemID
-from respa_exchange.ews.utils import format_date_for_xml
-from respa_exchange.ews.xml import M, NAMESPACES, T
 from respa_exchange.models import ExchangeReservation, ExchangeResource
+from respa_exchange.tests.handlers import FindItemsHandler
 from respa_exchange.tests.session import SoapSeller
 from respa_exchange.tests.utils import moments_close_enough
-
-
-class FindItemsHandler(object):
-    def __init__(self):
-        self._email_to_props = defaultdict(dict)
-
-    def handle_find_items(self, request):
-        if not request.xpath("//m:FindItem", namespaces=NAMESPACES):
-            return  # pragma: no cover
-        email_address = request.xpath("//t:EmailAddress", namespaces=NAMESPACES)[0].text
-
-        items = [
-            self._generate_calendar_item(props)
-            for props
-            in self._email_to_props.get(email_address, {}).values()
-        ]
-        return M.FindItemResponse(
-            M.ResponseMessages(
-                M.FindItemResponseMessage(
-                    {'ResponseClass': 'Success'},
-                    M.ResponseCode('NoError'),
-                    M.RootFolder(
-                        {
-                            'TotalItemsInView': str(len(items)),
-                            'IncludesLastItemInRange': 'true',
-                        },
-                        T.Items(*items)
-                    )
-                )
-            )
-        )
-
-    def _generate_calendar_item(self, props):
-        return T.CalendarItem(
-            props['id'].to_xml(),
-            T.Subject(props['subject']),
-            T.HasAttachments('false'),
-            T.IsAssociated('false'),
-            T.Start(format_date_for_xml(props['start'])),
-            T.End(format_date_for_xml(props['end'])),
-            T.LegacyFreeBusyStatus('Busy'),
-            T.Location(""),
-            T.CalendarItemType('Single'),
-            T.Organizer(
-                T.Mailbox(
-                    T.Name('Dummy'),
-                    T.EmailAddress('/O=Dummy'),
-                    T.RoutingType('EX'),
-                    T.MailboxType('OneOff')
-                )
-            )
-        )
-
-    def add_item(self, email, props):
-        self._email_to_props[email][props["id"]] = props
-
-    def delete_item(self, email, id):
-        self._email_to_props[email].pop(id, None)
 
 
 def _generate_item_dict():
