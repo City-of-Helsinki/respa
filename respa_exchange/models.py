@@ -68,11 +68,13 @@ class ExchangeResource(models.Model):
         verbose_name=_('Exchange configuration'),
         to=ExchangeConfiguration,
         on_delete=models.PROTECT,
+        related_name='resources',
     )
     resource = models.OneToOneField(
         verbose_name=_('resource'),
         to=Resource,
-        on_delete=models.PROTECT
+        on_delete=models.PROTECT,
+        related_name='exchange_resource',
     )
     sync_to_respa = models.BooleanField(
         verbose_name=_('sync Exchange to Respa'),
@@ -100,13 +102,18 @@ class ExchangeResource(models.Model):
     def __str__(self):
         return "%s (%s)" % (self.principal_email, self.resource)
 
+    @property
+    def reservations(self):
+        return ExchangeReservation.objects.filter(reservation__resource=self.resource)
+
 
 @python_2_unicode_compatible
 class ExchangeReservation(models.Model):
     reservation = models.OneToOneField(
         Reservation,
         on_delete=models.DO_NOTHING,  # The signal will (hopefully) deal with this
-        editable=False
+        editable=False,
+        related_name='exchange_reservation',
     )
     item_id_hash = models.CharField(
         # The MD5 hash of the item ID; results in shorter (=faster) DB indexes
@@ -117,7 +124,8 @@ class ExchangeReservation(models.Model):
     exchange = models.ForeignKey(  # Cached Exchange configuration
         to=ExchangeConfiguration,
         on_delete=models.PROTECT,
-        editable=False
+        editable=False,
+        related_name='reservations',
     )
     managed_in_exchange = models.BooleanField(  # Whether or not this reservation came from Exchange
         db_index=True,
@@ -138,7 +146,6 @@ class ExchangeReservation(models.Model):
         default=timezone.now,
         editable=False
     )
-
 
     class Meta:
         verbose_name = _("Exchange reservation")
