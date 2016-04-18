@@ -10,6 +10,8 @@ from respa_exchange.ews.calendar import CreateCalendarItemRequest, DeleteCalenda
 
 def _build_subject(res):
     """
+    Build a subject line for the given Reservation, to be sent to Exchange
+
     :type res: resources.models.Reservation
     :return: str
     """
@@ -23,6 +25,8 @@ def _build_subject(res):
 
 def _build_body(res):
     """
+    Build the body of the Exchange appointment for a given Reservation.
+
     :type res: resources.models.Reservation
     :return: str
     """
@@ -51,6 +55,12 @@ def _get_calendar_item_props(exres):
 
 
 def create_on_remote(exres):
+    """
+    Create and link up an appointment for an ExchangeReservation.
+
+    :param exres: Exchange Reservation
+    :type exres: respa_exchange.models.ExchangeReservation
+    """
     res = exres.reservation
     if res.state != Reservation.CONFIRMED:
         return
@@ -65,6 +75,12 @@ def create_on_remote(exres):
 
 
 def update_on_remote(exres):
+    """
+    Update (or delete) the Exchange appointment for an ExchangeReservation.
+
+    :param exres: Exchange Reservation
+    :type exres: respa_exchange.models.ExchangeReservation
+    """
     res = exres.reservation
     if res.state in (Reservation.DENIED, Reservation.CANCELLED):
         return delete_on_remote(exres)
@@ -79,6 +95,12 @@ def update_on_remote(exres):
 
 
 def delete_on_remote(exres):
+    """
+    Delete the Exchange appointment for an ExchangeReservation.
+
+    :param exres: Exchange Reservation
+    :type exres: respa_exchange.models.ExchangeReservation
+    """
     dcir = DeleteCalendarItemRequest(
         principal=exres.principal_email,
         item_id=exres.item_id

@@ -8,6 +8,10 @@ from .xml import NAMESPACES
 
 
 class ExchangeSession(requests.Session):
+    """
+    Encapsulates an NTLM authenticated requests session with special capabilities to do SOAP requests.
+    """
+
     encoding = "UTF-8"
 
     def __init__(self, url, username, password):

@@ -11,6 +11,15 @@ class GetCalendarItemsRequest(EWSRequest):
     """
 
     def __init__(self, principal, start_date, end_date):
+        """
+        Initialize the request.
+
+        start_date and end_date should be kept sanely close to each other to avoid EWS erroring out.
+
+        :param principal: The principal email whose calendar to query.
+        :param start_date: Start date for the query
+        :param end_date: End date for the query
+        """
         body = M.FindItem(
             {u'Traversal': u'Shallow'},
             M.ItemShape(
@@ -37,6 +46,12 @@ class GetCalendarItemsRequest(EWSRequest):
 
 
 class BaseCalendarItemRequest(EWSRequest):
+    """
+    Base class for requests somehow manipulating calendar items.
+
+    Manages converting Pythonic property bags to XML form.
+    """
+
     PROP_MAP = [  # The order is significant.
         ("subject", ("item:Subject", (lambda value: T.Subject(value)))),
         ("body", ("item:Body", (lambda value: T.Body(value, BodyType="HTML")))),
@@ -83,12 +98,18 @@ class BaseCalendarItemRequest(EWSRequest):
 
 
 class CreateCalendarItemRequest(BaseCalendarItemRequest):
+    """
+    Encapsulates a request to create a calendar item.
+    """
+
     def __init__(
         self,
         principal,
         item_props
     ):
         """
+        Initialize the request.
+
         :param principal: Principal email to impersonate
         :type principal: str
         :param item_props: Dict of calendar item properties
@@ -110,6 +131,10 @@ class CreateCalendarItemRequest(BaseCalendarItemRequest):
 
 
 class UpdateCalendarItemRequest(BaseCalendarItemRequest):
+    """
+    Encapsulates a request to update an existing calendar item.
+    """
+
     def __init__(
         self,
         principal,
@@ -117,6 +142,8 @@ class UpdateCalendarItemRequest(BaseCalendarItemRequest):
         update_props
     ):
         """
+        Initialize the request.
+
         :param principal: Principal email to impersonate
         :type principal: str
         :param item_id: Item ID object
@@ -149,12 +176,18 @@ class UpdateCalendarItemRequest(BaseCalendarItemRequest):
 
 
 class DeleteCalendarItemRequest(EWSRequest):
+    """
+    Encapsulates a request to delete an existing calendar item.
+    """
+
     def __init__(
         self,
         principal,
         item_id
     ):
         """
+        Initialize the request.
+
         :param principal: Principal email to impersonate
         :param item_id: Item ID object
         :type item_id: respa_exchange.objs.ItemID

@@ -9,6 +9,9 @@ class RespaExchangeAppConfig(AppConfig):
     verbose_name = 'Respa-Exchange'
 
     def ready(self):
+        """
+        Wire up the signals for uploading reservations.
+        """
         post_save.connect(
             handle_reservation_save,
             sender='resources.Reservation',

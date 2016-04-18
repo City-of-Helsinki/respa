@@ -19,11 +19,18 @@ class SoapSeller(ExchangeSession):
     """
 
     def __init__(self, handler_delegate):
+        """
+        Construct a SoapSeller using the given delegate object.
+
+        :param handler_delegate: The delegate object; see the class docstring.
+        """
         super(SoapSeller, self).__init__("http://example.com", "CONTOSO\\dummy", "dummy")
         self.handler_delegate = handler_delegate
 
     def send(self, request, **kwargs):
         """
+        Send a requests PreparedRequest. (Override of the super-superclass's method)
+
         :type request: requests.models.PreparedRequest
         """
         assert request.method == "POST"  # Soap sellers don't do GET

@@ -57,12 +57,15 @@ def _create_reservation_from_exchange(item_id, ex_resource, item_props):
 @atomic
 def sync_from_exchange(ex_resource, future_days=30):
     """
-    Sync current and future events for the given Exchange resource into
+    Synchronize from Exchange to Respa
+
+    Synchronizes current and future events for the given Exchange resource into
     the relevant Respa resource as reservations.
 
     :param ex_resource: The Exchange resource to sync
     :type ex_resource: respa_exchange.models.ExchangeResource
-    :return:
+    :param future_days: How many days into the future to look
+    :type future_days: int
     """
     start_date = now()
     end_date = start_date + datetime.timedelta(days=future_days)

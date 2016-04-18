@@ -11,6 +11,10 @@ from respa_exchange.ews.objs import ItemID
 
 @python_2_unicode_compatible
 class ExchangeConfiguration(models.Model):
+    """
+    Encapsulates a configuration for a particular Exchange installation.
+    """
+
     name = models.CharField(
         verbose_name=_('name'),
         unique=True,
@@ -64,6 +68,10 @@ class ExchangeConfiguration(models.Model):
 
 @python_2_unicode_compatible
 class ExchangeResource(models.Model):
+    """
+    Links a Respa resource to an Exchange calendar.
+    """
+
     exchange = models.ForeignKey(
         verbose_name=_('Exchange configuration'),
         to=ExchangeConfiguration,
@@ -104,11 +112,20 @@ class ExchangeResource(models.Model):
 
     @property
     def reservations(self):
+        """
+        Get a queryset of ExchangeReservations for this resource
+
+        :rtype: django.db.models.QuerySet[ExchangeReservation]
+        """
         return ExchangeReservation.objects.filter(reservation__resource=self.resource)
 
 
 @python_2_unicode_compatible
 class ExchangeReservation(models.Model):
+    """
+    Links a Respa reservation with its Exchange item information.
+    """
+
     reservation = models.OneToOneField(
         Reservation,
         on_delete=models.DO_NOTHING,  # The signal will (hopefully) deal with this
@@ -162,6 +179,11 @@ class ExchangeReservation(models.Model):
 
     @property
     def item_id(self):
+        """
+        Retrieve the ExchangeReservation's related appointment's item ID object
+
+        :rtype: respa_exchange.objs.ItemID
+        """
         return ItemID(id=self._item_id, change_key=self._change_key)
 
     @item_id.setter

@@ -2,6 +2,14 @@ from django.conf import settings
 
 
 def handle_reservation_save(instance, **kwargs):
+    """
+    Django signal handler for updating changed/created reservations on remote Exchanges.
+
+    :param instance: A Reservation instance
+    :type instance: resources.models.Reservation
+    :param kwargs: The rest of the signal args
+    :return:
+    """
     if not getattr(settings, "RESPA_EXCHANGE_ENABLED", True):
         return
     from respa_exchange.models import ExchangeResource, ExchangeReservation
@@ -33,6 +41,14 @@ def handle_reservation_save(instance, **kwargs):
 
 
 def handle_reservation_delete(instance, **kwargs):
+    """
+    Django signal handler for deleting reservation-related appointments from Exchange
+
+    :param instance: A Reservation instance
+    :type instance: resources.models.Reservation
+    :param kwargs: The rest of the signal args
+    :return:
+    """
     if not getattr(settings, "RESPA_EXCHANGE_ENABLED", True):
         return
     from respa_exchange.models import ExchangeReservation
