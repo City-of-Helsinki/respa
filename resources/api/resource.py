@@ -13,6 +13,7 @@ from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
 from resources.pagination import PurposePagination
 from rest_framework import exceptions, filters, mixins, serializers, viewsets
+from rest_framework.pagination import _positive_int
 
 from munigeo import api as munigeo_api
 from resources.models import (Purpose, Resource, ResourceImage, ResourceType, ResourceEquipment,

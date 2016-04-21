@@ -4,7 +4,6 @@ from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError, PermissionDenied
-from django.http import HttpResponse
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import viewsets, serializers, filters, exceptions, permissions
@@ -16,6 +15,7 @@ from guardian.shortcuts import get_objects_for_user
 from munigeo import api as munigeo_api
 from resources.models import Reservation, Resource, Unit
 from resources.models.reservation import RESERVATION_EXTRA_FIELDS, REQUIRED_RESERVATION_EXTRA_FIELDS
+from resources.pagination import ReservationPagination
 from users.models import User
 from resources.models.utils import generate_reservation_xlsx, get_object_or_none
 
@@ -321,6 +321,7 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
                        NeedManualConfirmationFilterBackend, StateFilterBackend, CanApproveFilterBackend)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, ReservationExcelRenderer)
+    pagination_class = ReservationPagination
 
     def get_queryset(self):
         queryset = super().get_queryset()
