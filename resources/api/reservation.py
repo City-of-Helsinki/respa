@@ -1,6 +1,8 @@
 import uuid
+import arrow
 import django_filters
 from datetime import datetime
+from arrow.parser import ParserError
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError, PermissionDenied
@@ -253,6 +255,37 @@ class ResourceFilterBackend(filters.BaseFilterBackend):
         return queryset
 
 
+class ReservationFilterBackend(filters.BaseFilterBackend):
+    """
+    Filter reservations by time.
+    """
+
+    def filter_queryset(self, request, queryset, view):
+        params = request.query_params
+        times = {}
+        past = False
+        for name in ('start', 'end'):
+            if name not in params:
+                continue
+            # whenever date filtering is in use, include past reservations
+            past = True
+            try:
+                times[name] = arrow.get(params[name]).to('utc').datetime
+            except ParserError:
+                raise exceptions.ParseError("'%s' must be a timestamp in ISO 8601 format" % name)
+        if not past:
+            past = params.get('all', 'false')
+            past = BooleanField().to_internal_value(past)
+            if not past:
+                now = datetime.now()
+                queryset = queryset.filter(end__gte=now)
+        if times.get('start', None):
+            queryset = queryset.filter(end__gte=times['start'])
+        if times.get('end', None):
+            queryset = queryset.filter(begin__lte=times['end'])
+        return queryset
+
+
 class NeedManualConfirmationFilterBackend(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         filter_value = request.query_params.get('need_manual_confirmation', None)
@@ -318,7 +351,7 @@ class ReservationExcelRenderer(renderers.BaseRenderer):
 class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
-    filter_backends = (UserFilterBackend, ExcludePastFilterBackend, ResourceFilterBackend,
+    filter_backends = (UserFilterBackend, ResourceFilterBackend, ReservationFilterBackend,
                        NeedManualConfirmationFilterBackend, StateFilterBackend, CanApproveFilterBackend)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, ReservationExcelRenderer)

@@ -492,6 +492,45 @@ def test_reservation_user_filter(api_client, list_url, reservation, resource_in_
     assert response.data['results'][0]['id'] == reservation2.id
 
 
+@pytest.mark.django_db
+def test_reservation_time_filters(api_client, list_url, reservation, resource_in_unit, user):
+    reservation2 = Reservation.objects.create(
+        resource=resource_in_unit,
+        begin=dateparse.parse_datetime('2015-04-07T11:00:00+02:00'),
+        end=dateparse.parse_datetime('2015-04-07T12:00:00+02:00'),
+        user=user,
+    )
+
+    # without the filter, only the reservation in the future should be returned
+    response = api_client.get(list_url)
+    assert response.data['count'] == 1
+    assert response.data['results'][0]['id'] == reservation.id
+
+    # with the 'all' filter, both reservations should be returned
+    response = api_client.get(list_url + '?all=true')
+    assert response.data['count'] == 2
+    assert {reservation.id, reservation2.id}.issubset(set(res['id'] for res in response.data['results']))
+
+    # with start or end, both reservations should be returned
+    # filtering by start date only
+    response = api_client.get(list_url + '?start=2065-04-06')
+    print(response.data)
+    assert response.data['count'] == 1
+    assert response.data['results'][0]['id'] == reservation.id
+
+    # filtering by end date only
+    response = api_client.get(list_url + '?end=2065-04-06')
+    assert response.data['count'] == 1
+    assert response.data['results'][0]['id'] == reservation2.id
+
+    # filtering by start and end times
+    response = api_client.get(list_url + '?start=2065-04-06T11:00:00%2b02:00' + '&end=2065-04-06T12:00:00%2b02:00')
+    assert response.data['count'] == 0
+    response = api_client.get(list_url + '?start=2005-04-07T11:30:00%2b02:00' + '&end=2115-04-04T09:30:00%2b02:00')
+    assert response.data['count'] == 2
+    assert {reservation.id, reservation2.id}.issubset(set(res['id'] for res in response.data['results']))
+
+
 @pytest.mark.parametrize("input_hours,input_mins,expected", [
     (2, 30, '2 hours 30 minutes'),
     (1, 30, '1 hour 30 minutes'),
