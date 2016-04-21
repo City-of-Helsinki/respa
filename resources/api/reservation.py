@@ -181,6 +181,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
                 'begin': instance.begin,  # datetime object
                 'end': instance.end,  # datetime object
                 'user': instance.user.email,  # just email
+                'created_at': instance.created_at
             })
 
         # Show the comments field and the user object only for staff

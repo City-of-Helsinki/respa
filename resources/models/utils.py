@@ -140,6 +140,7 @@ def generate_reservation_xlsx(reservations):
         ('Resource', 30),
         ('Begin time', 15),
         ('End time', 15),
+        ('Created at', 15),
         ('User', 30),
         ('Comments', 30)
     )
@@ -154,10 +155,11 @@ def generate_reservation_xlsx(reservations):
         worksheet.write(row, 1, reservation['resource'])
         worksheet.write(row, 2, localtime(reservation['begin']).replace(tzinfo=None), date_format)
         worksheet.write(row, 3, localtime(reservation['end']).replace(tzinfo=None), date_format)
+        worksheet.write(row, 4, localtime(reservation['created_at']).replace(tzinfo=None), date_format)
         if 'user' in reservation:
-            worksheet.write(row, 4, reservation['user'])
+            worksheet.write(row, 5, reservation['user'])
         if 'comments' in reservation:
-            worksheet.write(row, 5, reservation['comments'])
+            worksheet.write(row, 6, reservation['comments'])
     workbook.close()
     return output.getvalue()
 
