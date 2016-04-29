@@ -80,9 +80,10 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         if resource_id:
             resource = get_object_or_none(Resource, id=resource_id)
 
-        # if that didn't work out use the reservation's old resource it such exists
-        if not resource and isinstance(self.instance, Resource):
-            resource = self.instance.resource
+        # if that didn't work out use the reservation's old resource if such exists
+        if not resource:
+            if isinstance(self.instance, Reservation) and isinstance(self.instance.resource, Resource):
+                resource = self.instance.resource
 
         # set extra fields required if the related resource is found and it needs manual confirmation
         if resource and resource.need_manual_confirmation:
@@ -116,7 +117,12 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
     def validate(self, data):
         reservation = self.instance
         request_user = self.context['request'].user
-        resource = data['resource']
+
+        # this check is probably only needed for PATCH
+        try:
+            resource = data['resource']
+        except KeyError:
+            resource = reservation.resource
 
         if not resource.can_make_reservations(request_user):
             raise PermissionDenied()
