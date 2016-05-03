@@ -49,27 +49,35 @@ class TPRekImporter(Importer):
         else:
             syncher.mark(saved_obj)
 
-    def import_units(self):
+    def import_units(self, url=None):
         print("Fetching units")
         # 25480 == Public libraries
         # 25700 == Youth centers
         # 25724 == Animal farm
-        url = "http://api.hel.fi/servicemap/v1/unit/?service=25480,25700,25724&municipality=helsinki&include=department&page_size=1000"
+        if not url:
+            url = "http://api.hel.fi/servicemap/v1/unit/?service=25480,25700,25724&municipality=helsinki&include=department&page_size=1000"
         resp = requests.get(url)
         assert resp.status_code == 200
         data = resp.json()
 
-        print("Fetching Louhi")
-        url = "http://api.hel.fi/servicemap/v1/unit/44401"
-        resp = requests.get(url)
-        assert resp.status_code == 200
-        louhi = resp.json()
-        data['results'].append(louhi)
+        if False:
+            print("Fetching Louhi")
+            url = "http://api.hel.fi/servicemap/v1/unit/44401"
+            resp = requests.get(url)
+            assert resp.status_code == 200
+            louhi = resp.json()
+            data['results'].append(louhi)
 
         unit_list = Unit.objects.filter(identifiers__namespace='tprek').distinct()
         syncher = ModelSyncher(unit_list, generate_tprek_id)
 
-        for unit_data in data['results']:
+        if 'results' in data:
+            units = data['results']
+        else:
+            units = [data]
+
+        for unit_data in units:
             self._import_unit(unit_data, syncher)
 
-        syncher.finish()
+        # Comment this out, because otherwise syncher would delete a lot of units...
+        # syncher.finish()

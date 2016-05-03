@@ -16,6 +16,7 @@ class Command(BaseCommand):
     option_list = list(BaseCommand.option_list + (
         make_option('--cached', dest='cached', action='store_true', help='cache HTTP requests'),
         make_option('--all', action='store_true', dest='all', help='Import all entities'),
+        make_option('--url', action='store', dest='url', help='Import from a given URL'),
     ))
 
     importer_types = ['units', 'resources']
@@ -54,4 +55,8 @@ class Command(BaseCommand):
 
             if method:
                 with override(default_language), transaction.atomic():
-                    method()
+                    kwargs = {}
+                    url = options.pop('url', None)
+                    if url:
+                        kwargs['url'] = url
+                    method(**kwargs)
