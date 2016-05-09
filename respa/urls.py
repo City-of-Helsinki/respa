@@ -16,7 +16,7 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib.admin import site as admin_site
+from helusers import admin
 from django.utils.translation import ugettext_lazy
 
 from resources.api import RespaAPIRouter
@@ -24,19 +24,12 @@ from resources.views.images import ResourceImageView
 from resources.views.ical import ICalFeedView
 from resources.views import testing as testing_views
 
-# Text to put at the end of each page's <title>.
-admin_site.site_title = ugettext_lazy('RESPA Resource booking system')
-
-# Text to put in each page's <h1>.
-admin_site.site_header = ugettext_lazy('RESPA Resource booking system')
-
-# Text to put at the top of the admin index page.
-admin_site.index_title = ugettext_lazy('RESPA Administration')
+admin.autodiscover()
 
 router = RespaAPIRouter()
 
 urlpatterns = [
-    url(r'^admin/', include(admin_site.urls)),
+    url(r'^admin/', include(admin.site.urls)),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^grappelli/', include('grappelli.urls')),
     url(r'^resource_image/(?P<pk>\d+)$', ResourceImageView.as_view(), name='resource-image-view'),

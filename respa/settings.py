@@ -29,6 +29,7 @@ ALLOWED_HOSTS = []
 
 
 INSTALLED_APPS = [
+    'helusers',
     'modeltranslation',
     'grappelli',
     'django.contrib.sites',
@@ -55,7 +56,6 @@ INSTALLED_APPS = [
     'helusers.providers.helsinki',
 
     'munigeo',
-    'helusers',
 
     'resources',
     'users',
