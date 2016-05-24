@@ -23,7 +23,7 @@ produces:
 consumes:
   - application/json
 paths:
-  /search:
+  /search/:
     get:
       tags:
         - search
@@ -62,7 +62,7 @@ paths:
                 items:
                   $ref: '#/definitions/unit'
 
-  /unit:
+  /unit/:
     get:
       tags:
         - unit
@@ -100,7 +100,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/definitions/unit'
-  /unit/{id}:
+  /unit/{id}/:
     get:
       tags:
         - unit
@@ -117,7 +117,7 @@ paths:
           description: Successful response
           schema:
             $ref: '#/definitions/unit'
-  /purpose:
+  /purpose/:
     get:
       tags:
         - filter
@@ -155,7 +155,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/definitions/purpose'
-  /purpose/{id}:
+  /purpose/{id}/:
     get:
       tags:
         - filter
@@ -172,7 +172,7 @@ paths:
           description: Successful response
           schema:
             $ref: '#/definitions/purpose'
-  /type:
+  /type/:
     get:
       tags:
         - filter
@@ -210,7 +210,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/definitions/type'
-  /type/{id}:
+  /type/{id}/:
     get:
       tags:
         - filter
@@ -227,7 +227,7 @@ paths:
           description: Successful response
           schema:
             $ref: '#/definitions/type'
-  /equipment:
+  /equipment/:
     get:
       tags:
         - equipment
@@ -265,7 +265,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/definitions/equipment'
-  /equipment/{id}:
+  /equipment/{id}/:
     get:
       tags:
         - equipment
@@ -282,7 +282,7 @@ paths:
           description: Successful response
           schema:
             $ref: '#/definitions/equipment'
-  /equipmentcategory:
+  /equipmentcategory/:
     get:
       tags:
         - equipment
@@ -320,7 +320,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/definitions/equipmentcategory'
-  /equipmentcategory/{id}:
+  /equipmentcategory/{id}/:
     get:
       tags:
         - equipment
@@ -337,7 +337,7 @@ paths:
           description: Successful response
           schema:
             $ref: '#/definitions/equipmentcategory'
-  /resource:
+  /resource/:
     get:
       tags:
         - resource
@@ -419,7 +419,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/definitions/resource'
-  /resource/{id}:
+  /resource/{id}/:
     get:
       tags:
         - resource
@@ -452,7 +452,7 @@ paths:
           description: Successful response
           schema:
             $ref: '#/definitions/resource'
-  /reservation:
+  /reservation/:
     get:
       tags:
         - reservation
@@ -541,7 +541,7 @@ paths:
                 type: string
                 description: 'The reason the reservation was not accepted'
 
-  /reservation/{id}:
+  /reservation/{id}/:
     get:
       tags:
         - reservation
