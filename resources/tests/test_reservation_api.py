@@ -54,7 +54,7 @@ def reservation_data_extra(reservation_data):
         'reserver_address_zip': '00930',
         'reserver_address_city': 'Helsinki',
         'event_description': 'a very secret meeting',
-        'business_id': '1234567-8',
+        'reserver_id': '1234567-8',
         'number_of_participants': 5000,
         'billing_address_street': 'Pihlajakatu',
         'billing_address_zip': '00001',
