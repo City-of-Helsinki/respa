@@ -18,7 +18,8 @@ RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_
                             'number_of_participants', 'reserver_email_address')
 
 REQUIRED_RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street',
-                                     'reserver_address_zip', 'reserver_address_city', 'event_description')
+                                     'reserver_address_zip', 'reserver_address_city', 'event_description',
+                                     'reserver_id', 'reserver_email_address')
 
 
 class ReservationQuerySet(models.QuerySet):
