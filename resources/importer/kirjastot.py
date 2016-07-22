@@ -4,6 +4,8 @@ from collections import namedtuple
 import requests
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from psycopg2.extras import DateRange
+import delorean
+
 
 from ..models import Unit, UnitIdentifier
 from .base import Importer, register_importer
@@ -246,7 +248,26 @@ def merger(data):
 
 
 def time_machine(periods):
+    """
+    Creates a dict of where keys are days
+    and values ProxyPeriod objects governing those days
+
+    Assuming periods are sorted from least to highest
+    significance, this results in opening hours data
+    for all days accounted for by periods combined
+
+    :param periods:[ProxyPeriod]
+    :return: {datetime.date:ProxyPeriod}
+    """
     days_of_our_lives = {}
 
     for period in periods:
-        pass
+        start = datetime.datetime.combine(
+            period.start, datetime.time(0, 0))
+        end = datetime.datetime.combine(
+            period.end, datetime.time(0, 0))
+        for stop in delorean.stops(
+                freq=delorean.DAILY, start=start, stop=end):
+            days_of_our_lives[stop.date] = period
+
+    return days_of_our_lives
