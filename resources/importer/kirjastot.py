@@ -271,3 +271,94 @@ def time_machine(periods):
             days_of_our_lives[stop.date] = period
 
     return days_of_our_lives
+
+
+def periodic_progress(day_times):
+    """
+
+    Sort day_times by its keys that should be date objects
+
+    Take first day's period and add it to governing_periods list
+    because that's first day's governing period
+
+    Loop through sorted day_times
+
+    For every you get a date object and a period
+    Now get previous day's period object from day_times
+    (this is None for the first iteration, but you got to check)
+
+    Compare today and yesterday and you'll see if a boundary has been found
+
+    If this is the case retrieve currently governing period
+    (that has a the correct start time but now wrong end time)
+
+    Now replace last governing period in the list with
+    a ProxyPeriod object using previous governing period and
+    day_times original yesterday's period start and end days
+    respectively
+
+    This sets that period with a start day as before and
+    end date to yesterday, day before today's new governing period
+
+    Then get that period and add it to governing periods,
+    but replace its start day (which might be anything from today to
+    distant past) with today (since at this span the period
+    can only govern from this day forward till the start of next
+    period)
+
+    Repeat till all the days of the day_times dict have been called for,
+    resulting in ProxyPeriod objects that are actually in effect and not
+    the data they had when they came in (because in kirjastot.fi they
+    can have overlapping day spans)
+
+    :param day_times:{datetime.date: ProxyPeriod}
+    :return:[ProxyPeriod]
+    """
+
+    governing_periods = []
+
+    periods_in_order = list(sorted(
+        day_times.items(),
+        key=lambda x: x[0]))
+
+    governing_periods.append(periods_in_order[0][1])
+
+    minus_day = datetime.timedelta(days=1)
+
+    for day, today_period in periods_in_order:
+
+        yesterday_period = day_times.get(day - minus_day)
+
+        if yesterday_period and today_period != yesterday_period:
+
+            if yesterday_period.start == yesterday_period.end:
+                new_yesterday_period_end = yesterday_period.end
+            else:
+                new_yesterday_period_end = day - datetime.timedelta(days=1)
+
+            currently_governing_period = governing_periods[len(governing_periods) - 1]
+
+            governing_periods[len(governing_periods) - 1] = ProxyPeriod(
+                start=currently_governing_period.start,
+                end=new_yesterday_period_end,
+                description=yesterday_period.description,
+                closed=yesterday_period.closed,
+                name=yesterday_period.name,
+                unit=yesterday_period.unit,
+                days=yesterday_period.days
+            )
+
+            governing_periods.append(ProxyPeriod(
+                start=day,
+                end=today_period.end,
+                description=today_period.description,
+                closed=today_period.closed,
+                name=today_period.name,
+                unit=today_period.unit,
+                days=today_period.days
+            ))
+
+        else:
+            continue
+
+    return governing_periods
