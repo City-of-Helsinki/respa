@@ -8,7 +8,14 @@ from psycopg2.extras import DateRange
 from ..models import Unit, UnitIdentifier
 from .base import Importer, register_importer
 
-ProxyPeriod = namedtuple("ProxyPeriod", ['start', 'end', 'description', 'closed', 'name', 'unit', 'days'])
+ProxyPeriod = namedtuple("ProxyPeriod",
+                         ['start',
+                          'end',
+                          'description',
+                          'closed',
+                          'name',
+                          'unit',
+                          'days'])
 
 
 @register_importer
@@ -190,3 +197,56 @@ class KirjastotImporter(Importer):
                     print(e)
                     print(day)
                     return None
+
+
+def period_sorter(period):
+    """
+    Period's sorting keys
+
+    TODO: check significance spec: first by length, then by closed state
+
+    :param period: ProxyPeriod
+    :return: (datetime.timedelta, bool)
+    """
+    return period.end - period.start, not period.closed
+
+
+def merger(data):
+    """
+    Sort kirjastot.fi periods by significance
+    from low to high
+
+    TODO: check significance spec: first by length, then by closed state
+    :param data: kirjastot.fi data
+    :return: [ProxyPeriod]
+    """
+    Unit.objects.get(pk='tprek:8199')
+    u = Unit.objects.get(pk='tprek:8199')
+    vallila = [j for j in data if j['identificator'] == 'H55'][0]
+    periods = []
+    for period in vallila['periods']:
+        if not period['start'] or not period['end']:
+            continue  # NOTE: period is supposed to have *at least* start or end date
+        start = datetime.datetime.strptime(period['start'], '%Y-%m-%d').date()
+        if not period['end']:
+            this_day = datetime.date.today()
+            end = datetime.date(this_day.year + 1, 12, 31)  # No end time goes to end of next year
+        else:
+            end = datetime.datetime.strptime(period['end'], '%Y-%m-%d').date()
+        periods.append(ProxyPeriod(
+            start=start,
+            end=end,
+            description=period['description']['fi'],
+            closed=period['closed'],
+            name=period['name']['fi'],
+            unit=u,
+            days=period['days']
+        ))
+    return reversed(sorted(periods, key=period_sorter))
+
+
+def time_machine(periods):
+    days_of_our_lives = {}
+
+    for period in periods:
+        pass
