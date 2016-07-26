@@ -17,7 +17,8 @@ ProxyPeriod = namedtuple("ProxyPeriod",
                           'closed',
                           'name',
                           'unit',
-                          'days'])
+                          'days',
+                          'orig'])
 
 
 @register_importer
@@ -236,6 +237,7 @@ def merger(data):
         else:
             end = datetime.datetime.strptime(period['end'], '%Y-%m-%d').date()
         periods.append(ProxyPeriod(
+            orig=None,
             start=start,
             end=end,
             description=period['description']['fi'],
@@ -265,7 +267,7 @@ def time_machine(periods):
         start = datetime.datetime.combine(
             period.start, datetime.time(0, 0))
         end = datetime.datetime.combine(
-            period.end, datetime.time(0, 0))
+            period.end, datetime.time(23, 59))
         for stop in delorean.stops(
                 freq=delorean.DAILY, start=start, stop=end):
             days_of_our_lives[stop.date] = period
@@ -339,6 +341,7 @@ def periodic_progress(day_times):
             currently_governing_period = governing_periods[len(governing_periods) - 1]
 
             governing_periods[len(governing_periods) - 1] = ProxyPeriod(
+                orig=currently_governing_period,
                 start=currently_governing_period.start,
                 end=new_yesterday_period_end,
                 description=yesterday_period.description,
@@ -349,6 +352,7 @@ def periodic_progress(day_times):
             )
 
             governing_periods.append(ProxyPeriod(
+                orig=today_period,
                 start=day,
                 end=today_period.end,
                 description=today_period.description,
