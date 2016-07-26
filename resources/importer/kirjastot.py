@@ -206,6 +206,10 @@ def timetable_fetcher(name):
     """
     Fetch periods using kirjastot.fi's new v3 API
 
+    v3 gives opening for each day with period id
+    it originated from, thus allowing creation of
+    unique periods
+
     TODO: waiting for filtering on library's tprek id
     TODO: helmet consortium's id permanency check
 
@@ -218,13 +222,25 @@ def timetable_fetcher(name):
         "name": "vallilan kirjasto",
         "consortium": "2093",
         "with": "extra,schedules",
-        "start": "2016-08-01",
-        "end": "2016-08-31"}
+        "period.start": "2016-07-01",
+        "period.end": "2016-12-31"}
 
     resp = requests.get(base, params=params)
+    from collections import defaultdict
 
     data = resp.json()
-    return data
+
+    periods = defaultdict(dict)
+    for period in data['items'][0]['schedules']:
+        periods[period['period']][period.get('day')] = {
+            'day': period.get('day'),
+            'opens': period.get('opens'),
+            'closes': period.get('closes'),
+            'closed': period['closed'],
+            'description': period['info']['fi']
+        }
+
+    return periods
 
 
 def period_sorter(period):
