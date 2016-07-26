@@ -202,6 +202,31 @@ class KirjastotImporter(Importer):
                     return None
 
 
+def timetable_fetcher(name):
+    """
+    Fetch periods using kirjastot.fi's new v3 API
+
+    TODO: waiting for filtering on library's tprek id
+    TODO: helmet consortium's id permanency check
+
+    :param name: name of the library
+    :return: [ProxyPeriod]
+    """
+    base = "https://api.kirjastot.fi/v3/organisation"
+
+    params = {
+        "name": "vallilan kirjasto",
+        "consortium": "2093",
+        "with": "extra,schedules",
+        "start": "2016-08-01",
+        "end": "2016-08-31"}
+
+    resp = requests.get(base, params=params)
+
+    data = resp.json()
+    return data
+
+
 def period_sorter(period):
     """
     Period's sorting keys
