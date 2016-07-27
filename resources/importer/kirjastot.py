@@ -1,5 +1,6 @@
 import datetime
 from collections import namedtuple
+from collections import defaultdict
 
 import requests
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -17,8 +18,7 @@ ProxyPeriod = namedtuple("ProxyPeriod",
                           'closed',
                           'name',
                           'unit',
-                          'days',
-                          'orig'])
+                          'days'])
 
 
 @register_importer
@@ -202,7 +202,30 @@ class KirjastotImporter(Importer):
                     return None
 
 
-def timetable_fetcher(name):
+def process_varaamo_libraries():
+    """
+    Find varaamo libraries' Units from the db,
+    ask their data from kirjastot.fi and
+    process resulting opening hours if found
+    into their Unit object
+
+    TODO: Libraries in Helmet system with resources need more reliable identifier
+
+    :return: None
+    """
+
+    for varaamo_unit in Unit.objects.exclude(resources__isnull=True):
+        # TODO: how to identify Helmet libraries from other units?
+        if varaamo_unit.name.find('irjasto') != -1:
+            data = timetable_fetcher(varaamo_unit)
+            if data:
+                varaamo_unit.periods.all().delete()
+                process_periods(data, varaamo_unit)
+            else:
+                print("Failed data fetch on library: ", varaamo_unit)
+
+
+def timetable_fetcher(unit, start='2016-07-01', end='2016-12-31'):
     """
     Fetch periods using kirjastot.fi's new v3 API
 
@@ -213,27 +236,43 @@ def timetable_fetcher(name):
     TODO: waiting for filtering on library's tprek id
     TODO: helmet consortium's id permanency check
 
-    :param name: name of the library
-    :return: [ProxyPeriod]
+    :param unit: Unit object of the library
+    :param start: start day for required opening hours
+    :param end: end day for required opening hours
+    :return: dict|None
     """
-    id_qs = UnitIdentifier.objects.filter(namespace='helmet', value="H55")
-    unit = Unit.objects.get(identifiers=id_qs)
-    unit.periods.all().delete()
 
     base = "https://api.kirjastot.fi/v3/organisation"
 
     params = {
-        "name": "vallilan kirjasto",
-        "consortium": "2093",
+        "name": unit.name or "vallilan kirjasto",
+        "consortium": "2093",  # TODO: Helmet consortium id in v3 API
         "with": "extra,schedules",
-        "period.start": "2016-07-01",
-        "period.end": "2016-12-31"
+        "period.start": start,
+        "period.end": end
     }
 
     resp = requests.get(base, params=params)
-    from collections import defaultdict
 
-    data = resp.json()
+    if resp.status_code == 200:
+        return resp.json()
+    else:
+        return None
+
+
+def process_periods(data, unit):
+    """
+    Generate Period and Day objects into
+    given Unit from kirjastot.fi v3 API data
+
+    Each day in data has its own Period and Day object
+    resulting in as many Periods with one Day as there is
+    items in data
+
+    :param data: kirjastot.fi v3 API data form /organisation endpoint
+    :param unit: Unit
+    :return: None
+    """
 
     periods = []
     for period in data['items'][0]['schedules']:
@@ -264,8 +303,6 @@ def timetable_fetcher(name):
         # One day equals one period and share same closing state
         nper.closed = period.get('closed')
         nper.save()
-
-    return periods, unit
 
 
 def period_sorter(period):
