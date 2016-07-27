@@ -216,6 +216,10 @@ def timetable_fetcher(name):
     :param name: name of the library
     :return: [ProxyPeriod]
     """
+    id_qs = UnitIdentifier.objects.filter(namespace='helmet', value="H55")
+    unit = Unit.objects.get(identifiers=id_qs)
+    unit.periods.all().delete()
+
     base = "https://api.kirjastot.fi/v3/organisation"
 
     params = {
@@ -223,24 +227,45 @@ def timetable_fetcher(name):
         "consortium": "2093",
         "with": "extra,schedules",
         "period.start": "2016-07-01",
-        "period.end": "2016-12-31"}
+        "period.end": "2016-12-31"
+    }
 
     resp = requests.get(base, params=params)
     from collections import defaultdict
 
     data = resp.json()
 
-    periods = defaultdict(dict)
+    periods = []
     for period in data['items'][0]['schedules']:
-        periods[period['period']][period.get('day')] = {
+        periods.append({
+            'date': period.get('date'),
             'day': period.get('day'),
             'opens': period.get('opens'),
             'closes': period.get('closes'),
             'closed': period['closed'],
             'description': period['info']['fi']
-        }
+        })
 
-    return periods
+    for period in periods:
+        nper = unit.periods.create(
+            start=period.get('date'),
+            end=period.get('date'),
+            description=period.get('description'),
+            closed=period.get('closed') or False,
+            name=period.get('description') or ''
+        )
+
+        nper.days.create(weekday=int(period.get('day')) - 1,
+                         opens=period.get('opens'),
+                         closes=period.get('closes'),
+                         closed=period.get('closed'))
+
+        # TODO: automagic closing checker
+        # One day equals one period and share same closing state
+        nper.closed = period.get('closed')
+        nper.save()
+
+    return periods, unit
 
 
 def period_sorter(period):
