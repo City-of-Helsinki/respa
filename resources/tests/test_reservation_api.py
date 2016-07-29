@@ -514,7 +514,6 @@ def test_reservation_time_filters(api_client, list_url, reservation, resource_in
     # with start or end, both reservations should be returned
     # filtering by start date only
     response = api_client.get(list_url + '?start=2065-04-06')
-    print(response.data)
     assert response.data['count'] == 1
     assert response.data['results'][0]['id'] == reservation.id
 
@@ -898,48 +897,46 @@ def test_state_filters(user_api_client, user, list_url, reservations_in_all_stat
 
 @override_settings(RESPA_MAILS_ENABLED=True)
 @pytest.mark.django_db
-def test_requested_mail(staff_api_client, staff_user, list_url, resource_in_unit, reservation,
-                        reservation_data_extra):
-    resource_in_unit.need_manual_confirmation = True
-    resource_in_unit.save()
-    assign_perm('can_approve_reservation', staff_user, reservation.resource.unit)
+def test_requested_mail(user_api_client, list_url, reservation_data_extra):
+    resource = Resource.objects.get(id=reservation_data_extra['resource'])
+    resource.need_manual_confirmation = True
+    resource.save()
     reservation_data_extra['state'] = Reservation.REQUESTED
 
-    response = staff_api_client.post(list_url, data=reservation_data_extra, format='json', HTTP_ACCEPT_LANGUAGE='en')
+    response = user_api_client.post(list_url, data=reservation_data_extra, format='json')
     assert response.status_code == 201
-    assert len(mail.outbox) == 1
-    mail_instance = mail.outbox[0]
-    assert 'Reservation requested' in mail_instance.subject
-    assert len(mail_instance.to) == 1
-    assert mail_instance.to[0] == 'test.reserver@test.com'
-    mail_message = str(mail_instance.message())
-    assert 'You have created a preliminary reservation' in mail_message
+    check_received_mail(
+        'Reservation requested',
+        reservation_data_extra['reserver_email_address'],
+        'made a preliminary reservation'
+    )
 
 
 @override_settings(RESPA_MAILS_ENABLED=True)
 @pytest.mark.django_db
-def test_reservation_mails_to_customers(staff_api_client, staff_user, list_url, resource_in_unit,
-                                        reservation_data_extra):
-    resource_in_unit.need_manual_confirmation = True
-    resource_in_unit.save()
-    assign_perm('can_approve_reservation', staff_user, resource_in_unit.unit)
+def test_reservation_mails_to_customers(staff_api_client, staff_user, user_api_client,
+                                        list_url, reservation_data_extra):
+    resource = Resource.objects.get(id=reservation_data_extra['resource'])
+    resource.need_manual_confirmation = True
+    resource.save()
+    assign_perm('can_approve_reservation', staff_user, resource.unit)
     reservation_data_extra['state'] = Reservation.REQUESTED
 
-    response = staff_api_client.post(list_url, data=reservation_data_extra, format='json', HTTP_ACCEPT_LANGUAGE='en')
+    response = user_api_client.post(list_url, data=reservation_data_extra, format='json')
     assert response.status_code == 201
     check_received_mail(
         'Reservation requested',
-        'test.reserver@test.com',
-        'You have created a preliminary reservation'
+        reservation_data_extra['reserver_email_address'],
+        'made a preliminary reservation'
     )
 
     detail_url = '%s%s/' % (list_url, response.data['id'])
     reservation_data_extra['state'] = Reservation.DENIED
-    response = staff_api_client.put(detail_url, data=reservation_data_extra, format='json', HTTP_ACCEPT_LANGUAGE='en')
+    response = staff_api_client.put(detail_url, data=reservation_data_extra, format='json')
     assert response.status_code == 200
     check_received_mail(
         'Reservation denied',
-        'test.reserver@test.com',
+        reservation_data_extra['reserver_email_address'],
         'has been denied.'
     )
 
@@ -948,7 +945,7 @@ def test_reservation_mails_to_customers(staff_api_client, staff_user, list_url, 
     assert response.status_code == 200
     check_received_mail(
         'Reservation confirmed',
-        'test.reserver@test.com',
+        reservation_data_extra['reserver_email_address'],
         'has been confirmed.'
     )
 
