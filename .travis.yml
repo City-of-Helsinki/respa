@@ -5,7 +5,7 @@ python:
 env:
 - DJANGO=Django>=1.8
 addons:
-  postgresql: "9.4"
+  postgresql: "9.3"
 
 sudo: false
 
