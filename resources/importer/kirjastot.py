@@ -213,16 +213,15 @@ def process_varaamo_libraries():
 
     :return: None
     """
+    varaamo_units = Unit.objects.filter(identifiers__namespace="helmet").exclude(resources__isnull=True)
 
-    for varaamo_unit in Unit.objects.exclude(resources__isnull=True):
-        # TODO: how to identify Helmet libraries from other units?
-        if varaamo_unit.name.find('irjasto') != -1:
-            data = timetable_fetcher(varaamo_unit)
-            if data:
-                varaamo_unit.periods.all().delete()
-                process_periods(data, varaamo_unit)
-            else:
-                print("Failed data fetch on library: ", varaamo_unit)
+    for varaamo_unit in varaamo_units:
+        data = timetable_fetcher(varaamo_unit)
+        if data:
+            varaamo_unit.periods.all().delete()
+            process_periods(data, varaamo_unit)
+        else:
+            print("Failed data fetch on library: ", varaamo_unit)
 
 
 def timetable_fetcher(unit, start='2016-07-01', end='2016-12-31'):
@@ -233,31 +232,39 @@ def timetable_fetcher(unit, start='2016-07-01', end='2016-12-31'):
     it originated from, thus allowing creation of
     unique periods
 
-    TODO: waiting for filtering on library's tprek id
     TODO: helmet consortium's id permanency check
 
     :param unit: Unit object of the library
     :param start: start day for required opening hours
     :param end: end day for required opening hours
-    :return: dict|None
+    :return: dict||None
     """
 
     base = "https://api.kirjastot.fi/v3/organisation"
 
-    params = {
-        "name": unit.name or "vallilan kirjasto",
-        "consortium": "2093",  # TODO: Helmet consortium id in v3 API
-        "with": "extra,schedules",
-        "period.start": start,
-        "period.end": end
-    }
+    for identificator in unit.identifiers.filter(namespace="helmet"):
+        params = {
+            "identificator": identificator.value,
+            "consortium": "2093",  # TODO: Helmet consortium id in v3 API
+            "with": "extra,schedules",
+            "period.start": start,
+            "period.end": end
+        }
 
-    resp = requests.get(base, params=params)
+        resp = requests.get(base, params=params)
 
-    if resp.status_code == 200:
-        return resp.json()
-    else:
-        return None
+        if resp.status_code == 200:
+            data = resp.json()
+            if data["total"] > 0:
+                return data
+            else:
+                # There's possibly other identificators that might work
+                continue
+        else:
+            return False
+
+    # No timetables were found :(
+    return False
 
 
 def process_periods(data, unit):
