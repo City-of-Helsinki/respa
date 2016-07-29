@@ -1,6 +1,7 @@
 from django.db import models
 from helusers.models import AbstractUser
 from django.utils.crypto import get_random_string
+from django.conf import settings
 
 
 class User(AbstractUser):
@@ -16,3 +17,7 @@ class User(AbstractUser):
             self.ical_token = get_random_string(length=16)
             self.save()
         return self.ical_token
+
+    def get_preferred_language(self):
+        # FIXME
+        return settings.LANGUAGES[0][0]

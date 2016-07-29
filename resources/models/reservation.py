@@ -183,7 +183,7 @@ class Reservation(ModifiableModel):
         context = {'reservation': self}
         if extra_context:
             context.update(extra_context)
-        send_respa_mail(email_address, subject, template_name, context)
+        send_respa_mail(self.user, email_address, subject, template_name, context)
 
     def send_reservation_requested_mail(self):
         self.send_reservation_mail(_('Reservation requested'), 'reservation_requested')

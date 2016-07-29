@@ -6,7 +6,7 @@ import io
 
 import arrow
 from django.conf import settings
-from django.utils import timezone
+from django.utils import timezone, translation
 from django.utils.translation import ungettext
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
@@ -95,7 +95,7 @@ def humanize_duration(duration):
     return ' '.join(filter(None, (hours_string, mins_string)))
 
 
-def send_respa_mail(email_address, subject, template_name, context):
+def send_respa_mail(user, email_address, subject, template_name, context):
     """
     Send a mail containing common Respa extras and given template rendered to given user.
 
@@ -109,12 +109,13 @@ def send_respa_mail(email_address, subject, template_name, context):
     if not getattr(settings, 'RESPA_MAILS_ENABLED', False):
         return
 
-    content = render_to_string('mail/%s.jinja' % template_name, context)
-    final_message = render_to_string('mail/base_message.jinja', {'content': content})
-    from_address = (getattr(settings, 'RESPA_MAILS_FROM_ADDRESS', None) or
-                    'noreply@%s' % Site.objects.get_current().domain)
+    with translation.override(user.get_preferred_language()):
+        content = render_to_string('mail/%s.jinja' % template_name, context)
+        final_message = render_to_string('mail/base_message.jinja', {'content': content})
+        from_address = (getattr(settings, 'RESPA_MAILS_FROM_ADDRESS', None) or
+                        'noreply@%s' % Site.objects.get_current().domain)
 
-    send_mail(str(subject), final_message, from_address, [email_address])
+        send_mail(str(subject), final_message, from_address, [email_address])
 
 
 def generate_reservation_xlsx(reservations):
