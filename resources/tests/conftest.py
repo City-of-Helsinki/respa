@@ -148,7 +148,8 @@ def user():
         username='test_user',
         first_name='Cem',
         last_name='Kaner',
-        email='cem@kaner.com'
+        email='cem@kaner.com',
+        preferred_language='en'
     )
 
 

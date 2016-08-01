@@ -12,6 +12,7 @@ click==6.6                # via pip-tools
 coverage==4.0.3
 defusedxml==0.4.1         # via python3-openid
 django-allauth==0.25.2
+django-anymail==0.4.2
 django-appconf==1.0.1     # via django-image-cropping
 django-autoslug==1.9.3
 django-cors-headers==1.1.0

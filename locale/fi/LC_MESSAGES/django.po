@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-04-05 16:34+0300\n"
+"POT-Creation-Date: 2016-07-29 21:37+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,28 +21,33 @@ msgstr ""
 msgid "HH:mm"
 msgstr "TT:mm"
 
-#: resources/api/reservation.py:106
+#: resources/api/reservation.py:115
 msgid "Illegal state change"
 msgstr "Kielletty tilan vaihto"
 
-#: resources/api/reservation.py:117
+#: resources/api/reservation.py:131
 msgid "You cannot make a reservation in the past"
 msgstr "Varauksen teko menneisyyteen ei ole sallittua"
 
-#: resources/api/reservation.py:128
+#: resources/api/reservation.py:142
 msgid "Only allowed to be set by staff members"
 msgstr "Ainoastaan virkailijat saavat asettaa"
 
-#: resources/api/reservation.py:204 resources/api/reservation.py:218
+#: resources/api/reservation.py:174
+#, python-brace-format
+msgid "Invalid pk \"{pk_value}\" - object does not exist."
+msgstr ""
+
+#: resources/api/reservation.py:220 resources/api/reservation.py:234
 #, python-format
 msgid "Invalid value in filter %(filter)s"
 msgstr "Virheellinen arvo filtterissä %(filter)s"
 
-#: resources/api/reservation.py:348 resources/models/reservation.py:133
+#: resources/api/reservation.py:412 resources/models/reservation.py:147
 msgid "reservations"
 msgstr "varaukset"
 
-#: resources/api/reservation.py:354 resources/models/reservation.py:132
+#: resources/api/reservation.py:418 resources/models/reservation.py:146
 msgid "reservation"
 msgstr "varaus"
 
@@ -66,7 +71,7 @@ msgstr "Poikkeusaikavälin kohde"
 msgid "Exceptional period"
 msgstr "Poikkeusaikaväli"
 
-#: resources/models/availability.py:109 resources/models/reservation.py:38
+#: resources/models/availability.py:109 resources/models/reservation.py:42
 #: resources/models/resource.py:335
 msgid "Resource"
 msgstr "Resurssi"
@@ -226,130 +231,134 @@ msgstr "varusteen toinen nimi"
 msgid "equipment aliases"
 msgstr "varusteen toiset nimet"
 
-#: resources/models/reservation.py:32
+#: resources/models/reservation.py:36
 msgid "cancelled"
 msgstr "peruttu"
 
-#: resources/models/reservation.py:33
+#: resources/models/reservation.py:37
 msgid "confirmed"
 msgstr "hyväksytty"
 
-#: resources/models/reservation.py:34
+#: resources/models/reservation.py:38
 msgid "denied"
 msgstr "hylätty"
 
-#: resources/models/reservation.py:35
+#: resources/models/reservation.py:39
 msgid "requested"
 msgstr "käsiteltävänä"
 
-#: resources/models/reservation.py:39
+#: resources/models/reservation.py:43
 msgid "Begin time"
 msgstr "Alkuaika"
 
-#: resources/models/reservation.py:40
+#: resources/models/reservation.py:44
 msgid "End time"
 msgstr "Loppuaika"
 
-#: resources/models/reservation.py:41
+#: resources/models/reservation.py:45
 msgid "Length of reservation"
 msgstr "Varauksen kesto"
 
-#: resources/models/reservation.py:43
+#: resources/models/reservation.py:47
 msgid "Comments"
 msgstr "Kommentit"
 
-#: resources/models/reservation.py:44
+#: resources/models/reservation.py:48
 msgid "User"
 msgstr "Käyttäjä"
 
-#: resources/models/reservation.py:46
+#: resources/models/reservation.py:50
 msgid "State"
 msgstr "Tila"
 
-#: resources/models/reservation.py:47
+#: resources/models/reservation.py:51
 msgid "Approver"
 msgstr "Hyväksyjä"
 
-#: resources/models/reservation.py:51
+#: resources/models/reservation.py:55
 msgid "Reserver name"
 msgstr "Varaajan nimi"
 
-#: resources/models/reservation.py:52
+#: resources/models/reservation.py:56
 msgid "Reserver phone number"
 msgstr "Varaajan puhelinnumero"
 
-#: resources/models/reservation.py:53
+#: resources/models/reservation.py:57
 msgid "Reserver address street"
 msgstr "Varaajan katuosoite"
 
-#: resources/models/reservation.py:54
+#: resources/models/reservation.py:58
 msgid "Reserver address zip"
 msgstr "Varaajan postinumero"
 
-#: resources/models/reservation.py:55
+#: resources/models/reservation.py:59
 msgid "Reserver address city"
 msgstr "Varaajan kaupunki"
 
-#: resources/models/reservation.py:56
+#: resources/models/reservation.py:60
+msgid "Reserver ID (business or person)"
+msgstr "Varaajan tunniste (yritys tai henkilö)"
+
+#: resources/models/reservation.py:61
 msgid "Billing address street"
 msgstr "Laskutusosoite katuosoite"
 
-#: resources/models/reservation.py:57
+#: resources/models/reservation.py:62
 msgid "Billing address zip"
 msgstr "Laskutusosoite postinumero"
 
-#: resources/models/reservation.py:58
+#: resources/models/reservation.py:63
 msgid "Billing address city"
 msgstr "Laskutusosoite kaupunki"
 
-#: resources/models/reservation.py:59
+#: resources/models/reservation.py:64
 msgid "Company"
 msgstr "Yhdistys"
 
-#: resources/models/reservation.py:60
+#: resources/models/reservation.py:65
 msgid "Event description"
 msgstr "Tapahtuman kuvaus"
 
-#: resources/models/reservation.py:61
-msgid "Business ID"
-msgstr "Y-tunnus"
-
-#: resources/models/reservation.py:62
+#: resources/models/reservation.py:66
 msgid "Number of participants"
 msgstr "Osallistujamäärä"
 
-#: resources/models/reservation.py:64
-msgid "Reserver email"
+#: resources/models/reservation.py:68
+msgid "Reserver email address"
 msgstr "Varaajan sähköpostiosoite"
 
-#: resources/models/reservation.py:147
+#: resources/models/reservation.py:161
 msgid "You must end the reservation after it has begun"
 msgstr "Varauksen loppuaika ei voi olla ennen alkuaikaa"
 
-#: resources/models/reservation.py:155
+#: resources/models/reservation.py:169
 msgid "Begin and end time must match time slots"
 msgstr "Alku- ja loppuajan täytyy osua aikaikkunoihin"
 
-#: resources/models/reservation.py:159
+#: resources/models/reservation.py:173
 msgid "The resource is already reserved for some of the period"
 msgstr "Tila on jo varattu ainakin osan ajanjaksosta"
 
-#: resources/models/reservation.py:162
+#: resources/models/reservation.py:176
 #, python-format
 msgid "The minimum reservation length is %(min_period)s"
 msgstr "Varauksen minimikesto on %(min_period)s"
 
-#: resources/models/reservation.py:169
-msgid "Reservation created"
-msgstr "Varaus luotu"
+#: resources/models/reservation.py:192
+msgid "Reservation requested"
+msgstr "Alustava varaus tehty"
 
-#: resources/models/reservation.py:178
-msgid "Reservation updated"
-msgstr "Varausta muutettu"
+#: resources/models/reservation.py:195
+msgid "Reservation denied"
+msgstr "Varaus hylätty"
 
-#: resources/models/reservation.py:185
-msgid "Reservation deleted"
-msgstr "Varaus poistettu"
+#: resources/models/reservation.py:198
+msgid "Reservation confirmed"
+msgstr "Varaus vahvistettu"
+
+#: resources/models/reservation.py:201
+msgid "Reservation cancelled"
+msgstr "Varaus peruttu"
 
 #: resources/models/resource.py:30
 msgid "Space"
@@ -624,74 +633,118 @@ msgstr "Lisää toinen"
 msgid "Delete Item"
 msgstr "Poista"
 
-#: resources/templates/mail/_reservation_data.txt:1
+#: resources/templates/mail/_reservation_data.jinja:1
 #, python-format
 msgid "Resource: %(resource)s"
 msgstr "Tila: %(resource)s"
 
-#: resources/templates/mail/_reservation_data.txt:2
+#: resources/templates/mail/_reservation_data.jinja:2
 #, python-format
-msgid "Starts: %(begin)s"
-msgstr "Alkaa: %(begin)s"
+msgid "Unit: %(unit)s"
+msgstr "Toimipiste: %(unit)s"
 
-#: resources/templates/mail/_reservation_data.txt:3
+#: resources/templates/mail/_reservation_data.jinja:3
 #, python-format
-msgid "Ends: %(end)s"
-msgstr "Loppuu: %(end)s"
+msgid "Starts: %(starts)s"
+msgstr "Alkaa: %(starts)s"
 
-#: resources/templates/mail/base_message.txt:1
+#: resources/templates/mail/_reservation_data.jinja:4
 #, python-format
-msgid "Hello %(user_name)s"
-msgstr "Terve %(user_name)s"
+msgid "Ends: %(ends)s"
+msgstr "Loppuu: %(ends)s"
 
-#: resources/templates/mail/base_message.txt:4
-msgid "Best regards, the RESPA bot"
-msgstr "Terveisin Respa-automaatti"
+#: resources/templates/mail/base_message.jinja:1
+msgid "Hello,"
+msgstr "Hei,"
 
-#: resources/templates/mail/base_subject.txt:1
-msgid "RESPA"
-msgstr "RESPA"
+#: resources/templates/mail/base_message.jinja:5
+msgid "This is an automated message, please don't reply to this."
+msgstr "Tämä on automaattinen viesti, joten älä vastaa tähän."
 
-#: resources/templates/mail/reservation_created_by_admin.txt:1
-msgid "A new reservation has been created for you."
-msgstr "Sinulle on luotu uusi varaus."
+#: resources/templates/mail/base_message.jinja:7
+msgid ""
+"Best regards,\n"
+"Varaamo"
+msgstr ""
+"Ystävällisin terveisin,\n"
+"Varaamo"
 
-#: resources/templates/mail/reservation_deleted_by_admin.txt:1
-msgid "Your reservation has been deleted."
-msgstr "Varauksesi on poistettu."
+#: resources/templates/mail/reservation_cancelled.jinja:1
+msgid "Your reservation has been cancelled."
+msgstr "Varauksesi on peruttu."
 
-#: resources/templates/mail/reservation_deleted_by_admin.txt:3
-msgid "The deleted reservation:"
-msgstr "Poistettu varaus:"
+#: resources/templates/mail/reservation_cancelled.jinja:4
+msgid ""
+"\n"
+"Further information regarding the cancellation of your reservation can\n"
+"be acquired from the personnel who are responsible for the space.\n"
+msgstr ""
+"\n"
+"Varauksen perumiseen liittyvät syyt voitte tiedustella tilasta vastaavalta\n"
+"henkilökunnalta.\n"
 
-#: resources/templates/mail/reservation_updated_by_admin.txt:2
-msgid "Your reservation has been modified."
-msgstr "Varaustasi on muutettu."
+#: resources/templates/mail/reservation_confirmed.jinja:1
+msgid "Your reservation has been confirmed."
+msgstr "Varauksesi on hyväksytty."
 
-#: resources/templates/mail/reservation_updated_by_admin.txt:4
-msgid "The new reservation:"
-msgstr "Uusi varaus:"
+#: resources/templates/mail/reservation_confirmed.jinja:4
+msgid ""
+"\n"
+"It is possible to cancel the reservation five days before the start of\n"
+"your reservation. All cancellations are done through personnel. Further\n"
+"information for cancelling your reservation can be found from Varaamo's\n"
+"\"Omat varaukset\" section which you can find when you are logged in to the\n"
+"service.\n"
+msgstr ""
+"\n"
+"Varauksen voitte perua viisi päivää ennen varauksen alkua. Varauksen\n"
+"peruminen tehdään tilasta vastaavan henkilökunnan kautta. Tarkemmat\n"
+"tiedot perumiseen löydätte Varaamon omista varauksista kirjautumalla\n"
+"palveluun.\n"
 
-#: resources/templates/mail/reservation_updated_by_admin.txt:8
-msgid "The old reservation:"
-msgstr "Vanha varaus:"
+#: resources/templates/mail/reservation_denied.jinja:1
+msgid "Your reservation request has been denied."
+msgstr "Varauksesi on hylätty."
 
-#: respa/settings.py:119
+#: resources/templates/mail/reservation_denied.jinja:4
+msgid ""
+"\n"
+"Further information regarding the rejection of your reservation can\n"
+"be acquired from the personnel who are responsible for the space.\n"
+msgstr ""
+"\n"
+"Varauksen hylkäämiseen liittyvät tarkemmat perusteet voitte\n"
+"tiedustella tilasta vastaavalta henkilökunnalta.\n"
+
+#: resources/templates/mail/reservation_requested.jinja:1
+msgid "and thanks for using Varaamo!"
+msgstr "ja kiitokset Varaamon käytöstä!"
+
+#: resources/templates/mail/reservation_requested.jinja:3
+msgid "You've made a preliminary reservation:"
+msgstr "Olet tehnyt alustavan varauksen:"
+
+#: resources/templates/mail/reservation_requested.jinja:6
+msgid ""
+"\n"
+"Your reservation will be processed in two days and you will get an\n"
+"email when your reservation is either confirmed or denied. In case we\n"
+"need more information regarding the reservation, we will be in contact\n"
+"with you.\n"
+msgstr ""
+"\n"
+"Varaus käsitellään kahden päivän kuluessa. Varauksen hyväksymisestä\n"
+"saatte erillisen varausvahvistuksen sähköpostitse. Mikäli tarvitsemme\n"
+"lisätietoja varaukseen liittyen, olemme teihin yhteydessä erikseen.\n"
+
+#: respa/settings.py:131
 msgid "Finnish"
 msgstr "suomi"
 
-#: respa/settings.py:120
+#: respa/settings.py:132
 msgid "English"
 msgstr "englanti"
 
-#: respa/settings.py:121
+#: respa/settings.py:133
 msgid "Swedish"
 msgstr "ruotsi"
-
-#: respa/urls.py:28 respa/urls.py:31
-msgid "RESPA Resource booking system"
-msgstr "RESPA Resurssien varausjärjestelmä"
-
-#: respa/urls.py:34
-msgid "RESPA Administration"
-msgstr "RESPA Ylläpito"
