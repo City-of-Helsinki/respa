@@ -941,12 +941,20 @@ def test_reservation_mails_to_customers(staff_api_client, staff_user, user_api_c
     )
 
     reservation_data_extra['state'] = Reservation.CONFIRMED
-    response = staff_api_client.put(detail_url, data=reservation_data_extra, format='json', HTTP_ACCEPT_LANGUAGE='en')
+    response = staff_api_client.put(detail_url, data=reservation_data_extra, format='json')
     assert response.status_code == 200
     check_received_mail(
         'Reservation confirmed',
         reservation_data_extra['reserver_email_address'],
         'has been confirmed.'
+    )
+
+    response = staff_api_client.delete(detail_url, format='json')
+    assert response.status_code == 204
+    check_received_mail(
+        'Reservation cancelled',
+        reservation_data_extra['reserver_email_address'],
+        'has been cancelled.'
     )
 
 

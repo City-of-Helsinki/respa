@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-07-29 17:05+0300\n"
+"POT-Creation-Date: 2016-07-29 21:37+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -43,11 +43,11 @@ msgstr ""
 msgid "Invalid value in filter %(filter)s"
 msgstr "Virheellinen arvo filtterissä %(filter)s"
 
-#: resources/api/reservation.py:412 resources/models/reservation.py:144
+#: resources/api/reservation.py:412 resources/models/reservation.py:147
 msgid "reservations"
 msgstr "varaukset"
 
-#: resources/api/reservation.py:418 resources/models/reservation.py:143
+#: resources/api/reservation.py:418 resources/models/reservation.py:146
 msgid "reservation"
 msgstr "varaus"
 
@@ -327,34 +327,38 @@ msgstr "Osallistujamäärä"
 msgid "Reserver email address"
 msgstr "Varaajan sähköpostiosoite"
 
-#: resources/models/reservation.py:158
+#: resources/models/reservation.py:161
 msgid "You must end the reservation after it has begun"
 msgstr "Varauksen loppuaika ei voi olla ennen alkuaikaa"
 
-#: resources/models/reservation.py:166
+#: resources/models/reservation.py:169
 msgid "Begin and end time must match time slots"
 msgstr "Alku- ja loppuajan täytyy osua aikaikkunoihin"
 
-#: resources/models/reservation.py:170
+#: resources/models/reservation.py:173
 msgid "The resource is already reserved for some of the period"
 msgstr "Tila on jo varattu ainakin osan ajanjaksosta"
 
-#: resources/models/reservation.py:173
+#: resources/models/reservation.py:176
 #, python-format
 msgid "The minimum reservation length is %(min_period)s"
 msgstr "Varauksen minimikesto on %(min_period)s"
 
-#: resources/models/reservation.py:189
+#: resources/models/reservation.py:192
 msgid "Reservation requested"
 msgstr "Alustava varaus tehty"
 
-#: resources/models/reservation.py:192
+#: resources/models/reservation.py:195
 msgid "Reservation denied"
 msgstr "Varaus hylätty"
 
-#: resources/models/reservation.py:195
+#: resources/models/reservation.py:198
 msgid "Reservation confirmed"
 msgstr "Varaus vahvistettu"
+
+#: resources/models/reservation.py:201
+msgid "Reservation cancelled"
+msgstr "Varaus peruttu"
 
 #: resources/models/resource.py:30
 msgid "Space"
@@ -664,6 +668,20 @@ msgid ""
 msgstr ""
 "Ystävällisin terveisin,\n"
 "Varaamo"
+
+#: resources/templates/mail/reservation_cancelled.jinja:1
+msgid "Your reservation has been cancelled."
+msgstr "Varauksesi on peruttu."
+
+#: resources/templates/mail/reservation_cancelled.jinja:4
+msgid ""
+"\n"
+"Further information regarding the cancellation of your reservation can\n"
+"be acquired from the personnel who are responsible for the space.\n"
+msgstr ""
+"\n"
+"Varauksen perumiseen liittyvät syyt voitte tiedustella tilasta vastaavalta\n"
+"henkilökunnalta.\n"
 
 #: resources/templates/mail/reservation_confirmed.jinja:1
 msgid "Your reservation has been confirmed."

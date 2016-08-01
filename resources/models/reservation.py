@@ -135,6 +135,9 @@ class Reservation(ModifiableModel):
 
         if new_state == Reservation.DENIED:
             self.send_reservation_denied_mail()
+        elif new_state == Reservation.CANCELLED:
+            if user != self.user:
+                self.send_reservation_cancelled_mail()
 
         self.state = new_state
         self.save()
@@ -193,6 +196,9 @@ class Reservation(ModifiableModel):
 
     def send_reservation_confirmed_mail(self):
         self.send_reservation_mail(_('Reservation confirmed'), 'reservation_confirmed')
+
+    def send_reservation_cancelled_mail(self):
+        self.send_reservation_mail(_('Reservation cancelled'), 'reservation_cancelled')
 
     def save(self, *args, **kwargs):
         self.duration = DateTimeTZRange(self.begin, self.end, '[)')
