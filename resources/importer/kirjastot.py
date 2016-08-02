@@ -1,5 +1,6 @@
 import datetime
 from collections import namedtuple
+import calendar, datetime
 
 import requests
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -213,16 +214,18 @@ def process_varaamo_libraries():
     process resulting opening hours if found
     into their Unit object
 
+    Asks the span of opening hours from get_time_range
+
     TODO: Libraries in Helmet system with resources need more reliable identifier
 
     :return: None
     """
     varaamo_units = Unit.objects.filter(identifiers__namespace="helmet").exclude(resources__isnull=True)
 
-
+    start, end = get_time_range()
 
     for varaamo_unit in varaamo_units:
-        data = timetable_fetcher(varaamo_unit)
+        data = timetable_fetcher(varaamo_unit, start, end)
         if data:
             try:
                 with transaction.atomic():
@@ -320,6 +323,23 @@ def process_periods(data, unit):
         # One day equals one period and share same closing state
         nper.closed = period.get('closed')
         nper.save()
+
+
+def get_time_range(start=None, back=1, forward=6):
+    """
+    From a starting date from back and forward
+    by given amount and return start of both months
+    as dates
+
+    :param start: datetime.date
+    :param back: int
+    :param forward: int
+    :return: (datetime.date, datetime.date)
+    """
+    base = delorean.Delorean(start)
+    start = base.last_month(back).date.replace(day=1)
+    end = base.next_month(forward).date.replace(day=1)
+    return start, end
 
 
 def period_sorter(period):
