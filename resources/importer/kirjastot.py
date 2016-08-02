@@ -1,12 +1,11 @@
 import datetime
 from collections import namedtuple
-from collections import defaultdict
 
 import requests
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from psycopg2.extras import DateRange
 import delorean
-
+from django.db import transaction
 
 from ..models import Unit, UnitIdentifier
 from .base import Importer, register_importer
@@ -202,6 +201,11 @@ class KirjastotImporter(Importer):
                     return None
 
 
+class ImportingException(Exception):
+    pass
+
+
+@transaction.atomic
 def process_varaamo_libraries():
     """
     Find varaamo libraries' Units from the db,
@@ -215,11 +219,17 @@ def process_varaamo_libraries():
     """
     varaamo_units = Unit.objects.filter(identifiers__namespace="helmet").exclude(resources__isnull=True)
 
+
+
     for varaamo_unit in varaamo_units:
         data = timetable_fetcher(varaamo_unit)
         if data:
-            varaamo_unit.periods.all().delete()
-            process_periods(data, varaamo_unit)
+            try:
+                with transaction.atomic():
+                    varaamo_unit.periods.all().delete()
+                    process_periods(data, varaamo_unit)
+            except Exception as e:
+                print("Problem in processing data of library ", varaamo_unit, e)
         else:
             print("Failed data fetch on library: ", varaamo_unit)
 
@@ -237,7 +247,7 @@ def timetable_fetcher(unit, start='2016-07-01', end='2016-12-31'):
     :param unit: Unit object of the library
     :param start: start day for required opening hours
     :param end: end day for required opening hours
-    :return: dict||None
+    :return: dict|None
     """
 
     base = "https://api.kirjastot.fi/v3/organisation"
