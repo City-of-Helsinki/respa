@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'helusers.providers.helsinki',
+    'raven.contrib.django.raven_compat',
 
     'munigeo',
 
