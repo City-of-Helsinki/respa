@@ -16,7 +16,7 @@ class ReservationPagination(DefaultPagination):
         if self.page_size_query_param:
             cutoff = self.max_page_size
             if request.query_params.get('format', '').lower() == 'xlsx':
-                cutoff = 10000
+                cutoff = 50000
             try:
                 return _positive_int(
                     request.query_params[self.page_size_query_param],
