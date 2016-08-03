@@ -11,6 +11,10 @@ from django.db import transaction
 from ..models import Unit, UnitIdentifier
 from .base import Importer, register_importer
 
+from raven import Client
+
+from django.conf import settings
+
 ProxyPeriod = namedtuple("ProxyPeriod",
                          ['start',
                           'end',
@@ -60,10 +64,18 @@ def process_varaamo_libraries():
                     process_periods(data, varaamo_unit)
             except Exception as e:
                 print("Problem in processing data of library ", varaamo_unit, e)
-                problems.append(["Problem in processing data of library ", varaamo_unit, e])
+                problems.append(" ".join(["Problem in processing data of library ", str(varaamo_unit), str(e)]))
         else:
             print("Failed data fetch on library: ", varaamo_unit)
-            problems.append(["Failed data fetch on library: ", varaamo_unit])
+            problems.append(" ".join(["Failed data fetch on library: ", str(varaamo_unit)]))
+
+    try:
+        if problems and settings.RAVEN_DSN:
+            # Report problems to Raven/Sentry
+            client = Client(settings.RAVEN_DSN)
+            client.captureMessage("\n".join(problems))
+    except AttributeError:
+        pass
 
 
 def timetable_fetcher(unit, start='2016-07-01', end='2016-12-31'):
