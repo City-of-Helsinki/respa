@@ -50,7 +50,7 @@ def process_varaamo_libraries():
     varaamo_units = Unit.objects.filter(identifiers__namespace="helmet").exclude(resources__isnull=True)
 
     start, end = get_time_range()
-
+    problems = []
     for varaamo_unit in varaamo_units:
         data = timetable_fetcher(varaamo_unit, start, end)
         if data:
@@ -60,8 +60,10 @@ def process_varaamo_libraries():
                     process_periods(data, varaamo_unit)
             except Exception as e:
                 print("Problem in processing data of library ", varaamo_unit, e)
+                problems.append(["Problem in processing data of library ", varaamo_unit, e])
         else:
             print("Failed data fetch on library: ", varaamo_unit)
+            problems.append(["Failed data fetch on library: ", varaamo_unit])
 
 
 def timetable_fetcher(unit, start='2016-07-01', end='2016-12-31'):
@@ -150,6 +152,8 @@ def process_periods(data, unit):
         # One day equals one period and share same closing state
         nper.closed = period.get('closed')
         nper.save()
+
+    print("Periods processed for ", unit)
 
 
 def get_time_range(start=None, back=1, forward=6):
