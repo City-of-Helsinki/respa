@@ -49,11 +49,13 @@ INSTALLED_APPS = [
     'django_hstore',
     'guardian',
     'django_jinja',
+    'anymail',
 
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'helusers.providers.helsinki',
+    'raven.contrib.django.raven_compat',
 
     'munigeo',
 

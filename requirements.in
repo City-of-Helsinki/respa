@@ -28,3 +28,5 @@ fake-factory
 django-guardian
 Jinja2
 django-jinja
+django-anymail
+raven
