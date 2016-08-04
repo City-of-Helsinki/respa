@@ -200,6 +200,7 @@ class Period(models.Model):
             raise ValidationError(_("You must set either 'resource' or 'unit', but not both"), code="invalid_belonging")
 
     def _check_closed(self):
+        # TODO: why is this automagically closing itself upon creation when there's no days added yet
         if self.pk:
             # The period is not `closed` if it has any `open` days
             self.closed = not self.days.filter(closed=False).exists()

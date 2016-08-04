@@ -1,192 +1,185 @@
 import datetime
 from collections import namedtuple
+import calendar, datetime
 
 import requests
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from psycopg2.extras import DateRange
+import delorean
+from django.db import transaction
 
 from ..models import Unit, UnitIdentifier
 from .base import Importer, register_importer
 
-ProxyPeriod = namedtuple("ProxyPeriod", ['start', 'end', 'description', 'closed', 'name', 'unit', 'days'])
+from raven import Client
+
+from django.conf import settings
+
+ProxyPeriod = namedtuple("ProxyPeriod",
+                         ['start',
+                          'end',
+                          'description',
+                          'closed',
+                          'name',
+                          'unit',
+                          'days'])
 
 
 @register_importer
 class KirjastotImporter(Importer):
-
-    """
-    Importer tries to convert kirjastot.fi opening hours information to into database
-
-    Since Respa has somewhat stricter rules for Period overlaps, this requires some fiddling
-
-    If period is fully overlapping existing, larger period, the new one becomes its exception
-
-    If period overlaps only partially, there is attempt to split it to overlapping and non-overlapping
-    parts and then tried again
-    In ideal case this results in exception being created for overlapping part, and regular period
-    for non-overlapping part
-
-    Overlaps more than two levels deep (exception's exception) are not handled at the moment, nor
-    period that overlaps on two periods at the same time
-
-    TODO: check more carefully that importer does the right things and add more tests
-    """
     name = "kirjastot"
 
     def import_units(self):
-        # TODO: Fix importer for problematic libraries 8294 and 8324
-        url = "http://api.kirjastot.fi/v2/search/libraries?consortium=helmet&with=periods"
-        resp = requests.get(url)
-        assert resp.status_code == 200
-        data = resp.json()  # ??
+        process_varaamo_libraries()
 
-        # data = [{'id': 'H53', 'periods': []}]
 
-        for unit_data in data:
-            id_qs = UnitIdentifier.objects.filter(namespace='helmet', value=unit_data['identificator'])
+class ImportingException(Exception):
+    pass
+
+
+@transaction.atomic
+def process_varaamo_libraries():
+    """
+    Find varaamo libraries' Units from the db,
+    ask their data from kirjastot.fi and
+    process resulting opening hours if found
+    into their Unit object
+
+    Asks the span of opening hours from get_time_range
+
+    TODO: Libraries in Helmet system with resources need more reliable identifier
+
+    :return: None
+    """
+    varaamo_units = Unit.objects.filter(identifiers__namespace="helmet").exclude(resources__isnull=True)
+
+    start, end = get_time_range()
+    problems = []
+    for varaamo_unit in varaamo_units:
+        data = timetable_fetcher(varaamo_unit, start, end)
+        if data:
             try:
-                unit = Unit.objects.get(identifiers=id_qs)
-            except ObjectDoesNotExist:
-                continue
-            if unit.id in ["tprek:8294", "tprek:8324"]:
-                continue
-            unit.periods.all().delete()
-            periods = []
-            for period in unit_data['periods']:
-                if not period['start'] or not period['end']:
-                    continue  # NOTE: period is supposed to have *at least* start or end date
-                start = datetime.datetime.strptime(period['start'], '%Y-%m-%d').date()
-                if not period['end']:
-                    this_day = datetime.date.today()
-                    end = datetime.date(this_day.year + 1, 12, 31)  # No end time goes to end of next year
-                else:
-                    end = datetime.datetime.strptime(period['end'], '%Y-%m-%d').date()
-                periods.append(ProxyPeriod(
-                    start=start,
-                    end=end,
-                    description=period['description']['fi'],
-                    closed=period['closed'],
-                    name=period['name']['fi'],
-                    unit=unit,
-                    days=period['days']
-                ))
+                with transaction.atomic():
+                    varaamo_unit.periods.all().delete()
+                    process_periods(data, varaamo_unit)
+            except Exception as e:
+                print("Problem in processing data of library ", varaamo_unit, e)
+                problems.append(" ".join(["Problem in processing data of library ", str(varaamo_unit), str(e)]))
+        else:
+            print("Failed data fetch on library: ", varaamo_unit)
+            problems.append(" ".join(["Failed data fetch on library: ", str(varaamo_unit)]))
 
-            self.handle_periods(periods)
+    try:
+        if problems and settings.RAVEN_DSN:
+            # Report problems to Raven/Sentry
+            client = Client(settings.RAVEN_DSN)
+            client.captureMessage("\n".join(problems))
+    except AttributeError:
+        pass
 
-    def handle_periods(self, periods):
 
-        exceptional_periods = []
+def timetable_fetcher(unit, start='2016-07-01', end='2016-12-31'):
+    """
+    Fetch periods using kirjastot.fi's new v3 API
 
-        for period in sorted(periods, key=lambda x: x.end - x.start, reverse=True):
-            try:
-                self.save_period(period)
-            except ValidationError:
-                exceptional_periods.append(period)
+    v3 gives opening for each day with period id
+    it originated from, thus allowing creation of
+    unique periods
 
-        self.handle_exceptional_periods(exceptional_periods)
+    TODO: helmet consortium's id permanency check
 
-    def handle_exceptional_periods(self, exceptional_periods, split=False):
+    :param unit: Unit object of the library
+    :param start: start day for required opening hours
+    :param end: end day for required opening hours
+    :return: dict|None
+    """
 
-        if split:
-            print("debug handling split period")
+    base = "https://api.kirjastot.fi/v3/organisation"
 
-        for period in exceptional_periods:
-            d_range = DateRange(period.start, period.end, '[]')
-            overlapping_periods = period.unit.periods.filter(duration__overlap=d_range)
-            if len(overlapping_periods) == 1:
-                try:
-                    self.save_period(period, parent=overlapping_periods[0])
-                except ValidationError as e:
-                    print("failing overlapping period save", period, overlapping_periods, e)
-                    self.split_period(period, overlapping_periods[0])
+    for identificator in unit.identifiers.filter(namespace="helmet"):
+        params = {
+            "identificator": identificator.value,
+            "consortium": "2093",  # TODO: Helmet consortium id in v3 API
+            "with": "extra,schedules",
+            "period.start": start,
+            "period.end": end
+        }
+
+        resp = requests.get(base, params=params)
+
+        if resp.status_code == 200:
+            data = resp.json()
+            if data["total"] > 0:
+                return data
             else:
-                if overlapping_periods:
-                    print("debug overlapping periods", overlapping_periods)
-
-    def split_period(self, period, overlapping_period):
-
-        if period.start < overlapping_period.start and period.end < overlapping_period.end:
-
-            # exceptional period overlapping original on the left, starting side
-
-            before_start = period.start
-            before_end = overlapping_period.start
-            after_start = overlapping_period.start
-            after_end = period.end
-
-        elif period.start > overlapping_period.start and period.end > overlapping_period.end:
-
-            # exceptional period overlapping original on the right, ending side
-
-            before_start = period.start
-            before_end = overlapping_period.end
-            after_start = overlapping_period.end
-            after_end = period.end
-
+                # There's possibly other identificators that might work
+                continue
         else:
-            print("failed to split period", period, overlapping_period)
-            return None
+            return False
 
-        before = ProxyPeriod(
-            start=before_start,
-            end=before_end,
-            description=period.description,
-            closed=period.closed,
-            name=period.name,
-            unit=period.unit,
-            days=period.days
+    # No timetables were found :(
+    return False
+
+
+def process_periods(data, unit):
+    """
+    Generate Period and Day objects into
+    given Unit from kirjastot.fi v3 API data
+
+    Each day in data has its own Period and Day object
+    resulting in as many Periods with one Day as there is
+    items in data
+
+    :param data: kirjastot.fi v3 API data form /organisation endpoint
+    :param unit: Unit
+    :return: None
+    """
+
+    periods = []
+    for period in data['items'][0]['schedules']:
+        periods.append({
+            'date': period.get('date'),
+            'day': period.get('day'),
+            'opens': period.get('opens'),
+            'closes': period.get('closes'),
+            'closed': period['closed'],
+            'description': period['info']['fi']
+        })
+
+    for period in periods:
+        nper = unit.periods.create(
+            start=period.get('date'),
+            end=period.get('date'),
+            description=period.get('description'),
+            closed=period.get('closed') or False,
+            name=period.get('description') or ''
         )
 
-        after = ProxyPeriod(
-            start=after_start,
-            end=after_end,
-            description=period.description,
-            closed=period.closed,
-            name=period.name,
-            unit=period.unit,
-            days=period.days
-        )
+        nper.days.create(weekday=int(period.get('day')) - 1,
+                         opens=period.get('opens'),
+                         closes=period.get('closes'),
+                         closed=period.get('closed'))
 
-        self.handle_exceptional_periods([before, after], split=True)
+        # TODO: automagic closing checker
+        # One day equals one period and share same closing state
+        nper.closed = period.get('closed')
+        nper.save()
 
-    def save_period(self, period, parent=None):
+    print("Periods processed for ", unit)
 
-        print("debug save", period.start, period.end, parent, period.unit)
 
-        if parent:
+def get_time_range(start=None, back=1, forward=6):
+    """
+    From a starting date from back and forward
+    by given amount and return start of both months
+    as dates
 
-            active_period = period.unit.periods.create(
-                start=period.start,
-                end=period.end,
-                description=period.description,
-                closed=period.closed,
-                name=period.name,
-                parent=parent,
-                exception=True)
-
-        else:
-
-            active_period = period.unit.periods.create(
-                start=period.start,
-                end=period.end,
-                description=period.description,
-                closed=period.closed,
-                name=period.name)
-
-        if period.days:
-            for day_id, day in period.days.items():
-                weekday = day['day'] - 1
-                try:
-                    # TODO: check the data for inconsistencies
-                    opens = day['opens'] or None
-                    closes = day['closes'] or None
-                    active_period.days.create(
-                        weekday=weekday,
-                        opens=opens,
-                        closes=closes,
-                        closed=day['closed']
-                    )
-                except ValidationError as e:
-                    print(e)
-                    print(day)
-                    return None
+    :param start: datetime.date
+    :param back: int
+    :param forward: int
+    :return: (datetime.date, datetime.date)
+    """
+    base = delorean.Delorean(start)
+    start = base.last_month(back).date.replace(day=1)
+    end = base.next_month(forward).date.replace(day=1)
+    return start, end
