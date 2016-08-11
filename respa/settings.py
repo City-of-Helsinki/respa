@@ -238,7 +238,3 @@ if 'SECRET_KEY' not in locals():
             secret.close()
         except IOError:
             Exception('Please create a %s file with random characters to generate your secret key!' % secret_file)
-
-if DEBUG:
-    INSTALLED_APPS.insert(-1, 'debug_toolbar.apps.DebugToolbarConfig')
-    INSTALLED_APPS.insert(-1, 'django_extensions')
