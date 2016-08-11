@@ -98,7 +98,7 @@ def timetable_fetcher(unit, start='2016-07-01', end='2016-12-31'):
 
     for identificator in unit.identifiers.filter(namespace="helmet"):
         params = {
-            "identificator": identificator.value,
+            "identificator": identificator.value.split()[0],
             "consortium": "2093",  # TODO: Helmet consortium id in v3 API
             "with": "extra,schedules",
             "period.start": start,
@@ -136,7 +136,16 @@ def process_periods(data, unit):
     """
 
     periods = []
-    for period in data['items'][0]['schedules']:
+    if data['total'] != 1:
+        for item in data['items']:
+            if item['name']['fi'] == unit.name_fi:
+                break
+        else:
+            raise Exception("No data found for %s" % unit.name_fi)
+    else:
+        item = data['items'][0]
+
+    for period in item['schedules']:
         periods.append({
             'date': period.get('date'),
             'day': period.get('day'),
