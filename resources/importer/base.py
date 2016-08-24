@@ -4,11 +4,18 @@ import os
 import re
 import struct
 import time
+import functools
 
 from django.conf import settings
 from modeltranslation.translator import translator
 
 from resources.models import Resource, Unit, UnitIdentifier
+from munigeo.models import Municipality
+
+
+@functools.lru_cache()
+def get_muni(muni_id):
+    return Municipality.objects.get(id=muni_id)
 
 
 class Importer(object):
@@ -95,11 +102,15 @@ class Importer(object):
             obj._changed = False
         obj._changed_fields = []
 
-        self._update_fields(obj, data, ['id', 'identifiers'])
+        self._update_fields(obj, data, ['id', 'identifiers', 'municipality'])
 
         obj.id = data.get('id')
         if not obj.id:
             obj.id = self._generate_id()
+
+        muni_id = data.get('municipality')
+        if muni_id:
+            obj.municipality = get_muni(muni_id)
 
         if obj._created:
             print("%s created" % obj)

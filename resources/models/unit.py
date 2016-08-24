@@ -12,6 +12,8 @@ from .base import AutoIdentifiedModel, ModifiableModel
 from .utils import get_translated, get_translated_name
 from .availability import get_opening_hours
 
+from munigeo.models import Municipality
+
 
 class Unit(ModifiableModel, AutoIdentifiedModel):
     id = models.CharField(primary_key=True, max_length=50)
@@ -31,6 +33,7 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
     www_url = models.URLField(verbose_name=_('WWW link'), max_length=400, null=True, blank=True)
     address_postal_full = models.CharField(verbose_name=_('Full postal address'), max_length=100,
                                            null=True, blank=True)
+    municipality = models.ForeignKey(Municipality, null=True, blank=True, verbose_name=_('Municipality'))
 
     picture_url = models.URLField(verbose_name=_('Picture URL'), max_length=200,
                                   null=True, blank=True)
