@@ -357,11 +357,12 @@ class ReservationExcelRenderer(renderers.BaseRenderer):
 class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
-    filter_backends = (UserFilterBackend, ResourceFilterBackend, ReservationFilterBackend,
+    filter_backends = (filters.OrderingFilter, UserFilterBackend, ResourceFilterBackend, ReservationFilterBackend,
                        NeedManualConfirmationFilterBackend, StateFilterBackend, CanApproveFilterBackend)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, ReservationExcelRenderer)
     pagination_class = ReservationPagination
+    ordering_fields = ('begin',)
 
     def get_queryset(self):
         queryset = super().get_queryset()
