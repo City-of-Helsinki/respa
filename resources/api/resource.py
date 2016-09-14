@@ -15,7 +15,7 @@ from resources.pagination import PurposePagination
 from rest_framework import exceptions, filters, mixins, serializers, viewsets, response, status
 from rest_framework.decorators import detail_route
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.pagination import _positive_int
+from rest_framework.fields import BooleanField
 
 from munigeo import api as munigeo_api
 from resources.models import (Purpose, Resource, ResourceImage, ResourceType, ResourceEquipment,
@@ -252,19 +252,46 @@ class ParentFilter(django_filters.Filter):
 class ParentCharFilter(ParentFilter):
     field_class = forms.CharField
 
+
 class DRFFilterBooleanWidget(django_filters.widgets.BooleanWidget):
     def render(self, *args, **kwargs):
         return None
 
+
 class ResourceFilterSet(django_filters.FilterSet):
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user')
+        super().__init__(*args, **kwargs)
+
     purpose = ParentCharFilter(name="purposes__id", lookup_type='iexact')
     type = django_filters.CharFilter(name="type__id", lookup_type='iexact')
     people = django_filters.NumberFilter(name="people_capacity", lookup_type='gte')
     need_manual_confirmation = django_filters.BooleanFilter(name="need_manual_confirmation", widget=DRFFilterBooleanWidget)
+    is_favorite = django_filters.MethodFilter(widget=django_filters.widgets.BooleanWidget())
 
     class Meta:
         model = Resource
-        fields = ['purpose', 'type', 'people', 'need_manual_confirmation']
+        fields = ['purpose', 'type', 'people', 'need_manual_confirmation', 'is_favorite']
+
+    def filter_is_favorite(self, queryset, value):
+        if not self.user.is_authenticated():
+            if value:
+                return queryset.none()
+            else:
+                return queryset
+
+        if value:
+            return queryset.filter(favorited_by=self.user)
+        else:
+            return queryset.exclude(favorited_by=self.user)
+
+
+class ResourceFilterBackend(filters.BaseFilterBackend):
+    """
+    Make request user available in the filter set.
+    """
+    def filter_queryset(self, request, queryset, view):
+        return ResourceFilterSet(request.query_params, queryset=queryset, user=request.user).qs
 
 
 class AvailableFilterBackend(filters.BaseFilterBackend):
@@ -324,9 +351,8 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
                           viewsets.GenericViewSet):
     queryset = Resource.objects.all().prefetch_related('favorited_by')
     serializer_class = ResourceSerializer
-    filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend,
+    filter_backends = (filters.SearchFilter, ResourceFilterBackend,
                        LocationFilterBackend, AvailableFilterBackend)
-    filter_class = ResourceFilterSet
     search_fields = ('name', 'description', 'unit__name')
 
     def get_queryset(self):

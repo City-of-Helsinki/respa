@@ -210,3 +210,24 @@ def test_is_favorite_field(api_client, staff_api_client, staff_user, resource_in
     response = staff_api_client.get(url)
     assert response.status_code == 200
     assert response.data['is_favorite'] is True
+
+
+@pytest.mark.django_db
+def test_filtering_by_is_favorite(list_url, api_client, staff_api_client, staff_user, resource_in_unit,
+                                  resource_in_unit2):
+    staff_user.favorite_resources.add(resource_in_unit)
+
+    # anonymous users don't need the filter atm, just check that using the filter doesn't cause any errors
+    response = api_client.get('%s?is_favorite=true' % list_url)
+    assert response.status_code == 200
+    assert response.data['count'] == 0
+
+    response = staff_api_client.get('%s?is_favorite=true' % list_url)
+    assert response.status_code == 200
+    assert response.data['count'] == 1
+    assert response.data['results'][0]['id'] == resource_in_unit.id
+
+    response = staff_api_client.get('%s?is_favorite=false' % list_url)
+    assert response.status_code == 200
+    assert response.data['count'] == 1
+    assert response.data['results'][0]['id'] == resource_in_unit2.id
