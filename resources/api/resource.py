@@ -12,7 +12,9 @@ from django.core.urlresolvers import reverse
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
 from resources.pagination import PurposePagination
-from rest_framework import exceptions, filters, mixins, serializers, viewsets
+from rest_framework import exceptions, filters, mixins, serializers, viewsets, response, status
+from rest_framework.decorators import detail_route
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.pagination import _positive_int
 
 from munigeo import api as munigeo_api
@@ -338,6 +340,36 @@ class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, vi
             return self.queryset
         else:
             return self.queryset.filter(public=True)
+
+    def _set_favorite(self, request, value):
+        resource = self.get_object()
+        user = request.user
+
+        if not resource.is_admin(user):
+            raise PermissionDenied()
+
+        exists = user.favorite_resources.filter(id=resource.id).exists()
+
+        if value:
+            if not exists:
+                user.favorite_resources.add(resource)
+                return response.Response(status=status.HTTP_201_CREATED)
+            else:
+                return response.Response(status=status.HTTP_304_NOT_MODIFIED)
+        else:
+            if exists:
+                user.favorite_resources.remove(resource)
+                return response.Response(status=status.HTTP_204_NO_CONTENT)
+            else:
+                return response.Response(status=status.HTTP_304_NOT_MODIFIED)
+
+    @detail_route(methods=['post'])
+    def favorite(self, request, pk=None):
+        return self._set_favorite(request, True)
+
+    @detail_route(methods=['post'])
+    def unfavorite(self, request, pk=None):
+        return self._set_favorite(request, False)
 
 register_view(ResourceListViewSet, 'resource')
 register_view(ResourceViewSet, 'resource')
