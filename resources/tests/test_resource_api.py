@@ -192,3 +192,21 @@ def test_resource_unfavorite(staff_api_client, staff_user, resource_in_unit):
     response = staff_api_client.post(url)
     assert response.status_code == 204
     assert resource_in_unit not in staff_user.favorite_resources.all()
+
+
+@pytest.mark.django_db
+def test_is_favorite_field(api_client, staff_api_client, staff_user, resource_in_unit):
+    url = get_detail_url(resource_in_unit)
+
+    response = api_client.get(url)
+    assert response.status_code == 200
+    assert response.data['is_favorite'] is False
+
+    response = staff_api_client.get(url)
+    assert response.status_code == 200
+    assert response.data['is_favorite'] is False
+
+    staff_user.favorite_resources.add(resource_in_unit)
+    response = staff_api_client.get(url)
+    assert response.status_code == 200
+    assert response.data['is_favorite'] is True

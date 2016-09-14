@@ -104,6 +104,7 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     reservations = serializers.SerializerMethodField()
     user_permissions = serializers.SerializerMethodField()
     required_reservation_extra_fields = serializers.SerializerMethodField()
+    is_favorite = serializers.SerializerMethodField()
 
     def get_user_permissions(self, obj):
         request = self.context.get('request', None)
@@ -114,6 +115,10 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
 
     def get_required_reservation_extra_fields(self, obj):
         return REQUIRED_RESERVATION_EXTRA_FIELDS if obj.need_manual_confirmation else []
+
+    def get_is_favorite(self, obj):
+        request = self.context.get('request', None)
+        return request.user in obj.favorited_by.all()
 
     def to_representation(self, obj):
         # we must parse the time parameters before serializing
@@ -317,7 +322,7 @@ class LocationFilterBackend(filters.BaseFilterBackend):
 
 class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
                           viewsets.GenericViewSet):
-    queryset = Resource.objects.all()
+    queryset = Resource.objects.all().prefetch_related('favorited_by')
     serializer_class = ResourceSerializer
     filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend,
                        LocationFilterBackend, AvailableFilterBackend)
