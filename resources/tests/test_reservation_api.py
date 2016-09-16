@@ -1,15 +1,16 @@
 import pytest
 import datetime
-from django.utils import dateparse
+from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.core import mail
 from django.test.utils import override_settings
+from django.utils import dateparse
 from guardian.shortcuts import assign_perm
 
 from resources.models import (Period, Day, Reservation, Resource, RESERVATION_EXTRA_FIELDS,
                               REQUIRED_RESERVATION_EXTRA_FIELDS)
 from users.models import User
-from .utils import check_disallowed_methods, assert_non_field_errors_contain, check_received_mail
+from .utils import check_disallowed_methods, assert_non_field_errors_contain, check_received_mail_exists
 
 
 @pytest.fixture
@@ -897,61 +898,73 @@ def test_state_filters(user_api_client, user, list_url, reservations_in_all_stat
 
 @override_settings(RESPA_MAILS_ENABLED=True)
 @pytest.mark.django_db
-def test_requested_mail(user_api_client, list_url, reservation_data_extra):
-    resource = Resource.objects.get(id=reservation_data_extra['resource'])
-    resource.need_manual_confirmation = True
-    resource.save()
-    reservation_data_extra['state'] = Reservation.REQUESTED
-
-    response = user_api_client.post(list_url, data=reservation_data_extra, format='json')
-    assert response.status_code == 201
-    check_received_mail(
-        'Reservation requested',
-        reservation_data_extra['reserver_email_address'],
-        'made a preliminary reservation'
-    )
-
-
-@override_settings(RESPA_MAILS_ENABLED=True)
-@pytest.mark.django_db
-def test_reservation_mails_to_customers(staff_api_client, staff_user, user_api_client,
-                                        list_url, reservation_data_extra):
+def test_reservation_mails(staff_api_client, staff_user, user_api_client, test_unit2, list_url, reservation_data_extra):
     resource = Resource.objects.get(id=reservation_data_extra['resource'])
     resource.need_manual_confirmation = True
     resource.save()
     assign_perm('can_approve_reservation', staff_user, resource.unit)
-    reservation_data_extra['state'] = Reservation.REQUESTED
 
+    # create other staff user who should not receive mails because he doesn't have permission to the right unit
+    other_official = get_user_model().objects.create(
+        username='other_unit_official',
+        first_name='Ozzy',
+        last_name='Official',
+        email='ozzy@test_unit2.com',
+        is_staff=True,
+        preferred_language='en'
+    )
+    assign_perm('can_approve_reservation', other_official, test_unit2)
+
+    # test REQUESTED
+    reservation_data_extra['state'] = Reservation.REQUESTED
     response = user_api_client.post(list_url, data=reservation_data_extra, format='json')
     assert response.status_code == 201
-    check_received_mail(
-        'Reservation requested',
+
+    # 2 mails should be sent, one to the customer, and one to the staff user who can approve the reservation
+    # (and no mail for the other staff user)
+    assert len(mail.outbox) == 2
+    check_received_mail_exists(
+        "You've made a preliminary reservation",
         reservation_data_extra['reserver_email_address'],
-        'made a preliminary reservation'
+        'made a preliminary reservation',
+        clear_outbox=False
+    )
+    check_received_mail_exists(
+        'Reservation requested',
+        staff_user.email,
+        'A new preliminary reservation has been made'
     )
 
     detail_url = '%s%s/' % (list_url, response.data['id'])
+
+    # test DENIED
     reservation_data_extra['state'] = Reservation.DENIED
     response = staff_api_client.put(detail_url, data=reservation_data_extra, format='json')
     assert response.status_code == 200
-    check_received_mail(
+    assert len(mail.outbox) == 1
+    check_received_mail_exists(
         'Reservation denied',
         reservation_data_extra['reserver_email_address'],
         'has been denied.'
     )
 
+    # test CONFIRMED
     reservation_data_extra['state'] = Reservation.CONFIRMED
     response = staff_api_client.put(detail_url, data=reservation_data_extra, format='json')
     assert response.status_code == 200
-    check_received_mail(
+    assert len(mail.outbox) == 1
+    check_received_mail_exists(
         'Reservation confirmed',
         reservation_data_extra['reserver_email_address'],
         'has been confirmed.'
     )
 
+    # test CANCELLED
+    reservation_data_extra['state'] = Reservation.CANCELLED
     response = staff_api_client.delete(detail_url, format='json')
     assert response.status_code == 204
-    check_received_mail(
+    assert len(mail.outbox) == 1
+    check_received_mail_exists(
         'Reservation cancelled',
         reservation_data_extra['reserver_email_address'],
         'has been cancelled.'

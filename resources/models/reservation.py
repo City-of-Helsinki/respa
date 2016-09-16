@@ -6,10 +6,11 @@ from django.contrib.gis.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 from psycopg2.extras import DateTimeTZRange
-from django.template.loader import render_to_string
+
+from guardian.shortcuts import get_users_with_perms
 
 from .base import ModifiableModel
-from .utils import get_dt, save_dt, is_valid_time_slot, humanize_duration, send_respa_mail
+from .utils import get_dt, save_dt, is_valid_time_slot, humanize_duration, send_respa_mail, DEFAULT_LANG
 
 
 RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street', 'reserver_address_zip',
@@ -176,20 +177,35 @@ class Reservation(ModifiableModel):
             raise ValidationError(_("The minimum reservation length is %(min_period)s") %
                                   {'min_period': humanize_duration(self.min_period)})
 
-    def send_reservation_mail(self, subject, template_name, extra_context=None):
+    def send_reservation_mail(self, subject, template_name, extra_context=None, user=None):
         """
         Stuff common to all reservation related mails.
+
+        If user isn't given use self.user.
         """
-        if not (self.reserver_email_address or self.user):
-            return
-        email_address = self.reserver_email_address or self.user.email
+
+        if user:
+            email_address = user.email
+        else:
+            if not (self.reserver_email_address or self.user):
+                return
+            email_address = self.reserver_email_address or self.user.email
+            user = self.user
+        language = user.get_preferred_language() if user else DEFAULT_LANG
+
         context = {'reservation': self}
         if extra_context:
             context.update(extra_context)
-        send_respa_mail(self.user, email_address, subject, template_name, context)
+        send_respa_mail(email_address, subject, template_name, context, language)
 
     def send_reservation_requested_mail(self):
-        self.send_reservation_mail(_('Reservation requested'), 'reservation_requested')
+        self.send_reservation_mail(_("You've made a preliminary reservation"), 'reservation_requested')
+
+    def send_reservation_requested_mail_to_officials(self):
+        unit = self.resource.unit
+        for user in get_users_with_perms(unit):
+            if user.has_perm('can_approve_reservation', unit):
+                self.send_reservation_mail(_('Reservation requested'), 'reservation_requested_official', user=user)
 
     def send_reservation_denied_mail(self):
         self.send_reservation_mail(_('Reservation denied'), 'reservation_denied')

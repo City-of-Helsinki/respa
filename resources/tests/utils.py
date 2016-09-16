@@ -138,13 +138,20 @@ def assert_non_field_errors_contain(response, text):
     assert any(text in error_message for error_message in error_messages)
 
 
-def check_received_mail(subject, to, message, clear_outbox=True):
-    assert len(mail.outbox) == 1
-    mail_instance = mail.outbox[0]
-    assert subject in mail_instance.subject
-    assert len(mail_instance.to) == 1
-    assert mail_instance.to[0] == to
-    mail_message = str(mail_instance.message())
-    assert message in mail_message
+def _mail_exists(subject, to, message):
+    for mail_instance in mail.outbox:
+        if subject not in mail_instance.subject:
+            continue
+        if set(mail_instance.to) != set([to]):
+            continue
+        mail_message = str(mail_instance.message())
+        if message not in mail_message:
+            continue
+        return True
+    return False
+
+
+def check_received_mail_exists(subject, to, message, clear_outbox=True):
+    assert _mail_exists(subject, to, message)
     if clear_outbox:
         mail.outbox = []

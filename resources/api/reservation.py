@@ -397,6 +397,7 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
 
         if instance.state == Reservation.REQUESTED:
             instance.send_reservation_requested_mail()
+            instance.send_reservation_requested_mail_to_officials()
 
     def perform_update(self, serializer):
         old_instance = self.get_object()
