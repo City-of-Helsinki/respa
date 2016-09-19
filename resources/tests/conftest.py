@@ -58,6 +58,11 @@ def test_unit():
     return Unit.objects.create(name="unit", time_zone='Europe/Helsinki')
 
 
+@pytest.fixture
+def test_unit2():
+    return Unit.objects.create(name="unit 2", time_zone='Europe/Helsinki')
+
+
 @pytest.mark.django_db
 @pytest.fixture
 def test_unit2():
@@ -193,6 +198,7 @@ def staff_user():
         last_name='Staff',
         email='john@staff.com',
         is_staff=True,
+        preferred_language='en'
     )
 
 

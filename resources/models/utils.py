@@ -95,9 +95,9 @@ def humanize_duration(duration):
     return ' '.join(filter(None, (hours_string, mins_string)))
 
 
-def send_respa_mail(user, email_address, subject, template_name, context):
+def send_respa_mail(email_address, subject, template_name, context, language=DEFAULT_LANG):
     """
-    Send a mail containing common Respa extras and given template rendered to given user.
+    Send a mail containing common Respa extras and given template rendered.
 
     :type email_address: str
     :type subject: str
@@ -105,11 +105,13 @@ def send_respa_mail(user, email_address, subject, template_name, context):
     :param template_name: Name of the template to use from /templates/mail/ excluding .jinja
     :type context: dict
     :param context: Context for the template
+    :type language: str
+    :param language: language code
     """
     if not getattr(settings, 'RESPA_MAILS_ENABLED', False):
         return
 
-    with translation.override(user.get_preferred_language()):
+    with translation.override(language):
         content = render_to_string('mail/%s.jinja' % template_name, context)
         final_message = render_to_string('mail/base_message.jinja', {'content': content})
         from_address = (getattr(settings, 'RESPA_MAILS_FROM_ADDRESS', None) or
