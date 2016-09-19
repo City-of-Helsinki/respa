@@ -12,7 +12,7 @@ class UnitTranslationOptions(TranslationOptions):
 
 @register(Resource)
 class ResourceTranslationOptions(TranslationOptions):
-    fields = ('name', 'description', 'specific_terms')
+    fields = ('name', 'description', 'specific_terms', 'reservation_confirmed_notification_extra')
 
 
 @register(ResourceType)
