@@ -60,6 +60,12 @@ def test_unit():
 
 @pytest.mark.django_db
 @pytest.fixture
+def test_unit2():
+    return Unit.objects.create(name="unit2", time_zone='Europe/Helsinki')
+
+
+@pytest.mark.django_db
+@pytest.fixture
 def resource_in_unit(space_resource_type, test_unit):
     return Resource.objects.create(
         type=space_resource_type,
@@ -68,6 +74,20 @@ def resource_in_unit(space_resource_type, test_unit):
         unit=test_unit,
         max_reservations_per_user=1,
         max_period=datetime.timedelta(hours=2),
+        reservable=True,
+    )
+
+
+@pytest.mark.django_db
+@pytest.fixture
+def resource_in_unit2(space_resource_type, test_unit2):
+    return Resource.objects.create(
+        type=space_resource_type,
+        authentication="none",
+        name="resource in unit 2",
+        unit=test_unit2,
+        max_reservations_per_user=2,
+        max_period=datetime.timedelta(hours=4),
         reservable=True,
     )
 

@@ -12,8 +12,10 @@ from django.core.urlresolvers import reverse
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
 from resources.pagination import PurposePagination
-from rest_framework import exceptions, filters, mixins, serializers, viewsets
-from rest_framework.pagination import _positive_int
+from rest_framework import exceptions, filters, mixins, serializers, viewsets, response, status
+from rest_framework.decorators import detail_route
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.fields import BooleanField
 
 from munigeo import api as munigeo_api
 from resources.models import (Purpose, Resource, ResourceImage, ResourceType, ResourceEquipment,
@@ -102,6 +104,7 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     reservations = serializers.SerializerMethodField()
     user_permissions = serializers.SerializerMethodField()
     required_reservation_extra_fields = serializers.SerializerMethodField()
+    is_favorite = serializers.SerializerMethodField()
 
     def get_user_permissions(self, obj):
         request = self.context.get('request', None)
@@ -112,6 +115,10 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
 
     def get_required_reservation_extra_fields(self, obj):
         return REQUIRED_RESERVATION_EXTRA_FIELDS if obj.need_manual_confirmation else []
+
+    def get_is_favorite(self, obj):
+        request = self.context.get('request', None)
+        return request.user in obj.favorited_by.all()
 
     def to_representation(self, obj):
         # we must parse the time parameters before serializing
@@ -245,19 +252,46 @@ class ParentFilter(django_filters.Filter):
 class ParentCharFilter(ParentFilter):
     field_class = forms.CharField
 
+
 class DRFFilterBooleanWidget(django_filters.widgets.BooleanWidget):
     def render(self, *args, **kwargs):
         return None
 
+
 class ResourceFilterSet(django_filters.FilterSet):
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user')
+        super().__init__(*args, **kwargs)
+
     purpose = ParentCharFilter(name="purposes__id", lookup_type='iexact')
     type = django_filters.CharFilter(name="type__id", lookup_type='iexact')
     people = django_filters.NumberFilter(name="people_capacity", lookup_type='gte')
     need_manual_confirmation = django_filters.BooleanFilter(name="need_manual_confirmation", widget=DRFFilterBooleanWidget)
+    is_favorite = django_filters.MethodFilter(widget=django_filters.widgets.BooleanWidget())
 
     class Meta:
         model = Resource
-        fields = ['purpose', 'type', 'people', 'need_manual_confirmation']
+        fields = ['purpose', 'type', 'people', 'need_manual_confirmation', 'is_favorite']
+
+    def filter_is_favorite(self, queryset, value):
+        if not self.user.is_authenticated():
+            if value:
+                return queryset.none()
+            else:
+                return queryset
+
+        if value:
+            return queryset.filter(favorited_by=self.user)
+        else:
+            return queryset.exclude(favorited_by=self.user)
+
+
+class ResourceFilterBackend(filters.BaseFilterBackend):
+    """
+    Make request user available in the filter set.
+    """
+    def filter_queryset(self, request, queryset, view):
+        return ResourceFilterSet(request.query_params, queryset=queryset, user=request.user).qs
 
 
 class AvailableFilterBackend(filters.BaseFilterBackend):
@@ -315,11 +349,10 @@ class LocationFilterBackend(filters.BaseFilterBackend):
 
 class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
                           viewsets.GenericViewSet):
-    queryset = Resource.objects.all()
+    queryset = Resource.objects.all().prefetch_related('favorited_by')
     serializer_class = ResourceSerializer
-    filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend,
+    filter_backends = (filters.SearchFilter, ResourceFilterBackend,
                        LocationFilterBackend, AvailableFilterBackend)
-    filter_class = ResourceFilterSet
     search_fields = ('name', 'description', 'unit__name')
 
     def get_queryset(self):
@@ -338,6 +371,36 @@ class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, vi
             return self.queryset
         else:
             return self.queryset.filter(public=True)
+
+    def _set_favorite(self, request, value):
+        resource = self.get_object()
+        user = request.user
+
+        if not resource.is_admin(user):
+            raise PermissionDenied()
+
+        exists = user.favorite_resources.filter(id=resource.id).exists()
+
+        if value:
+            if not exists:
+                user.favorite_resources.add(resource)
+                return response.Response(status=status.HTTP_201_CREATED)
+            else:
+                return response.Response(status=status.HTTP_304_NOT_MODIFIED)
+        else:
+            if exists:
+                user.favorite_resources.remove(resource)
+                return response.Response(status=status.HTTP_204_NO_CONTENT)
+            else:
+                return response.Response(status=status.HTTP_304_NOT_MODIFIED)
+
+    @detail_route(methods=['post'])
+    def favorite(self, request, pk=None):
+        return self._set_favorite(request, True)
+
+    @detail_route(methods=['post'])
+    def unfavorite(self, request, pk=None):
+        return self._set_favorite(request, False)
 
 register_view(ResourceListViewSet, 'resource')
 register_view(ResourceViewSet, 'resource')
