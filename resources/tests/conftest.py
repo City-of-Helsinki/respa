@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient, APIRequestFactory
 
 from resources.models import Resource, ResourceType, Unit, Purpose, Day, Period
-from resources.models import Equipment, EquipmentAlias, ResourceEquipment, EquipmentCategory
+from resources.models import Equipment, EquipmentAlias, ResourceEquipment, EquipmentCategory, TermsOfUse
 
 
 @pytest.fixture
@@ -63,15 +63,19 @@ def test_unit2():
     return Unit.objects.create(name="unit 2", time_zone='Europe/Helsinki')
 
 
-@pytest.mark.django_db
 @pytest.fixture
-def test_unit2():
-    return Unit.objects.create(name="unit2", time_zone='Europe/Helsinki')
+def terms_of_use():
+    return TermsOfUse.objects.create(
+        name_fi='testikäyttöehdot',
+        name_en='test terms of use',
+        text_fi='kaikki on kielletty',
+        text_en='everything is forbidden',
+    )
 
 
 @pytest.mark.django_db
 @pytest.fixture
-def resource_in_unit(space_resource_type, test_unit):
+def resource_in_unit(space_resource_type, test_unit, terms_of_use):
     return Resource.objects.create(
         type=space_resource_type,
         authentication="none",
@@ -80,6 +84,9 @@ def resource_in_unit(space_resource_type, test_unit):
         max_reservations_per_user=1,
         max_period=datetime.timedelta(hours=2),
         reservable=True,
+        generic_terms=terms_of_use,
+        specific_terms_fi='spesifiset käyttöehdot',
+        specific_terms_en='specific terms of use',
     )
 
 

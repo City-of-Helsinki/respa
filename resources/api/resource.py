@@ -18,7 +18,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.fields import BooleanField
 
 from munigeo import api as munigeo_api
-from resources.models import (Purpose, Resource, ResourceImage, ResourceType, ResourceEquipment,
+from resources.models import (Purpose, Resource, ResourceImage, ResourceType, ResourceEquipment, TermsOfUse,
                               REQUIRED_RESERVATION_EXTRA_FIELDS)
 from .base import TranslatedModelSerializer, register_view
 from .reservation import ReservationSerializer
@@ -92,6 +92,12 @@ class ResourceEquipmentSerializer(TranslatedModelSerializer):
         return ret
 
 
+class TermsOfUseSerializer(TranslatedModelSerializer):
+    class Meta:
+        model = TermsOfUse
+        fields = ('text',)
+
+
 class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     purposes = PurposeSerializer(many=True)
     images = NestedResourceImageSerializer(many=True)
@@ -105,6 +111,7 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     user_permissions = serializers.SerializerMethodField()
     required_reservation_extra_fields = serializers.SerializerMethodField()
     is_favorite = serializers.SerializerMethodField()
+    generic_terms = serializers.SerializerMethodField()
 
     def get_user_permissions(self, obj):
         request = self.context.get('request', None)
@@ -119,6 +126,10 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     def get_is_favorite(self, obj):
         request = self.context.get('request', None)
         return request.user in obj.favorited_by.all()
+
+    def get_generic_terms(self, obj):
+        data = TermsOfUseSerializer(obj.generic_terms).data
+        return data['text']
 
     def to_representation(self, obj):
         # we must parse the time parameters before serializing
@@ -349,7 +360,7 @@ class LocationFilterBackend(filters.BaseFilterBackend):
 
 class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
                           viewsets.GenericViewSet):
-    queryset = Resource.objects.all().prefetch_related('favorited_by')
+    queryset = Resource.objects.select_related('generic_terms').prefetch_related('favorited_by')
     serializer_class = ResourceSerializer
     filter_backends = (filters.SearchFilter, ResourceFilterBackend,
                        LocationFilterBackend, AvailableFilterBackend)
@@ -364,7 +375,7 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
 
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     serializer_class = ResourceDetailsSerializer
-    queryset = Resource.objects.all()
+    queryset = Resource.objects.select_related('generic_terms').prefetch_related('favorited_by')
 
     def get_queryset(self):
         if self.request.user.is_staff:

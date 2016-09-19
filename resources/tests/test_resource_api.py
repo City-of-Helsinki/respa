@@ -231,3 +231,20 @@ def test_filtering_by_is_favorite(list_url, api_client, staff_api_client, staff_
     assert response.status_code == 200
     assert response.data['count'] == 1
     assert response.data['results'][0]['id'] == resource_in_unit2.id
+
+
+@pytest.mark.django_db
+def test_api_resource_terms_of_use(api_client, resource_in_unit, detail_url):
+    response = api_client.get(detail_url)
+    assert response.status_code == 200
+
+    generic_terms = response.data['generic_terms']
+    specific_terms = response.data['specific_terms']
+
+    assert set(generic_terms) == {'fi', 'en'}
+    assert generic_terms['fi'] == 'kaikki on kielletty'
+    assert generic_terms['en'] == 'everything is forbidden'
+
+    assert set(specific_terms) == {'fi', 'en'}
+    assert specific_terms['fi'] == 'spesifiset käyttöehdot'
+    assert specific_terms['en'] == 'specific terms of use'
