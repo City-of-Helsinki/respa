@@ -87,6 +87,7 @@ def resource_in_unit(space_resource_type, test_unit, terms_of_use):
         generic_terms=terms_of_use,
         specific_terms_fi='spesifiset käyttöehdot',
         specific_terms_en='specific terms of use',
+        reservation_confirmed_notification_extra_en='this resource rocks'
     )
 
 
