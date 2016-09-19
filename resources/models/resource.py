@@ -57,6 +57,19 @@ class Purpose(ModifiableModel, NameIdentifiedModel):
         return "%s (%s)" % (get_translated(self, 'name'), self.id)
 
 
+class TermsOfUse(ModifiableModel, AutoIdentifiedModel):
+    id = models.CharField(primary_key=True, max_length=100)
+    name = models.CharField(verbose_name=_('Name'), max_length=200)
+    text = models.TextField(verbose_name=_('Text'))
+
+    class Meta:
+        verbose_name = pgettext_lazy('singular', 'terms of use')
+        verbose_name_plural = pgettext_lazy('plural', 'terms of use')
+
+    def __str__(self):
+        return get_translated_name(self)
+
+
 class Resource(ModifiableModel, AutoIdentifiedModel):
     AUTHENTICATION_TYPES = (
         ('none', _('None')),
@@ -91,6 +104,9 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     reservable = models.BooleanField(verbose_name=_('Reservable'), default=False)
     reservation_info = models.TextField(verbose_name=_('Reservation info'), null=True, blank=True)
     responsible_contact_info = models.TextField(verbose_name=_('Responsible contact info'), blank=True)
+
+    generic_terms = models.ForeignKey(TermsOfUse, verbose_name=_('Generic terms'), null=True, blank=True)
+    specific_terms = models.TextField(verbose_name=_('Specific terms'), blank=True)
 
     class Meta:
         verbose_name = _("resource")
