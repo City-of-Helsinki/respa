@@ -9,7 +9,7 @@ from modeltranslation.admin import TranslationAdmin, TranslationStackedInline
 from .base import CommonExcludeMixin, PopulateCreatedAndModifiedMixin
 from resources.admin.period_inline import PeriodInline
 from resources.models import Day, Reservation, Resource, ResourceImage, ResourceType, Unit, Purpose
-from resources.models import Equipment, ResourceEquipment, EquipmentAlias, EquipmentCategory
+from resources.models import Equipment, ResourceEquipment, EquipmentAlias, EquipmentCategory, TermsOfUse
 
 
 class EmailChoiceField(forms.ModelChoiceField):
@@ -96,6 +96,10 @@ class PurposeAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Translat
     pass
 
 
+class TermsOfUseAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):
+    pass
+
+
 admin_site.register(ResourceImage, ResourceImageAdmin)
 admin_site.register(Resource, ResourceAdmin)
 admin_site.register(Reservation, ReservationAdmin)
@@ -106,3 +110,4 @@ admin_site.register(Unit, UnitAdmin)
 admin_site.register(Equipment, EquipmentAdmin)
 admin_site.register(ResourceEquipment, ResourceEquipmentAdmin)
 admin_site.register(EquipmentCategory, EquipmentCategoryAdmin)
+admin_site.register(TermsOfUse, TermsOfUseAdmin)
