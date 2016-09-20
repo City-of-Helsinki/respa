@@ -11,10 +11,10 @@ from django.utils import timezone
 from django.utils.six import BytesIO
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import pgettext_lazy
+from django.contrib.postgres.fields import HStoreField
 from image_cropping import ImageRatioField
 from PIL import Image
 from autoslug import AutoSlugField
-from django_hstore import hstore
 
 from resources.errors import InvalidImage
 
@@ -437,10 +437,10 @@ class ResourceEquipment(ModifiableModel):
     """
     resource = models.ForeignKey(Resource, related_name='resource_equipment')
     equipment = models.ForeignKey(Equipment, related_name='resource_equipment')
-    data = hstore.DictionaryField(null=True, blank=True)
+    data = HStoreField(null=True, blank=True)
     description = models.TextField(blank=True)
 
-    objects = hstore.HStoreGeoManager()
+    objects = models.GeoManager()
 
     class Meta:
         verbose_name = pgettext_lazy('singular', 'resource equipment')

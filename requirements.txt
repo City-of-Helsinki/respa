@@ -6,60 +6,61 @@
 #
 -e git+https://github.com/City-of-Helsinki/django-helusers.git#egg=django-helusers
 -e git+https://github.com/City-of-Helsinki/munigeo#egg=django-munigeo
-arrow==0.7.0
+arrow==0.8.0
 babel==2.3.4              # via delorean
 click==6.6                # via pip-tools
 contextlib2==0.5.4        # via raven
-coverage==4.0.3
+coverage==4.2
 defusedxml==0.4.1         # via python3-openid
 delorean==0.6.0
-django-allauth==0.25.2
-django-anymail==0.4.2
+django-allauth==0.27.0
+django-anymail==0.5
 django-appconf==1.0.1     # via django-image-cropping
 django-autoslug==1.9.3
 django-cors-headers==1.1.0
-django-filter==0.13.0
+django-filter==0.14.0
 django-grappelli==2.8.1
-django-guardian==1.4.4
+django-guardian==1.4.6
 django-hstore==1.4.2
 django-image-cropping==1.0.3
-django-jinja==2.1.2
-django-modeltranslation==0.11
-django-mptt==0.8.5
-Django==1.9.6             # via django-allauth, django-anymail, django-guardian, django-jinja, easy-thumbnails
+django-jinja==2.2.1
+django-modeltranslation==0.12
+django-modeltranslation==0.12
+django-mptt==0.8.6
+Django==1.10.1            # via django-allauth, django-anymail, django-jinja, easy-thumbnails
 djangorestframework-jwt==1.8.0
-djangorestframework==3.3.3
+djangorestframework==3.4.6
 easy-thumbnails==2.3
-fake-factory==0.5.7
+fake-factory==0.7.2
 first==2.0.1              # via pip-tools
-flake8==2.5.4
+flake8==3.0.4
 humanize==0.5.1           # via delorean
-icalendar==3.9.2
+icalendar==3.10
 Jinja2==2.8               # via django-jinja
 MarkupSafe==0.23          # via jinja2
-mccabe==0.4.0             # via flake8
-oauthlib==1.1.1           # via requests-oauthlib
-pep8==1.7.0               # via flake8
-pillow==3.2.0             # via easy-thumbnails
-pip-tools==1.6.4
-psycopg2==2.6.1
+mccabe==0.5.2             # via flake8
+oauthlib==2.0.0           # via requests-oauthlib
+pillow==3.3.1             # via easy-thumbnails
+pip-tools==1.7.0
+psycopg2==2.6.2
 py==1.4.31                # via pytest
-pyflakes==1.0.0           # via flake8
-pyjwt==1.4.0
-pytest-cov==2.2.1
-pytest-django==2.9.1
-pytest==2.9.1
+pycodestyle==2.0.0        # via flake8
+pyflakes==1.2.3           # via flake8
+pyjwt==1.4.2
+pytest-cov==2.3.1
+pytest-django==3.0.0
+pytest==3.0.2
 python-dateutil==2.5.3    # via arrow, delorean, fake-factory, icalendar
 python3-openid==3.0.10    # via django-allauth
-pytz==2016.4
-pyyaml==3.11
-raven==5.23.0
+pytz==2016.6.1
+pyyaml==3.12
+raven==5.27.1
 requests-cache==0.4.12
-requests-oauthlib==0.6.1  # via django-allauth
-requests==2.10.0          # via django-allauth, django-anymail, requests-cache, requests-oauthlib
+requests-oauthlib==0.6.2  # via django-allauth
+requests==2.11.1          # via django-allauth, django-anymail, requests-cache, requests-oauthlib
 six==1.10.0               # via django-anymail, django-appconf, django-guardian, fake-factory, pip-tools, python-dateutil
 tzlocal==1.2.2            # via delorean
-XlsxWriter==0.8.6
+XlsxWriter==0.9.3
 
 # The following packages are commented out because they are
 # considered to be unsafe in a requirements file:

@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.db import migrations, models
 import django.utils.timezone
 from django.conf import settings
-import django_hstore.fields
+import django.contrib.postgres.fields.hstore
 
 
 class Migration(migrations.Migration):
@@ -56,7 +56,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, verbose_name='ID', primary_key=True, serialize=False)),
                 ('created_at', models.DateTimeField(verbose_name='Time of creation', default=django.utils.timezone.now)),
                 ('modified_at', models.DateTimeField(verbose_name='Time of modification', default=django.utils.timezone.now)),
-                ('data', django_hstore.fields.DictionaryField(blank=True, null=True)),
+                ('data', django.contrib.postgres.fields.hstore.HStoreField(blank=True, null=True)),
                 ('description', models.TextField(blank=True)),
                 ('description_fi', models.TextField(blank=True, null=True)),
                 ('description_en', models.TextField(blank=True, null=True)),
