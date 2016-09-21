@@ -55,15 +55,17 @@ class ExchangeConfiguration(models.Model):
 
         :rtype:   respa_exchange.ews.session.ExchangeSession
         """
-        # TODO: Maybe cache or something? NTLM handshakes can take some time...
+        if hasattr(self, '_ews_session'):
+            return self._ews_session
         session_class = import_string(
             getattr(settings, "RESPA_EXCHANGE_EWS_SESSION_CLASS", "respa_exchange.ews.session.ExchangeSession")
         )
-        return session_class(
+        self._ews_session = session_class(
             url=self.url,
             username=self.username,
             password=self.password,
         )
+        return self._ews_session
 
 
 @python_2_unicode_compatible
