@@ -87,6 +87,9 @@ TEMPLATES = [
             'extensions': DEFAULT_EXTENSIONS + ["jinja2.ext.i18n"],
             'translation_engine': 'django.utils.translation',
             "match_extension": ".jinja",
+            "filters": {
+                "django_wordwrap": "django.template.defaultfilters.wordwrap"
+            },
         },
     },
     {

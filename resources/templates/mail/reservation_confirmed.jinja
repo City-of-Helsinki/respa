@@ -10,5 +10,5 @@ service.
 {% endtrans %}
 {%- set extra_content=reservation.resource.reservation_confirmed_notification_extra -%}
 {% if extra_content %}
-{{ extra_content }}
+{{ extra_content|django_wordwrap(76) }}
 {% endif -%}
