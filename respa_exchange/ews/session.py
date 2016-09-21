@@ -6,6 +6,7 @@ from requests_ntlm import HttpNtlmAuth
 
 from .xml import NAMESPACES
 
+SOAP_ENVELOPE_TAG = b'<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">'
 
 class SoapFault(Exception):
     def __init__(self, fault_code, fault_string, detail_element=None):
@@ -67,9 +68,17 @@ class ExchangeSession(requests.Session):
         return self._process_soap_response(resp)
 
     def _process_soap_response(self, resp):
-        if not resp.content:
+        content = resp.content
+        if not content:
             resp.raise_for_status()
-        tree = etree.XML(resp.content)
+        if content.count(SOAP_ENVELOPE_TAG) > 1:
+            self.log.debug('Multiple envelopes in response %r, using `recover` mode for parsing.', content)
+            recover = True
+        else:
+            recover = False
+
+        tree = etree.XML(content, parser=etree.XMLParser(recover=recover))
+
         self.log.debug(
             "RECEIVED: %s",
             etree.tostring(tree, pretty_print=True, encoding=self.encoding).decode(self.encoding)
