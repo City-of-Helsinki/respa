@@ -355,7 +355,8 @@ class ReservationExcelRenderer(renderers.BaseRenderer):
 
 
 class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
-    queryset = Reservation.objects.all()
+    queryset = Reservation.objects.select_related('user', 'resource', 'resource__unit')
+
     serializer_class = ReservationSerializer
     filter_backends = (filters.OrderingFilter, UserFilterBackend, ResourceFilterBackend, ReservationFilterBackend,
                        NeedManualConfirmationFilterBackend, StateFilterBackend, CanApproveFilterBackend)
