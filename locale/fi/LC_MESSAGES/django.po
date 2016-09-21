@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-09-20 17:37+0300\n"
+"POT-Creation-Date: 2016-09-21 00:46+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -487,13 +487,17 @@ msgstr "Varausinfo"
 msgid "Responsible contact info"
 msgstr "Vastuuhenkilön yhteystiedot"
 
-#: resources/models/resource.py:108
+#: resources/models/resource.py:107
 msgid "Generic terms"
 msgstr "Yleiset ehdot"
 
-#: resources/models/resource.py:109
+#: resources/models/resource.py:108
 msgid "Specific terms"
 msgstr "Resurssikohtaiset ehdot"
+
+#: resources/models/resource.py:109
+msgid "Extra content to reservation confirmed notification"
+msgstr "Lisäsisältö varaus hyväksytty -ilmoitukseen"
 
 #: resources/models/resource.py:112
 msgid "resource"

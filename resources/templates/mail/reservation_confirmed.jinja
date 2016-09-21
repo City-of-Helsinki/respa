@@ -8,3 +8,7 @@ information for cancelling your reservation can be found from Varaamo's
 "Omat varaukset" section which you can find when you are logged in to the
 service.
 {% endtrans %}
+{%- set extra_content=reservation.resource.reservation_confirmed_notification_extra -%}
+{% if extra_content %}
+{{ extra_content|django_wordwrap(76) }}
+{% endif -%}

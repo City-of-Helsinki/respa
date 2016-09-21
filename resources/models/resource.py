@@ -104,10 +104,10 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     reservable = models.BooleanField(verbose_name=_('Reservable'), default=False)
     reservation_info = models.TextField(verbose_name=_('Reservation info'), null=True, blank=True)
     responsible_contact_info = models.TextField(verbose_name=_('Responsible contact info'), blank=True)
-
     generic_terms = models.ForeignKey(TermsOfUse, verbose_name=_('Generic terms'), null=True, blank=True)
     specific_terms = models.TextField(verbose_name=_('Specific terms'), blank=True)
-
+    reservation_confirmed_notification_extra = models.TextField(verbose_name=_('Extra content to reservation confirmed '
+                                                                               'notification'), blank=True)
     class Meta:
         verbose_name = _("resource")
         verbose_name_plural = _("resources")

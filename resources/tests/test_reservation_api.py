@@ -956,8 +956,11 @@ def test_reservation_mails(staff_api_client, staff_user, user_api_client, test_u
     check_received_mail_exists(
         'Reservation confirmed',
         reservation_data_extra['reserver_email_address'],
-        'has been confirmed.'
+        'has been confirmed.',
+        clear_outbox=False
     )
+    assert 'this resource rocks' in str(mail.outbox[0].message())
+    mail.outbox = []
 
     # test CANCELLED
     reservation_data_extra['state'] = Reservation.CANCELLED
