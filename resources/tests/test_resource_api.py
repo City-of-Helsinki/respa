@@ -248,3 +248,16 @@ def test_api_resource_terms_of_use(api_client, resource_in_unit, detail_url):
     assert set(specific_terms) == {'fi', 'en'}
     assert specific_terms['fi'] == 'spesifiset käyttöehdot'
     assert specific_terms['en'] == 'specific terms of use'
+
+
+@pytest.mark.django_db
+def test_price_per_hour_fields(api_client, resource_in_unit, detail_url):
+    resource_in_unit.min_price_per_hour = '5.05'
+    resource_in_unit.max_price_per_hour = None
+    resource_in_unit.save()
+
+    response = api_client.get(detail_url)
+    assert response.status_code == 200
+
+    assert response.data['min_price_per_hour'] == '5.05'
+    assert response.data['max_price_per_hour'] is None
