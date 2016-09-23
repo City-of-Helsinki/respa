@@ -361,7 +361,8 @@ class LocationFilterBackend(filters.BaseFilterBackend):
 
 class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
                           viewsets.GenericViewSet):
-    queryset = Resource.objects.select_related('generic_terms').prefetch_related('favorited_by')
+    queryset = Resource.objects.select_related('generic_terms', 'unit', 'type')
+    queryset = queryset.prefetch_related('favorited_by', 'resource_equipment', 'purposes', 'images', 'purposes')
     serializer_class = ResourceSerializer
     filter_backends = (filters.SearchFilter, ResourceFilterBackend,
                        LocationFilterBackend, AvailableFilterBackend)
@@ -376,7 +377,7 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
 
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     serializer_class = ResourceDetailsSerializer
-    queryset = Resource.objects.select_related('generic_terms').prefetch_related('favorited_by')
+    queryset = Resource.objects.all()
 
     def get_queryset(self):
         if self.request.user.is_staff:
