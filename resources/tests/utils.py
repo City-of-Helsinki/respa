@@ -155,3 +155,16 @@ def check_received_mail_exists(subject, to, message, clear_outbox=True):
     assert _mail_exists(subject, to, message)
     if clear_outbox:
         mail.outbox = []
+
+
+def get_field_errors(validation_error, field_name):
+    """
+    Return an individual field's validation error messages.
+
+    :type validation_error: Django ValidationError
+    :type field_name: str
+    :rtype: list
+    """
+    error_dict = validation_error.error_dict
+    assert field_name in error_dict
+    return error_dict[field_name][0].messages

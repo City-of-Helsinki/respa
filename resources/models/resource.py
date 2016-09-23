@@ -1,5 +1,6 @@
 import datetime
 import os
+from decimal import Decimal
 
 import arrow
 import django.db.models as dbm
@@ -7,6 +8,7 @@ from django.conf import settings
 from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
+from django.core.validators import MinValueValidator
 from django.utils import timezone
 from django.utils.six import BytesIO
 from django.utils.translation import ugettext_lazy as _
@@ -108,6 +110,11 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     specific_terms = models.TextField(verbose_name=_('Specific terms'), blank=True)
     reservation_confirmed_notification_extra = models.TextField(verbose_name=_('Extra content to reservation confirmed '
                                                                                'notification'), blank=True)
+    min_price_per_hour = models.DecimalField(verbose_name=_('Min price per hour'), max_digits=8, decimal_places=2,
+                                             blank=True, null=True, validators=[MinValueValidator(Decimal('0.00'))])
+    max_price_per_hour = models.DecimalField(verbose_name=_('Max price per hour'), max_digits=8, decimal_places=2,
+                                             blank=True, null=True, validators=[MinValueValidator(Decimal('0.00'))])
+
     class Meta:
         verbose_name = _("resource")
         verbose_name_plural = _("resources")
@@ -339,6 +346,13 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
     def can_approve_reservations(self, user):
         return self.is_admin(user) and user.has_perm('can_approve_reservation', self.unit)
+
+    def clean(self):
+        if self.min_price_per_hour is not None and self.max_price_per_hour is not None:
+            if self.min_price_per_hour > self.max_price_per_hour:
+                raise ValidationError(
+                    {'min_price_per_hour': _('This value cannot be greater than max price per hour')}
+                )
 
 
 class ResourceImage(ModifiableModel):
