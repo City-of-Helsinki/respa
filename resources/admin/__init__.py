@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import site as admin_site
+from django.contrib.admin.utils import unquote
 from django.contrib.auth import get_user_model
 from django.contrib.gis.admin import OSMGeoAdmin
 from django import forms
@@ -21,6 +22,13 @@ class EmailChoiceField(forms.ModelChoiceField):
 class UserManage(forms.Form):
     user = EmailChoiceField(queryset=get_user_model().objects.filter(is_staff=True).order_by('email'))
 guardian_admin.UserManage = UserManage
+
+
+class FixedGuardedModelAdminMixin(guardian_admin.GuardedModelAdminMixin):
+
+    # fix editing an object with quoted chars in pk
+    def obj_perms_manage_user_view(self, request, object_pk, user_id):
+        return super().obj_perms_manage_user_view(request, unquote(object_pk), user_id)
 
 
 class HttpsFriendlyGeoAdmin(OSMGeoAdmin):
@@ -48,7 +56,7 @@ class ResourceAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Transla
     default_zoom = 12
 
 
-class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, guardian_admin.GuardedModelAdminMixin,
+class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, FixedGuardedModelAdminMixin,
                 TranslationAdmin, HttpsFriendlyGeoAdmin):
     inlines = [
         PeriodInline
