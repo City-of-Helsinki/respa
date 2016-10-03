@@ -40,7 +40,7 @@ class SoapSeller(ExchangeSession):
             if handler_rv is None:
                 continue
             return self._postprocess_handler_response(request, handler_rv)
-        raise ValueError("No SoapSeller handler could deal with %r" % request)  # pragma: no cover
+        raise ValueError("No SoapSeller handler could deal with %r" % request.body)  # pragma: no cover
 
     def _get_handlers_from_delegate(self):
         for name in dir(self.handler_delegate):

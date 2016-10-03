@@ -8,6 +8,7 @@ from .xml import NAMESPACES
 
 SOAP_ENVELOPE_TAG = b'<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">'
 
+
 class SoapFault(Exception):
     def __init__(self, fault_code, fault_string, detail_element=None):
         self.code = fault_code
@@ -19,7 +20,6 @@ class SoapFault(Exception):
             else None
         )
         super(SoapFault, self).__init__("%s (%s)" % (self.text, self.code))
-
 
     @classmethod
     def from_xml(cls, fault_element):
