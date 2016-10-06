@@ -1,5 +1,6 @@
 import datetime
 import os
+import re
 from decimal import Decimal
 
 import arrow
@@ -10,6 +11,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.validators import MinValueValidator
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from django.utils.six import BytesIO
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import pgettext_lazy
@@ -24,7 +26,27 @@ from .base import AutoIdentifiedModel, NameIdentifiedModel, ModifiableModel
 from .utils import get_translated, get_translated_name, humanize_duration
 from .equipment import Equipment
 from .availability import get_opening_hours
-from .reservation import Reservation
+
+
+def generate_access_code(access_code_type):
+    if access_code_type == Resource.ACCESS_CODE_TYPE_NONE:
+        return ''
+    elif access_code_type == Resource.ACCESS_CODE_TYPE_PIN6:
+        return get_random_string(6, '0123456789')
+    else:
+        raise NotImplementedError('Don\'t know how to generate an access code of type "%s"' % access_code_type)
+
+
+def validate_access_code(access_code, access_code_type):
+    if access_code_type == Resource.ACCESS_CODE_TYPE_NONE:
+        return
+    elif access_code_type == Resource.ACCESS_CODE_TYPE_PIN6:
+        if not re.match('^[0-9]{6}$', access_code):
+            raise ValidationError(dict(access_code=_('Invalid value')))
+    else:
+        raise NotImplementedError('Don\'t know how to validate an access code of type "%s"' % access_code_type)
+
+    return access_code
 
 
 class ResourceType(ModifiableModel, AutoIdentifiedModel):

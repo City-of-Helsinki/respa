@@ -10,6 +10,7 @@ from psycopg2.extras import DateTimeTZRange
 from guardian.shortcuts import get_users_with_perms
 
 from .base import ModifiableModel
+from .resource import Resource, generate_access_code, validate_access_code
 from .utils import get_dt, save_dt, is_valid_time_slot, humanize_duration, send_respa_mail, DEFAULT_LANG
 
 
@@ -179,6 +180,9 @@ class Reservation(ModifiableModel):
             raise ValidationError(_("The minimum reservation length is %(min_period)s") %
                                   {'min_period': humanize_duration(self.min_period)})
 
+        if self.access_code:
+            validate_access_code(self.access_code, self.resource.access_code_type)
+
     def send_reservation_mail(self, subject, template_name, extra_context=None, user=None):
         """
         Stuff common to all reservation related mails.
@@ -220,6 +224,13 @@ class Reservation(ModifiableModel):
 
     def save(self, *args, **kwargs):
         self.duration = DateTimeTZRange(self.begin, self.end, '[)')
+
+        access_code_type = self.resource.access_code_type
+        if access_code_type == Resource.ACCESS_CODE_TYPE_NONE:
+            self.access_code = ''
+        elif not self.access_code:
+            self.access_code = generate_access_code(access_code_type)
+
         return super().save(*args, **kwargs)
 
     objects = ReservationQuerySet.as_manager()
