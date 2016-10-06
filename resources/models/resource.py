@@ -78,6 +78,12 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         ('weak', _('Weak')),
         ('strong', _('Strong'))
     )
+    ACCESS_CODE_TYPE_NONE = 'none'
+    ACCESS_CODE_TYPE_PIN6 = 'pin6'
+    ACCESS_CODE_TYPES = (
+        (ACCESS_CODE_TYPE_NONE, _('None')),
+        (ACCESS_CODE_TYPE_PIN6, _('6-digit pin code')),
+    )
     id = models.CharField(primary_key=True, max_length=100)
     public = models.BooleanField(default=True, verbose_name=_('Public'))
     unit = models.ForeignKey('Unit', verbose_name=_('Unit'), db_index=True, null=True, blank=True,
@@ -114,6 +120,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                                              blank=True, null=True, validators=[MinValueValidator(Decimal('0.00'))])
     max_price_per_hour = models.DecimalField(verbose_name=_('Max price per hour'), max_digits=8, decimal_places=2,
                                              blank=True, null=True, validators=[MinValueValidator(Decimal('0.00'))])
+    access_code_type = models.CharField(verbose_name=_('Access code type'), max_length=20, choices=ACCESS_CODE_TYPES,
+                                        default=ACCESS_CODE_TYPE_NONE)
 
     class Meta:
         verbose_name = _("resource")

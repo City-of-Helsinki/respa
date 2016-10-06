@@ -47,6 +47,7 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
         verbose_name_plural = _("units")
         permissions = (
             ('can_approve_reservation', _('Can approve reservation')),
+            ('can_view_reservation_access_code', _('Can view reservation access code')),
         )
 
     def __str__(self):

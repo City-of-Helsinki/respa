@@ -242,7 +242,7 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
 
     class Meta:
         model = Resource
-        exclude = ('reservation_confirmed_notification_extra',)
+        exclude = ('reservation_confirmed_notification_extra', 'access_code_type')
 
 
 class ResourceDetailsSerializer(ResourceSerializer):
