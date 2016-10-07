@@ -377,6 +377,12 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     def can_approve_reservations(self, user):
         return self.is_admin(user) and user.has_perm('can_approve_reservation', self.unit)
 
+    def is_access_code_enabled(self):
+        return self.access_code_type != Resource.ACCESS_CODE_TYPE_NONE
+
+    def can_view_access_codes(self, user):
+        return self.is_admin(user) or user.has_perm('can_view_reservation_access_code', self.unit)
+
     def clean(self):
         if self.min_price_per_hour is not None and self.max_price_per_hour is not None:
             if self.min_price_per_hour > self.max_price_per_hour:

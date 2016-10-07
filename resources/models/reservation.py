@@ -126,6 +126,9 @@ class Reservation(ModifiableModel):
             return False
         return user == self.user or self.resource.is_admin(user)
 
+    def can_view_access_code(self, user):
+        return user == self.user or self.resource.can_view_access_codes(user)
+
     def set_state(self, new_state, user):
         if new_state == self.state:
             return
@@ -226,7 +229,7 @@ class Reservation(ModifiableModel):
         self.duration = DateTimeTZRange(self.begin, self.end, '[)')
 
         access_code_type = self.resource.access_code_type
-        if access_code_type == Resource.ACCESS_CODE_TYPE_NONE:
+        if not self.resource.is_access_code_enabled():
             self.access_code = ''
         elif not self.access_code:
             self.access_code = generate_access_code(access_code_type)
