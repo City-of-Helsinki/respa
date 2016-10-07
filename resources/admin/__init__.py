@@ -3,6 +3,7 @@ from django.contrib.admin import site as admin_site
 from django.contrib.admin.utils import unquote
 from django.contrib.auth import get_user_model
 from django.contrib.gis.admin import OSMGeoAdmin
+from django.db.models import Q
 from django import forms
 from guardian import admin as guardian_admin
 from image_cropping import ImageCroppingMixin
@@ -13,15 +14,20 @@ from resources.models import Day, Reservation, Resource, ResourceImage, Resource
 from resources.models import Equipment, ResourceEquipment, EquipmentAlias, EquipmentCategory, TermsOfUse
 
 
-class EmailChoiceField(forms.ModelChoiceField):
+class EmailAndUsernameChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
-        return obj.email
+        return '%s | %s' % (obj.email, obj.username) if obj.email else obj.username
 
 
-# monkey patch django-guardian user form for better UX
-class UserManage(forms.Form):
-    user = EmailChoiceField(queryset=get_user_model().objects.filter(is_staff=True).order_by('email'))
-guardian_admin.UserManage = UserManage
+class CustomUserManage(forms.Form):
+    """
+    Show only apikey and staff users in a dropdown on object permission manage page
+    """
+    user = EmailAndUsernameChoiceField(
+        queryset=get_user_model().objects.filter(
+            Q(auth_token__isnull=False) | Q(is_staff=True)
+        ).distinct().order_by('email', 'username')
+    )
 
 
 class FixedGuardedModelAdminMixin(guardian_admin.GuardedModelAdminMixin):
@@ -65,6 +71,9 @@ class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, FixedGuarde
     default_lon = 2776460  # Central Railway Station in EPSG:3857
     default_lat = 8438120
     default_zoom = 12
+
+    def get_obj_perms_user_select_form(self, request):
+        return CustomUserManage
 
 
 class ResourceImageAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, ImageCroppingMixin, TranslationAdmin):
