@@ -9,11 +9,13 @@ from django.core.exceptions import PermissionDenied, ValidationError as DjangoVa
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import viewsets, serializers, filters, exceptions, permissions
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.fields import BooleanField, IntegerField
 from rest_framework import renderers
 from rest_framework.exceptions import NotAcceptable, ValidationError
 from guardian.shortcuts import get_objects_for_user
 
+from helusers.jwt import JWTAuthentication
 from munigeo import api as munigeo_api
 from resources.models import Reservation, Resource, Unit
 from resources.models.reservation import RESERVATION_EXTRA_FIELDS, REQUIRED_RESERVATION_EXTRA_FIELDS
@@ -394,6 +396,7 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, ReservationExcelRenderer)
     pagination_class = ReservationPagination
+    authentication_classes = (JWTAuthentication, TokenAuthentication)
     ordering_fields = ('begin',)
 
     def get_queryset(self):

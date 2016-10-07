@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.postgres',
     'rest_framework',
     'rest_framework_jwt',
+    'rest_framework.authtoken',
     'corsheaders',
     'easy_thumbnails',
     'image_cropping',
