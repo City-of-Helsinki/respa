@@ -5,13 +5,13 @@ from datetime import datetime
 from arrow.parser import ParserError
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
-from django.core.exceptions import ValidationError, PermissionDenied
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import viewsets, serializers, filters, exceptions, permissions
 from rest_framework.fields import BooleanField, IntegerField
 from rest_framework import renderers
-from rest_framework.exceptions import NotAcceptable
+from rest_framework.exceptions import NotAcceptable, ValidationError
 from guardian.shortcuts import get_objects_for_user
 
 from munigeo import api as munigeo_api
@@ -169,7 +169,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             try:
                 deserialized_data['user'] = User.objects.get(**{USER_ID_ATTRIBUTE: user_data['id']})
             except User.DoesNotExist:
-                raise serializers.ValidationError({
+                raise ValidationError({
                     'user': {
                         'id': [_('Invalid pk "{pk_value}" - object does not exist.').format(pk_value=user_data['id'])]
                     }
