@@ -89,7 +89,12 @@ class ResourceEquipmentAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin
 
 
 class ReservationAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, admin.ModelAdmin):
-    pass
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            read_only_fields = list(super().get_readonly_fields(request, obj))
+            read_only_fields.append('access_code')
+            return tuple(read_only_fields)
+        return super().get_readonly_fields(request, obj)
 
 
 class ResourceTypeAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):
