@@ -1077,3 +1077,33 @@ def test_access_code_visibility(user, user2, staff_user, api_client, resource_in
         assert response.data['access_code'] == '123456'
     else:
         assert 'access_code' not in response.data
+
+
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
+def test_reservation_created_with_access_code_mail(user_api_client, user, resource_in_unit, list_url, reservation_data):
+
+    # The mail should not be sent if access code type is none
+    response = user_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201
+    assert len(mail.outbox) == 0
+
+    reservation_data['access_code'] = '007007'
+    resource_in_unit.access_code_type = Resource.ACCESS_CODE_TYPE_PIN6
+    resource_in_unit.save()
+    Reservation.objects.get(id=response.data['id']).delete()
+
+    response = user_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201
+    check_received_mail_exists(
+        'Reservation created',
+        user.email,
+        'Your access code for the resource: 007007',
+    )
+
+    # Verify that modifying the reservation doesn't trigger the mail
+    reservation_data['end'] = '2115-04-04T12:00:00+02:00'
+    detail_url = reverse('reservation-detail', kwargs={'pk': response.data['id']})
+    response = user_api_client.put(detail_url, data=reservation_data)
+    assert response.status_code == 200
+    assert len(mail.outbox) == 0

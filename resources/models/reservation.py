@@ -225,6 +225,9 @@ class Reservation(ModifiableModel):
     def send_reservation_cancelled_mail(self):
         self.send_reservation_mail(_('Reservation cancelled'), 'reservation_cancelled')
 
+    def send_reservation_created_with_access_code_mail(self):
+        self.send_reservation_mail(_('Reservation created'), 'reservation_created_with_access_code')
+
     def save(self, *args, **kwargs):
         self.duration = DateTimeTZRange(self.begin, self.end, '[)')
 

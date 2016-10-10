@@ -422,7 +422,7 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
 
         resource = serializer.validated_data['resource']
         staff_event = (self.request.data.get('staff_event', False) and
-                     resource.can_approve_reservations(self.request.user))
+                       resource.can_approve_reservations(self.request.user))
         if resource.need_manual_confirmation and not staff_event:
             kwargs['state'] = Reservation.REQUESTED
         else:
@@ -433,6 +433,8 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
         if instance.state == Reservation.REQUESTED:
             instance.send_reservation_requested_mail()
             instance.send_reservation_requested_mail_to_officials()
+        elif instance.state == Reservation.CONFIRMED and resource.is_access_code_enabled():
+            instance.send_reservation_created_with_access_code_mail()
 
     def perform_update(self, serializer):
         old_instance = self.get_object()
