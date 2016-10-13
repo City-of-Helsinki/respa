@@ -22,8 +22,9 @@ sudo -u postgres psql respa -c "CREATE EXTENSION postgis;"
 ```shell
 python manage.py migrate
 python manage.py createsuperuser  # etc...
+python manage.py geo_import --municipalities finland
+python manage.py geo_import --divisions helsinki
 python manage.py resources_import --all tprek
-python manage.py resources_import --all kirjasto10
 python manage.py resources_import --all kirjastot
 ```
 
