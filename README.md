@@ -8,18 +8,18 @@ respa – Resource reservation and management service
 Installation
 ------------
 
-## Prepare virtualenv
+### Prepare virtualenv
 
      virtualenv -p /usr/bin/python3 ~/.virtualenvs/
      workon respa
 
-## Install required packages
+### Install required packages
 
 Install all required packages with pip command:
 
      pip install -r requirements.txt
 
-## Create the database
+### Create the database
 
 ```shell
 sudo -u postgres createuser -L -R -S respa
@@ -28,7 +28,7 @@ sudo -u postgres createdb -Orespa respa
 sudo -u postgres psql respa -c "CREATE EXTENSION postgis;"
 ```
 
-## Run Django migrations and import data
+### Run Django migrations and import data
 
 ```shell
 python manage.py migrate
