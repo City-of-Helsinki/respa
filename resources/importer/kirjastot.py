@@ -7,6 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from psycopg2.extras import DateRange
 import delorean
 from django.db import transaction
+from django.db.models import Q
 
 from ..models import Unit, UnitIdentifier
 from .base import Importer, register_importer
@@ -51,7 +52,8 @@ def process_varaamo_libraries():
 
     :return: None
     """
-    varaamo_units = Unit.objects.filter(identifiers__namespace="helmet").exclude(resources__isnull=True)
+    in_namespaces = Q(identifiers__namespace="helmet") | Q(identifiers__namespace="kirjastot.fi")
+    varaamo_units = Unit.objects.filter(in_namespaces).exclude(resources__isnull=True)
 
     start, end = get_time_range()
     problems = []
@@ -86,6 +88,9 @@ def timetable_fetcher(unit, start='2016-07-01', end='2016-12-31'):
     it originated from, thus allowing creation of
     unique periods
 
+    Data is requested first on Unit's kirjastot.fi id,
+    then helmet identificator from tprek
+
     TODO: helmet consortium's id permanency check
 
     :param unit: Unit object of the library
@@ -96,14 +101,26 @@ def timetable_fetcher(unit, start='2016-07-01', end='2016-12-31'):
 
     base = "https://api.kirjastot.fi/v3/organisation"
 
-    for identificator in unit.identifiers.filter(namespace="helmet"):
-        params = {
-            "identificator": identificator.value.split()[0],
-            "consortium": "2093",  # TODO: Helmet consortium id in v3 API
-            "with": "extra,schedules",
-            "period.start": start,
-            "period.end": end
-        }
+    for identificator in unit.identifiers:
+
+        if identificator.namespace == 'kirjastot.fi':
+            params = {
+                "id": identificator.value,
+                "with": "extra,schedules",
+                "period.start": start,
+                "period.end": end
+            }
+        elif identificator.namespace == 'helmet':
+            params = {
+                "identificator": identificator.value.split()[0],
+                "consortium": "2093",  # TODO: Helmet consortium id in v3 API
+                "with": "extra,schedules",
+                "period.start": start,
+                "period.end": end
+            }
+        else:
+            # At this stage no support for other identifier namespaces
+            continue
 
         resp = requests.get(base, params=params)
 
