@@ -1,5 +1,6 @@
 import pytest
 import datetime
+import re
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.core import mail
@@ -990,3 +991,119 @@ def test_can_approve_filter(staff_api_client, staff_user, list_url, reservation)
     response = staff_api_client.get('%s%s' % (list_url, '?can_approve=true'))
     assert response.status_code == 200
     assert len(response.data['results']) == 1
+
+
+@pytest.mark.django_db
+def test_access_code_cannot_be_set_if_type_none(user_api_client, list_url, resource_in_unit, reservation_data):
+    reservation_data['access_code'] = '023543'
+    response = user_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+    assert 'This field cannot have a value with this resource' in response.data['access_code']
+
+
+@pytest.mark.django_db
+def test_invalid_pin6_access_code(user_api_client, list_url, resource_in_unit, reservation_data):
+    resource_in_unit.access_code_type = Resource.ACCESS_CODE_TYPE_PIN6
+    resource_in_unit.save()
+    reservation_data['access_code'] = 'xxx'
+    reservation_data['resource'] = resource_in_unit.id
+
+    response = user_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+    assert 'Invalid value' in response.data['access_code']
+
+
+@pytest.mark.django_db
+def test_pin6_access_code_is_generated_if_not_set(user_api_client, list_url, resource_in_unit, reservation_data):
+    resource_in_unit.access_code_type = Resource.ACCESS_CODE_TYPE_PIN6
+    resource_in_unit.save()
+
+    response = user_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201
+    new_reservation = Reservation.objects.get(id=response.data['id'])
+    assert re.match('^[0-9]{6}$', new_reservation.access_code)
+
+
+@pytest.mark.django_db
+def test_pin6_access_code_can_be_set(user_api_client, list_url, resource_in_unit, reservation_data):
+    resource_in_unit.access_code_type = Resource.ACCESS_CODE_TYPE_PIN6
+    resource_in_unit.save()
+    reservation_data['access_code'] = '023543'
+    reservation_data['resource'] = resource_in_unit.id
+
+    response = user_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201
+    new_reservation = Reservation.objects.get(id=response.data['id'])
+    assert new_reservation.access_code == '023543'
+
+
+@pytest.mark.django_db
+def test_pin6_access_code_cannot_be_modified(user_api_client, resource_in_unit, reservation, reservation_data):
+    resource_in_unit.access_code_type = Resource.ACCESS_CODE_TYPE_PIN6
+    resource_in_unit.save()
+    reservation.access_code = '123456'
+    reservation.save()
+    reservation_data['access_code'] = '654321'
+
+    detail_url = reverse('reservation-detail', kwargs={'pk': reservation.pk})
+    response = user_api_client.put(detail_url, data=reservation_data)
+    assert response.status_code == 400
+    assert 'This field cannot be changed' in response.data['access_code']
+
+
+@pytest.mark.parametrize('username, has_perm, expected', [
+    ('test_user', False, True),  # own reservation
+    ('test_user2', False, False),  # someone else's reservation
+    ('test_user2', True, True),  # someone else's reservation but having the permission
+    ('test_staff_user', False, True)  # staff
+])
+@pytest.mark.django_db
+def test_access_code_visibility(user, user2, staff_user, api_client, resource_in_unit, reservation, username, has_perm,
+                                expected):
+    resource_in_unit.access_code_type = Resource.ACCESS_CODE_TYPE_PIN6
+    resource_in_unit.save()
+    reservation.access_code = '123456'
+    reservation.save()
+    detail_url = reverse('reservation-detail', kwargs={'pk': reservation.pk})
+
+    current_user = User.objects.get(username=username)
+    if has_perm:
+        assign_perm('can_view_reservation_access_code', current_user, resource_in_unit.unit)
+    api_client.force_authenticate(current_user)
+
+    response = api_client.get(detail_url)
+    assert response.status_code == 200
+    if expected:
+        assert response.data['access_code'] == '123456'
+    else:
+        assert 'access_code' not in response.data
+
+
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
+def test_reservation_created_with_access_code_mail(user_api_client, user, resource_in_unit, list_url, reservation_data):
+
+    # The mail should not be sent if access code type is none
+    response = user_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201
+    assert len(mail.outbox) == 0
+
+    reservation_data['access_code'] = '007007'
+    resource_in_unit.access_code_type = Resource.ACCESS_CODE_TYPE_PIN6
+    resource_in_unit.save()
+    Reservation.objects.get(id=response.data['id']).delete()
+
+    response = user_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201
+    check_received_mail_exists(
+        'Reservation created',
+        user.email,
+        'Your access code for the resource: 007007',
+    )
+
+    # Verify that modifying the reservation doesn't trigger the mail
+    reservation_data['end'] = '2115-04-04T12:00:00+02:00'
+    detail_url = reverse('reservation-detail', kwargs={'pk': response.data['id']})
+    response = user_api_client.put(detail_url, data=reservation_data)
+    assert response.status_code == 200
+    assert len(mail.outbox) == 0

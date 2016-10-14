@@ -1,5 +1,6 @@
 import datetime
 import os
+import re
 from decimal import Decimal
 
 import arrow
@@ -10,6 +11,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.validators import MinValueValidator
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from django.utils.six import BytesIO
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import pgettext_lazy
@@ -24,7 +26,27 @@ from .base import AutoIdentifiedModel, NameIdentifiedModel, ModifiableModel
 from .utils import get_translated, get_translated_name, humanize_duration
 from .equipment import Equipment
 from .availability import get_opening_hours
-from .reservation import Reservation
+
+
+def generate_access_code(access_code_type):
+    if access_code_type == Resource.ACCESS_CODE_TYPE_NONE:
+        return ''
+    elif access_code_type == Resource.ACCESS_CODE_TYPE_PIN6:
+        return get_random_string(6, '0123456789')
+    else:
+        raise NotImplementedError('Don\'t know how to generate an access code of type "%s"' % access_code_type)
+
+
+def validate_access_code(access_code, access_code_type):
+    if access_code_type == Resource.ACCESS_CODE_TYPE_NONE:
+        return
+    elif access_code_type == Resource.ACCESS_CODE_TYPE_PIN6:
+        if not re.match('^[0-9]{6}$', access_code):
+            raise ValidationError(dict(access_code=_('Invalid value')))
+    else:
+        raise NotImplementedError('Don\'t know how to validate an access code of type "%s"' % access_code_type)
+
+    return access_code
 
 
 class ResourceType(ModifiableModel, AutoIdentifiedModel):
@@ -78,6 +100,12 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         ('weak', _('Weak')),
         ('strong', _('Strong'))
     )
+    ACCESS_CODE_TYPE_NONE = 'none'
+    ACCESS_CODE_TYPE_PIN6 = 'pin6'
+    ACCESS_CODE_TYPES = (
+        (ACCESS_CODE_TYPE_NONE, _('None')),
+        (ACCESS_CODE_TYPE_PIN6, _('6-digit pin code')),
+    )
     id = models.CharField(primary_key=True, max_length=100)
     public = models.BooleanField(default=True, verbose_name=_('Public'))
     unit = models.ForeignKey('Unit', verbose_name=_('Unit'), db_index=True, null=True, blank=True,
@@ -114,6 +142,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                                              blank=True, null=True, validators=[MinValueValidator(Decimal('0.00'))])
     max_price_per_hour = models.DecimalField(verbose_name=_('Max price per hour'), max_digits=8, decimal_places=2,
                                              blank=True, null=True, validators=[MinValueValidator(Decimal('0.00'))])
+    access_code_type = models.CharField(verbose_name=_('Access code type'), max_length=20, choices=ACCESS_CODE_TYPES,
+                                        default=ACCESS_CODE_TYPE_NONE)
 
     class Meta:
         verbose_name = _("resource")
@@ -346,6 +376,12 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
     def can_approve_reservations(self, user):
         return self.is_admin(user) and user.has_perm('can_approve_reservation', self.unit)
+
+    def is_access_code_enabled(self):
+        return self.access_code_type != Resource.ACCESS_CODE_TYPE_NONE
+
+    def can_view_access_codes(self, user):
+        return self.is_admin(user) or user.has_perm('can_view_reservation_access_code', self.unit)
 
     def clean(self):
         if self.min_price_per_hour is not None and self.max_price_per_hour is not None:

@@ -5,15 +5,17 @@ from datetime import datetime
 from arrow.parser import ParserError
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
-from django.core.exceptions import ValidationError, PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError as DjangoValidationError
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import viewsets, serializers, filters, exceptions, permissions
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.fields import BooleanField, IntegerField
 from rest_framework import renderers
-from rest_framework.exceptions import NotAcceptable
+from rest_framework.exceptions import NotAcceptable, ValidationError
 from guardian.shortcuts import get_objects_for_user
 
+from helusers.jwt import JWTAuthentication
 from munigeo import api as munigeo_api
 from resources.models import Reservation, Resource, Unit
 from resources.models.reservation import RESERVATION_EXTRA_FIELDS, REQUIRED_RESERVATION_EXTRA_FIELDS
@@ -67,7 +69,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
     class Meta:
         model = Reservation
         fields = ['url', 'id', 'resource', 'user', 'begin', 'end', 'comments', 'is_own', 'state',
-                  'need_manual_confirmation', 'staff_event'] + list(RESERVATION_EXTRA_FIELDS)
+                  'need_manual_confirmation', 'staff_event', 'access_code'] + list(RESERVATION_EXTRA_FIELDS)
         read_only_fields = RESERVATION_EXTRA_FIELDS
 
     def __init__(self, *args, **kwargs):
@@ -141,6 +143,18 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             if not resource.is_admin(request_user):
                 raise ValidationError(dict(comments=_('Only allowed to be set by staff members')))
 
+        if 'access_code' in data:
+            if data['access_code'] == None:
+                data['access_code'] = ''
+
+            access_code_enabled = resource.is_access_code_enabled()
+
+            if not access_code_enabled and data['access_code']:
+                raise ValidationError(dict(access_code=_('This field cannot have a value with this resource')))
+
+            if access_code_enabled and reservation and data['access_code'] != reservation.access_code:
+                raise ValidationError(dict(access_code=_('This field cannot be changed')))
+
         # Mark begin of a critical section. Subsequent calls with this same resource will block here until the first
         # request is finished. This is needed so that the validations and possible reservation saving are
         # executed in one block and concurrent requests cannot be validated incorrectly.
@@ -155,7 +169,18 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         # Run model clean
         data.pop('staff_event', None)
         instance = Reservation(**data)
-        instance.clean(original_reservation=reservation)
+        try:
+            instance.clean(original_reservation=reservation)
+        except DjangoValidationError as exc:
+
+            # Convert Django ValidationError to DRF ValidationError so that in the response
+            # field specific error messages are added in the field instead of in non_field_messages.
+            if not hasattr(exc, 'error_dict'):
+                raise ValidationError(exc)
+            error_dict = {}
+            for key, value in exc.error_dict.items():
+                error_dict[key] = [error.message for error in value]
+            raise ValidationError(error_dict)
 
         return data
 
@@ -169,7 +194,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             try:
                 deserialized_data['user'] = User.objects.get(**{USER_ID_ATTRIBUTE: user_data['id']})
             except User.DoesNotExist:
-                raise serializers.ValidationError({
+                raise ValidationError({
                     'user': {
                         'id': [_('Invalid pk "{pk_value}" - object does not exist.').format(pk_value=user_data['id'])]
                     }
@@ -178,14 +203,16 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
 
     def to_representation(self, instance):
         data = super(ReservationSerializer, self).to_representation(instance)
+        resource = instance.resource
+        user = self.context['request'].user
 
         if self.context['request'].accepted_renderer.format == 'xlsx':
             # Return somewhat different data in case we are dealing with xlsx.
             # The excel renderer needs datetime objects, so begin and end are passed as objects
             # to avoid needing to convert them back and forth.
             data.update(**{
-                'unit': instance.resource.unit.name,  # additional
-                'resource': instance.resource.name,  # resource name instead of id
+                'unit': resource.unit.name,  # additional
+                'resource': resource.name,  # resource name instead of id
                 'begin': instance.begin,  # datetime object
                 'end': instance.end,  # datetime object
                 'user': instance.user.email,  # just email
@@ -193,13 +220,19 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             })
 
         # Show the comments field and the user object only for staff
-        if not instance.resource.is_admin(self.context['request'].user):
+        if not resource.is_admin(user):
             del data['comments']
             del data['user']
 
-        if not instance.are_extra_fields_visible(self.context['request'].user):
+        if not instance.are_extra_fields_visible(user):
             for field_name in RESERVATION_EXTRA_FIELDS:
                 data.pop(field_name, None)
+
+        if not (resource.is_access_code_enabled() and instance.can_view_access_code(user)):
+            data.pop('access_code')
+
+        if 'access_code' in data and data['access_code'] == '':
+            data['access_code'] = None
 
         return data
 
@@ -363,6 +396,7 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, ReservationExcelRenderer)
     pagination_class = ReservationPagination
+    authentication_classes = (JWTAuthentication, TokenAuthentication)
     ordering_fields = ('begin',)
 
     def get_queryset(self):
@@ -388,7 +422,7 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
 
         resource = serializer.validated_data['resource']
         staff_event = (self.request.data.get('staff_event', False) and
-                     resource.can_approve_reservations(self.request.user))
+                       resource.can_approve_reservations(self.request.user))
         if resource.need_manual_confirmation and not staff_event:
             kwargs['state'] = Reservation.REQUESTED
         else:
@@ -399,6 +433,8 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
         if instance.state == Reservation.REQUESTED:
             instance.send_reservation_requested_mail()
             instance.send_reservation_requested_mail_to_officials()
+        elif instance.state == Reservation.CONFIRMED and resource.is_access_code_enabled():
+            instance.send_reservation_created_with_access_code_mail()
 
     def perform_update(self, serializer):
         old_instance = self.get_object()

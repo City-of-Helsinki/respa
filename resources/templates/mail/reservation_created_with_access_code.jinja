@@ -1,0 +1,7 @@
+{% trans %}and thanks for using Varaamo!{% endtrans %}
+
+{% trans %}You've made a new reservation:{% endtrans %}
+
+{% include "mail/_reservation_data.jinja" %}
+
+{% if reservation.access_code %}{% trans %}Your access code for the resource: {% endtrans %}{{ reservation.access_code }}{% endif %}
