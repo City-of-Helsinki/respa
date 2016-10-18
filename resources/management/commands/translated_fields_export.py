@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from optparse import make_option
+import io
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
@@ -7,6 +8,32 @@ from django.db import transaction
 from django.utils.translation import override
 from modeltranslation.translator import translator, NotRegistered
 from django.apps import apps
+import xlsxwriter
+
+
+def make_excel(data):
+
+    output = io.BytesIO()
+    workbook = xlsxwriter.Workbook(output)
+
+    for name, (translated_fields, items) in data.items():
+
+        worksheet = workbook.add_worksheet(name)
+
+        headers = [(field, 50) for field in translated_fields]
+
+        header_format = workbook.add_format({'bold': True})
+
+        for column, header in enumerate(headers):
+            worksheet.write(0, column, str(header[0]), header_format)
+            worksheet.set_column(column, column, header[1])
+
+        for row, item in enumerate(items, 1):
+            for column, field in enumerate(translated_fields):
+                worksheet.write(row, column, getattr(item, field) or '')
+
+    workbook.close()
+    return output.getvalue()
 
 
 class Command(BaseCommand):
@@ -45,19 +72,20 @@ class Command(BaseCommand):
             except Exception as e:
                 raise CommandError(("Problem finding model '%s': " % model_name) + str(e))
 
+        data = {}
+
         for model_name in models:
             model = apps.get_model('resources', model_name)
             trans_opts = translator.get_options_for_model(model)
             translated_fields = sorted([tr_field.name for field in trans_opts.fields.values() for tr_field in field])
 
-            resp.append(['"id"'] + ['"{}"'.format(f) for f in translated_fields])
+            data[model_name] = [translated_fields, model.objects.all()]
 
-            for obj in model.objects.all():
-                resp.append([obj.pk] + ['"{}"'.format(getattr(obj, field) or '') for field in translated_fields])
+        output = make_excel(data)
 
-        doc = open(options.get('out')[0], 'w+')
+        doc = open(options.get('out')[0], 'bw+')
         try:
-            doc.write('\n'.join([';'.join(i) for i in resp]))
+            doc.write(output)
         except (IOError, OSError) as e:
             print("Problems with file production", e)
         finally:
