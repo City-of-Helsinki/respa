@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+"""
+Management command to export translated fields for given models' instances
+"""
+
 from optparse import make_option
 import io
 
@@ -12,6 +16,18 @@ import xlsxwriter
 
 
 def make_excel(data):
+    """
+    Based on models.utils.generate_reservation_xlsx
+
+    Data is a dict where key is the model's name and value is a list
+    with first item the translated field names and second item list of instances
+    (or a queryset returning such)
+
+    Each model gets added to its own sheet (tab) in XLS file
+
+    :param data:{model_name: [[translated field names], queryset for model]}
+    :return:XLS file as bytes
+    """
 
     output = io.BytesIO()
     workbook = xlsxwriter.Workbook(output)
