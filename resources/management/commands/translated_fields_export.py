@@ -24,6 +24,8 @@ class Command(BaseCommand):
         # Activate the default language for the duration of the import
         # to make sure translated fields are populated correctly.
 
+        resp = []
+
         if options.get('all'):
             models = self.export_models
         else:
@@ -32,3 +34,11 @@ class Command(BaseCommand):
         for model_name in models:
             model = apps.get_model('resources', model_name)
             trans_opts = translator.get_options_for_model(model)
+            translated_fields = sorted([tr_field.name for field in trans_opts.fields.values() for tr_field in field])
+
+            resp.append(['id'] + translated_fields)
+
+            for obj in model.objects.all():
+                resp.append([obj.pk] + [getattr(obj, field) or '' for field in translated_fields])
+
+        print('\n'.join([';'.join(i) for i in resp]))
