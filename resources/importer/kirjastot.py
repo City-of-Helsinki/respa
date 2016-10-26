@@ -112,7 +112,7 @@ def timetable_fetcher(unit, start='2016-07-01', end='2016-12-31'):
             }
         elif identificator.namespace == 'helmet':
             params = {
-                "identificator": identificator.value.split()[0],
+                "identificator": identificator.value,
                 "consortium": "2093",  # TODO: Helmet consortium id in v3 API
                 "with": "extra,schedules",
                 "period.start": start,
