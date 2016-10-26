@@ -132,6 +132,12 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         if data['end'] < timezone.now():
             raise ValidationError(_('You cannot make a reservation in the past'))
 
+        if not resource.is_admin(request_user):
+            reservable_before = resource.get_reservable_before()
+            if reservable_before and data['begin'] >= reservable_before:
+                raise ValidationError(_('The resource is reservable only before %(datetime)s' %
+                                        {'datetime': reservable_before}))
+
         # normal users cannot make reservations for other people
         if not resource.is_admin(request_user):
             data.pop('user', None)

@@ -112,6 +112,8 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     required_reservation_extra_fields = serializers.SerializerMethodField()
     is_favorite = serializers.SerializerMethodField()
     generic_terms = serializers.SerializerMethodField()
+    reservable_days_in_advance = serializers.ReadOnlyField(source='get_reservable_days_in_advance')
+    reservable_before = serializers.SerializerMethodField()
 
     def get_user_permissions(self, obj):
         request = self.context.get('request', None)
@@ -130,6 +132,15 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     def get_generic_terms(self, obj):
         data = TermsOfUseSerializer(obj.generic_terms).data
         return data['text']
+
+    def get_reservable_before(self, obj):
+        request = self.context.get('request')
+        user = request.user if request else None
+
+        if user and obj.is_admin(user):
+            return None
+        else:
+            return obj.get_reservable_before()
 
     def to_representation(self, obj):
         # we must parse the time parameters before serializing

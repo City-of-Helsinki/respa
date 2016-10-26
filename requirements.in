@@ -31,3 +31,4 @@ django-jinja
 django-anymail
 raven
 delorean
+freezegun
