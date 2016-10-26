@@ -12,6 +12,7 @@ from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.contrib.sites.models import Site
 from django.utils.translation import ugettext_lazy as _
+from django.utils import timezone
 from django.utils.timezone import localtime
 import xlsxwriter
 
@@ -172,3 +173,13 @@ def get_object_or_none(cls, **kwargs):
         return cls.objects.get(**kwargs)
     except cls.DoesNotExist:
         return None
+
+
+def create_reservable_before_datetime(days_from_now):
+    if days_from_now is None:
+        return None
+
+    dt = timezone.now() + datetime.timedelta(days=days_from_now + 1)
+    dt = dt.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    return dt

@@ -1,6 +1,3 @@
-import datetime
-
-import arrow
 import pytz
 from django.conf import settings
 from django.contrib.gis.db import models
@@ -9,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from autoslug import AutoSlugField
 
 from .base import AutoIdentifiedModel, ModifiableModel
-from .utils import get_translated, get_translated_name
+from .utils import create_reservable_before_datetime, get_translated, get_translated_name
 from .availability import get_opening_hours
 
 from munigeo.models import Municipality
@@ -41,6 +38,8 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
                                        null=True, blank=True)
 
     slug = AutoSlugField(populate_from=get_translated_name, unique=True)
+    reservable_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable days in advance'),
+                                                                  null=True, blank=True)
 
     class Meta:
         verbose_name = _("unit")
@@ -63,6 +62,14 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
 
     def get_tz(self):
         return pytz.timezone(self.time_zone)
+
+    def get_reservable_before(self):
+        return create_reservable_before_datetime(self.reservable_days_in_advance)
+
+    def is_admin(self, user):
+        # Currently all staff members are allowed to administrate
+        # all units. Might be more finegrained in the future.
+        return user.is_staff
 
 
 class UnitIdentifier(models.Model):

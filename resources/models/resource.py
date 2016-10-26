@@ -23,7 +23,7 @@ from autoslug import AutoSlugField
 from resources.errors import InvalidImage
 
 from .base import AutoIdentifiedModel, NameIdentifiedModel, ModifiableModel
-from .utils import get_translated, get_translated_name, humanize_duration
+from .utils import create_reservable_before_datetime, get_translated, get_translated_name, humanize_duration
 from .equipment import Equipment
 from .availability import get_opening_hours
 
@@ -144,6 +144,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                                              blank=True, null=True, validators=[MinValueValidator(Decimal('0.00'))])
     access_code_type = models.CharField(verbose_name=_('Access code type'), max_length=20, choices=ACCESS_CODE_TYPES,
                                         default=ACCESS_CODE_TYPE_NONE)
+    reservable_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable days in advance'),
+                                                                  null=True, blank=True)
 
     class Meta:
         verbose_name = _("resource")
@@ -382,6 +384,12 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
     def can_view_access_codes(self, user):
         return self.is_admin(user) or user.has_perm('can_view_reservation_access_code', self.unit)
+
+    def get_reservable_days_in_advance(self):
+        return self.reservable_days_in_advance or self.unit.reservable_days_in_advance
+
+    def get_reservable_before(self):
+        return create_reservable_before_datetime(self.get_reservable_days_in_advance())
 
     def clean(self):
         if self.min_price_per_hour is not None and self.max_price_per_hour is not None:

@@ -5,8 +5,9 @@ from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.core import mail
 from django.test.utils import override_settings
-from django.utils import dateparse
+from django.utils import dateparse, timezone
 from guardian.shortcuts import assign_perm
+from freezegun import freeze_time
 
 from resources.models import (Period, Day, Reservation, Resource, RESERVATION_EXTRA_FIELDS,
                               REQUIRED_RESERVATION_EXTRA_FIELDS)
@@ -1107,3 +1108,23 @@ def test_reservation_created_with_access_code_mail(user_api_client, user, resour
     response = user_api_client.put(detail_url, data=reservation_data)
     assert response.status_code == 200
     assert len(mail.outbox) == 0
+
+
+@freeze_time('2016-10-25')
+@pytest.mark.django_db
+def test_reservation_reservable_before(user_api_client, resource_in_unit, list_url, reservation_data):
+    resource_in_unit.reservable_days_in_advance = 10
+    resource_in_unit.save()
+
+    reservation_data['begin'] = timezone.now().replace(hour=12, minute=0, second=0) + datetime.timedelta(days=11)
+    reservation_data['end'] = timezone.now().replace(hour=13, minute=0, second=0) + datetime.timedelta(days=11)
+
+    response = user_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+    assert_non_field_errors_contain(response, 'The resource is reservable only before')
+
+    reservation_data['begin'] = timezone.now().replace(hour=12, minute=0, second=0) + datetime.timedelta(days=9)
+    reservation_data['end'] = timezone.now().replace(hour=13, minute=0, second=0) + datetime.timedelta(days=9)
+
+    response = user_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201

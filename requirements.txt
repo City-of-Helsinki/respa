@@ -33,6 +33,7 @@ easy-thumbnails==2.3
 fake-factory==0.7.2
 first==2.0.1              # via pip-tools
 flake8==3.0.4
+freezegun==0.3.7
 humanize==0.5.1           # via delorean
 icalendar==3.10
 Jinja2==2.8               # via django-jinja
@@ -49,7 +50,7 @@ pyjwt==1.4.2
 pytest-cov==2.3.1
 pytest-django==3.0.0
 pytest==3.0.2
-python-dateutil==2.5.3    # via arrow, delorean, fake-factory, icalendar
+python-dateutil==2.5.3    # via arrow, delorean, fake-factory, freezegun, icalendar
 python3-openid==3.0.10    # via django-allauth
 pytz==2016.6.1
 pyyaml==3.12
@@ -57,7 +58,7 @@ raven==5.27.1
 requests-cache==0.4.12
 requests-oauthlib==0.6.2  # via django-allauth
 requests==2.11.1          # via django-allauth, django-anymail, requests-cache, requests-oauthlib
-six==1.10.0               # via django-anymail, django-appconf, django-guardian, fake-factory, pip-tools, python-dateutil
+six==1.10.0               # via django-anymail, django-appconf, django-guardian, fake-factory, freezegun, pip-tools, python-dateutil
 tzlocal==1.2.2            # via delorean
 XlsxWriter==0.9.3
 
