@@ -23,6 +23,7 @@ from resources.api import RespaAPIRouter
 from resources.views.images import ResourceImageView
 from resources.views.ical import ICalFeedView
 from resources.views import testing as testing_views
+from resources.views.translated_models_export import export_translated_models
 
 admin.autodiscover()
 
@@ -33,6 +34,7 @@ urlpatterns = [
     url(r'^accounts/', include('allauth.urls')),
     url(r'^grappelli/', include('grappelli.urls')),
     url(r'^resource_image/(?P<pk>\d+)$', ResourceImageView.as_view(), name='resource-image-view'),
+    url(r'^translated_models$', export_translated_models, name='export-translations-view'),
     url(r'^v1/', include(router.urls)),
     url(r'^v1/reservation/ical/(?P<ical_token>[-\w\d]+).ics$', ICalFeedView.as_view(), name='ical-feed'),
 ]
