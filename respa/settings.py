@@ -213,6 +213,7 @@ THUMBNAIL_PROCESSORS = (
 RESPA_MAILS_ENABLED = False
 RESPA_MAILS_FROM_ADDRESS = ""
 
+TRANSLATED_MODELS_EXPORT = ['Purpose', 'TermsOfUse', 'Resource']
 
 # local_settings.py can be used to override environment-specific settings
 # like database and email that differ between development and production.

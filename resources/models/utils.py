@@ -183,3 +183,43 @@ def create_reservable_before_datetime(days_from_now):
     dt = dt.replace(hour=0, minute=0, second=0, microsecond=0)
 
     return dt
+
+
+def make_translation_excel(output, data):
+    """
+    Based on models.utils.generate_reservation_xlsx and this SO answer:
+    http://stackoverflow.com/a/36836927
+
+    Output is either BytesIO (for writing to a file) or StringIO (for Django HttpResponse)
+
+    Data is a dict where key is the model's name and value is a list
+    with first item the translated field names and second item list of instances
+    (or a queryset returning such)
+
+    Each model gets added to its own sheet (tab) in XLS file
+
+    :param output:BytesIO|StringIO
+    :param data:{model_name: [[translated field names], queryset for model]}
+    :return:XLS file as bytes
+    """
+
+    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+
+    for name, (translated_fields, items) in data.items():
+
+        worksheet = workbook.add_worksheet(name)
+
+        headers = [(field, 50) for field in translated_fields]
+
+        header_format = workbook.add_format({'bold': True})
+
+        for column, header in enumerate(headers):
+            worksheet.write(0, column, str(header[0]), header_format)
+            worksheet.set_column(column, column, header[1])
+
+        for row, item in enumerate(items, 1):
+            for column, field in enumerate(translated_fields):
+                worksheet.write(row, column, getattr(item, field) or '')
+
+    workbook.close()
+    return True
