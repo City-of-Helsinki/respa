@@ -42,8 +42,10 @@ class Command(BaseCommand):
 
         if options.get('all'):
             models = self.export_models
-        else:
+        elif options.get('models'):
             models = options.get('models')
+        else:
+            raise CommandError("Please give option --all or specific models with --models")
 
         # Validate models
         for model_name in models:
