@@ -104,8 +104,6 @@ class Period(models.Model):
     A period of time to express state of open or closed
     Days that specifies the actual activity hours link here
     """
-    parent = models.ForeignKey('Period', verbose_name=_('exception parent period'), null=True, blank=True, editable=False)
-    exception = models.BooleanField(verbose_name=_('Exceptional period'), default=False)
     resource = models.ForeignKey('Resource', verbose_name=_('Resource'), db_index=True,
                                  null=True, blank=True, related_name='periods')
     unit = models.ForeignKey('Unit', verbose_name=_('Unit'), db_index=True,
@@ -116,7 +114,7 @@ class Period(models.Model):
     duration = pgfields.DateRangeField(verbose_name=_('Length of period'), null=True,
                                        blank=True, db_index=True)
 
-    name = models.CharField(max_length=200, verbose_name=_('Name'))
+    name = models.CharField(max_length=200, verbose_name=_('Name'), blank=True, default='')
     description = models.CharField(verbose_name=_('Description'), null=True,
                                    blank=True, max_length=500)
     closed = models.BooleanField(verbose_name=_('Closed'), default=False, editable=False)
@@ -128,69 +126,6 @@ class Period(models.Model):
     def __str__(self):
         # FIXME: output date in locale-specific format
         return "{0}, {3}: {1:%d.%m.%Y} - {2:%d.%m.%Y}".format(self.name, self.start, self.end, STATE_BOOLS[self.closed])
-
-    def _validate_overlaps(self, ignore_overlap):
-        if self.resource:
-            old_periods = self.resource.periods
-        else:
-            old_periods = self.unit.periods
-
-        old_periods = old_periods.exclude(pk=self.pk)
-
-        # period has an end during the time range
-        ends_during = dbm.Q(end__gte=self.start, end__lte=self.end)
-
-        # period has a start during time range
-        starts_during = dbm.Q(start__gte=self.start, start__lte=self.end)
-
-        # period starts before and ends after time range
-        larger = dbm.Q(start__lte=self.start, end__gte=self.end)
-
-        # if any of these preceding rules is true, period has days on time range
-        overlapping_periods_old = old_periods.filter(starts_during | ends_during | larger)
-
-        if self.start > self.end:
-            raise ValidationError("Period must start before its end", code="invalid_date_range")
-
-        d_range = DateRange(self.start, self.end, '[]')
-        overlapping_periods = old_periods.filter(duration__overlap=d_range)
-
-        #  Validate periods are not overlapping regular or exceptional periods
-        if self.exception:
-            overlapping_exceptions = overlapping_periods.filter(exception=True)
-            if overlapping_exceptions and not ignore_overlap:
-                raise ValidationError(
-                    "There is already an exceptional period on these dates",
-                    code="multiple_exceptions"
-                )
-            regular_periods = overlapping_periods.filter(exception=False)
-            if len(regular_periods) > 1:
-                raise ValidationError(
-                    "Exceptional period can't be exception for more than one period",
-                    code="exception_for_multiple_periods"
-                )
-            elif not regular_periods:
-                raise ValidationError(
-                    "Exceptional period can't be exception without a regular period",
-                    code="no_regular_period"
-                )
-            elif len(regular_periods) == 1:
-                parent = regular_periods.first()
-                if (parent.start <= self.start) and (parent.end >= self.end):
-                    # period that encompasses this exceptional period is also this period's parent
-                    self.parent = parent
-                    # continue out of this layer of tests
-                else:
-                    raise ValidationError(
-                        "Exception period can't have different times from its regular period",
-                        code="larger_exception_than_parent"
-                    )
-            else:  # pragma: no cover
-                raise ValidationError("Somehow exceptional period is too exceptional")
-        else:
-            self.parent = None  # Not an exception? Reset any parentage
-            if not ignore_overlap and overlapping_periods.filter(exception=False):
-                raise ValidationError("There is already a period on these dates", code="overlap")
 
     def _validate_belonging(self):
         if not (self.resource_id or self.unit_id):
@@ -209,12 +144,14 @@ class Period(models.Model):
 
     def clean(self, ignore_overlap=False):
         super(Period, self).clean()
+
+        if self.start > self.end:
+            raise ValidationError("Period must start before its end", code="invalid_date_range")
+
         self._validate_belonging()
-        self._validate_overlaps(ignore_overlap=ignore_overlap)
         self._check_closed()
 
     def save(self, *args, **kwargs):
-        # Periods are either regular and stand alone or exceptions to regular period and must have a relation to it
 
         ignore_overlap = kwargs.pop('ignore_overlap', False)
         self.clean(ignore_overlap=ignore_overlap)
@@ -228,6 +165,7 @@ class Period(models.Model):
         """
         self._check_closed()
         self.save(force_update=True, update_fields=("closed",))
+
 
 class Day(models.Model):
     """

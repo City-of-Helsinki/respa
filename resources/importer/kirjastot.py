@@ -9,7 +9,7 @@ import delorean
 from django.db import transaction
 from django.db.models import Q
 
-from ..models import Unit, UnitIdentifier
+from resources.models import Unit, UnitIdentifier
 from .base import Importer, register_importer
 
 from raven import Client
@@ -31,7 +31,7 @@ class KirjastotImporter(Importer):
     name = "kirjastot"
 
     def import_units(self):
-        process_varaamo_libraries()
+        get_helmet_timetables()
 
 
 class ImportingException(Exception):
@@ -78,6 +78,86 @@ def process_varaamo_libraries():
             client.captureMessage("\n".join(problems))
     except AttributeError:
         pass
+
+
+@transaction.atomic
+def get_helmet_timetables():
+    """
+    Old V2 API makes a return
+
+    :return:None
+    """
+    url = "http://api.kirjastot.fi/v2/search/libraries?consortium=helmet&with=periods"
+    resp = requests.get(url)
+    assert resp.status_code == 200
+    data = resp.json()  # ??
+
+    # data = [{'id': 'H53', 'periods': []}]
+
+    for unit_data in data:
+
+        try:
+            identifier = UnitIdentifier.objects.get(
+                namespace='helmet',
+                value=unit_data['identificator'])
+            unit = identifier.unit
+        except ObjectDoesNotExist:
+            print("Object does not exist: ", unit_data['identificator'])
+            continue
+
+        with transaction.atomic():
+            unit.periods.all().delete()
+            process_v2_periods(unit, unit_data)
+
+
+def process_v2_periods(unit, unit_data):
+
+    for period in unit_data['periods']:
+
+        if not period.get('start', False):
+            continue  # NOTE: period is supposed to have *at least* start
+
+        #  start = datetime.datetime.strptime(period['start'], '%Y-%m-%d')
+
+        start = period['start']
+
+        if not period['end']:
+            this_day = datetime.date.today()
+            end = str(datetime.date(this_day.year + 1, 12, 31))  # No end time goes to end of next year
+        else:
+            end = period['end']
+
+        active_period = unit.periods.create(
+            start=start,
+            end=end,
+            description=period['description']['fi'],
+            closed=period['closed'],
+            name=period['name']['fi']
+        )
+
+        if not period['days']:
+            continue
+
+        for day_id, day in period['days'].items():
+            try:
+                # TODO: check the data for inconsistencies
+                opens = day['opens'] or None
+                closes = day['closes'] or None
+                active_period.days.create(
+                    weekday=int(day['day']) - 1,
+                    opens=opens,
+                    closes=closes,
+                    closed=day['closed']
+                )
+            except ValidationError as e:
+                print(e)
+                print(day)
+                raise ValidationError(e)
+
+        # TODO: automagic closing checker
+        # One day equals one period and share same closing state
+        active_period.closed = period.get('closed')
+        active_period.save()
 
 
 def timetable_fetcher(unit, start='2016-07-01', end='2016-12-31'):

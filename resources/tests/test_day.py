@@ -20,8 +20,7 @@ def test_opening_hours(resource_in_unit):
     # Two shorter days as exception
     exp1 = Period.objects.create(start=datetime.date(2015, 1, 10),
                                  end=datetime.date(2015, 1, 12),
-                                 unit=unit, name='exceptionally short days',
-                                 exception=True, parent=p1)
+                                 unit=unit, name='exceptionally short days')
     Day.objects.create(period=exp1, weekday=exp1.start.weekday(),
                        opens=datetime.time(12, 0), closes=datetime.time(14, 0))
     Day.objects.create(period=exp1, weekday=(exp1.start.weekday() + 1) % 7,
@@ -31,8 +30,7 @@ def test_opening_hours(resource_in_unit):
 
     # Closed for one day
     exp2 = Period.objects.create(start=datetime.date(2015, 1, 15), end=datetime.date(2015, 8, 15),
-                                 unit=unit, name='weekend is closed', closed=True, exception=True,
-                                 parent=p1)
+                                 unit=unit, name='weekend is closed', closed=True)
 
     periods = Period.objects.all()
     assert len(periods) == 3

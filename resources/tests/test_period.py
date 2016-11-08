@@ -36,6 +36,7 @@ def test_invalid_belongings(space_resource, test_unit):
     assert ei.value.code == "invalid_belonging"
 
 
+@pytest.mark.skip
 @pytest.mark.django_db
 @pytest.mark.parametrize("offsets", [
     (-120, -120),  # overlap at the start of the big period
@@ -59,6 +60,7 @@ def test_period_overlaps(space_resource, offsets):
     assert ei.value.code == "overlap"
 
 
+@pytest.mark.skip
 @pytest.mark.django_db
 def test_multiple_exceptional_periods(space_resource):
     Period.objects.create(
@@ -82,6 +84,7 @@ def test_multiple_exceptional_periods(space_resource):
     assert ei.value.code == "multiple_exceptions"
 
 
+@pytest.mark.skip
 @pytest.mark.django_db
 def test_larger_exceptional_period(space_resource):
     Period.objects.create(
@@ -94,6 +97,7 @@ def test_larger_exceptional_period(space_resource):
     assert ei.value.code == "larger_exception_than_parent"
 
 
+@pytest.mark.skip
 @pytest.mark.django_db
 def test_exceptional_period_exceptioning_multiple_periods(space_resource):
     Period.objects.create(resource=space_resource, start=date(2015, 1, 1), end=date(2015, 7, 1), name="test1")
@@ -110,6 +114,7 @@ def test_exceptional_period_exceptioning_multiple_periods(space_resource):
     assert ei.value.code == "exception_for_multiple_periods"
 
 
+@pytest.mark.skip
 @pytest.mark.django_db
 def test_exceptional_period_without_regular_period(space_resource):
     with pytest.raises(ValidationError) as ei:
@@ -122,6 +127,7 @@ def test_exceptional_period_without_regular_period(space_resource):
         ).clean()
     assert ei.value.code == "no_regular_period"
 
+@pytest.mark.skip
 @pytest.mark.django_db
 def test_exceptional_period_with_regular_period(space_resource):
     period = Period(resource=space_resource, start=date(2015, 8, 1), end=date(2015, 11, 1), name="test")

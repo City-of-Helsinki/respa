@@ -70,7 +70,7 @@ class PeriodModelForm(forms.ModelForm):
     """
     class Meta:
         model = Period
-        fields = ("start", "end", "name", "exception")
+        fields = ("start", "end", "name")
 
     def __init__(self, **kwargs):
         super(PeriodModelForm, self).__init__(**kwargs)
