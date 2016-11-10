@@ -26,7 +26,7 @@ django-image-cropping==1.0.3
 django-jinja==2.2.1
 django-modeltranslation==0.12
 django-mptt==0.8.6
-Django==1.10.1            # via django-allauth, django-anymail, django-jinja, easy-thumbnails
+Django==1.10.3            # via django-allauth, django-anymail, django-jinja, easy-thumbnails
 djangorestframework-jwt==1.8.0
 djangorestframework==3.4.6
 easy-thumbnails==2.3
