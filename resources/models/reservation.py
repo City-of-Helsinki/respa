@@ -69,7 +69,7 @@ class Reservation(ModifiableModel):
                                                               null=True)
     reserver_email_address = models.EmailField(verbose_name=_('Reserver email address'), blank=True)
 
-    access_code = models.CharField(verbose_name=_('Access code'), max_length=32, blank=True)
+    access_code = models.CharField(verbose_name=_('Access code'), max_length=32, null=True, blank=True)
 
     def _save_dt(self, attr, dt):
         """
