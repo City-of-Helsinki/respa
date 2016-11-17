@@ -291,10 +291,11 @@ class ResourceFilterSet(django_filters.FilterSet):
     people = django_filters.NumberFilter(name="people_capacity", lookup_type='gte')
     need_manual_confirmation = django_filters.BooleanFilter(name="need_manual_confirmation", widget=DRFFilterBooleanWidget)
     is_favorite = django_filters.MethodFilter(widget=django_filters.widgets.BooleanWidget())
+    unit = django_filters.CharFilter(name="unit__id", lookup_type='iexact')
 
     class Meta:
         model = Resource
-        fields = ['purpose', 'type', 'people', 'need_manual_confirmation', 'is_favorite']
+        fields = ['purpose', 'type', 'people', 'need_manual_confirmation', 'is_favorite', 'unit']
 
     def filter_is_favorite(self, queryset, value):
         if not self.user.is_authenticated():
