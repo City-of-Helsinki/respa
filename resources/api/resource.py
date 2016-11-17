@@ -286,12 +286,12 @@ class ResourceFilterSet(django_filters.FilterSet):
         self.user = kwargs.pop('user')
         super().__init__(*args, **kwargs)
 
-    purpose = ParentCharFilter(name="purposes__id", lookup_type='iexact')
-    type = django_filters.CharFilter(name="type__id", lookup_type='iexact')
-    people = django_filters.NumberFilter(name="people_capacity", lookup_type='gte')
-    need_manual_confirmation = django_filters.BooleanFilter(name="need_manual_confirmation", widget=DRFFilterBooleanWidget)
+    purpose = ParentCharFilter(name='purposes__id', lookup_type='iexact')
+    type = django_filters.CharFilter(name='type__id', lookup_type='iexact')
+    people = django_filters.NumberFilter(name='people_capacity', lookup_type='gte')
+    need_manual_confirmation = django_filters.BooleanFilter(name='need_manual_confirmation', widget=DRFFilterBooleanWidget)
     is_favorite = django_filters.MethodFilter(widget=django_filters.widgets.BooleanWidget())
-    unit = django_filters.CharFilter(name="unit__id", lookup_type='iexact')
+    unit = django_filters.CharFilter(name='unit__id', lookup_type='iexact')
 
     class Meta:
         model = Resource
