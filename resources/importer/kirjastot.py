@@ -101,7 +101,7 @@ def timetable_fetcher(unit, start='2016-07-01', end='2016-12-31'):
 
     base = "https://api.kirjastot.fi/v3/organisation"
 
-    for identificator in unit.identifiers:
+    for identificator in unit.identifiers.all():
 
         if identificator.namespace == 'kirjastot.fi':
             params = {
