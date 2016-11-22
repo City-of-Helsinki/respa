@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
+import datetime
+
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core import mail
 from django.test.testcases import SimpleTestCase
 from django.utils.six import BytesIO
 from django.utils.encoding import force_text
+from dateutil import parser
 from PIL import Image
 
 from resources.models import ResourceImage
@@ -168,3 +171,20 @@ def get_field_errors(validation_error, field_name):
     error_dict = validation_error.error_dict
     assert field_name in error_dict
     return error_dict[field_name][0].messages
+
+
+def assert_hours(tz, opening_hours, date, opens, closes=None):
+    hours = opening_hours.get(date)
+    assert hours is not None
+    assert len(hours) == 1
+    hours = hours[0]
+    if opens:
+        opens = tz.localize(datetime.datetime.combine(date, parser.parse(opens).time()))
+        assert hours['opens'] == opens
+    else:
+        assert hours['opens'] is None
+    if closes:
+        closes = tz.localize(datetime.datetime.combine(date, parser.parse(closes).time()))
+        assert hours['closes'] == closes
+    else:
+        assert hours['closes'] is None
