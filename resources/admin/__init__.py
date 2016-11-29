@@ -3,7 +3,9 @@ from django.contrib.admin import site as admin_site
 from django.contrib.admin.utils import unquote
 from django.contrib.auth import get_user_model
 from django.contrib.gis.admin import OSMGeoAdmin
+from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.utils.translation import ugettext_lazy as _
 from django import forms
 from guardian import admin as guardian_admin
 from image_cropping import ImageCroppingMixin
@@ -12,6 +14,7 @@ from .base import CommonExcludeMixin, PopulateCreatedAndModifiedMixin
 from resources.admin.period_inline import PeriodInline
 from resources.models import Day, Reservation, Resource, ResourceImage, ResourceType, Unit, Purpose
 from resources.models import Equipment, ResourceEquipment, EquipmentAlias, EquipmentCategory, TermsOfUse
+from resources.models import ReservationMetadataField, ReservationMetadataSet
 
 
 class EmailAndUsernameChoiceField(forms.ModelChoiceField):
@@ -122,6 +125,24 @@ class TermsOfUseAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Trans
     pass
 
 
+class ReservationMetadataSetForm(forms.ModelForm):
+    class Meta:
+        model = ReservationMetadataSet
+        exclude = CommonExcludeMixin.exclude + ('id',)
+
+    def clean(self):
+        supported = set(self.cleaned_data.get('supported_fields'))
+        required = set(self.cleaned_data.get('required_fields'))
+        if not required.issubset(supported):
+            raise ValidationError(_('Required fields must be a subset of supported fields'))
+        return self.cleaned_data
+
+
+class ReservationMetadataSetAdmin(PopulateCreatedAndModifiedMixin, admin.ModelAdmin):
+    exclude = CommonExcludeMixin.exclude + ('id',)
+    form = ReservationMetadataSetForm
+
+
 admin_site.register(ResourceImage, ResourceImageAdmin)
 admin_site.register(Resource, ResourceAdmin)
 admin_site.register(Reservation, ReservationAdmin)
@@ -133,3 +154,5 @@ admin_site.register(Equipment, EquipmentAdmin)
 admin_site.register(ResourceEquipment, ResourceEquipmentAdmin)
 admin_site.register(EquipmentCategory, EquipmentCategoryAdmin)
 admin_site.register(TermsOfUse, TermsOfUseAdmin)
+admin_site.register(ReservationMetadataField)
+admin_site.register(ReservationMetadataSet, ReservationMetadataSetAdmin)

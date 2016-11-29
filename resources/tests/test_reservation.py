@@ -1,4 +1,5 @@
 import datetime
+import pytest
 
 import arrow
 from django.core.exceptions import ValidationError
@@ -92,3 +93,10 @@ class ReservationTestCase(TestCase):
         # Should not raise an exception as this check isn't included in model clean
         reservation = Reservation(resource=r1a, begin=begin, end=end + datetime.timedelta(hours=1))
         reservation.clean()
+
+
+@pytest.mark.django_db
+def test_need_manual_confirmation_metadata_set(resource_in_unit):
+    data_set = ReservationMetadataSet.objects.get(name='default')
+    assert data_set.supported_fields.exists()
+    assert data_set.required_fields.exists()
