@@ -5,6 +5,7 @@ from decimal import Decimal
 
 import arrow
 import django.db.models as dbm
+from django.apps import apps
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
@@ -146,6 +147,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                                         default=ACCESS_CODE_TYPE_NONE)
     reservable_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable days in advance'),
                                                                   null=True, blank=True)
+    reservation_metadata_set = models.ForeignKey('resources.ReservationMetadataSet', null=True, blank=True)
 
     class Meta:
         verbose_name = _("resource")
@@ -390,6 +392,16 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
     def get_reservable_before(self):
         return create_reservable_before_datetime(self.get_reservable_days_in_advance())
+
+    def get_supported_reservation_extra_field_names(self):
+        if not self.reservation_metadata_set:
+            return []
+        return self.reservation_metadata_set.supported_fields.values_list('field_name', flat=True)
+
+    def get_required_reservation_extra_field_names(self):
+        if not self.reservation_metadata_set:
+            return []
+        return self.reservation_metadata_set.required_fields.values_list('field_name', flat=True)
 
     def clean(self):
         if self.min_price_per_hour is not None and self.max_price_per_hour is not None:

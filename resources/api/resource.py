@@ -18,8 +18,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.fields import BooleanField
 
 from munigeo import api as munigeo_api
-from resources.models import (Purpose, Resource, ResourceImage, ResourceType, ResourceEquipment, TermsOfUse,
-                              REQUIRED_RESERVATION_EXTRA_FIELDS)
+from resources.models import (Purpose, Resource, ResourceImage, ResourceType, ResourceEquipment, TermsOfUse)
 from .base import TranslatedModelSerializer, register_view
 from .reservation import ReservationSerializer
 from .unit import UnitSerializer
@@ -109,7 +108,7 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     opening_hours = serializers.SerializerMethodField()
     reservations = serializers.SerializerMethodField()
     user_permissions = serializers.SerializerMethodField()
-    required_reservation_extra_fields = serializers.SerializerMethodField()
+    required_reservation_extra_fields = serializers.ReadOnlyField(source='get_required_reservation_extra_field_names')
     is_favorite = serializers.SerializerMethodField()
     generic_terms = serializers.SerializerMethodField()
     reservable_days_in_advance = serializers.ReadOnlyField(source='get_reservable_days_in_advance')
@@ -121,9 +120,6 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
             'can_make_reservations': obj.can_make_reservations(request.user) if request else False,
             'is_admin': obj.is_admin(request.user) if request else False,
         }
-
-    def get_required_reservation_extra_fields(self, obj):
-        return REQUIRED_RESERVATION_EXTRA_FIELDS if obj.need_manual_confirmation else []
 
     def get_is_favorite(self, obj):
         request = self.context.get('request', None)
@@ -373,7 +369,7 @@ class LocationFilterBackend(filters.BaseFilterBackend):
 
 class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
                           viewsets.GenericViewSet):
-    queryset = Resource.objects.select_related('generic_terms', 'unit', 'type')
+    queryset = Resource.objects.select_related('generic_terms', 'unit', 'type', 'reservation_metadata_set')
     queryset = queryset.prefetch_related('favorited_by', 'resource_equipment', 'purposes', 'images', 'purposes')
     serializer_class = ResourceSerializer
     filter_backends = (filters.SearchFilter, ResourceFilterBackend,

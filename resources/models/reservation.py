@@ -19,10 +19,6 @@ RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_
                             'billing_address_city', 'company', 'event_description', 'reserver_id',
                             'number_of_participants', 'reserver_email_address')
 
-REQUIRED_RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street',
-                                     'reserver_address_zip', 'reserver_address_city', 'event_description',
-                                     'reserver_id', 'reserver_email_address')
-
 
 class ReservationQuerySet(models.QuerySet):
     def active(self):
@@ -53,23 +49,27 @@ class Reservation(ModifiableModel):
     approver = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Approver'),
                                  related_name='approved_reservations', null=True, blank=True)
 
-    # extra detail fields for paid reservations
+    # access-related fields
+    access_code = models.CharField(verbose_name=_('Access code'), max_length=32, null=True, blank=True)
+
+    # EXTRA FIELDS START HERE
+
+    event_subject = models.CharField(max_length=200, verbose_name=_('Event subject'), blank=True)
+    event_description = models.TextField(verbose_name=_('Event description'), blank=True)
+    number_of_participants = models.PositiveSmallIntegerField(verbose_name=_('Number of participants'), blank=True,
+                                                              null=True)
+    # extra detail fields for manually confirmed reservations
     reserver_name = models.CharField(verbose_name=_('Reserver name'), max_length=100, blank=True)
+    reserver_id = models.CharField(verbose_name=_('Reserver ID (business or person)'), max_length=30, blank=True)
+    reserver_email_address = models.EmailField(verbose_name=_('Reserver email address'), blank=True)
     reserver_phone_number = models.CharField(verbose_name=_('Reserver phone number'), max_length=30, blank=True)
     reserver_address_street = models.CharField(verbose_name=_('Reserver address street'), max_length=100, blank=True)
     reserver_address_zip = models.CharField(verbose_name=_('Reserver address zip'), max_length=30, blank=True)
     reserver_address_city = models.CharField(verbose_name=_('Reserver address city'), max_length=100, blank=True)
-    reserver_id = models.CharField(verbose_name=_('Reserver ID (business or person)'), max_length=30, blank=True)
+    company = models.CharField(verbose_name=_('Company'), max_length=100, blank=True)
     billing_address_street = models.CharField(verbose_name=_('Billing address street'), max_length=100, blank=True)
     billing_address_zip = models.CharField(verbose_name=_('Billing address zip'), max_length=30, blank=True)
     billing_address_city = models.CharField(verbose_name=_('Billing address city'), max_length=100, blank=True)
-    company = models.CharField(verbose_name=_('Company'), max_length=100, blank=True)
-    event_description = models.TextField(verbose_name=_('Event description'), blank=True)
-    number_of_participants = models.PositiveSmallIntegerField(verbose_name=_('Number of participants'), blank=True,
-                                                              null=True)
-    reserver_email_address = models.EmailField(verbose_name=_('Reserver email address'), blank=True)
-
-    access_code = models.CharField(verbose_name=_('Access code'), max_length=32, null=True, blank=True)
 
     def _save_dt(self, attr, dt):
         """
@@ -119,9 +119,9 @@ class Reservation(ModifiableModel):
     def need_manual_confirmation(self):
         return self.resource.need_manual_confirmation
 
-    def are_extra_fields_visible(self, user=None):
+    def are_extra_fields_visible(self, user):
         if not self.need_manual_confirmation():
-            return False
+            return True
         if not (user and user.is_authenticated()):
             return False
         return user == self.user or self.resource.is_admin(user)
@@ -240,3 +240,29 @@ class Reservation(ModifiableModel):
         return super().save(*args, **kwargs)
 
     objects = ReservationQuerySet.as_manager()
+
+
+class ReservationMetadataField(models.Model):
+    field_name = models.CharField(max_length=100, verbose_name=_('Field name'), unique=True)
+
+    class Meta:
+        verbose_name = _('Reservation metadata field')
+        verbose_name_plural = _('Reservation metadata fields')
+
+    def __str__(self):
+        return self.field_name
+
+
+class ReservationMetadataSet(ModifiableModel):
+    name = models.CharField(max_length=100, verbose_name=_('Name'), unique=True)
+    supported_fields = models.ManyToManyField(ReservationMetadataField, verbose_name=_('Supported fields'),
+                                              related_name='metadata_sets_supported')
+    required_fields = models.ManyToManyField(ReservationMetadataField, verbose_name=_('Required fields'),
+                                             related_name='metadata_sets_required', blank=True)
+
+    class Meta:
+        verbose_name = _('Reservation metadata set')
+        verbose_name_plural = _('Reservation metadata sets')
+
+    def __str__(self):
+        return self.name

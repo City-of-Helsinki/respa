@@ -9,10 +9,15 @@ from django.utils import dateparse, timezone
 from guardian.shortcuts import assign_perm
 from freezegun import freeze_time
 
-from resources.models import (Period, Day, Reservation, Resource, RESERVATION_EXTRA_FIELDS,
-                              REQUIRED_RESERVATION_EXTRA_FIELDS)
+from resources.models import (Period, Day, Reservation, Resource, ReservationMetadataField, ReservationMetadataSet,
+                              RESERVATION_EXTRA_FIELDS)
 from users.models import User
 from .utils import check_disallowed_methods, assert_non_field_errors_contain, check_received_mail_exists
+
+
+REQUIRED_RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street',
+                                     'reserver_address_zip', 'reserver_address_city', 'event_description',
+                                     'reserver_id', 'reserver_email_address')
 
 
 @pytest.fixture
@@ -592,6 +597,8 @@ def test_reservation_excels(staff_api_client, list_url, detail_url, reservation,
 def test_state_on_new_reservations(user_api_client, list_url, reservation_data_extra, resource_in_unit,
                                    need_manual_confirmation, expected_state):
     resource_in_unit.need_manual_confirmation = need_manual_confirmation
+    if need_manual_confirmation:
+        resource_in_unit.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
     resource_in_unit.save()
     response = user_api_client.post(list_url, data=reservation_data_extra)
     assert response.status_code == 201
@@ -623,6 +630,8 @@ def test_illegal_state_set(user_api_client, list_url, detail_url, reservation_da
 def test_extra_fields_visibility(user_api_client, list_url, detail_url, reservation, resource_in_unit,
                                  need_manual_confirmation):
     resource_in_unit.need_manual_confirmation = need_manual_confirmation
+    if need_manual_confirmation:
+        resource_in_unit.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
     resource_in_unit.save()
 
     for url in (list_url, detail_url):
@@ -637,6 +646,7 @@ def test_extra_fields_visibility(user_api_client, list_url, detail_url, reservat
 def test_extra_fields_required_for_paid_reservations(user_api_client, staff_api_client, staff_user, list_url,
                                                      resource_in_unit, reservation_data):
     resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
     resource_in_unit.save()
 
     response = user_api_client.post(list_url, data=reservation_data)
@@ -657,6 +667,7 @@ def test_extra_fields_required_for_paid_reservations(user_api_client, staff_api_
 def test_staff_event_restrictions(user_api_client, staff_api_client, staff_user, list_url, resource_in_unit,
                                   reservation_data):
     resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
     resource_in_unit.save()
     reservation_data['staff_event'] = True
 
@@ -681,6 +692,7 @@ def test_staff_event_restrictions(user_api_client, staff_api_client, staff_user,
 def test_new_staff_event_gets_confirmed(user_api_client, staff_api_client, staff_user, list_url, resource_in_unit,
                                       reservation_data, reservation_data_extra):
     resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
     resource_in_unit.save()
     reservation_data['staff_event'] = True
 
@@ -706,6 +718,7 @@ def test_extra_fields_can_be_set_for_paid_reservations(user_api_client, list_url
                                                       resource_in_unit):
     resource_in_unit.max_reservations_per_user = 2
     resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
     resource_in_unit.save()
 
     response = user_api_client.post(list_url, data=reservation_data_extra)
@@ -789,6 +802,7 @@ def test_reservation_can_be_confirmed_with_permission(staff_api_client, staff_us
 def test_user_cannot_modify_or_cancel_manually_confirmed_reservation(user_api_client, detail_url, reservation,
                                                                      reservation_data_extra, resource_in_unit):
     resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
     resource_in_unit.save()
 
     response = user_api_client.put(detail_url, data=reservation_data_extra)
@@ -808,6 +822,7 @@ def test_user_cannot_modify_or_cancel_manually_confirmed_reservation(user_api_cl
 def test_extra_fields_visibility_for_different_user_types(api_client, user, user2, staff_user, list_url, detail_url,
                                                           reservation, resource_in_unit, username, expected_visibility):
     resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
     resource_in_unit.save()
     if username:
         api_client.force_authenticate(user=User.objects.get(username=username))
@@ -857,6 +872,7 @@ def test_cannot_make_reservation_in_the_past(user_api_client, reservation_data, 
 @pytest.mark.django_db
 def test_need_manual_confirmation_filter(user_api_client, user, list_url, reservation, other_resource):
     other_resource.need_manual_confirmation = True
+    other_resource.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
     other_resource.save()
     reservation_needing_confirmation = Reservation.objects.create(
         resource=other_resource,
@@ -903,6 +919,7 @@ def test_state_filters(user_api_client, user, list_url, reservations_in_all_stat
 def test_reservation_mails(staff_api_client, staff_user, user_api_client, test_unit2, list_url, reservation_data_extra):
     resource = Resource.objects.get(id=reservation_data_extra['resource'])
     resource.need_manual_confirmation = True
+    resource.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
     resource.save()
     assign_perm('can_approve_reservation', staff_user, resource.unit)
 
@@ -979,6 +996,7 @@ def test_reservation_mails(staff_api_client, staff_user, user_api_client, test_u
 @pytest.mark.django_db
 def test_can_approve_filter(staff_api_client, staff_user, list_url, reservation):
     reservation.resource.need_manual_confirmation = True
+    reservation.resource.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
     reservation.resource.save()
     reservation.state = Reservation.REQUESTED
     reservation.save()
@@ -1128,3 +1146,36 @@ def test_reservation_reservable_before(user_api_client, resource_in_unit, list_u
 
     response = user_api_client.post(list_url, data=reservation_data)
     assert response.status_code == 201
+
+
+@pytest.mark.django_db
+def test_reservation_metadata_set(user_api_client, reservation, list_url, reservation_data):
+    detail_url = reverse('reservation-detail', kwargs={'pk': reservation.pk})
+    field_1 = ReservationMetadataField.objects.get(field_name='reserver_name')
+    field_2 = ReservationMetadataField.objects.get(field_name='reserver_phone_number')
+    metadata_set = ReservationMetadataSet.objects.create(
+        name='test_set',
+
+    )
+    metadata_set.supported_fields = [field_1, field_2]
+    metadata_set.required_fields = [field_1]
+
+    reservation.resource.reservation_metadata_set = metadata_set
+    reservation.resource.save(update_fields=('reservation_metadata_set',))
+    reservation_data['resource'] = reservation.resource.pk
+
+    response = user_api_client.put(detail_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 400
+    assert 'This field is required.' in response.data['reserver_name']
+
+    reservation_data['reserver_name'] = 'Mr. Reserver'
+    reservation_data['reserver_phone_number'] = '0700-555555'
+    reservation_data['reserver_address_street'] = 'ignored street 7'
+
+    response = user_api_client.put(detail_url, data=reservation_data)
+    assert response.status_code == 200
+
+    reservation.refresh_from_db()
+    assert reservation.reserver_name == 'Mr. Reserver'
+    assert reservation.reserver_phone_number == '0700-555555'
+    assert reservation.reserver_address_street != 'ignored street 7'
