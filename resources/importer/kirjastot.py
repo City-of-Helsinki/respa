@@ -95,18 +95,17 @@ def get_helmet_timetables():
     # data = [{'id': 'H53', 'periods': []}]
 
     for unit_data in data:
-
         try:
             identifier = UnitIdentifier.objects.get(
                 namespace='helmet',
                 value=unit_data['identificator'])
-            unit = identifier.unit
         except ObjectDoesNotExist:
-            print("Object does not exist: ", unit_data['identificator'])
             continue
 
+        unit = identifier.unit
         with transaction.atomic():
             unit.periods.all().delete()
+            print("Processing periods for %s" % unit)
             process_v2_periods(unit, unit_data)
 
 
