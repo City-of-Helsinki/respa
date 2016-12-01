@@ -4,8 +4,8 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
--e git+https://github.com/City-of-Helsinki/django-helusers.git#egg=django-helusers
 -e git+https://github.com/City-of-Helsinki/munigeo#egg=django-munigeo
+git+https://github.com/City-of-Helsinki/django-helusers.git@v0.2.2#egg=django-helusers==0.2.2
 arrow==0.9.0
 babel==2.3.4              # via delorean
 click==6.6                # via pip-tools
