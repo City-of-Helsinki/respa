@@ -286,18 +286,14 @@ class ResourceFilterSet(django_filters.FilterSet):
         self.user = kwargs.pop('user')
         super().__init__(*args, **kwargs)
 
-    purpose = ParentCharFilter(name='purposes__id', lookup_type='iexact')
-    type = django_filters.CharFilter(name='type__id', lookup_type='iexact')
-    people = django_filters.NumberFilter(name='people_capacity', lookup_type='gte')
+    purpose = ParentCharFilter(name='purposes__id', lookup_expr='iexact')
+    type = django_filters.CharFilter(name='type__id', lookup_expr='iexact')
+    people = django_filters.NumberFilter(name='people_capacity', lookup_expr='gte')
     need_manual_confirmation = django_filters.BooleanFilter(name='need_manual_confirmation', widget=DRFFilterBooleanWidget)
-    is_favorite = django_filters.MethodFilter(widget=django_filters.widgets.BooleanWidget())
-    unit = django_filters.CharFilter(name='unit__id', lookup_type='iexact')
+    is_favorite = django_filters.BooleanFilter(method='filter_is_favorite', widget=DRFFilterBooleanWidget)
+    unit = django_filters.CharFilter(name='unit__id', lookup_expr='iexact')
 
-    class Meta:
-        model = Resource
-        fields = ['purpose', 'type', 'people', 'need_manual_confirmation', 'is_favorite', 'unit']
-
-    def filter_is_favorite(self, queryset, value):
+    def filter_is_favorite(self, queryset, name, value):
         if not self.user.is_authenticated():
             if value:
                 return queryset.none()
@@ -308,6 +304,10 @@ class ResourceFilterSet(django_filters.FilterSet):
             return queryset.filter(favorited_by=self.user)
         else:
             return queryset.exclude(favorited_by=self.user)
+
+    class Meta:
+        model = Resource
+        fields = ['purpose', 'type', 'people', 'need_manual_confirmation', 'is_favorite', 'unit']
 
 
 class ResourceFilterBackend(filters.BaseFilterBackend):

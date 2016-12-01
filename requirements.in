@@ -1,5 +1,5 @@
 Django
-django-modeltranslation>=0.11rc2
+django-modeltranslation
 psycopg2
 -e git+https://github.com/City-of-Helsinki/munigeo#egg=django-munigeo
 djangorestframework

@@ -27,6 +27,7 @@ class UnitSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
 
     class Meta:
         model = Unit
+        fields = '__all__'
 
 
 class UnitViewSet(munigeo_api.GeoModelAPIView, viewsets.ReadOnlyModelViewSet):

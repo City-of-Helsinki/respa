@@ -11,6 +11,7 @@ def TMS():
     class TestSerializer(TranslatedModelSerializer):
         class Meta:
             model = ResourceEquipment
+            fields = '__all__'
     return TestSerializer
 
 
