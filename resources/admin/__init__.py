@@ -110,7 +110,7 @@ class ResourceTypeAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Tra
     pass
 
 
-class EquipmentCategoryAdmin(PopulateCreatedAndModifiedMixin, TranslationAdmin):
+class EquipmentCategoryAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):
     pass
 
 
