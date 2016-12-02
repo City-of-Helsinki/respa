@@ -161,15 +161,6 @@ def test_api_resource_geo_queries(api_client, resource_in_unit):
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize('endpoint', ['favorite', 'unfavorite'])
-def test_resource_favorite_non_official(user_api_client, resource_in_unit, endpoint):
-    url = '%s%s/' % (get_detail_url(resource_in_unit), endpoint)
-
-    response = user_api_client.post(url)
-    assert response.status_code == 403
-
-
-@pytest.mark.django_db
 def test_resource_favorite(staff_api_client, staff_user, resource_in_unit):
     url = '%sfavorite/' % get_detail_url(resource_in_unit)
 
@@ -180,6 +171,19 @@ def test_resource_favorite(staff_api_client, staff_user, resource_in_unit):
     response = staff_api_client.post(url)
     assert response.status_code == 304
     assert resource_in_unit in staff_user.favorite_resources.all()
+
+
+@pytest.mark.django_db
+def test_resource_favorite_non_official(user_api_client, user, resource_in_unit):
+    url = '%sfavorite/' % get_detail_url(resource_in_unit)
+
+    response = user_api_client.post(url)
+    assert response.status_code == 201
+    assert resource_in_unit in user.favorite_resources.all()
+
+    response = user_api_client.post(url)
+    assert response.status_code == 304
+    assert resource_in_unit in user.favorite_resources.all()
 
 
 @pytest.mark.django_db
@@ -194,6 +198,20 @@ def test_resource_unfavorite(staff_api_client, staff_user, resource_in_unit):
     response = staff_api_client.post(url)
     assert response.status_code == 204
     assert resource_in_unit not in staff_user.favorite_resources.all()
+
+
+@pytest.mark.django_db
+def test_resource_unfavorite_non_official(user_api_client, user, resource_in_unit):
+    url = '%sunfavorite/' % get_detail_url(resource_in_unit)
+
+    response = user_api_client.post(url)
+    assert response.status_code == 304
+
+    user.favorite_resources.add(resource_in_unit)
+
+    response = user_api_client.post(url)
+    assert response.status_code == 204
+    assert resource_in_unit not in user.favorite_resources.all()
 
 
 @pytest.mark.django_db
