@@ -397,9 +397,6 @@ class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, vi
         resource = self.get_object()
         user = request.user
 
-        if not resource.is_admin(user):
-            raise PermissionDenied()
-
         exists = user.favorite_resources.filter(id=resource.id).exists()
 
         if value:
