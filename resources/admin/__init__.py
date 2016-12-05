@@ -10,11 +10,11 @@ from django import forms
 from guardian import admin as guardian_admin
 from image_cropping import ImageCroppingMixin
 from modeltranslation.admin import TranslationAdmin, TranslationStackedInline
-from .base import CommonExcludeMixin, PopulateCreatedAndModifiedMixin
+from .base import ExtraReadonlyFieldsOnUpdateMixin, CommonExcludeMixin, PopulateCreatedAndModifiedMixin
 from resources.admin.period_inline import PeriodInline
 from resources.models import Day, Reservation, Resource, ResourceImage, ResourceType, Unit, Purpose
 from resources.models import Equipment, ResourceEquipment, EquipmentAlias, EquipmentCategory, TermsOfUse
-from resources.models import ReservationMetadataField, ReservationMetadataSet
+from resources.models import ReservationMetadataField, ReservationMetadataSet, ResourceGroup
 
 
 class EmailAndUsernameChoiceField(forms.ModelChoiceField):
@@ -54,10 +54,19 @@ class ResourceEquipmentInline(PopulateCreatedAndModifiedMixin, CommonExcludeMixi
     extra = 0
 
 
+class ResourceGroupInline(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, admin.TabularInline):
+    model = ResourceGroup.resources.through
+    fields = ('resourcegroup',)
+    verbose_name = _('Resource group')
+    verbose_name_plural = _('Resource groups')
+    extra = 0
+
+
 class ResourceAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin, HttpsFriendlyGeoAdmin):
     inlines = [
         PeriodInline,
         ResourceEquipmentInline,
+        ResourceGroupInline,
     ]
 
     default_lon = 2776460  # Central Railway Station in EPSG:3857
@@ -105,13 +114,9 @@ class ResourceEquipmentAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin
     fields = ('resource', 'equipment', 'description', 'data')
 
 
-class ReservationAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, admin.ModelAdmin):
-    def get_readonly_fields(self, request, obj=None):
-        if obj:
-            read_only_fields = list(super().get_readonly_fields(request, obj))
-            read_only_fields.append('access_code')
-            return tuple(read_only_fields)
-        return super().get_readonly_fields(request, obj)
+class ReservationAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, ExtraReadonlyFieldsOnUpdateMixin,
+                       admin.ModelAdmin):
+    extra_readonly_fields_on_update = ('access_code',)
 
 
 class ResourceTypeAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):
@@ -148,6 +153,10 @@ class ReservationMetadataSetAdmin(PopulateCreatedAndModifiedMixin, admin.ModelAd
     form = ReservationMetadataSetForm
 
 
+class ResourceGroupAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, admin.ModelAdmin):
+    pass
+
+
 admin_site.register(ResourceImage, ResourceImageAdmin)
 admin_site.register(Resource, ResourceAdmin)
 admin_site.register(Reservation, ReservationAdmin)
@@ -161,3 +170,4 @@ admin_site.register(EquipmentCategory, EquipmentCategoryAdmin)
 admin_site.register(TermsOfUse, TermsOfUseAdmin)
 admin_site.register(ReservationMetadataField)
 admin_site.register(ReservationMetadataSet, ReservationMetadataSetAdmin)
+admin.site.register(ResourceGroup, ResourceGroupAdmin)
