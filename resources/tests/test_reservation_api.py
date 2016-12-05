@@ -1015,7 +1015,7 @@ def test_can_approve_filter(staff_api_client, staff_user, list_url, reservation)
 @pytest.mark.django_db
 def test_access_code_cannot_be_set_if_type_none(user_api_client, list_url, resource_in_unit, reservation_data):
     reservation_data['access_code'] = '023543'
-    response = user_api_client.post(list_url, data=reservation_data)
+    response = user_api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
     assert response.status_code == 400
     assert 'This field cannot have a value with this resource' in response.data['access_code']
 
@@ -1027,7 +1027,7 @@ def test_invalid_pin6_access_code(user_api_client, list_url, resource_in_unit, r
     reservation_data['access_code'] = 'xxx'
     reservation_data['resource'] = resource_in_unit.id
 
-    response = user_api_client.post(list_url, data=reservation_data)
+    response = user_api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
     assert response.status_code == 400
     assert 'Invalid value' in response.data['access_code']
 
@@ -1065,7 +1065,7 @@ def test_pin6_access_code_cannot_be_modified(user_api_client, resource_in_unit, 
     reservation_data['access_code'] = '654321'
 
     detail_url = reverse('reservation-detail', kwargs={'pk': reservation.pk})
-    response = user_api_client.put(detail_url, data=reservation_data)
+    response = user_api_client.put(detail_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
     assert response.status_code == 400
     assert 'This field cannot be changed' in response.data['access_code']
 
