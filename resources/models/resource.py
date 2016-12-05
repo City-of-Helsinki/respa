@@ -518,3 +518,16 @@ class ResourceEquipment(ModifiableModel):
 
     def __str__(self):
         return "%s / %s" % (self.equipment, self.resource)
+
+
+class ResourceGroup(ModifiableModel):
+    identifier = models.CharField(verbose_name=_('Identifier'), max_length=100)
+    name = models.CharField(verbose_name=_('Name'), max_length=200)
+    resources = models.ManyToManyField(Resource, verbose_name=_('Resources'), related_name='groups', blank=True)
+
+    class Meta:
+        verbose_name = _('Resource group')
+        verbose_name_plural = _('Resource groups')
+
+    def __str__(self):
+        return self.name
