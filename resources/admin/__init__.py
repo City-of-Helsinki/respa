@@ -64,6 +64,11 @@ class ResourceAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Transla
     default_lat = 8438120
     default_zoom = 12
 
+    list_display = ('name', 'unit', 'public')
+    list_filter = ('unit', 'public')
+    list_select_related = ('unit',)
+    ordering = ('unit', 'name')
+
 
 class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, FixedGuardedModelAdminMixin,
                 TranslationAdmin, HttpsFriendlyGeoAdmin):

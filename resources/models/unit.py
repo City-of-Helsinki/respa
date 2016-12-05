@@ -48,6 +48,7 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
             ('can_approve_reservation', _('Can approve reservation')),
             ('can_view_reservation_access_code', _('Can view reservation access code')),
         )
+        ordering = ('name',)
 
     def __str__(self):
         return "%s (%s)" % (get_translated(self, 'name'), self.id)
