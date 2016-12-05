@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient, APIRequestFactory
 
 from resources.models import Resource, ResourceType, Unit, Purpose, Day, Period
-from resources.models import Equipment, EquipmentAlias, ResourceEquipment, EquipmentCategory, TermsOfUse
+from resources.models import Equipment, EquipmentAlias, ResourceEquipment, EquipmentCategory, TermsOfUse, ResourceGroup
 
 
 @pytest.fixture
@@ -214,3 +214,23 @@ def staff_user():
 @pytest.fixture
 def purpose():
     return Purpose.objects.create(name='test purpose', id='test-purpose')
+
+
+@pytest.fixture
+def resource_group(resource_in_unit):
+    group = ResourceGroup.objects.create(
+        identifier='test_group',
+        name='Test resource group'
+    )
+    group.resources = [resource_in_unit]
+    return group
+
+
+@pytest.fixture
+def resource_group2(resource_in_unit2):
+    group = ResourceGroup.objects.create(
+        identifier='test_group_2',
+        name='Test resource group 2'
+    )
+    group.resources = [resource_in_unit2]
+    return group

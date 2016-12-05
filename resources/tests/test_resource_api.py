@@ -1,5 +1,6 @@
 import datetime
 import pytest
+from copy import deepcopy
 from django.core.urlresolvers import reverse
 from django.contrib.gis.geos import Point
 from django.utils import timezone
@@ -314,3 +315,26 @@ def test_reservable_in_advance_fields(api_client, resource_in_unit, test_unit, d
     assert response.data['reservable_days_in_advance'] == 10
     before = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + datetime.timedelta(days=11)
     assert response.data['reservable_before'] == before
+
+
+@pytest.mark.django_db
+def test_resource_group_filter(api_client, resource_in_unit, resource_in_unit2, resource_group, resource_group2,
+                               list_url):
+    extra_unit = deepcopy(resource_in_unit)
+    extra_unit.id = None
+    extra_unit.save()
+
+    # no group
+    response = api_client.get(list_url)
+    assert response.status_code == 200
+    assert len(response.data['results']) == 3
+
+    # one group
+    response = api_client.get('%s?group=%s' % (list_url, resource_group.identifier))
+    assert response.status_code == 200
+    assert set(r['id'] for r in response.data['results']) == {resource_in_unit.id}
+
+    # multiple groups
+    response = api_client.get('%s?group=%s,%s' % (list_url, resource_group.identifier, resource_group2.identifier))
+    assert response.status_code == 200
+    assert set(r['id'] for r in response.data['results']) == {resource_in_unit.id, resource_in_unit2.id}
