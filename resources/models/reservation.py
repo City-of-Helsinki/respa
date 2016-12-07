@@ -16,7 +16,7 @@ from .utils import get_dt, save_dt, is_valid_time_slot, humanize_duration, send_
 
 RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street', 'reserver_address_zip',
                             'reserver_address_city', 'billing_address_street',  'billing_address_zip',
-                            'billing_address_city', 'company', 'event_description', 'reserver_id',
+                            'billing_address_city', 'company', 'event_description', 'event_subject', 'reserver_id',
                             'number_of_participants', 'reserver_email_address')
 
 
