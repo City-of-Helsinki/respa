@@ -9,15 +9,19 @@ from django.utils import dateparse, timezone
 from guardian.shortcuts import assign_perm
 from freezegun import freeze_time
 
-from resources.models import (Period, Day, Reservation, Resource, ReservationMetadataField, ReservationMetadataSet,
-                              RESERVATION_EXTRA_FIELDS)
+from resources.models import (Period, Day, Reservation, Resource, ReservationMetadataField, ReservationMetadataSet)
 from users.models import User
 from .utils import check_disallowed_methods, assert_non_field_errors_contain, check_received_mail_exists
 
 
-REQUIRED_RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street',
-                                     'reserver_address_zip', 'reserver_address_city', 'event_description',
-                                     'reserver_id', 'reserver_email_address')
+DEFAULT_RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street',
+                                    'reserver_address_zip', 'reserver_address_city', 'billing_address_street',
+                                    'billing_address_zip', 'billing_address_city', 'company', 'event_description',
+                                    'reserver_id', 'number_of_participants', 'reserver_email_address')
+
+DEFAULT_REQUIRED_RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street',
+                                             'reserver_address_zip', 'reserver_address_city', 'event_description',
+                                             'reserver_id', 'reserver_email_address')
 
 
 @pytest.fixture
@@ -638,7 +642,7 @@ def test_extra_fields_visibility(user_api_client, list_url, detail_url, reservat
         response = user_api_client.get(url)
         assert response.status_code == 200
         reservation_data = response.data['results'][0] if 'results' in response.data else response.data
-        for field_name in RESERVATION_EXTRA_FIELDS:
+        for field_name in DEFAULT_RESERVATION_EXTRA_FIELDS:
             assert (field_name in reservation_data) is need_manual_confirmation
 
 
@@ -651,16 +655,16 @@ def test_extra_fields_required_for_paid_reservations(user_api_client, staff_api_
 
     response = user_api_client.post(list_url, data=reservation_data)
     assert response.status_code == 400
-    assert set(REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
+    assert set(DEFAULT_REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
 
     response = staff_api_client.post(list_url, data=reservation_data)
     assert response.status_code == 400
-    assert set(REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
+    assert set(DEFAULT_REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
 
     assign_perm('can_approve_reservation', staff_user, resource_in_unit.unit)
     response = staff_api_client.post(list_url, data=reservation_data)
     assert response.status_code == 400
-    assert set(REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
+    assert set(DEFAULT_REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
 
 
 @pytest.mark.django_db
@@ -674,12 +678,12 @@ def test_staff_event_restrictions(user_api_client, staff_api_client, staff_user,
     # normal user
     response = user_api_client.post(list_url, data=reservation_data)
     assert response.status_code == 400
-    assert set(REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
+    assert set(DEFAULT_REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
 
     # staff member
     response = staff_api_client.post(list_url, data=reservation_data)
     assert response.status_code == 400
-    assert set(REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
+    assert set(DEFAULT_REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
 
     # staff with permission but reserver_name and event_description missing
     assign_perm('can_approve_reservation', staff_user, resource_in_unit.unit)
@@ -831,7 +835,7 @@ def test_extra_fields_visibility_for_different_user_types(api_client, user, user
         response = api_client.get(url)
         assert response.status_code == 200
         reservation_data = response.data['results'][0] if 'results' in response.data else response.data
-        for field_name in RESERVATION_EXTRA_FIELDS:
+        for field_name in DEFAULT_RESERVATION_EXTRA_FIELDS:
             assert (field_name in reservation_data) is expected_visibility
 
 
