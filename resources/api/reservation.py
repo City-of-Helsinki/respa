@@ -333,7 +333,8 @@ class ReservationFilterBackend(filters.BaseFilterBackend):
                 times[name] = arrow.get(params[name]).to('utc').datetime
             except ParserError:
                 raise exceptions.ParseError("'%s' must be a timestamp in ISO 8601 format" % name)
-        if not past:
+        is_detail_request = 'pk' in request.parser_context['kwargs']
+        if not past and not is_detail_request:
             past = params.get('all', 'false')
             past = BooleanField().to_internal_value(past)
             if not past:

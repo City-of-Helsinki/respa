@@ -1183,3 +1183,17 @@ def test_reservation_metadata_set(user_api_client, reservation, list_url, reserv
     assert reservation.reserver_name == 'Mr. Reserver'
     assert reservation.reserver_phone_number == '0700-555555'
     assert reservation.reserver_address_street != 'ignored street 7'
+
+
+@pytest.mark.django_db
+def test_detail_endpoint_does_not_need_all_true_filter(user_api_client, user, resource_in_unit):
+    reservation_in_the_past = Reservation.objects.create(
+        resource=resource_in_unit,
+        begin='2005-04-04T09:00:00+02:00',
+        end='2005-04-04T10:00:00+02:00',
+        user=user,
+    )
+
+    detail_url = reverse('reservation-detail', kwargs={'pk': reservation_in_the_past.pk})
+    response = user_api_client.get(detail_url)
+    assert response.status_code == 200
