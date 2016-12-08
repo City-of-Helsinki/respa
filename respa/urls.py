@@ -38,6 +38,13 @@ urlpatterns = [
     url(r'^$', RedirectView.as_view(url='v1/'))
 ]
 
+if 'reports' in settings.INSTALLED_APPS:
+    from reports.api import UnitEventsDayReport
+    urlpatterns.append(
+        url(r'^v1/report/unit_events_day/', UnitEventsDayReport.as_view(), name='unit-events-day-report')
+    )
+
+
 if settings.DEBUG:
     urlpatterns.append(
         url(r'test/availability$', testing_views.testing_view)

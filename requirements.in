@@ -32,3 +32,4 @@ django-anymail
 raven
 delorean
 freezegun
+python-docx
