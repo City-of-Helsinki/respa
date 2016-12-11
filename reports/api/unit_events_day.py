@@ -38,11 +38,13 @@ class DocxRenderer(renderers.BaseRenderer):
             else:
                 first_resource = False
 
-            h = document.add_heading('%s\t%s' % (resource.name, formats.date_format(day)), 1)
-            h.paragraph_format.space_after = Pt(48)
+            name_h = document.add_heading(resource.name, 1)
+            name_h.paragraph_format.space_after = Pt(12)
+            date_h = document.add_heading(formats.date_format(day, format='D j.n.Y'), 2)
+            date_h.paragraph_format.space_after = Pt(48)
 
             if reservation_count == 0:
-                p = document.add_paragraph('- %s - ' % _('No reservations'))
+                p = document.add_paragraph(_('No reservations'))
                 p.paragraph_format.space_before = Pt(24)
 
             for reservation in reservations:
@@ -50,12 +52,13 @@ class DocxRenderer(renderers.BaseRenderer):
                 # the time
                 p = document.add_paragraph()
                 p.paragraph_format.space_before = Pt(24)
-                p.add_run(formats.time_format(localtime(reservation.begin)) + ' - ' +
+                p.add_run(formats.time_format(localtime(reservation.begin)) + '–' +
                           formats.time_format(localtime(reservation.end))).bold = True
 
                 # collect attributes from the reservation, skip empty ones
                 attrs = [(field, getattr(reservation, field)) for field in (
                     'event_subject',
+                    'reserver_name',
                     'number_of_participants',
                     # TODO moar fields
                 ) if getattr(reservation, field)]
@@ -63,12 +66,11 @@ class DocxRenderer(renderers.BaseRenderer):
                 if not attrs:
                     # this should not normally happen as event_subject and number_of_participants
                     # should be required fields
-                    p = document.add_paragraph('- %s - ' % _('No information available'))
+                    p = document.add_paragraph(_('No information available'))
                     p.paragraph_format.space_before = Pt(24)
                     continue
 
                 table = document.add_table(rows=0, cols=2)
-
                 # build the attribute table
                 for attr in attrs:
                     row_cells = table.add_row().cells

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-07 10:10+0200\n"
+"POT-Creation-Date: 2016-12-11 14:00+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,28 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: resources/admin/__init__.py:142
+#: reports/api/unit_events_day.py:47
+msgid "No reservations"
+msgstr "Ei varauksia"
+
+#: reports/api/unit_events_day.py:69
+msgid "No information available"
+msgstr "Ei tietoja saatavilla"
+
+#: reports/api/unit_events_day.py:96 resources/api/reservation.py:215
+#, python-brace-format
+msgid "Invalid pk \"{pk_value}\" - object does not exist."
+msgstr ""
+
+#: resources/admin/__init__.py:60 resources/models/resource.py:529
+msgid "Resource group"
+msgstr "Resurssiryhmä"
+
+#: resources/admin/__init__.py:61 resources/models/resource.py:530
+msgid "Resource groups"
+msgstr "Resurssiryhmät"
+
+#: resources/admin/__init__.py:147
 msgid "Required fields must be a subset of supported fields"
 msgstr "Jokaisen pakollisen kentän täytyy olla myös tuettu kenttä"
 
@@ -50,21 +71,16 @@ msgstr "Tällä kentällä ei voi olla arvoa tällä resurssilla"
 msgid "This field cannot be changed"
 msgstr "Tätä arvoa ei voi muuttaa"
 
-#: resources/api/reservation.py:215
-#, python-brace-format
-msgid "Invalid pk \"{pk_value}\" - object does not exist."
-msgstr ""
-
 #: resources/api/reservation.py:274 resources/api/reservation.py:288
 #, python-format
 msgid "Invalid value in filter %(filter)s"
 msgstr "Virheellinen arvo filtterissä %(filter)s"
 
-#: resources/api/reservation.py:472 resources/models/reservation.py:154
+#: resources/api/reservation.py:473 resources/models/reservation.py:154
 msgid "reservations"
 msgstr "varaukset"
 
-#: resources/api/reservation.py:478 resources/models/reservation.py:153
+#: resources/api/reservation.py:479 resources/models/reservation.py:153
 msgid "reservation"
 msgstr "varaus"
 
@@ -664,14 +680,6 @@ msgstr "Tunniste"
 msgid "Resources"
 msgstr "Resurssit"
 
-#: resources/models/resource.py:529
-msgid "Resource group"
-msgstr "Resurssiryhmä"
-
-#: resources/models/resource.py:530
-msgid "Resource groups"
-msgstr "Resurssiryhmät"
-
 #: resources/models/unit.py:21
 msgid "Time zone"
 msgstr "Aikavyöhyke"
@@ -766,127 +774,6 @@ msgstr "Lisää toinen"
 msgid "Delete Item"
 msgstr "Poista"
 
-#: resources/templates/mail/_reservation_data.jinja:1
-#, python-format
-msgid "Resource: %(resource)s"
-msgstr "Tila: %(resource)s"
-
-#: resources/templates/mail/_reservation_data.jinja:2
-#, python-format
-msgid "Unit: %(unit)s"
-msgstr "Toimipiste: %(unit)s"
-
-#: resources/templates/mail/_reservation_data.jinja:3
-#, python-format
-msgid "Starts: %(starts)s"
-msgstr "Alkaa: %(starts)s"
-
-#: resources/templates/mail/_reservation_data.jinja:4
-#, python-format
-msgid "Ends: %(ends)s"
-msgstr "Loppuu: %(ends)s"
-
-#: resources/templates/mail/base_message.jinja:1
-msgid "Hello,"
-msgstr "Hei,"
-
-#: resources/templates/mail/base_message.jinja:5
-msgid "This is an automated message, please don't reply to this."
-msgstr "Tämä on automaattinen viesti, joten älä vastaa tähän."
-
-#: resources/templates/mail/base_message.jinja:7
-msgid ""
-"Best regards,\n"
-"Varaamo"
-msgstr ""
-"Ystävällisin terveisin,\n"
-"Varaamo"
-
-#: resources/templates/mail/reservation_cancelled.jinja:1
-msgid "Your reservation has been cancelled."
-msgstr "Varauksesi on peruttu."
-
-#: resources/templates/mail/reservation_cancelled.jinja:4
-msgid ""
-"\n"
-"Further information regarding the cancellation of your reservation can\n"
-"be acquired from the personnel who are responsible for the space.\n"
-msgstr ""
-"\n"
-"Varauksen perumiseen liittyvät syyt voitte tiedustella tilasta vastaavalta\n"
-"henkilökunnalta.\n"
-
-#: resources/templates/mail/reservation_confirmed.jinja:1
-msgid "Your reservation has been confirmed."
-msgstr "Varauksesi on hyväksytty."
-
-#: resources/templates/mail/reservation_confirmed.jinja:4
-msgid ""
-"\n"
-"It is possible to cancel the reservation five days before the start of\n"
-"your reservation. All cancellations are done through personnel. Further\n"
-"information for cancelling your reservation can be found from Varaamo's\n"
-"\"Omat varaukset\" section which you can find when you are logged in to the\n"
-"service.\n"
-msgstr ""
-"\n"
-"Varauksen voitte perua viisi päivää ennen varauksen alkua. Varauksen\n"
-"peruminen tehdään tilasta vastaavan henkilökunnan kautta. Tarkemmat\n"
-"tiedot perumiseen löydätte Varaamon omista varauksista kirjautumalla\n"
-"palveluun.\n"
-
-#: resources/templates/mail/reservation_created_with_access_code.jinja:1
-#: resources/templates/mail/reservation_requested.jinja:1
-msgid "and thanks for using Varaamo!"
-msgstr "ja kiitokset Varaamon käytöstä!"
-
-#: resources/templates/mail/reservation_created_with_access_code.jinja:3
-msgid "You've made a new reservation:"
-msgstr "Olet tehnyt uuden varauksen:"
-
-#: resources/templates/mail/reservation_created_with_access_code.jinja:7
-msgid "Your access code for the resource: "
-msgstr "Pääsykoodisi tilaan:"
-
-#: resources/templates/mail/reservation_denied.jinja:1
-msgid "Your reservation request has been denied."
-msgstr "Varauksesi on hylätty."
-
-#: resources/templates/mail/reservation_denied.jinja:4
-msgid ""
-"\n"
-"Further information regarding the rejection of your reservation can\n"
-"be acquired from the personnel who are responsible for the space.\n"
-msgstr ""
-"\n"
-"Varauksen hylkäämiseen liittyvät tarkemmat perusteet voitte\n"
-"tiedustella tilasta vastaavalta henkilökunnalta.\n"
-
-#: resources/templates/mail/reservation_requested.jinja:3
-msgid "You've made a preliminary reservation:"
-msgstr "Olet tehnyt alustavan varauksen:"
-
-#: resources/templates/mail/reservation_requested.jinja:6
-msgid ""
-"\n"
-"Your reservation will be processed in two days and you will get an\n"
-"email when your reservation is either confirmed or denied. In case we\n"
-"need more information regarding the reservation, we will be in contact\n"
-"with you.\n"
-msgstr ""
-"\n"
-"Varaus käsitellään kahden päivän kuluessa. Varauksen hyväksymisestä\n"
-"saatte erillisen varausvahvistuksen sähköpostitse. Mikäli tarvitsemme\n"
-"lisätietoja varaukseen liittyen, olemme teihin yhteydessä erikseen.\n"
-
-#: resources/templates/mail/reservation_requested_official.jinja:1
-msgid "A new preliminary reservation has been made:"
-msgstr "Uusi alustava varaus on tehty:"
-
-#: resources/templates/mail/reservation_requested_official.jinja:5
-msgid "Process the reservation within two days."
-msgstr "Käsittele varaus kahden päivän sisällä."
-
 #: respa/settings.py:133
 msgid "Finnish"
 msgstr "suomi"
@@ -902,3 +789,101 @@ msgstr "ruotsi"
 #: users/models.py:16
 msgid "Favorite resources"
 msgstr "Suosikkiresurssit"
+
+#~ msgid "Resource: %(resource)s"
+#~ msgstr "Tila: %(resource)s"
+
+#~ msgid "Unit: %(unit)s"
+#~ msgstr "Toimipiste: %(unit)s"
+
+#~ msgid "Starts: %(starts)s"
+#~ msgstr "Alkaa: %(starts)s"
+
+#~ msgid "Ends: %(ends)s"
+#~ msgstr "Loppuu: %(ends)s"
+
+#~ msgid "Hello,"
+#~ msgstr "Hei,"
+
+#~ msgid "This is an automated message, please don't reply to this."
+#~ msgstr "Tämä on automaattinen viesti, joten älä vastaa tähän."
+
+#~ msgid ""
+#~ "Best regards,\n"
+#~ "Varaamo"
+#~ msgstr ""
+#~ "Ystävällisin terveisin,\n"
+#~ "Varaamo"
+
+#~ msgid "Your reservation has been cancelled."
+#~ msgstr "Varauksesi on peruttu."
+
+#~ msgid ""
+#~ "\n"
+#~ "Further information regarding the cancellation of your reservation can\n"
+#~ "be acquired from the personnel who are responsible for the space.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "Varauksen perumiseen liittyvät syyt voitte tiedustella tilasta "
+#~ "vastaavalta\n"
+#~ "henkilökunnalta.\n"
+
+#~ msgid "Your reservation has been confirmed."
+#~ msgstr "Varauksesi on hyväksytty."
+
+#~ msgid ""
+#~ "\n"
+#~ "It is possible to cancel the reservation five days before the start of\n"
+#~ "your reservation. All cancellations are done through personnel. Further\n"
+#~ "information for cancelling your reservation can be found from Varaamo's\n"
+#~ "\"Omat varaukset\" section which you can find when you are logged in to "
+#~ "the\n"
+#~ "service.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "Varauksen voitte perua viisi päivää ennen varauksen alkua. Varauksen\n"
+#~ "peruminen tehdään tilasta vastaavan henkilökunnan kautta. Tarkemmat\n"
+#~ "tiedot perumiseen löydätte Varaamon omista varauksista kirjautumalla\n"
+#~ "palveluun.\n"
+
+#~ msgid "and thanks for using Varaamo!"
+#~ msgstr "ja kiitokset Varaamon käytöstä!"
+
+#~ msgid "You've made a new reservation:"
+#~ msgstr "Olet tehnyt uuden varauksen:"
+
+#~ msgid "Your access code for the resource: "
+#~ msgstr "Pääsykoodisi tilaan:"
+
+#~ msgid "Your reservation request has been denied."
+#~ msgstr "Varauksesi on hylätty."
+
+#~ msgid ""
+#~ "\n"
+#~ "Further information regarding the rejection of your reservation can\n"
+#~ "be acquired from the personnel who are responsible for the space.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "Varauksen hylkäämiseen liittyvät tarkemmat perusteet voitte\n"
+#~ "tiedustella tilasta vastaavalta henkilökunnalta.\n"
+
+#~ msgid "You've made a preliminary reservation:"
+#~ msgstr "Olet tehnyt alustavan varauksen:"
+
+#~ msgid ""
+#~ "\n"
+#~ "Your reservation will be processed in two days and you will get an\n"
+#~ "email when your reservation is either confirmed or denied. In case we\n"
+#~ "need more information regarding the reservation, we will be in contact\n"
+#~ "with you.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "Varaus käsitellään kahden päivän kuluessa. Varauksen hyväksymisestä\n"
+#~ "saatte erillisen varausvahvistuksen sähköpostitse. Mikäli tarvitsemme\n"
+#~ "lisätietoja varaukseen liittyen, olemme teihin yhteydessä erikseen.\n"
+
+#~ msgid "A new preliminary reservation has been made:"
+#~ msgstr "Uusi alustava varaus on tehty:"
+
+#~ msgid "Process the reservation within two days."
+#~ msgstr "Käsittele varaus kahden päivän sisällä."

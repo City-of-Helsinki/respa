@@ -41,7 +41,7 @@ urlpatterns = [
 if 'reports' in settings.INSTALLED_APPS:
     from reports.api import UnitEventsDayReport
     urlpatterns.append(
-        url(r'^v1/report/unit_events_day/', UnitEventsDayReport.as_view(), name='unit-events-day-report')
+        url(r'^reports/unit_events_day/', UnitEventsDayReport.as_view(), name='unit-events-day-report')
     )
 
 
