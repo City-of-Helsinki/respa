@@ -9,7 +9,7 @@ from rest_framework.settings import api_settings
 from docx import Document
 from docx.shared import Pt
 
-from resources.models import Reservation, Unit
+from resources.models import Reservation, Resource, Unit
 
 
 class DocxRenderer(renderers.BaseRenderer):
@@ -19,13 +19,14 @@ class DocxRenderer(renderers.BaseRenderer):
     render_style = 'binary'
 
     def render(self, data, media_type=None, renderer_context=None):
-        unit = data['unit']
-        day = data.get('day', datetime.date.today())
+        day = data['day']
+        resource_qs = data['resource_qs']
+
         include_resources_without_reservations = data['include_resources_without_reservations']
         document = Document()
         first_resource = True
 
-        for resource in unit.resources.all():
+        for resource in resource_qs:
             reservations = Reservation.objects.filter(resource=resource, begin__date=day).order_by('resource', 'begin')
             reservation_count = reservations.count()
 
@@ -85,7 +86,8 @@ class DocxRenderer(renderers.BaseRenderer):
 
 class ReportParamSerializer(serializers.Serializer):
     day = serializers.DateField(required=False)
-    unit = serializers.CharField()
+    unit = serializers.CharField(required=False)
+    resource = serializers.CharField(required=False)
     include_resources_without_reservations = serializers.BooleanField(required=False, default=False)
 
     def validate_unit(self, value):
@@ -96,6 +98,30 @@ class ReportParamSerializer(serializers.Serializer):
                 _('Invalid pk "{pk_value}" - object does not exist.').format(pk_value=value)
             )
         return unit
+
+    def validate_resource(self, value):
+        if not value:
+            return None
+
+        resource_ids = [x.strip() for x in value.split(',')]
+        resource_qs = Resource.objects.filter(id__in=resource_ids)
+        return resource_qs
+
+    def validate(self, data):
+        unit = data.get('unit')
+        resource_qs = data.get('resource')
+
+        if not (unit or resource_qs):
+            raise exceptions.ValidationError(_('Either unit or resource is required.'))
+
+        if not resource_qs:
+            resource_qs = unit.resources.all()
+        elif unit:
+            resource_qs = resource_qs.filter(unit=unit)
+        data['resource_qs'] = resource_qs
+
+        data['day'] = data.get('day', datetime.date.today())
+        return data
 
 
 class UnitEventsDayReport(views.APIView):
