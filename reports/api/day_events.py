@@ -125,7 +125,7 @@ class ReportParamSerializer(serializers.Serializer):
         return data
 
 
-class UnitEventsDayReport(views.APIView):
+class DayEventsReport(views.APIView):
     renderer_classes = (DocxRenderer,)
 
     def get(self, request, format=None):
