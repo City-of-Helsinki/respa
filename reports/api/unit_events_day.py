@@ -4,7 +4,8 @@ import io
 from django.utils.translation import ugettext_lazy as _
 from django.utils import formats
 from django.utils.timezone import localtime
-from rest_framework import exceptions, renderers, response, serializers, status, views
+from rest_framework import exceptions, renderers, serializers, status, views
+from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from docx import Document
 from docx.shared import Pt
@@ -130,11 +131,16 @@ class UnitEventsDayReport(views.APIView):
     def get(self, request, format=None):
         serializer = ReportParamSerializer(data=request.query_params)
         if not serializer.is_valid():
-            return response.Response(
+            return Response(
                 data=serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        return response.Response(serializer.validated_data)
+
+        response = Response(serializer.validated_data)
+
+        filename = '%s-%s' % (_('day-report'), serializer.validated_data['day'])
+        response['Content-Disposition'] = 'attachment; filename=%s.%s' % (filename, request.accepted_renderer.format)
+        return response
 
     def finalize_response(self, request, response, *args, **kwargs):
         response = super().finalize_response(request, response, *args, **kwargs)
