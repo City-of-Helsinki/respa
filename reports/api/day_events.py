@@ -25,7 +25,9 @@ class DocxRenderer(renderers.BaseRenderer):
 
         include_resources_without_reservations = data['include_resources_without_reservations']
         document = Document()
+
         first_resource = True
+        atleast_one_reservation = False
 
         for resource in resource_qs:
             reservations = Reservation.objects.filter(resource=resource, begin__date=day).order_by('resource', 'begin')
@@ -33,6 +35,8 @@ class DocxRenderer(renderers.BaseRenderer):
 
             if reservation_count == 0 and not include_resources_without_reservations:
                 continue
+
+            atleast_one_reservation = True
 
             # every resource on it's own page, a bit easier to add linebreak here than at the end
             if not first_resource:
@@ -78,6 +82,9 @@ class DocxRenderer(renderers.BaseRenderer):
                     row_cells = table.add_row().cells
                     row_cells[0].text = Reservation._meta.get_field(attr[0]).verbose_name + ':'
                     row_cells[1].text = str(attr[1])
+
+        if not atleast_one_reservation:
+            document.add_heading(_('No reservations'), 1)
 
         output = io.BytesIO()
         document.save(output)
