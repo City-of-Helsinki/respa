@@ -5,7 +5,7 @@ from resources.models import Reservation
 from resources.tests.conftest import *
 
 
-list_url = '/reports/day_events/'
+list_url = '/reports/daily_reservations/'
 
 
 @pytest.fixture
@@ -40,7 +40,7 @@ def check_valid_response(response):
 
 
 @pytest.mark.django_db
-def test_day_events_report_by_unit_and_day(api_client, test_unit, reservation):
+def test_daily_reservations_by_unit_and_day(api_client, test_unit, reservation):
     reservation_datetime = dateparse.parse_datetime(reservation.begin)
     reservation_date_str = '%s-%s-%s' % (
         reservation_datetime.year, reservation_datetime.month, reservation_datetime.day
@@ -54,8 +54,8 @@ def test_day_events_report_by_unit_and_day(api_client, test_unit, reservation):
 
 @freeze_time('2015-04-04')
 @pytest.mark.django_db
-def test_day_events_report_by_resources(api_client, test_unit, reservation, reservation2, resource_in_unit,
-                                        resource_in_unit2):
+def test_daily_reservations_by_resources(api_client, test_unit, reservation, reservation2, resource_in_unit,
+                                         resource_in_unit2):
     resource_in_unit2.unit = test_unit
     resource_in_unit2.save(update_fields=('unit',))
 
@@ -73,21 +73,14 @@ def test_day_events_report_by_resources(api_client, test_unit, reservation, rese
 
 
 @pytest.mark.django_db
-def test_day_events_filter_errors(api_client, test_unit, reservation, resource_in_unit):
+def test_daily_reservations_filter_errors(api_client, test_unit, reservation, resource_in_unit):
     response = api_client.get(list_url + '?day=bogus-day')
     assert response.status_code == 400
     assert 'day' in response.data
 
-    response = api_client.get(list_url + '?resource=%s,bogus-resource' % (resource_in_unit.id))
-    assert response.status_code == 400
-    assert 'resource' in response.data
     response = api_client.get(list_url + '?unit=bogus-unit')
     assert response.status_code == 400
     assert 'unit' in response.data
-
-    response = api_client.get(list_url + '?resource=%s,bogus-resource' % (resource_in_unit.id))
-    assert response.status_code == 400
-    assert 'resource' in response.data
 
     response = api_client.get(list_url + '', HTTP_ACCEPT_LANGUAGE='en')
     assert response.status_code == 400

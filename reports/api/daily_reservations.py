@@ -132,7 +132,7 @@ class ReportParamSerializer(serializers.Serializer):
         return data
 
 
-class DayEventsReport(views.APIView):
+class DailyReservationsReport(views.APIView):
     renderer_classes = (DocxRenderer,)
 
     def get(self, request, format=None):

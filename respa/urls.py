@@ -39,9 +39,9 @@ urlpatterns = [
 ]
 
 if 'reports' in settings.INSTALLED_APPS:
-    from reports.api import DayEventsReport
+    from reports.api import DailyReservationsReport
     urlpatterns.append(
-        url(r'^reports/day_events/', DayEventsReport.as_view(), name='day-events-report')
+        url(r'^reports/daily_reservations/', DailyReservationsReport.as_view(), name='daily-reservations-report')
     )
 
 
