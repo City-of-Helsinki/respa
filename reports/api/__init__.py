@@ -1,2 +1,1 @@
-from .unit_events_day import UnitEventsDayReport
-
+from .daily_reservations import DailyReservationsReport  # noqa

@@ -60,6 +60,7 @@ INSTALLED_APPS = [
 
     'munigeo',
 
+    'reports',
     'resources',
     'users',
 ]

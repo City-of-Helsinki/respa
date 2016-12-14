@@ -4,12 +4,13 @@ import io
 from django.utils.translation import ugettext_lazy as _
 from django.utils import formats
 from django.utils.timezone import localtime
-from rest_framework import exceptions, renderers, response, serializers, status, views
+from rest_framework import exceptions, renderers, serializers, status, views
+from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from docx import Document
 from docx.shared import Pt
 
-from resources.models import Reservation, Unit
+from resources.models import Reservation, Resource, Unit
 
 
 class DocxRenderer(renderers.BaseRenderer):
@@ -19,18 +20,23 @@ class DocxRenderer(renderers.BaseRenderer):
     render_style = 'binary'
 
     def render(self, data, media_type=None, renderer_context=None):
-        unit = data['unit']
-        day = data.get('day', datetime.date.today())
+        day = data['day']
+        resource_qs = data['resource_qs']
+
         include_resources_without_reservations = data['include_resources_without_reservations']
         document = Document()
-        first_resource = True
 
-        for resource in unit.resources.all():
+        first_resource = True
+        atleast_one_reservation = False
+
+        for resource in resource_qs:
             reservations = Reservation.objects.filter(resource=resource, begin__date=day).order_by('resource', 'begin')
             reservation_count = reservations.count()
 
             if reservation_count == 0 and not include_resources_without_reservations:
                 continue
+
+            atleast_one_reservation = True
 
             # every resource on it's own page, a bit easier to add linebreak here than at the end
             if not first_resource:
@@ -59,8 +65,8 @@ class DocxRenderer(renderers.BaseRenderer):
                 attrs = [(field, getattr(reservation, field)) for field in (
                     'event_subject',
                     'reserver_name',
+                    'host_name',
                     'number_of_participants',
-                    # TODO moar fields
                 ) if getattr(reservation, field)]
 
                 if not attrs:
@@ -77,6 +83,9 @@ class DocxRenderer(renderers.BaseRenderer):
                     row_cells[0].text = Reservation._meta.get_field(attr[0]).verbose_name + ':'
                     row_cells[1].text = str(attr[1])
 
+        if not atleast_one_reservation:
+            document.add_heading(_('No reservations'), 1)
+
         output = io.BytesIO()
         document.save(output)
 
@@ -85,7 +94,8 @@ class DocxRenderer(renderers.BaseRenderer):
 
 class ReportParamSerializer(serializers.Serializer):
     day = serializers.DateField(required=False)
-    unit = serializers.CharField()
+    unit = serializers.CharField(required=False)
+    resource = serializers.CharField(required=False)
     include_resources_without_reservations = serializers.BooleanField(required=False, default=False)
 
     def validate_unit(self, value):
@@ -97,18 +107,47 @@ class ReportParamSerializer(serializers.Serializer):
             )
         return unit
 
+    def validate_resource(self, value):
+        if not value:
+            return None
 
-class UnitEventsDayReport(views.APIView):
+        resource_ids = [x.strip() for x in value.split(',')]
+        resource_qs = Resource.objects.filter(id__in=resource_ids)
+        return resource_qs
+
+    def validate(self, data):
+        unit = data.get('unit')
+        resource_qs = data.get('resource')
+
+        if not (unit or resource_qs):
+            raise exceptions.ValidationError(_('Either unit or resource is required.'))
+
+        if not resource_qs:
+            resource_qs = unit.resources.all()
+        elif unit:
+            resource_qs = resource_qs.filter(unit=unit)
+        data['resource_qs'] = resource_qs
+
+        data['day'] = data.get('day', datetime.date.today())
+        return data
+
+
+class DailyReservationsReport(views.APIView):
     renderer_classes = (DocxRenderer,)
 
     def get(self, request, format=None):
         serializer = ReportParamSerializer(data=request.query_params)
         if not serializer.is_valid():
-            return response.Response(
+            return Response(
                 data=serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        return response.Response(serializer.validated_data)
+
+        response = Response(serializer.validated_data)
+
+        filename = '%s-%s' % (_('day-report'), serializer.validated_data['day'])
+        response['Content-Disposition'] = 'attachment; filename=%s.%s' % (filename, request.accepted_renderer.format)
+        return response
 
     def finalize_response(self, request, response, *args, **kwargs):
         response = super().finalize_response(request, response, *args, **kwargs)

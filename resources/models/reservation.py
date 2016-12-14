@@ -17,7 +17,7 @@ from .utils import get_dt, save_dt, is_valid_time_slot, humanize_duration, send_
 RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street', 'reserver_address_zip',
                             'reserver_address_city', 'billing_address_street',  'billing_address_zip',
                             'billing_address_city', 'company', 'event_description', 'event_subject', 'reserver_id',
-                            'number_of_participants', 'reserver_email_address')
+                            'number_of_participants', 'reserver_email_address', 'host_name')
 
 
 class ReservationQuerySet(models.QuerySet):
@@ -58,6 +58,8 @@ class Reservation(ModifiableModel):
     event_description = models.TextField(verbose_name=_('Event description'), blank=True)
     number_of_participants = models.PositiveSmallIntegerField(verbose_name=_('Number of participants'), blank=True,
                                                               null=True)
+    host_name = models.CharField(verbose_name=_('Host name'), max_length=100, blank=True)
+
     # extra detail fields for manually confirmed reservations
     reserver_name = models.CharField(verbose_name=_('Reserver name'), max_length=100, blank=True)
     reserver_id = models.CharField(verbose_name=_('Reserver ID (business or person)'), max_length=30, blank=True)
