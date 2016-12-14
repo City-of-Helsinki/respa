@@ -65,8 +65,8 @@ class DocxRenderer(renderers.BaseRenderer):
                 attrs = [(field, getattr(reservation, field)) for field in (
                     'event_subject',
                     'reserver_name',
+                    'host_name',
                     'number_of_participants',
-                    # TODO moar fields
                 ) if getattr(reservation, field)]
 
                 if not attrs:
