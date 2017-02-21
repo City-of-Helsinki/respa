@@ -375,7 +375,9 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
     serializer_class = ResourceSerializer
     filter_backends = (filters.SearchFilter, ResourceFilterBackend,
                        LocationFilterBackend, AvailableFilterBackend)
-    search_fields = ('name', 'description', 'unit__name')
+    search_fields = ('name_fi', 'description_fi', 'unit__name_fi',
+                     'name_sv', 'description_sv', 'unit__name_sv',
+                     'name_en', 'description_en', 'unit__name_en')
 
     def get_queryset(self):
         if self.request.user.is_staff:
