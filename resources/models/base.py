@@ -45,10 +45,10 @@ class NameIdentifiedModel(models.Model):
 
 
 class ModifiableModel(models.Model):
-    created_at = models.DateTimeField(verbose_name=_('Time of creation'), default=timezone.now)
+    created_at = models.DateTimeField(verbose_name=_('Time of creation'), auto_now_add=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Created by'),
                                    null=True, blank=True, related_name="%(class)s_created")
-    modified_at = models.DateTimeField(verbose_name=_('Time of modification'), default=timezone.now)
+    modified_at = models.DateTimeField(verbose_name=_('Time of modification'), auto_now=True)
     modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Modified by'),
                                     null=True, blank=True, related_name="%(class)s_modified")
 
