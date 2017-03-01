@@ -139,3 +139,5 @@ def sync_from_exchange(ex_resource, future_days=30):
             if res.begin != item_props["start"] or res.end != item_props["end"]:
                 # Important things changed, so edit the reservation
                 _update_reservation_from_exchange(item_id, ex_reservation, ex_resource, item_props)
+    
+    log.info("%s: download processing complete", ex_resource.principal_email)
