@@ -41,7 +41,7 @@ def _update_reservation_from_exchange(item_id, ex_reservation, ex_resource, item
     ex_reservation.item_id = item_id
     ex_reservation.save()
 
-    logging.info("Updated: %s", ex_reservation)
+    log.info("Updated: %s", ex_reservation)
 
 
 def _create_reservation_from_exchange(item_id, ex_resource, item_props):
@@ -57,7 +57,7 @@ def _create_reservation_from_exchange(item_id, ex_resource, item_props):
     ex_reservation.item_id = item_id
     ex_reservation.save()
 
-    logging.info("Created: %s", ex_reservation)
+    log.info("Created: %s", ex_reservation)
     return ex_reservation
 
 
@@ -111,7 +111,7 @@ def sync_from_exchange(ex_resource, future_days=30):
     ).exclude(item_id_hash__in=hashes)  # but aren't ones we're going to mangle
 
     for ex_reservation in items_to_delete:
-        logging.info("Deleting: %s", ex_reservation)
+        log.info("Deleting: %s", ex_reservation)
         reservation = ex_reservation.reservation
         ex_reservation.delete()
         reservation.delete()
