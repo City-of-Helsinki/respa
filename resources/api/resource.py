@@ -108,6 +108,7 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     opening_hours = serializers.SerializerMethodField()
     reservations = serializers.SerializerMethodField()
     user_permissions = serializers.SerializerMethodField()
+    supported_reservation_extra_fields = serializers.ReadOnlyField(source='get_supported_reservation_extra_field_names')
     required_reservation_extra_fields = serializers.ReadOnlyField(source='get_required_reservation_extra_field_names')
     is_favorite = serializers.SerializerMethodField()
     generic_terms = serializers.SerializerMethodField()
@@ -249,7 +250,7 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
 
     class Meta:
         model = Resource
-        exclude = ('reservation_confirmed_notification_extra', 'access_code_type')
+        exclude = ('reservation_confirmed_notification_extra', 'access_code_type', 'reservation_metadata_set')
 
 
 class ResourceDetailsSerializer(ResourceSerializer):

@@ -6,6 +6,7 @@ from django.contrib.gis.geos import Point
 from django.utils import timezone
 from freezegun import freeze_time
 
+from resources.models import ReservationMetadataSet
 from .utils import check_only_safe_methods_allowed
 
 
@@ -338,3 +339,19 @@ def test_resource_group_filter(api_client, resource_in_unit, resource_in_unit2, 
     response = api_client.get('%s?group=%s,%s' % (list_url, resource_group.identifier, resource_group2.identifier))
     assert response.status_code == 200
     assert set(r['id'] for r in response.data['results']) == {resource_in_unit.id, resource_in_unit2.id}
+
+
+@pytest.mark.django_db
+def test_reservation_extra_fields(api_client, resource_in_unit):
+    default_set = ReservationMetadataSet.objects.get(name='default')
+    resource_in_unit.reservation_metadata_set = default_set
+    resource_in_unit.save(update_fields=('reservation_metadata_set',))
+
+    response = api_client.get(get_detail_url(resource_in_unit))
+    assert response.status_code == 200
+
+    supported_fields = set(default_set.supported_fields.values_list('field_name', flat=True))
+    assert set(response.data['supported_reservation_extra_fields']) == supported_fields
+
+    required_fields = set(default_set.required_fields.values_list('field_name', flat=True))
+    assert set(response.data['required_reservation_extra_fields']) == required_fields
