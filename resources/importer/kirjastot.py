@@ -32,6 +32,7 @@ class KirjastotImporter(Importer):
 
     def import_units(self):
         get_helmet_timetables()
+        process_varaamo_libraries()
 
 
 class ImportingException(Exception):
@@ -52,8 +53,7 @@ def process_varaamo_libraries():
 
     :return: None
     """
-    in_namespaces = Q(identifiers__namespace="helmet") | Q(identifiers__namespace="kirjastot.fi")
-    varaamo_units = Unit.objects.filter(in_namespaces).exclude(resources__isnull=True)
+    varaamo_units = Unit.objects.filter(identifiers__namespace="kirjastot.fi").exclude(resources__isnull=True)
 
     start, end = get_time_range()
     problems = []
