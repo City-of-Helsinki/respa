@@ -87,7 +87,7 @@ def get_helmet_timetables():
 
     :return:None
     """
-    url = "http://api.kirjastot.fi/v2/search/libraries?consortium=helmet&with=periods"
+    url = "https://api.kirjastot.fi/v2/search/libraries?consortium=helmet&with=periods"
     resp = requests.get(url)
     assert resp.status_code == 200
     data = resp.json()  # ??
