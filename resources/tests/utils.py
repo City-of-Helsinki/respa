@@ -205,3 +205,8 @@ def assert_response_objects(response, objects):
     expected_ids = {obj.id for obj in objects}
     actual_ids = {obj['id'] for obj in data}
     assert expected_ids == actual_ids, '%s does not match %s' % (expected_ids, actual_ids)
+
+
+def check_keys(data, expected_keys):
+    assert len(data.keys()) == len(expected_keys)
+    assert set(data.keys()) == set(expected_keys)

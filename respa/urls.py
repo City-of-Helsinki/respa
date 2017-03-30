@@ -29,6 +29,9 @@ admin.autodiscover()
 if 'comments' in settings.INSTALLED_APPS:
     import comments.api
 
+if 'caterings' in settings.INSTALLED_APPS:
+    import caterings.api
+
 router = RespaAPIRouter()
 
 urlpatterns = [
