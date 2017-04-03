@@ -6,7 +6,7 @@ from django.contrib.gis.geos import Point
 from django.utils import timezone
 from freezegun import freeze_time
 
-from resources.models import ReservationMetadataSet
+from resources.models import ReservationMetadataSet, Resource, ResourceType
 from .utils import check_only_safe_methods_allowed
 
 
@@ -355,3 +355,25 @@ def test_reservation_extra_fields(api_client, resource_in_unit):
 
     required_fields = set(default_set.required_fields.values_list('field_name', flat=True))
     assert set(response.data['required_reservation_extra_fields']) == required_fields
+
+
+@pytest.mark.django_db
+def test_resource_type_filter(api_client, resource_in_unit, resource_in_unit2, resource_in_unit3, list_url):
+    type_1 = ResourceType.objects.create(name='type_1', main_type='space')
+    type_2 = ResourceType.objects.create(name='type_2', main_type='space')
+    extra_type = ResourceType.objects.create(name='extra_type', main_type='space')
+
+    resource_in_unit.type = type_1
+    resource_in_unit.save()
+    resource_in_unit2.type = type_2
+    resource_in_unit2.save()
+    resource_in_unit3.type = extra_type
+    resource_in_unit3.save()
+
+    response = api_client.get(list_url + '?type=%s' % type_1.id)
+    assert response.status_code == 200
+    assert {resource['id'] for resource in response.data['results']} == {resource_in_unit.id}
+
+    response = api_client.get(list_url + '?type=%s,%s' % (type_1.id, type_2.id))
+    assert response.status_code == 200
+    assert {resource['id'] for resource in response.data['results']} == {resource_in_unit.id, resource_in_unit2.id}
