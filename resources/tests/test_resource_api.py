@@ -6,7 +6,7 @@ from django.contrib.gis.geos import Point
 from django.utils import timezone
 from freezegun import freeze_time
 
-from resources.models import ReservationMetadataSet, Resource, ResourceType
+from resources.models import Equipment, ReservationMetadataSet, Resource, ResourceEquipment, ResourceType
 from .utils import check_only_safe_methods_allowed
 
 
@@ -375,5 +375,37 @@ def test_resource_type_filter(api_client, resource_in_unit, resource_in_unit2, r
     assert {resource['id'] for resource in response.data['results']} == {resource_in_unit.id}
 
     response = api_client.get(list_url + '?type=%s,%s' % (type_1.id, type_2.id))
+    assert response.status_code == 200
+    assert {resource['id'] for resource in response.data['results']} == {resource_in_unit.id, resource_in_unit2.id}
+
+
+@pytest.mark.django_db
+def test_resource_equipment_filter(api_client, resource_in_unit, resource_in_unit2, resource_in_unit3,
+                                   equipment_category, resource_equipment, list_url):
+    equipment_1 = Equipment.objects.create(
+        name='equipment 1',
+        category=equipment_category,
+    )
+    ResourceEquipment.objects.create(
+        equipment=equipment_1,
+        resource=resource_in_unit,
+        description='resource equipment 1',
+    )
+    equipment_2 = Equipment.objects.create(
+        name='equipment 2',
+        category=equipment_category,
+    )
+    ResourceEquipment.objects.create(
+        equipment=equipment_2,
+        resource=resource_in_unit2,
+        description='resource equipment 2',
+    )
+    resource_in_unit3.resource_equipment = [resource_equipment]
+
+    response = api_client.get(list_url + '?equipment=%s' % equipment_1.id)
+    assert response.status_code == 200
+    assert {resource['id'] for resource in response.data['results']} == {resource_in_unit.id}
+
+    response = api_client.get(list_url + '?equipment=%s,%s' % (equipment_1.id, equipment_2.id))
     assert response.status_code == 200
     assert {resource['id'] for resource in response.data['results']} == {resource_in_unit.id, resource_in_unit2.id}

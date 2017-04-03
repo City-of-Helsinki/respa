@@ -390,6 +390,11 @@ paths:
           description: Only return resources with greater or equal capacity
           required: false
           type: number
+        - name: equipment
+          in: query
+          required: false
+          type: string
+          description: Only return resources that contain the specified piece(s) of equipment. Accepts multiple comma-separated values.
         - name: page
           in: query
           description: Result page number
