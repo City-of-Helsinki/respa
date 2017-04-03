@@ -284,7 +284,7 @@ class ResourceFilterSet(django_filters.FilterSet):
         super().__init__(*args, **kwargs)
 
     purpose = ParentCharFilter(name='purposes__id', lookup_expr='iexact')
-    type = django_filters.CharFilter(name='type__id', lookup_expr='iexact')
+    type = django_filters.Filter(name='type__id', lookup_expr='in', widget=django_filters.widgets.CSVWidget)
     people = django_filters.NumberFilter(name='people_capacity', lookup_expr='gte')
     need_manual_confirmation = django_filters.BooleanFilter(name='need_manual_confirmation', widget=DRFFilterBooleanWidget)
     is_favorite = django_filters.BooleanFilter(method='filter_is_favorite', widget=DRFFilterBooleanWidget)

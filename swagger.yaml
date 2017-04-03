@@ -355,7 +355,7 @@ paths:
           type: string
         - name: type
           in: query
-          description: Only return resources of the specified type
+          description: Only return resources of the specified type(s). Accepts multiple comma-separated values.
           required: false
           type: string
         - name: search
