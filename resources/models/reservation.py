@@ -124,6 +124,8 @@ class Reservation(ModifiableModel):
     def are_extra_fields_visible(self, user):
         if not self.need_manual_confirmation():
             return True
+        # the following logic is used also in resources.api.reservation.ReservationFilterSet
+        # so if this is changed that probably needs to be changed as well
         if not (user and user.is_authenticated()):
             return False
         return user == self.user or self.resource.is_admin(user)

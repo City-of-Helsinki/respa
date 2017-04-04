@@ -371,8 +371,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         # Currently all staff members are allowed to administrate
         # all resources. Will be more finegrained in the future.
         #
-        # UserFilterBackend in resources.api.reservation assumes the same behaviour,
-        # so if this is changed that needs to be changed as well.
+        # UserFilterBackend and ReservationFilterSet in resources.api.reservation assume the same behaviour,
+        # so if this is changed those need to be changed as well.
         return user.is_staff
 
     def can_make_reservations(self, user):

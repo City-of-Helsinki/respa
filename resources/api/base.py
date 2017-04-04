@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.utils import timezone
+import django_filters
 from modeltranslation.translator import NotRegistered, translator
 from rest_framework import serializers
 
@@ -76,3 +77,11 @@ class NullableDateTimeField(serializers.DateTimeField):
         else:
             value = timezone.localtime(value)
         return super().to_representation(value)
+
+
+class DRFFilterBooleanWidget(django_filters.widgets.BooleanWidget):
+    """
+    Without this Django complains about missing render method when DRF renders HTML version of API.
+    """
+    def render(self, *args, **kwargs):
+        return None

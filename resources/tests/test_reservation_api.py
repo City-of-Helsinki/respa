@@ -11,7 +11,8 @@ from freezegun import freeze_time
 
 from resources.models import (Period, Day, Reservation, Resource, ReservationMetadataField, ReservationMetadataSet)
 from users.models import User
-from .utils import check_disallowed_methods, assert_non_field_errors_contain, check_received_mail_exists
+from .utils import (check_disallowed_methods, assert_non_field_errors_contain, check_received_mail_exists,
+                    assert_response_objects)
 
 
 DEFAULT_RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street',
@@ -85,6 +86,36 @@ def reservation(resource_in_unit, user):
         begin='2115-04-04T09:00:00+02:00',
         end='2115-04-04T10:00:00+02:00',
         user=user,
+        event_subject='some fancy event',
+        host_name='esko',
+        reserver_name='martta',
+    )
+
+
+@pytest.fixture
+def reservation2(resource_in_unit2, user):
+    return Reservation.objects.create(
+        resource=resource_in_unit2,
+        begin='2115-04-05T09:00:00+02:00',
+        end='2115-04-05T10:00:00+02:00',
+        user=user,
+        event_subject='not so fancy event',
+        host_name='markku',
+        reserver_name='pirkko',
+    )
+
+
+@pytest.fixture
+def reservation3(resource_in_unit2, user2):
+    # the same as reservation2 but different user
+    return Reservation.objects.create(
+        resource=resource_in_unit2,
+        begin='2115-04-05T09:00:00+02:00',
+        end='2115-04-05T10:00:00+02:00',
+        user=user2,
+        event_subject='not so fancy event',
+        host_name='markku',
+        reserver_name='pirkko',
     )
 
 
@@ -1219,3 +1250,52 @@ def test_user_permissions_field(api_client, user_api_client, user, user2, resour
     response = user_api_client.get(detail_url)
     assert response.status_code == 200
     assert response.data['user_permissions'] == {'can_delete': True, 'can_modify': True}
+
+
+@pytest.mark.parametrize('filtering', (
+    'event_subject=not so fancy',
+    'host_name=arkku',
+    'reserver_name=irkko',
+    'resource_name=in unit 2',
+))
+@pytest.mark.django_db
+def test_charfield_filters(user_api_client, staff_api_client, user, reservation, reservation2, reservation3,
+                           list_url, filtering):
+
+    # without filters all reservations should be returned
+    response = user_api_client.get(list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [reservation, reservation2, reservation3])
+
+    url_with_filters = list_url + '?' + filtering
+
+    # with the filter only one of the matching reservations should be returned
+    # because the other one belongs to a different user
+    response = user_api_client.get(url_with_filters)
+    assert response.status_code == 200
+    assert_response_objects(response, reservation2)
+
+    # staff members don't have the above restriction
+    response = staff_api_client.get(url_with_filters)
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation2, reservation3))
+
+
+@pytest.mark.django_db
+def test_is_favorite_resource_filter(user_api_client, user, resource_in_unit, reservation, reservation2,
+                                     reservation3, list_url):
+    user.favorite_resources.add(resource_in_unit)
+
+    response = user_api_client.get(list_url + '?is_favorite_resource=true')
+    assert response.status_code == 200
+    assert_response_objects(response, reservation)
+
+    response = user_api_client.get(list_url + '?is_favorite_resource=false')
+    assert response.status_code == 200
+    assert_response_objects(response, reservation2)
+
+    user.is_staff = True
+    user.save()
+    response = user_api_client.get(list_url + '?is_favorite_resource=false')
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation2, reservation3))
