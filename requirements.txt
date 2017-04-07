@@ -27,7 +27,7 @@ django-jinja==2.2.1
 django-modeltranslation==0.12
 django-modeltranslation==0.12
 django-mptt==0.8.6
-django==1.10.3
+django==1.10.7
 djangorestframework-jwt==1.8.0
 djangorestframework==3.5.3
 easy-thumbnails==2.3
