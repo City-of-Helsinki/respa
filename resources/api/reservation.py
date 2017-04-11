@@ -65,11 +65,14 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
     state = serializers.ChoiceField(choices=Reservation.STATE_CHOICES, required=False)
     need_manual_confirmation = serializers.ReadOnlyField()
     staff_event = serializers.BooleanField(required=False, write_only=True)
+    user_permissions = serializers.SerializerMethodField()
 
     class Meta:
         model = Reservation
-        fields = ['url', 'id', 'resource', 'user', 'begin', 'end', 'comments', 'is_own', 'state',
-                  'need_manual_confirmation', 'staff_event', 'access_code'] + list(RESERVATION_EXTRA_FIELDS)
+        fields = [
+            'url', 'id', 'resource', 'user', 'begin', 'end', 'comments', 'is_own', 'state', 'need_manual_confirmation',
+            'staff_event', 'access_code', 'user_permissions'
+        ] + list(RESERVATION_EXTRA_FIELDS)
         read_only_fields = RESERVATION_EXTRA_FIELDS
 
     def __init__(self, *args, **kwargs):
@@ -260,6 +263,14 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
     def get_is_own(self, obj):
         return obj.user == self.context['request'].user
 
+    def get_user_permissions(self, obj):
+        request = self.context.get('request')
+        can_modify_and_delete = obj.can_modify(request.user) if request else False
+        return {
+            'can_modify': can_modify_and_delete,
+            'can_delete': can_modify_and_delete,
+        }
+
 
 class UserFilterBackend(filters.BaseFilterBackend):
     """
@@ -382,14 +393,7 @@ class ReservationPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
-
-        # reservations that need manual confirmation and are confirmed cannot be
-        # modified or cancelled without reservation approve permission
-        cannot_approve = not obj.resource.can_approve_reservations(request.user)
-        if obj.need_manual_confirmation() and obj.state == Reservation.CONFIRMED and cannot_approve:
-            return False
-
-        return obj.resource.is_admin(request.user) or obj.user == request.user
+        return obj.can_modify(request.user)
 
 
 class ReservationExcelRenderer(renderers.BaseRenderer):

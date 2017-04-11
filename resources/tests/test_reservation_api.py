@@ -1197,3 +1197,25 @@ def test_detail_endpoint_does_not_need_all_true_filter(user_api_client, user, re
     detail_url = reverse('reservation-detail', kwargs={'pk': reservation_in_the_past.pk})
     response = user_api_client.get(detail_url)
     assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_user_permissions_field(api_client, user_api_client, user, user2, resource_in_unit, reservation, detail_url):
+    response = api_client.get(detail_url)
+    assert response.status_code == 200
+    assert response.data['user_permissions'] == {'can_delete': False, 'can_modify': False}
+
+    response = user_api_client.get(detail_url)
+    assert response.status_code == 200
+    assert response.data['user_permissions'] == {'can_delete': True, 'can_modify': True}
+
+    user_api_client.force_authenticate(user2)
+    response = user_api_client.get(detail_url)
+    assert response.status_code == 200
+    assert response.data['user_permissions'] == {'can_delete': False, 'can_modify': False}
+
+    user2.is_staff = True
+    user2.save()
+    response = user_api_client.get(detail_url)
+    assert response.status_code == 200
+    assert response.data['user_permissions'] == {'can_delete': True, 'can_modify': True}
