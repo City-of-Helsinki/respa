@@ -151,6 +151,18 @@ class Reservation(ModifiableModel):
         self.state = new_state
         self.save()
 
+    def can_modify(self, user):
+        if not user:
+            return False
+
+        # reservations that need manual confirmation and are confirmed cannot be
+        # modified or cancelled without reservation approve permission
+        cannot_approve = not self.resource.can_approve_reservations(user)
+        if self.need_manual_confirmation() and self.state == Reservation.CONFIRMED and cannot_approve:
+            return False
+
+        return self.resource.is_admin(user) or self.user == user
+
     class Meta:
         verbose_name = _("reservation")
         verbose_name_plural = _("reservations")
