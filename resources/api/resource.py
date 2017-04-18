@@ -300,7 +300,8 @@ class ResourceFilterSet(django_filters.FilterSet):
     need_manual_confirmation = django_filters.BooleanFilter(name='need_manual_confirmation', widget=DRFFilterBooleanWidget)
     is_favorite = django_filters.BooleanFilter(method='filter_is_favorite', widget=DRFFilterBooleanWidget)
     unit = django_filters.CharFilter(name='unit__id', lookup_expr='iexact')
-    group = django_filters.Filter(name='groups__identifier', lookup_expr='in', widget=django_filters.widgets.CSVWidget)
+    resource_group = django_filters.Filter(name='groups__identifier', lookup_expr='in',
+                                           widget=django_filters.widgets.CSVWidget)
     equipment = django_filters.Filter(name='resource_equipment__equipment__id', lookup_expr='in',
                                       widget=django_filters.widgets.CSVWidget)
 

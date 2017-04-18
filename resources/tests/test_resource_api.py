@@ -331,12 +331,14 @@ def test_resource_group_filter(api_client, resource_in_unit, resource_in_unit2, 
     assert len(response.data['results']) == 3
 
     # one group
-    response = api_client.get('%s?group=%s' % (list_url, resource_group.identifier))
+    response = api_client.get('%s?resource_group=%s' % (list_url, resource_group.identifier))
     assert response.status_code == 200
     assert set(r['id'] for r in response.data['results']) == {resource_in_unit.id}
 
     # multiple groups
-    response = api_client.get('%s?group=%s,%s' % (list_url, resource_group.identifier, resource_group2.identifier))
+    response = api_client.get(
+        '%s?resource_group=%s,%s' % (list_url, resource_group.identifier, resource_group2.identifier)
+    )
     assert response.status_code == 200
     assert set(r['id'] for r in response.data['results']) == {resource_in_unit.id, resource_in_unit2.id}
 
