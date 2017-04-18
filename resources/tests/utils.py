@@ -188,3 +188,20 @@ def assert_hours(tz, opening_hours, date, opens, closes=None):
         assert hours['closes'] == closes
     else:
         assert hours['closes'] is None
+
+
+def assert_response_objects(response, objects):
+    """
+    Assert object or objects exist in response data.
+    """
+    data = response.data
+    if 'results' in data:
+        data = data['results']
+
+    if not (isinstance(objects, list) or isinstance(objects, tuple)):
+        objects = [objects]
+
+    assert len(objects) == len(data), '%s does not match %s' % (len(objects), len(data))
+    expected_ids = {obj.id for obj in objects}
+    actual_ids = {obj['id'] for obj in data}
+    assert expected_ids == actual_ids, '%s does not match %s' % (expected_ids, actual_ids)
