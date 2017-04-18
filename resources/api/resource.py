@@ -53,9 +53,20 @@ class ResourceTypeSerializer(TranslatedModelSerializer):
         fields = ['name', 'main_type', 'id']
 
 
+class ResourceTypeFilterSet(django_filters.FilterSet):
+    resource_group = django_filters.Filter(name='resource__groups__identifier', lookup_expr='in',
+                                           widget=django_filters.widgets.CSVWidget, distinct=True)
+
+    class Meta:
+        model = ResourceType
+        fields = ('resource_group',)
+
+
 class ResourceTypeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ResourceType.objects.all()
     serializer_class = ResourceTypeSerializer
+    filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
+    filter_class = ResourceTypeFilterSet
 
 register_view(ResourceTypeViewSet, 'type')
 

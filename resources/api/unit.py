@@ -1,8 +1,18 @@
 from rest_framework import serializers, viewsets
 
+import django_filters
 from munigeo import api as munigeo_api
 from resources.api.base import NullableDateTimeField, TranslatedModelSerializer, register_view
 from resources.models import Unit
+
+
+class UnitFilterSet(django_filters.FilterSet):
+    resource_group = django_filters.Filter(name='resources__groups__identifier', lookup_expr='in',
+                                           widget=django_filters.widgets.CSVWidget, distinct=True)
+
+    class Meta:
+        model = Unit
+        fields = ('resource_group',)
 
 
 class UnitSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
@@ -33,6 +43,8 @@ class UnitSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
 class UnitViewSet(munigeo_api.GeoModelAPIView, viewsets.ReadOnlyModelViewSet):
     queryset = Unit.objects.all()
     serializer_class = UnitSerializer
+    filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
+    filter_class = UnitFilterSet
 
 
 register_view(UnitViewSet, 'unit')

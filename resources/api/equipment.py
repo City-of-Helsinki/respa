@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-
+import django_filters
 from .base import TranslatedModelSerializer, register_view
 from resources.models import Equipment, EquipmentAlias, EquipmentCategory
 
@@ -48,8 +48,19 @@ class EquipmentSerializer(TranslatedModelSerializer):
     category = PlainEquipmentCategorySerializer()
 
 
+class EquipmentFilterSet(django_filters.FilterSet):
+    resource_group = django_filters.Filter(name='resource_equipment__resource__groups__identifier', lookup_expr='in',
+                                           widget=django_filters.widgets.CSVWidget, distinct=True)
+
+    class Meta:
+        model = Equipment
+        fields = ('resource_group',)
+
+
 class EquipmentViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Equipment.objects.all()
     serializer_class = EquipmentSerializer
+    filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
+    filter_class = EquipmentFilterSet
 
 register_view(EquipmentViewSet, 'equipment')

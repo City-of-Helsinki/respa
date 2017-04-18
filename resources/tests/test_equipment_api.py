@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from resources.models import Equipment, EquipmentAlias, ResourceEquipment
+from resources.models import Equipment, ResourceGroup, ResourceEquipment
 from django.core.urlresolvers import reverse
 
-from .utils import check_only_safe_methods_allowed
+from .utils import assert_response_objects, check_only_safe_methods_allowed
 
 
 @pytest.fixture
@@ -79,3 +79,49 @@ def test_get_equipment_in_resource(api_client, resource_in_unit, resource_equipm
     assert equipment['data']['test_key'] == 'test_value'
     assert equipment['description'] == {'fi': 'test resource equipment'}
     assert equipment['name'] == {'fi': 'test equipment'}
+
+
+@pytest.mark.django_db
+def test_resource_group_filter(api_client, equipment_category, resource_in_unit, resource_in_unit2, resource_in_unit3,
+                               list_url):
+    equipment_1 = Equipment.objects.create(name='test equipment 1', category=equipment_category)
+    ResourceEquipment.objects.create(equipment=equipment_1, resource=resource_in_unit)
+
+    equipment_2 = Equipment.objects.create(name='test equipment 2', category=equipment_category)
+    ResourceEquipment.objects.create(equipment=equipment_2, resource=resource_in_unit2)
+
+    equipment_3 = Equipment.objects.create(name='test equipment 3', category=equipment_category)
+    ResourceEquipment.objects.create(equipment=equipment_3, resource=resource_in_unit3)
+
+    equipment_4 = Equipment.objects.create(name='test equipment 4', category=equipment_category)
+    ResourceEquipment.objects.create(equipment=equipment_4, resource=resource_in_unit)
+    ResourceEquipment.objects.create(equipment=equipment_4, resource=resource_in_unit2)
+
+    group_1 = ResourceGroup.objects.create(name='test group 1', identifier='test_group_1')
+    resource_in_unit.groups = [group_1]
+
+    group_2 = ResourceGroup.objects.create(name='test group 2', identifier='test_group_2')
+    resource_in_unit2.groups = [group_1, group_2]
+
+    group_3 = ResourceGroup.objects.create(name='test group 3', identifier='test_group_3')
+    resource_in_unit3.groups = [group_3]
+
+    response = api_client.get(list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, (equipment_1, equipment_2, equipment_3, equipment_4))
+
+    response = api_client.get(list_url + '?' + 'resource_group=' + group_1.identifier)
+    assert response.status_code == 200
+    assert_response_objects(response, (equipment_1, equipment_2, equipment_4))
+
+    response = api_client.get(list_url + '?' + 'resource_group=' + group_2.identifier)
+    assert response.status_code == 200
+    assert_response_objects(response, (equipment_2, equipment_4))
+
+    response = api_client.get(list_url + '?' + 'resource_group=%s,%s' % (group_2.identifier, group_3.identifier))
+    assert response.status_code == 200
+    assert_response_objects(response, (equipment_2, equipment_3, equipment_4))
+
+    response = api_client.get(list_url + '?' + 'resource_group=foobar')
+    assert response.status_code == 200
+    assert len(response.data['results']) == 0
