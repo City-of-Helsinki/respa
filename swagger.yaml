@@ -71,6 +71,11 @@ paths:
 
         Returns 20 units per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 20 units per page.
       parameters:
+        - name: resource_group
+          in: query
+          required: false
+          type: string
+          description: Only return units whose resources belong to the speficied resource group(s). Accepts multiple comma-separated values.
         - name: page
           in: query
           description: Result page number
@@ -181,6 +186,11 @@ paths:
 
         Returns 20 types per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 20 units per page.
       parameters:
+        - name: resource_group
+          in: query
+          required: false
+          type: string
+          description: Only return types for which there are resources that belong to the speficied resource group(s). Accepts multiple comma-separated values.
         - name: page
           in: query
           description: Result page number
@@ -236,6 +246,11 @@ paths:
 
         Returns 20 pieces of equipment per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 20 pieces of equipment per page.
       parameters:
+        - name: resource_group
+          in: query
+          required: false
+          type: string
+          description: Only return pieces of equipment that belong to the speficied resource group(s). Accepts multiple comma-separated values.
         - name: page
           in: query
           description: Result page number
@@ -395,6 +410,11 @@ paths:
           required: false
           type: string
           description: Only return resources that contain the specified piece(s) of equipment. Accepts multiple comma-separated values.
+        - name: resource_group
+          in: query
+          required: false
+          type: string
+          description: Only return resources that belong to the speficied resource group(s). Accepts multiple comma-separated values.
         - name: page
           in: query
           description: Result page number
