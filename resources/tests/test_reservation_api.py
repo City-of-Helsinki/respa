@@ -677,6 +677,31 @@ def test_extra_fields_visibility(user_api_client, list_url, detail_url, reservat
             assert (field_name in reservation_data) is need_manual_confirmation
 
 
+@pytest.mark.parametrize('user_fixture, has_perm, expected_visibility', [
+    ('user', False, True),
+    ('user2', False, False),
+    ('staff_user', False, True),
+    ('user2', True, True),
+])
+@pytest.mark.django_db
+def test_extra_fields_visibility_per_user(user_api_client, staff_user, user, user2, list_url, detail_url,
+                                          reservation, resource_in_unit, user_fixture, has_perm, expected_visibility):
+    resource_in_unit.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
+    resource_in_unit.save()
+
+    test_user = locals().get(user_fixture)
+    user_api_client.force_authenticate(test_user)
+    if has_perm:
+        assign_perm('resources.can_view_reservation_extra_fields', test_user, resource_in_unit.unit)
+
+    for url in (list_url, detail_url):
+        response = user_api_client.get(url)
+        assert response.status_code == 200
+        reservation_data = response.data['results'][0] if 'results' in response.data else response.data
+        for field_name in DEFAULT_RESERVATION_EXTRA_FIELDS:
+            assert (field_name in reservation_data) is expected_visibility
+
+
 @pytest.mark.django_db
 def test_extra_fields_required_for_paid_reservations(user_api_client, staff_api_client, staff_user, list_url,
                                                      resource_in_unit, reservation_data):
@@ -1280,6 +1305,12 @@ def test_charfield_filters(user_api_client, staff_api_client, user, reservation,
     assert response.status_code == 200
     assert_response_objects(response, (reservation2, reservation3))
 
+    # having the right permission allows the user to filter the other user's reservation also
+    assign_perm('resources.can_view_reservation_extra_fields', user, reservation3.resource.unit)
+    response = user_api_client.get(url_with_filters)
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation2, reservation3))
+
 
 @pytest.mark.django_db
 def test_is_favorite_resource_filter(user_api_client, user, resource_in_unit, reservation, reservation2,
@@ -1296,6 +1327,14 @@ def test_is_favorite_resource_filter(user_api_client, user, resource_in_unit, re
 
     user.is_staff = True
     user.save()
+    response = user_api_client.get(list_url + '?is_favorite_resource=false')
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation2, reservation3))
+
+    user.is_staff = False
+    user.save()
+    assign_perm('resources.can_view_reservation_extra_fields', user, reservation3.resource.unit)
+
     response = user_api_client.get(list_url + '?is_favorite_resource=false')
     assert response.status_code == 200
     assert_response_objects(response, (reservation2, reservation3))

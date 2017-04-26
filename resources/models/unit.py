@@ -47,6 +47,7 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
         permissions = (
             ('can_approve_reservation', _('Can approve reservation')),
             ('can_view_reservation_access_code', _('Can view reservation access code')),
+            ('can_view_reservation_extra_fields', _('Can view reservation extra fields')),
         )
         ordering = ('name',)
 
