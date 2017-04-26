@@ -5,12 +5,14 @@ from django.conf import settings
 from django.contrib.gis.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from psycopg2.extras import DateTimeTZRange
 
-from guardian.shortcuts import get_users_with_perms
+from guardian.shortcuts import get_objects_for_user, get_users_with_perms
 
 from .base import ModifiableModel
-from .resource import Resource, generate_access_code, validate_access_code
+from .resource import generate_access_code, validate_access_code
+from .unit import Unit
 from .utils import get_dt, save_dt, is_valid_time_slot, humanize_duration, send_respa_mail, DEFAULT_LANG
 
 
@@ -23,6 +25,18 @@ RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_
 class ReservationQuerySet(models.QuerySet):
     def active(self):
         return self.filter(end__gte=timezone.now()).exclude(state__in=(Reservation.CANCELLED, Reservation.DENIED))
+
+    def can_view_extra_fields(self, user):
+        # the following logic is also implemented in Reservation.are_extra_fields_visible()
+        # so if this is changed that probably needs to be changed as well
+
+        if not user.is_authenticated():
+            return self.none()
+        if user.is_staff:
+            return self
+
+        allowed_units = get_objects_for_user(user, 'resources.can_view_reservation_extra_fields', klass=Unit)
+        return self.filter(Q(user=user) | Q(resource__unit__in=allowed_units))
 
 
 class Reservation(ModifiableModel):
@@ -122,13 +136,16 @@ class Reservation(ModifiableModel):
         return self.resource.need_manual_confirmation
 
     def are_extra_fields_visible(self, user):
-        if not self.need_manual_confirmation():
-            return True
-        # the following logic is used also in resources.api.reservation.ReservationFilterSet
+        # the following logic is used also implemented in ReservationQuerySet
         # so if this is changed that probably needs to be changed as well
+
         if not (user and user.is_authenticated()):
             return False
-        return user == self.user or self.resource.is_admin(user)
+
+        is_own = user == self.user
+        is_admin = self.resource.is_admin(user)
+        has_perm = user.has_perm('resources.can_view_reservation_extra_fields', self.resource.unit)
+        return is_own or is_admin or has_perm
 
     def can_view_access_code(self, user):
         return user == self.user or self.resource.can_view_access_codes(user)

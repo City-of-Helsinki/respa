@@ -390,7 +390,7 @@ class CanApproveFilterBackend(filters.BaseFilterBackend):
         return queryset
 
 
-class ReservationFilterSet(django_filters.FilterSet):
+class ReservationFilterSet(django_filters.rest_framework.FilterSet):
     class Meta:
         model = Reservation
         fields = ('event_subject', 'host_name', 'reserver_name', 'resource_name', 'is_favorite_resource')
@@ -403,13 +403,8 @@ class ReservationFilterSet(django_filters.FilterSet):
         if set(self.request.query_params).isdisjoint(self.Meta.fields):
             return qs
 
-        # normal users can filter only their own reservations, staff members don't have this restriction
         user = self.request.user
-        if not user.is_authenticated():
-            return qs.none()
-        if user.is_staff:
-            return qs
-        return qs.filter(user=user)
+        return qs.can_view_extra_fields(user)
 
     event_subject = django_filters.CharFilter(lookup_expr='icontains')
     host_name = django_filters.CharFilter(lookup_expr='icontains')
