@@ -26,6 +26,9 @@ from resources.views import testing as testing_views
 
 admin.autodiscover()
 
+if 'comments' in settings.INSTALLED_APPS:
+    import comments.api
+
 router = RespaAPIRouter()
 
 urlpatterns = [
