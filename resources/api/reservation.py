@@ -8,6 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import PermissionDenied, ValidationError as DjangoValidationError
 from django.db.models import Q
 from django.utils import timezone
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, serializers, filters, exceptions, permissions
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.fields import BooleanField, IntegerField
@@ -23,7 +24,7 @@ from resources.pagination import ReservationPagination
 from users.models import User
 from resources.models.utils import generate_reservation_xlsx, get_object_or_none
 
-from .base import NullableDateTimeField, TranslatedModelSerializer, register_view
+from .base import NullableDateTimeField, TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
 
 # FIXME: Make this configurable?
 USER_ID_ATTRIBUTE = 'id'
@@ -389,6 +390,41 @@ class CanApproveFilterBackend(filters.BaseFilterBackend):
         return queryset
 
 
+class ReservationFilterSet(django_filters.rest_framework.FilterSet):
+    class Meta:
+        model = Reservation
+        fields = ('event_subject', 'host_name', 'reserver_name', 'resource_name', 'is_favorite_resource')
+
+    @property
+    def qs(self):
+        qs = super().qs
+
+        # check if any of the filters is actually used, if not then do nothing to the qs
+        if set(self.request.query_params).isdisjoint(self.Meta.fields):
+            return qs
+
+        user = self.request.user
+        return qs.can_view_extra_fields(user)
+
+    event_subject = django_filters.CharFilter(lookup_expr='icontains')
+    host_name = django_filters.CharFilter(lookup_expr='icontains')
+    reserver_name = django_filters.CharFilter(lookup_expr='icontains')
+    resource_name = django_filters.CharFilter(name='resource', lookup_expr='name__icontains')
+    is_favorite_resource = django_filters.BooleanFilter(method='filter_is_favorite_resource',
+                                                        widget=DRFFilterBooleanWidget)
+    resource_group = django_filters.Filter(name='resource__groups__identifier', lookup_expr='in',
+                                           widget=django_filters.widgets.CSVWidget, distinct=True)
+
+    def filter_is_favorite_resource(self, queryset, name, value):
+        user = self.request.user
+
+        if not user.is_authenticated():
+            return queryset.none if value else queryset
+
+        filtering = {'resource__favorited_by': user}
+        return queryset.filter(**filtering) if value else queryset.exclude(**filtering)
+
+
 class ReservationPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
@@ -417,8 +453,10 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
     queryset = Reservation.objects.select_related('user', 'resource', 'resource__unit')
 
     serializer_class = ReservationSerializer
-    filter_backends = (filters.OrderingFilter, UserFilterBackend, ResourceFilterBackend, ReservationFilterBackend,
-                       NeedManualConfirmationFilterBackend, StateFilterBackend, CanApproveFilterBackend)
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter, UserFilterBackend, ResourceFilterBackend,
+                       ReservationFilterBackend, NeedManualConfirmationFilterBackend, StateFilterBackend,
+                       CanApproveFilterBackend)
+    filter_class = ReservationFilterSet
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, ReservationExcelRenderer)
     pagination_class = ReservationPagination

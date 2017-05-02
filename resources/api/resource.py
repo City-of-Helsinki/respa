@@ -15,12 +15,11 @@ from resources.pagination import PurposePagination
 from rest_framework import exceptions, filters, mixins, serializers, viewsets, response, status
 from rest_framework.decorators import detail_route
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.fields import BooleanField
 
 from munigeo import api as munigeo_api
 from resources.models import (Purpose, Reservation, Resource, ResourceImage, ResourceType, ResourceEquipment,
                               TermsOfUse)
-from .base import TranslatedModelSerializer, register_view
+from .base import TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
 from .reservation import ReservationSerializer
 from .unit import UnitSerializer
 from .equipment import EquipmentSerializer
@@ -285,11 +284,6 @@ class ParentCharFilter(ParentFilter):
     field_class = forms.CharField
 
 
-class DRFFilterBooleanWidget(django_filters.widgets.BooleanWidget):
-    def render(self, *args, **kwargs):
-        return None
-
-
 class ResourceFilterSet(django_filters.FilterSet):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
@@ -298,13 +292,14 @@ class ResourceFilterSet(django_filters.FilterSet):
     purpose = ParentCharFilter(name='purposes__id', lookup_expr='iexact')
     type = django_filters.Filter(name='type__id', lookup_expr='in', widget=django_filters.widgets.CSVWidget)
     people = django_filters.NumberFilter(name='people_capacity', lookup_expr='gte')
-    need_manual_confirmation = django_filters.BooleanFilter(name='need_manual_confirmation', widget=DRFFilterBooleanWidget)
+    need_manual_confirmation = django_filters.BooleanFilter(name='need_manual_confirmation',
+                                                            widget=DRFFilterBooleanWidget)
     is_favorite = django_filters.BooleanFilter(method='filter_is_favorite', widget=DRFFilterBooleanWidget)
     unit = django_filters.CharFilter(name='unit__id', lookup_expr='iexact')
     resource_group = django_filters.Filter(name='groups__identifier', lookup_expr='in',
-                                           widget=django_filters.widgets.CSVWidget)
+                                           widget=django_filters.widgets.CSVWidget, distinct=True)
     equipment = django_filters.Filter(name='resource_equipment__equipment__id', lookup_expr='in',
-                                      widget=django_filters.widgets.CSVWidget)
+                                      widget=django_filters.widgets.CSVWidget, distinct=True)
     available_between = django_filters.Filter(method='filter_available_between',
                                               widget=django_filters.widgets.CSVWidget)
 

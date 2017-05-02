@@ -527,6 +527,11 @@ paths:
           description: Display reservations that the request user has the right to approve.
           required: false
           type: boolean
+        - name: resource_group
+          in: query
+          required: false
+          type: string
+          description: Only return reservations for resources in the specified resource group(s). Accepts multiple comma-separated values.
       responses:
         '200':
           description: Successful response

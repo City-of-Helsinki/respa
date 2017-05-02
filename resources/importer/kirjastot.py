@@ -273,7 +273,7 @@ def process_periods(data, unit):
     print("Periods processed for ", unit)
 
 
-def get_time_range(start=None, back=1, forward=6):
+def get_time_range(start=None, back=1, forward=12):
     """
     From a starting date from back and forward
     by given amount and return start of both months
