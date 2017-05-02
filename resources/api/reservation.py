@@ -412,6 +412,8 @@ class ReservationFilterSet(django_filters.rest_framework.FilterSet):
     resource_name = django_filters.CharFilter(name='resource', lookup_expr='name__icontains')
     is_favorite_resource = django_filters.BooleanFilter(method='filter_is_favorite_resource',
                                                         widget=DRFFilterBooleanWidget)
+    resource_group = django_filters.Filter(name='resource__groups__identifier', lookup_expr='in',
+                                           widget=django_filters.widgets.CSVWidget, distinct=True)
 
     def filter_is_favorite_resource(self, queryset, name, value):
         user = self.request.user
