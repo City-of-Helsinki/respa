@@ -9,7 +9,8 @@ from django.utils import dateparse, timezone
 from guardian.shortcuts import assign_perm
 from freezegun import freeze_time
 
-from resources.models import (Period, Day, Reservation, Resource, ReservationMetadataField, ReservationMetadataSet)
+from resources.models import (Period, Day, Reservation, Resource, ResourceGroup, ReservationMetadataField,
+                              ReservationMetadataSet)
 from users.models import User
 from .utils import (check_disallowed_methods, assert_non_field_errors_contain, check_received_mail_exists,
                     assert_response_objects)
@@ -1338,3 +1339,43 @@ def test_is_favorite_resource_filter(user_api_client, user, resource_in_unit, re
     response = user_api_client.get(list_url + '?is_favorite_resource=false')
     assert response.status_code == 200
     assert_response_objects(response, (reservation2, reservation3))
+
+
+@pytest.mark.django_db
+def test_resource_group_filter(user_api_client, user, reservation, reservation2, reservation3, resource_in_unit,
+                               resource_in_unit2, resource_in_unit3, list_url):
+    reservation2.resource = resource_in_unit2
+    reservation2.save()
+
+    reservation3.resource = resource_in_unit3
+    reservation3.user = user
+    reservation3.save()
+
+    group_1 = ResourceGroup.objects.create(name='test group 1', identifier='test_group_1')
+    resource_in_unit.groups = [group_1]
+
+    group_2 = ResourceGroup.objects.create(name='test group 2', identifier='test_group_2')
+    resource_in_unit2.groups = [group_1, group_2]
+
+    group_3 = ResourceGroup.objects.create(name='test group 3', identifier='test_group_3')
+    resource_in_unit3.groups = [group_3]
+
+    response = user_api_client.get(list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation, reservation2, reservation3))
+
+    response = user_api_client.get(list_url + '?' + 'resource_group=' + group_1.identifier)
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation, reservation2))
+
+    response = user_api_client.get(list_url + '?' + 'resource_group=' + group_2.identifier)
+    assert response.status_code == 200
+    assert_response_objects(response, reservation2)
+
+    response = user_api_client.get(list_url + '?' + 'resource_group=%s,%s' % (group_1.identifier, group_2.identifier))
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation, reservation2))
+
+    response = user_api_client.get(list_url + '?' + 'resource_group=foobar')
+    assert response.status_code == 200
+    assert len(response.data['results']) == 0
