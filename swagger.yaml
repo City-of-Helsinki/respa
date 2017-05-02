@@ -415,6 +415,12 @@ paths:
           required: false
           type: string
           description: Only return resources that belong to the speficied resource group(s). Accepts multiple comma-separated values.
+        - name: available_between
+          in: query
+          required: false
+          type: string
+          format: date-time
+          description: Only return resources that are open and free on the given datetime range. Expects two comma-separated datetimes.
         - name: page
           in: query
           description: Result page number

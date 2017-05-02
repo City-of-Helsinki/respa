@@ -6,8 +6,9 @@ from django.contrib.gis.geos import Point
 from django.utils import timezone
 from freezegun import freeze_time
 
-from resources.models import Equipment, ReservationMetadataSet, Resource, ResourceEquipment, ResourceType
-from .utils import check_only_safe_methods_allowed
+from resources.models import (Day, Equipment, Period, Reservation, ReservationMetadataSet, ResourceEquipment,
+                              ResourceType)
+from .utils import assert_response_objects, check_only_safe_methods_allowed
 
 
 @pytest.fixture
@@ -411,3 +412,94 @@ def test_resource_equipment_filter(api_client, resource_in_unit, resource_in_uni
     response = api_client.get(list_url + '?equipment=%s,%s' % (equipment_1.id, equipment_2.id))
     assert response.status_code == 200
     assert {resource['id'] for resource in response.data['results']} == {resource_in_unit.id, resource_in_unit2.id}
+
+
+@pytest.mark.parametrize('filtering, expected_resource_indexes', (
+    ({}, [0, 1]),
+    ({'available_between': '2115-04-08T08:00:00+02:00,2115-04-08T10:00:00+02:00'}, [0, 1]),
+    ({'available_between': '2115-04-08T08:00:00+02:00,2115-04-08T10:00:01+02:00'}, [1]),
+    ({'available_between': '2115-04-08T10:59:59+02:00,2115-04-08T12:00:00+02:00'}, [1]),
+    ({'available_between': '2115-04-08T10:59:59+02:00,2115-04-08T12:00:01+02:00'}, []),
+    ({'available_between': '2115-04-08T13:00:00+02:00,2115-04-08T18:00:00+02:00'}, [0, 1]),
+))
+@pytest.mark.django_db
+def test_resource_available_between_filter_reservations(user_api_client, list_url, user, resource_in_unit,
+                                                        resource_in_unit2, filtering, expected_resource_indexes):
+    resources = (resource_in_unit, resource_in_unit2)
+    Reservation.objects.create(
+        resource=resource_in_unit,
+        begin='2115-04-08T10:00:00+02:00',
+        end='2115-04-08T11:00:00+02:00',
+        user=user,
+    )
+    Reservation.objects.create(
+        resource=resource_in_unit2,
+        begin='2115-04-08T12:00:00+02:00',
+        end='2115-04-08T13:00:00+02:00',
+        user=user,
+    )
+
+    # set resources open practically the whole so that opening hours don't intervene in this test
+    for resource in resources:
+        p1 = Period.objects.create(start=datetime.date(2115, 4, 1),
+                                   end=datetime.date(2115, 4, 30),
+                                   resource=resource)
+        for weekday in range(0, 7):
+            Day.objects.create(period=p1, weekday=weekday,
+                               opens=datetime.time(0, 0),
+                               closes=datetime.time(23, 59))
+
+    response = user_api_client.get(list_url, filtering)
+    assert response.status_code == 200
+    assert_response_objects(response, [resources[index] for index in expected_resource_indexes])
+
+
+@pytest.mark.parametrize('filtering, expected_resource_indexes', (
+    ({}, [0, 1]),
+    ({'available_between': '2115-04-08T06:00:00+02:00,2115-04-08T07:00:00+02:00'}, []),
+    ({'available_between': '2115-04-08T07:59:59+02:00,2115-04-08T16:00:00+02:00'}, []),
+    ({'available_between': '2115-04-08T08:00:00+02:00,2115-04-08T16:00:00+02:00'}, [0]),
+    ({'available_between': '2115-04-08T08:00:00+02:00,2115-04-08T16:00:01+02:00'}, []),
+    ({'available_between': '2115-04-08T12:00:00+02:00,2115-04-08T14:00:00+02:00'}, [0, 1]),
+    ({'available_between': '2115-04-14T12:00:00+02:00,2115-04-14T14:00:00+02:00'}, [0]),
+
+))
+@pytest.mark.django_db
+def test_resource_available_between_filter_opening_hours(user_api_client, list_url, resource_in_unit, resource_in_unit2,
+                                                         filtering, expected_resource_indexes):
+    resources = (resource_in_unit, resource_in_unit2)
+
+    p1 = Period.objects.create(start=datetime.date(2115, 4, 1),
+                               end=datetime.date(2115, 4, 30),
+                               resource=resource_in_unit)
+    for weekday in range(0, 7):
+        Day.objects.create(period=p1, weekday=weekday,
+                           opens=datetime.time(8, 0),
+                           closes=datetime.time(16, 0))
+
+    p1 = Period.objects.create(start=datetime.date(2115, 4, 1),
+                               end=datetime.date(2115, 4, 30),
+                               resource=resource_in_unit2)
+    for weekday in range(0, 6):
+        Day.objects.create(period=p1, weekday=weekday,
+                           opens=datetime.time(12, 0),
+                           closes=datetime.time(14, 0))
+
+    response = user_api_client.get(list_url, filtering)
+    assert response.status_code == 200
+    assert_response_objects(response, [resources[index] for index in expected_resource_indexes])
+
+
+@pytest.mark.django_db
+def test_resource_available_between_filter_constraints(user_api_client, list_url, resource_in_unit):
+    response = user_api_client.get(list_url, {
+        'available_between': '2115-04-08T00:00:00+02:00'
+    })
+    assert response.status_code == 400
+    assert 'available_between takes exactly two comma-separated values.' in str(response.data)
+
+    response = user_api_client.get(list_url, {
+        'available_between': '2115-04-08T00:00:00+02:00,2115-04-09T00:00:00+02:00'
+    })
+    assert response.status_code == 400
+    assert 'available_between timestamps must be on the same day.' in str(response.data)
