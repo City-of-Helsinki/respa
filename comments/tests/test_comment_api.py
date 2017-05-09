@@ -44,6 +44,16 @@ def reservation2_comment(reservation2, user):
     )
 
 
+@pytest.fixture
+def resource_group_comment(resource_group, user):  # just some model that has int id
+    return Comment.objects.create(
+        content_type=ContentType.objects.get(app_label='resources', model='resourcegroup'),
+        object_id=resource_group.id,
+        created_by=user,
+        text='test resource group comment text',
+    )
+
+
 @pytest.mark.parametrize('endpoint', (
     'list',
     'detail',
@@ -166,3 +176,19 @@ def test_reservation_comment_creation_rights(user_api_client, user, reservation3
     assign_perm('resources.can_access_reservation_comments', user, reservation3.resource.unit)
     response = user_api_client.post(LIST_URL, data=new_comment_data)
     assert response.status_code == 201
+
+
+@pytest.mark.django_db
+def test_comment_filtering(user_api_client, user, reservation_comment, reservation2_comment, resource_group_comment,
+                           reservation):
+    response = user_api_client.get(LIST_URL)
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation_comment, reservation2_comment, resource_group_comment))
+
+    response = user_api_client.get(LIST_URL + '?target_type=reservation')
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation_comment, reservation2_comment))
+
+    response = user_api_client.get(LIST_URL + '?target_type=reservation&target_id=%s' % reservation.id)
+    assert response.status_code == 200
+    assert_response_objects(response, reservation_comment)
