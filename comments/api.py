@@ -2,7 +2,7 @@ from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import exceptions, mixins, permissions, serializers, viewsets
+from rest_framework import exceptions, mixins, serializers, viewsets
 
 from resources.api.base import register_view
 from .models import Comment, COMMENTABLE_MODELS
@@ -39,12 +39,16 @@ class CommentSerializer(serializers.ModelSerializer):
         target_class = ContentType.objects.get(model=target_type).model_class()
 
         try:
-            target_class.objects.get(id=target_id)
+            target_object = target_class.objects.get(id=target_id)
         except target_class.DoesNotExist:
             error_message = serializers.PrimaryKeyRelatedField.default_error_messages['does_not_exist']
             raise exceptions.ValidationError(
                 {'target_id': [error_message.format(pk_value=target_id)]}
             )
+
+        if not Comment.can_user_comment_object(self.context['request'].user, target_object):
+            raise exceptions.ValidationError(_('You cannot comment this object.'))
+
         return validated_data
 
     def to_representation(self, instance):
@@ -53,15 +57,15 @@ class CommentSerializer(serializers.ModelSerializer):
         return data
 
 
-class CommentPermission(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        return obj.created_by == request.user
-
-
 class CommentViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.ListModelMixin,
                      viewsets.GenericViewSet):
     queryset = Comment.objects.select_related('created_by').prefetch_related('content_type')
     serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset()
+        return queryset.can_view(user)
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user, created_at=datetime.now())
