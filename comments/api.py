@@ -2,6 +2,7 @@ from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import ugettext_lazy as _
+import django_filters
 from rest_framework import exceptions, mixins, serializers, viewsets
 
 from resources.api.base import register_view
@@ -57,10 +58,21 @@ class CommentSerializer(serializers.ModelSerializer):
         return data
 
 
+class CommentFilter(django_filters.rest_framework.FilterSet):
+    class Meta:
+        model = Comment
+        fields = ('target_type', 'target_id')
+
+    target_type = django_filters.CharFilter(name='content_type__model')
+    target_id = django_filters.CharFilter(name='object_id')
+
+
 class CommentViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.ListModelMixin,
                      viewsets.GenericViewSet):
     queryset = Comment.objects.select_related('created_by').prefetch_related('content_type')
     serializer_class = CommentSerializer
+    filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
+    filter_class = CommentFilter
 
     def get_queryset(self):
         user = self.request.user
