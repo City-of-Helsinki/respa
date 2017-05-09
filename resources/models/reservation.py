@@ -182,6 +182,15 @@ class Reservation(ModifiableModel):
 
         return self.resource.is_admin(user) or self.user == user
 
+    def can_add_comment(self, user):
+        if not user:
+            return False
+        if user == self.user:
+            return True
+        if user.has_perm('resources.can_access_reservation_comments', self.resource.unit):
+            return True
+        return False
+
     class Meta:
         verbose_name = _("reservation")
         verbose_name_plural = _("reservations")

@@ -48,6 +48,7 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
             ('can_approve_reservation', _('Can approve reservation')),
             ('can_view_reservation_access_code', _('Can view reservation access code')),
             ('can_view_reservation_extra_fields', _('Can view reservation extra fields')),
+            ('can_access_reservation_comments', _('Can access reservation comments')),
         )
         ordering = ('name',)
 
