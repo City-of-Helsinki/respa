@@ -33,3 +33,8 @@ raven
 delorean
 freezegun
 python-docx
+iso8601
+lxml
+requests
+requests-ntlm
+six

@@ -22,7 +22,7 @@ install:
 before_script:
   - psql template1 -c 'create extension hstore;'
 
-script: py.test resources
+script: py.test -vvv --cov . resources respa_exchange
 
 notifications:
   slack:
