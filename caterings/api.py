@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.utils.translation import gettext_lazy as _
 
 import django_filters
 from rest_framework import exceptions, serializers, viewsets
@@ -144,10 +145,6 @@ class CateringOrderViewSet(viewsets.ModelViewSet):
     serializer_class = CateringOrderSerializer
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        user = self.request.user
-        if not user.is_authenticated():
-            return queryset.none()
-        return super().get_queryset().filter(reservation__user=user)
+        return super().get_queryset().can_view(self.request.user)
 
 register_view(CateringOrderViewSet, 'catering_order')

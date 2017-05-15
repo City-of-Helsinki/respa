@@ -1,8 +1,11 @@
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.contrib.gis.db import models
+from django.contrib.gis.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import pgettext_lazy
+
+from guardian.shortcuts import get_objects_for_user
 
 from resources.models import Reservation, Unit
 
@@ -59,12 +62,27 @@ class CateringProduct(TimeStampedModel):
         return '%s (%s)' % (self.name, self.category.provider)
 
 
+class CateringOrderQuerySet(models.QuerySet):
+    def can_view(self, user):
+        if not user.is_authenticated():
+            return self.none()
+
+        allowed_units = get_objects_for_user(
+            user, 'resources.can_view_reservation_catering_orders', klass=Unit
+        )
+        allowed_reservations = Reservation.objects.filter(Q(resource__unit__in=allowed_units) | Q(user=user))
+
+        return self.filter(reservation__in=allowed_reservations)
+
+
 class CateringOrder(TimeStampedModel):
     reservation = models.ForeignKey(
         Reservation, verbose_name=_('Reservation'), related_name='catering_orders', on_delete=models.CASCADE
     )
     invoicing_data = models.CharField(max_length=100, verbose_name=_('Invoicing data'))
     message = models.TextField(verbose_name=_('Message'), blank=True)
+
+    objects = CateringOrderQuerySet.as_manager()
 
     class Meta:
         verbose_name = _('Catering order')
