@@ -1,7 +1,9 @@
 import pytest
 from django.core.urlresolvers import reverse
 
-from resources.tests.utils import check_disallowed_methods, check_keys
+from guardian.shortcuts import assign_perm
+
+from resources.tests.utils import assert_response_objects, check_disallowed_methods, check_keys
 
 from caterings.models import CateringOrder, CateringOrderLine
 
@@ -153,3 +155,46 @@ def test_order_update(user_api_client, reservation2, catering_product, catering_
     order_line_object2 = order_object.order_lines.all()[1]
     assert order_line_object2.product == catering_product2
     assert order_line_object2.quantity == 7
+
+
+@pytest.mark.django_db
+def test_cannot_modify_orders_if_reservation_not_own(user_api_client, user2, catering_order, reservation3,
+                                                     new_order_data):
+    error_message = "You are not permitted to modify this reservation's catering orders."
+
+    # try to create an order
+    new_order_data['reservation'] = reservation3.pk
+    response = user_api_client.post(LIST_URL, data=new_order_data, format='json')
+    assert response.status_code == 403
+    assert error_message in str(response.data)
+
+    # try to update an order
+    detail_url = get_detail_url(catering_order)
+    response = user_api_client.put(detail_url, data=new_order_data, format='json')
+    assert response.status_code == 403
+    assert error_message in str(response.data)
+
+    detail_url = get_detail_url(catering_order)
+    response = user_api_client.patch(detail_url, data={'reservation': reservation3.pk}, format='json')
+    assert response.status_code == 403
+    assert error_message in str(response.data)
+
+    # try to update an order belonging to another user
+    user_api_client.force_authenticate(user=user2)
+    detail_url = get_detail_url(catering_order)
+    response = user_api_client.patch(detail_url, data={'reservation': reservation3.pk}, format='json')
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_can_view_others_orders_if_has_perm(user_api_client, user2, catering_order, reservation):
+    user_api_client.force_authenticate(user=user2)
+    response = user_api_client.get(LIST_URL)
+    assert response.status_code == 200
+    assert not response.data['results']
+
+    assign_perm('resources.can_view_reservation_catering_orders', user2, reservation.resource.unit)
+    user_api_client.force_authenticate(user=user2)
+    response = user_api_client.get(LIST_URL)
+    assert response.status_code == 200
+    assert_response_objects(response, catering_order)
