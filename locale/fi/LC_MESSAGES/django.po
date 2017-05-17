@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-14 16:21+0200\n"
+"POT-Creation-Date: 2017-05-17 22:15+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,603 +17,926 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#: caterings/api.py:141
+msgid "No permission to modify this reservation's catering orders."
+msgstr "Ei oikeutta muokata tämän varauksen cateringtilauksia."
+
+#: caterings/api.py:146
+msgid "The order contains products from several providers."
+msgstr "Tilaus sisältää tuotteita useammalta tarjoajalta."
+
+#: caterings/models.py:15 respa_exchange/models.py:159
+msgid "time of creation"
+msgstr "Lisäysaika"
+
+#: caterings/models.py:16 respa_exchange/models.py:164
+msgid "time of modification"
+msgstr "Muokkausaika"
+
+#: caterings/models.py:23 caterings/models.py:51
+#: resources/models/availability.py:117 resources/models/equipment.py:12
+#: resources/models/equipment.py:24 resources/models/equipment.py:37
+#: resources/models/reservation.py:299 resources/models/resource.py:61
+#: resources/models/resource.py:74 resources/models/resource.py:87
+#: resources/models/resource.py:116 resources/models/resource.py:525
+#: resources/models/unit.py:17
+msgid "Name"
+msgstr "Nimi"
+
+#: caterings/models.py:24
+msgid "Price list URL"
+msgstr "Hintalistan URL"
+
+#: caterings/models.py:25
+msgid "Units"
+msgstr "Toimipisteet"
+
+#: caterings/models.py:28 caterings/models.py:38
+msgid "Catering provider"
+msgstr "Tarjoaja"
+
+#: caterings/models.py:29
+msgid "Catering providers"
+msgstr "Tarjoajat"
+
+#: caterings/models.py:36 caterings/models.py:43
+msgid "Catering product category"
+msgstr "Tuotekategoria"
+
+#: caterings/models.py:44
+msgid "Catering product categories"
+msgstr "Tuotekategoriat"
+
+#: caterings/models.py:53
+msgctxt "catering"
+msgid "Category"
+msgstr "Kategoria"
+
+#: caterings/models.py:56 resources/models/availability.py:118
+#: resources/models/resource.py:117 resources/models/unit.py:18
+msgid "Description"
+msgstr "Kuvaus"
+
+#: caterings/models.py:59
+msgid "Catering product"
+msgstr "Tuote"
+
+#: caterings/models.py:60
+msgid "Catering products"
+msgstr "Tuotteet"
+
+#: caterings/models.py:84
+msgid "Reservation"
+msgstr "Varaus"
+
+#: caterings/models.py:87 resources/models/reservation.py:60
+msgid "User"
+msgstr "Käyttäjä"
+
+#: caterings/models.py:89
+msgid "Invoicing data"
+msgstr "Projektinumero"
+
+#: caterings/models.py:90
+msgid "Message"
+msgstr "Viesti"
+
+#: caterings/models.py:95
+msgid "Catering order"
+msgstr "Tilaus"
+
+#: caterings/models.py:96
+msgid "Catering orders"
+msgstr "Tilaukset"
+
+#: caterings/models.py:109
+msgid "Product"
+msgstr "Tuote"
+
+#: caterings/models.py:112
+msgid "Quantity"
+msgstr "Lukumäärä"
+
+#: caterings/models.py:114
+msgid "Order"
+msgstr "Tilaus"
+
+#: caterings/models.py:118
+msgid "Catering order line"
+msgstr "Tilausrivi"
+
+#: caterings/models.py:119
+msgid "Catering order lines"
+msgstr "Tilausrivit"
+
+#: comments/api.py:37
+msgid "Illegal type."
+msgstr "Kielletty tyyppi."
+
+#: comments/api.py:51
+msgid "You cannot comment this object."
+msgstr "Et voi kommentoida tätä objektia."
+
+#: comments/models.py:33 resources/models/base.py:48
+msgid "Time of creation"
+msgstr "Lisäysaika"
+
+#: comments/models.py:34 resources/models/base.py:49
+msgid "Created by"
+msgstr "Lisääjä"
+
+#: comments/models.py:36 resources/models/resource.py:88
+msgid "Text"
+msgstr "Teksti"
+
+#: comments/models.py:49
+msgid "Comment"
+msgstr "Kommentti"
+
+#: comments/models.py:50 resources/models/reservation.py:59
+msgid "Comments"
+msgstr "Kommentit"
+
+#: dummy_auth.py:17
+msgid "Invalid token."
+msgstr "Epäkelpo token."
+
+#: reports/api/daily_reservations.py:53 reports/api/daily_reservations.py:87
 msgid "No reservations"
 msgstr "Ei varauksia"
 
+#: reports/api/daily_reservations.py:75
 msgid "No information available"
 msgstr "Ei tietoja saatavilla"
 
+#: reports/api/daily_reservations.py:106 resources/api/reservation.py:219
 #, python-brace-format
 msgid "Invalid pk \"{pk_value}\" - object does not exist."
 msgstr ""
 
+#: reports/api/daily_reservations.py:123
 msgid "Either unit or resource is required."
 msgstr "Joko unit tai resource on pakollinen."
 
+#: reports/api/daily_reservations.py:148
 msgid "day-report"
 msgstr "päiväraportti"
 
+#: resources/admin/__init__.py:60 resources/models/resource.py:529
 msgid "Resource group"
 msgstr "Resurssiryhmä"
 
+#: resources/admin/__init__.py:61 resources/models/resource.py:530
 msgid "Resource groups"
 msgstr "Resurssiryhmät"
 
+#: resources/admin/__init__.py:147
 msgid "Required fields must be a subset of supported fields"
 msgstr "Jokaisen pakollisen kentän täytyy olla myös tuettu kenttä"
 
+#: resources/admin/period_inline.py:38
 msgid "HH:mm"
 msgstr "TT:mm"
 
+#: resources/api/reservation.py:131
 msgid "Illegal state change"
 msgstr "Kielletty tilan vaihto"
 
+#: resources/api/reservation.py:147
 msgid "You cannot make a reservation in the past"
 msgstr "Varauksen teko menneisyyteen ei ole sallittua"
 
+#: resources/api/reservation.py:152
 #, python-format
 msgid "The resource is reservable only before %(datetime)s"
 msgstr "Tila on varattavissa vain ennen %(datetime)s"
 
+#: resources/api/reservation.py:164
 msgid "Only allowed to be set by staff members"
 msgstr "Ainoastaan virkailijat saavat asettaa"
 
+#: resources/api/reservation.py:173
 msgid "This field cannot have a value with this resource"
 msgstr "Tällä kentällä ei voi olla arvoa tällä resurssilla"
 
+#: resources/api/reservation.py:176
 msgid "This field cannot be changed"
 msgstr "Tätä arvoa ei voi muuttaa"
 
+#: resources/api/reservation.py:286 resources/api/reservation.py:300
 #, python-format
 msgid "Invalid value in filter %(filter)s"
 msgstr "Virheellinen arvo filtterissä %(filter)s"
 
+#: resources/api/reservation.py:515 resources/models/reservation.py:196
 msgid "reservations"
 msgstr "varaukset"
 
+#: resources/api/reservation.py:521 resources/models/reservation.py:195
 msgid "reservation"
 msgstr "varaus"
 
+#: resources/apps.py:7
 msgid "Resource app"
 msgstr "Resurssisovellus"
 
+#: resources/models/availability.py:15
 msgid "open"
 msgstr "auki"
 
+#: resources/models/availability.py:15
 msgid "closed"
 msgstr "kiinni"
 
+#: resources/models/availability.py:107 resources/models/reservation.py:54
+#: resources/models/resource.py:421
 msgid "Resource"
 msgstr "Resurssi"
 
+#: resources/models/availability.py:109 resources/models/resource.py:112
+#: resources/models/unit.py:80
 msgid "Unit"
 msgstr "Toimipiste"
 
+#: resources/models/availability.py:112
 msgid "Start date"
 msgstr "Alkupäivä"
 
+#: resources/models/availability.py:113
 msgid "End date"
 msgstr "Loppupäivä"
 
+#: resources/models/availability.py:114
 msgid "Length of period"
 msgstr "Aikavälin kesto"
 
-msgid "Name"
-msgstr "Nimi"
-
-msgid "Description"
-msgstr "Kuvaus"
-
+#: resources/models/availability.py:120 resources/models/availability.py:193
 msgid "Closed"
 msgstr "Kiinni"
 
+#: resources/models/availability.py:123
 msgid "period"
 msgstr "aikaväli"
 
+#: resources/models/availability.py:124
 msgid "periods"
 msgstr "aikavälit"
 
+#: resources/models/availability.py:132
 msgid "You must set 'resource' or 'unit'"
 msgstr "Aseta 'resource' tai 'unit'"
 
+#: resources/models/availability.py:135
 msgid "You must set either 'resource' or 'unit', but not both"
 msgstr "Aseta 'resource' tai 'unit', älä molempia"
 
+#: resources/models/availability.py:177
 msgid "Monday"
 msgstr "maanantai"
 
+#: resources/models/availability.py:178
 msgid "Tuesday"
 msgstr "tiistai"
 
+#: resources/models/availability.py:179
 msgid "Wednesday"
 msgstr "keskiviikko"
 
+#: resources/models/availability.py:180
 msgid "Thursday"
 msgstr "torstai"
 
+#: resources/models/availability.py:181
 msgid "Friday"
 msgstr "perjantai"
 
+#: resources/models/availability.py:182
 msgid "Saturday"
 msgstr "lauantai"
 
+#: resources/models/availability.py:183
 msgid "Sunday"
 msgstr "sunnuntai"
 
+#: resources/models/availability.py:186
 msgid "Period"
 msgstr "Aikaväli"
 
+#: resources/models/availability.py:187
 msgid "Weekday"
 msgstr "Viikonpäivä"
 
+#: resources/models/availability.py:188
 msgid "Time when opens"
 msgstr "Aukeamisaika"
 
+#: resources/models/availability.py:189
 msgid "Time when closes"
 msgstr "Sulkemisaika"
 
+#: resources/models/availability.py:190
 msgid "Range between opens and closes"
 msgstr "Aukioloajan pituus"
 
+#: resources/models/availability.py:194
 msgid "description"
 msgstr "kuvaus"
 
+#: resources/models/availability.py:197
 msgid "day"
 msgstr "päivä"
 
+#: resources/models/availability.py:198
 msgid "days"
 msgstr "päivät"
 
-msgid "Time of creation"
-msgstr "Lisäysaika"
-
-msgid "Created by"
-msgstr "Lisääjä"
-
+#: resources/models/base.py:51
 msgid "Time of modification"
 msgstr "Muokkausaika"
 
+#: resources/models/base.py:52
 msgid "Modified by"
 msgstr "Muokkaaja"
 
+#: resources/models/equipment.py:15
 msgid "equipment category"
 msgstr "varusteluokka"
 
+#: resources/models/equipment.py:16
 msgid "equipment categories"
 msgstr "varusteluokat"
 
+#: resources/models/equipment.py:25
 msgid "Category"
 msgstr "Luokka"
 
+#: resources/models/equipment.py:28
 msgctxt "singular"
 msgid "equipment"
 msgstr "varuste"
 
+#: resources/models/equipment.py:29
 msgctxt "plural"
 msgid "equipment"
 msgstr "varusteet"
 
+#: resources/models/equipment.py:42
 msgid "equipment alias"
 msgstr "varusteen toinen nimi"
 
+#: resources/models/equipment.py:43
 msgid "equipment aliases"
 msgstr "varusteen toiset nimet"
 
+#: resources/models/reservation.py:48
 msgid "cancelled"
 msgstr "peruttu"
 
+#: resources/models/reservation.py:49
 msgid "confirmed"
 msgstr "hyväksytty"
 
+#: resources/models/reservation.py:50
 msgid "denied"
 msgstr "hylätty"
 
+#: resources/models/reservation.py:51
 msgid "requested"
 msgstr "käsiteltävänä"
 
+#: resources/models/reservation.py:55
 msgid "Begin time"
 msgstr "Alkuaika"
 
+#: resources/models/reservation.py:56
 msgid "End time"
 msgstr "Loppuaika"
 
+#: resources/models/reservation.py:57
 msgid "Length of reservation"
 msgstr "Varauksen kesto"
 
-msgid "Comments"
-msgstr "Kommentit"
-
-msgid "User"
-msgstr "Käyttäjä"
-
+#: resources/models/reservation.py:62
 msgid "State"
 msgstr "Tila"
 
+#: resources/models/reservation.py:63
 msgid "Approver"
 msgstr "Hyväksyjä"
 
+#: resources/models/reservation.py:67
 msgid "Access code"
 msgstr "Pääsykoodi"
 
+#: resources/models/reservation.py:71
 msgid "Event subject"
 msgstr "Tapahtuman nimi"
 
+#: resources/models/reservation.py:72
 msgid "Event description"
 msgstr "Tapahtuman kuvaus"
 
+#: resources/models/reservation.py:73
 msgid "Number of participants"
 msgstr "Osallistujamäärä"
 
+#: resources/models/reservation.py:75
 msgid "Host name"
 msgstr "Isäntä"
 
+#: resources/models/reservation.py:78
 msgid "Reserver name"
 msgstr "Varaajan nimi"
 
+#: resources/models/reservation.py:79
 msgid "Reserver ID (business or person)"
 msgstr "Varaajan tunniste (yritys tai henkilö)"
 
+#: resources/models/reservation.py:80
 msgid "Reserver email address"
 msgstr "Varaajan sähköpostiosoite"
 
+#: resources/models/reservation.py:81
 msgid "Reserver phone number"
 msgstr "Varaajan puhelinnumero"
 
+#: resources/models/reservation.py:82
 msgid "Reserver address street"
 msgstr "Varaajan katuosoite"
 
+#: resources/models/reservation.py:83
 msgid "Reserver address zip"
 msgstr "Varaajan postinumero"
 
+#: resources/models/reservation.py:84
 msgid "Reserver address city"
 msgstr "Varaajan kaupunki"
 
+#: resources/models/reservation.py:85
 msgid "Company"
 msgstr "Yhdistys"
 
+#: resources/models/reservation.py:86
 msgid "Billing address street"
 msgstr "Laskutusosoite katuosoite"
 
+#: resources/models/reservation.py:87
 msgid "Billing address zip"
 msgstr "Laskutusosoite postinumero"
 
+#: resources/models/reservation.py:88
 msgid "Billing address city"
 msgstr "Laskutusosoite kaupunki"
 
+#: resources/models/reservation.py:210
 msgid "You must end the reservation after it has begun"
 msgstr "Varauksen loppuaika ei voi olla ennen alkuaikaa"
 
+#: resources/models/reservation.py:218
 msgid "Begin and end time must match time slots"
 msgstr "Alku- ja loppuajan täytyy osua aikaikkunoihin"
 
+#: resources/models/reservation.py:222
 msgid "The resource is already reserved for some of the period"
 msgstr "Tila on jo varattu ainakin osan ajanjaksosta"
 
+#: resources/models/reservation.py:225
 #, python-format
 msgid "The minimum reservation length is %(min_period)s"
 msgstr "Varauksen minimikesto on %(min_period)s"
 
+#: resources/models/reservation.py:253
 msgid "You've made a preliminary reservation"
 msgstr "Olet tehnyt alustavan varauksen"
 
+#: resources/models/reservation.py:259
 msgid "Reservation requested"
 msgstr "Alustava varaus tehty"
 
+#: resources/models/reservation.py:262
 msgid "Reservation denied"
 msgstr "Varaus hylätty"
 
+#: resources/models/reservation.py:265
 msgid "Reservation confirmed"
 msgstr "Varaus vahvistettu"
 
+#: resources/models/reservation.py:268
 msgid "Reservation cancelled"
 msgstr "Varaus peruttu"
 
+#: resources/models/reservation.py:271
 msgid "Reservation created"
 msgstr "Varaus tehty"
 
+#: resources/models/reservation.py:288
 msgid "Field name"
 msgstr "Kentän nimi"
 
+#: resources/models/reservation.py:291
 msgid "Reservation metadata field"
 msgstr "Varauksen metatietokenttä"
 
+#: resources/models/reservation.py:292
 msgid "Reservation metadata fields"
 msgstr "Varauksen metatietokentät"
 
+#: resources/models/reservation.py:300
 msgid "Supported fields"
 msgstr "Tuetut kentät"
 
+#: resources/models/reservation.py:302
 msgid "Required fields"
 msgstr "Pakolliset kentät"
 
+#: resources/models/reservation.py:306
 msgid "Reservation metadata set"
 msgstr "Varauksen metatietojoukko"
 
+#: resources/models/reservation.py:307
 msgid "Reservation metadata sets"
 msgstr "Varauksen metatietojoukot"
 
+#: resources/models/resource.py:46
 msgid "Invalid value"
 msgstr "Epäkelpo arvo"
 
+#: resources/models/resource.py:55
 msgid "Space"
 msgstr "Tila"
 
+#: resources/models/resource.py:56
 msgid "Person"
 msgstr "Henkilö"
 
+#: resources/models/resource.py:57
 msgid "Item"
 msgstr "Esine"
 
+#: resources/models/resource.py:60
 msgid "Main type"
 msgstr "Päätyyppi"
 
+#: resources/models/resource.py:64
 msgid "resource type"
 msgstr "resurssityyppi"
 
+#: resources/models/resource.py:65
 msgid "resource types"
 msgstr "resurssityypit"
 
+#: resources/models/resource.py:73
 msgid "Parent"
 msgstr "Vanhempi"
 
+#: resources/models/resource.py:75 resources/models/resource.py:111
 msgid "Public"
 msgstr "Julkinen"
 
+#: resources/models/resource.py:78
 msgid "purpose"
 msgstr "käyttötarkoitus"
 
+#: resources/models/resource.py:79
 msgid "purposes"
 msgstr "käyttötarkoitukset"
 
-msgid "Text"
-msgstr "Teksti"
-
+#: resources/models/resource.py:91
 msgctxt "singular"
 msgid "terms of use"
 msgstr "käyttöehdot"
 
+#: resources/models/resource.py:92
 msgctxt "plural"
 msgid "terms of use"
 msgstr "käyttöehdot"
 
+#: resources/models/resource.py:100 resources/models/resource.py:107
 msgid "None"
 msgstr "Ei mitään"
 
+#: resources/models/resource.py:101
 msgid "Weak"
 msgstr "Heikko"
 
+#: resources/models/resource.py:102
 msgid "Strong"
 msgstr "Vahva"
 
+#: resources/models/resource.py:108
 msgid "6-digit pin code"
 msgstr "6-numeroinen pin-koodi"
 
+#: resources/models/resource.py:114
 msgid "Resource type"
 msgstr "Resurssityyppi"
 
+#: resources/models/resource.py:115
 msgid "Purposes"
 msgstr "Käyttötarkoitukset"
 
+#: resources/models/resource.py:118
 msgid "Need manual confirmation"
 msgstr "Tarvitsee virkailijan vahvistuksen"
 
+#: resources/models/resource.py:119
 msgid "Authentication"
 msgstr "Tunnistautuminen"
 
+#: resources/models/resource.py:121
 msgid "People capacity"
 msgstr "Henkilömäärä"
 
+#: resources/models/resource.py:122
 msgid "Area"
 msgstr "Pinta-ala"
 
+#: resources/models/resource.py:125 resources/models/unit.py:20
 msgid "Location"
 msgstr "Sijainti"
 
+#: resources/models/resource.py:127
 msgid "Minimum reservation time"
 msgstr "Lyhin varausaika"
 
+#: resources/models/resource.py:129
 msgid "Maximum reservation time"
 msgstr "Pisin varausaika"
 
+#: resources/models/resource.py:132
 msgid "Equipment"
 msgstr "Varuste"
 
+#: resources/models/resource.py:133
 msgid "Maximum number of active reservations per user"
 msgstr "Varauksia enintään per käyttäjä (voimassa olevia)"
 
+#: resources/models/resource.py:135
 msgid "Reservable"
 msgstr "Varattavissa"
 
+#: resources/models/resource.py:136
 msgid "Reservation info"
 msgstr "Varausinfo"
 
+#: resources/models/resource.py:137
 msgid "Responsible contact info"
 msgstr "Vastuuhenkilön yhteystiedot"
 
+#: resources/models/resource.py:138
 msgid "Generic terms"
 msgstr "Yleiset ehdot"
 
+#: resources/models/resource.py:139
 msgid "Specific terms"
 msgstr "Resurssikohtaiset ehdot"
 
+#: resources/models/resource.py:140
 msgid "Extra content to reservation confirmed notification"
 msgstr "Lisäsisältö varaus hyväksytty -ilmoitukseen"
 
+#: resources/models/resource.py:142
 msgid "Min price per hour"
 msgstr "Minimituntihinta"
 
+#: resources/models/resource.py:144
 msgid "Max price per hour"
 msgstr "Maksimituntihinta"
 
+#: resources/models/resource.py:146
 msgid "Access code type"
 msgstr "Pääsykoodityyppi"
 
+#: resources/models/resource.py:148 resources/models/unit.py:41
 msgid "Reservable days in advance"
 msgstr "Varattavissa etukäteen (päivissä)"
 
+#: resources/models/resource.py:153 respa_exchange/models.py:84
 msgid "resource"
 msgstr "resurssi"
 
+#: resources/models/resource.py:154
 msgid "resources"
 msgstr "resurssit"
 
+#: resources/models/resource.py:203
 msgid "You cannot make a multi day reservation"
 msgstr "Varaus ei saa ulottua useammalle päivälle"
 
+#: resources/models/resource.py:208
 msgid "You must start and end the reservation during opening hours"
 msgstr "Varauksen täytyy alkaa ja päättyä aukioloaikojen sisällä"
 
+#: resources/models/resource.py:211
 #, python-format
 msgid "The maximum reservation length is %(max_period)s"
 msgstr "Varauksen maksimikesto on %(max_period)s"
 
+#: resources/models/resource.py:230
 msgid "Maximum number of active reservations for this resource exceeded."
 msgstr "Liikaa voimassa olevia varauksia tähän tilaan."
 
+#: resources/models/resource.py:410
 msgid "This value cannot be greater than max price per hour"
 msgstr "Tämä arvo ei voi olla suurempi kuin maksimituntihinta"
 
+#: resources/models/resource.py:416
 msgid "Main photo"
 msgstr "Päävalokuva"
 
+#: resources/models/resource.py:417
 msgid "Ground plan"
 msgstr "Pohjapiirros"
 
+#: resources/models/resource.py:418
 msgid "Map"
 msgstr "Kartta"
 
+#: resources/models/resource.py:419
 msgid "Other"
 msgstr "Toinen"
 
+#: resources/models/resource.py:423
 msgid "Type"
 msgstr "Tyyppi"
 
+#: resources/models/resource.py:424
 msgid "Caption"
 msgstr "Kuvateksti"
 
+#: resources/models/resource.py:426
 msgid "Image"
 msgstr "Kuva"
 
+#: resources/models/resource.py:428
 msgid "Cropping"
 msgstr "Rajaus"
 
+#: resources/models/resource.py:429
 msgid "Sort order"
 msgstr "Järjestysnumero"
 
+#: resources/models/resource.py:497
 msgid "resource image"
 msgstr "resurssin kuva"
 
+#: resources/models/resource.py:498
 msgid "resource images"
 msgstr "resurssin kuvat"
 
+#: resources/models/resource.py:516
 msgctxt "singular"
 msgid "resource equipment"
 msgstr "resurssin varuste"
 
+#: resources/models/resource.py:517
 msgctxt "plural"
 msgid "resource equipment"
 msgstr "resurssin varusteet"
 
+#: resources/models/resource.py:524
 msgid "Identifier"
 msgstr "Tunniste"
 
+#: resources/models/resource.py:526
 msgid "Resources"
 msgstr "Resurssit"
 
+#: resources/models/unit.py:21
 msgid "Time zone"
 msgstr "Aikavyöhyke"
 
+#: resources/models/unit.py:26
 msgid "Street address"
 msgstr "Katuosoite"
 
+#: resources/models/unit.py:27
 msgid "Postal code"
 msgstr "Postinumero"
 
+#: resources/models/unit.py:28
 msgid "Phone number"
 msgstr "Puhelinnumero"
 
+#: resources/models/unit.py:29
 msgid "Email"
 msgstr "Sähköpostiosoite"
 
+#: resources/models/unit.py:30
 msgid "WWW link"
 msgstr "Www-osoite"
 
+#: resources/models/unit.py:31
 msgid "Full postal address"
 msgstr "Täysi postiosoite"
 
+#: resources/models/unit.py:33
 msgid "Municipality"
 msgstr "Kunta"
 
+#: resources/models/unit.py:35
 msgid "Picture URL"
 msgstr "Valokuvan osoite"
 
+#: resources/models/unit.py:37
 msgid "Picture caption"
 msgstr "Valokuvan kuvateksti"
 
+#: resources/models/unit.py:45
 msgid "unit"
 msgstr "toimipiste"
 
+#: resources/models/unit.py:46
 msgid "units"
 msgstr "toimipisteet"
 
+#: resources/models/unit.py:48
 msgid "Can approve reservation"
 msgstr "Voi hyväksyä varauksen"
 
+#: resources/models/unit.py:49
 msgid "Can view reservation access code"
 msgstr "Voi nähdä varauksen pääsykoodin"
 
+#: resources/models/unit.py:50
+msgid "Can view reservation extra fields"
+msgstr "Voi nähdä varauksen lisäkentät"
+
+#: resources/models/unit.py:51
+msgid "Can access reservation comments"
+msgstr "Pääsy varauksen kommentteihin"
+
+#: resources/models/unit.py:52
+msgid "Can view reservation catering orders"
+msgstr "Voi nähdä varauksen cateringtilaukset"
+
+#: resources/models/unit.py:81
 msgid "Namespace"
 msgstr "Tunnisteavaruus"
 
+#: resources/models/unit.py:82
 msgid "Value"
 msgstr "Arvo"
 
+#: resources/models/unit.py:85
 msgid "unit identifier"
 msgstr "toimipisteen tunniste"
 
+#: resources/models/unit.py:86
 msgid "unit identifiers"
 msgstr "toimipisteen tunnisteet"
 
+#: resources/models/utils.py:94
 #, python-format
 msgid "%(count)d hour"
 msgid_plural "%(count)d hours"
 msgstr[0] "%(count)d tunti"
 msgstr[1] "%(count)d tuntia"
 
+#: resources/models/utils.py:95
 #, python-format
 msgid "%(count)d minute"
 msgid_plural "%(count)d minutes"
 msgstr[0] "%(count)d minuutti"
 msgstr[1] "%(count)d minuuttia"
 
+#: resources/templates/admin/resources/period_inline.html:10
 msgid "Add Another"
 msgstr "Lisää toinen"
 
+#: resources/templates/admin/resources/period_inline.html:36
 msgid "Delete Item"
 msgstr "Poista"
 
+#: resources/templates/mail/_reservation_data.jinja:1
 #, python-format
 msgid "Resource: %(resource)s"
 msgstr "Tila: %(resource)s"
 
+#: resources/templates/mail/_reservation_data.jinja:2
 #, python-format
 msgid "Unit: %(unit)s"
 msgstr "Toimipiste: %(unit)s"
 
+#: resources/templates/mail/_reservation_data.jinja:3
 #, python-format
 msgid "Starts: %(starts)s"
 msgstr "Alkaa: %(starts)s"
 
+#: resources/templates/mail/_reservation_data.jinja:4
 #, python-format
 msgid "Ends: %(ends)s"
 msgstr "Loppuu: %(ends)s"
 
+#: resources/templates/mail/base_message.jinja:1
 msgid "Hello,"
 msgstr "Hei,"
 
+#: resources/templates/mail/base_message.jinja:5
 msgid "This is an automated message, please don't reply to this."
 msgstr "Tämä on automaattinen viesti, joten älä vastaa tähän."
 
+#: resources/templates/mail/base_message.jinja:7
 msgid ""
 "Best regards,\n"
 "Varaamo"
@@ -621,9 +944,11 @@ msgstr ""
 "Ystävällisin terveisin,\n"
 "Varaamo"
 
+#: resources/templates/mail/reservation_cancelled.jinja:1
 msgid "Your reservation has been cancelled."
 msgstr "Varauksesi on peruttu."
 
+#: resources/templates/mail/reservation_cancelled.jinja:4
 msgid ""
 "\n"
 "Further information regarding the cancellation of your reservation can\n"
@@ -633,9 +958,11 @@ msgstr ""
 "Varauksen perumiseen liittyvät syyt voitte tiedustella tilasta vastaavalta\n"
 "henkilökunnalta.\n"
 
+#: resources/templates/mail/reservation_confirmed.jinja:1
 msgid "Your reservation has been confirmed."
 msgstr "Varauksesi on hyväksytty."
 
+#: resources/templates/mail/reservation_confirmed.jinja:4
 msgid ""
 "\n"
 "It is possible to cancel the reservation five days before the start of\n"
@@ -650,18 +977,24 @@ msgstr ""
 "tiedot perumiseen löydätte Varaamon omista varauksista kirjautumalla\n"
 "palveluun.\n"
 
+#: resources/templates/mail/reservation_created_with_access_code.jinja:1
+#: resources/templates/mail/reservation_requested.jinja:1
 msgid "and thanks for using Varaamo!"
 msgstr "ja kiitokset Varaamon käytöstä!"
 
+#: resources/templates/mail/reservation_created_with_access_code.jinja:3
 msgid "You've made a new reservation:"
 msgstr "Olet tehnyt uuden varauksen:"
 
+#: resources/templates/mail/reservation_created_with_access_code.jinja:7
 msgid "Your access code for the resource: "
 msgstr "Pääsykoodisi tilaan:"
 
+#: resources/templates/mail/reservation_denied.jinja:1
 msgid "Your reservation request has been denied."
 msgstr "Varauksesi on hylätty."
 
+#: resources/templates/mail/reservation_denied.jinja:4
 msgid ""
 "\n"
 "Further information regarding the rejection of your reservation can\n"
@@ -671,9 +1004,11 @@ msgstr ""
 "Varauksen hylkäämiseen liittyvät tarkemmat perusteet voitte\n"
 "tiedustella tilasta vastaavalta henkilökunnalta.\n"
 
+#: resources/templates/mail/reservation_requested.jinja:3
 msgid "You've made a preliminary reservation:"
 msgstr "Olet tehnyt alustavan varauksen:"
 
+#: resources/templates/mail/reservation_requested.jinja:6
 msgid ""
 "\n"
 "Your reservation will be processed in two days and you will get an\n"
@@ -686,20 +1021,120 @@ msgstr ""
 "saatte erillisen varausvahvistuksen sähköpostitse. Mikäli tarvitsemme\n"
 "lisätietoja varaukseen liittyen, olemme teihin yhteydessä erikseen.\n"
 
+#: resources/templates/mail/reservation_requested_official.jinja:1
 msgid "A new preliminary reservation has been made:"
 msgstr "Uusi alustava varaus on tehty:"
 
+#: resources/templates/mail/reservation_requested_official.jinja:5
 msgid "Process the reservation within two days."
 msgstr "Käsittele varaus kahden päivän sisällä."
 
+#: respa/settings.py:137
 msgid "Finnish"
 msgstr "suomi"
 
+#: respa/settings.py:138
 msgid "English"
 msgstr "englanti"
 
+#: respa/settings.py:139
 msgid "Swedish"
 msgstr "ruotsi"
 
+#: respa_exchange/models.py:19
+msgid "name"
+msgstr "nimi"
+
+#: respa_exchange/models.py:22
+msgid "a descriptive name for this Exchange configuration"
+msgstr ""
+
+#: respa_exchange/models.py:25
+msgid "EWS URL"
+msgstr ""
+
+#: respa_exchange/models.py:26
+msgid ""
+"the URL to the Exchange Web Service (e.g. https://contoso.com/EWS/Exchange."
+"asmx)"
+msgstr ""
+
+#: respa_exchange/models.py:29
+msgid "username"
+msgstr ""
+
+#: respa_exchange/models.py:31
+msgid "the service user to authenticate as, in domain\\username format"
+msgstr ""
+
+#: respa_exchange/models.py:34
+msgid "password"
+msgstr ""
+
+#: respa_exchange/models.py:36
+msgid "the user's password (stored as plain-text)"
+msgstr ""
+
+#: respa_exchange/models.py:39
+msgid "enabled"
+msgstr ""
+
+#: respa_exchange/models.py:42
+msgid ""
+"whether synchronization is enabled at all against this Exchange instance"
+msgstr ""
+
+#: respa_exchange/models.py:49 respa_exchange/models.py:78
+msgid "Exchange configuration"
+msgstr ""
+
+#: respa_exchange/models.py:50
+msgid "Exchange configurations"
+msgstr ""
+
+#: respa_exchange/models.py:90
+msgid "sync Exchange to Respa"
+msgstr ""
+
+#: respa_exchange/models.py:91
+msgid ""
+"if disabled, events will not be synced from the Exchange calendar to Respa"
+msgstr ""
+
+#: respa_exchange/models.py:96
+msgid "sync Respa to Exchange"
+msgstr ""
+
+#: respa_exchange/models.py:98
+msgid ""
+"if disabled, new events will not be synced from Respa to the Exchange "
+"calendar; pre-existing events continue to be updated"
+msgstr ""
+
+#: respa_exchange/models.py:103
+msgid "principal email"
+msgstr ""
+
+#: respa_exchange/models.py:105
+msgid "the email address for this resource in Exchange"
+msgstr ""
+
+#: respa_exchange/models.py:109
+msgid "Exchange resource"
+msgstr ""
+
+#: respa_exchange/models.py:110
+msgid "Exchange resources"
+msgstr ""
+
+#: respa_exchange/models.py:170
+msgid "Exchange reservation"
+msgstr ""
+
+#: respa_exchange/models.py:171
+msgid "Exchange reservations"
+msgstr ""
+
+#: users/models.py:16
 msgid "Favorite resources"
 msgstr "Suosikkiresurssit"
