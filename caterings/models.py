@@ -5,6 +5,7 @@ from django.contrib.gis.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import pgettext_lazy
 
+import reversion
 from guardian.shortcuts import get_objects_for_user
 
 from resources.models import Reservation, Unit
@@ -75,6 +76,7 @@ class CateringOrderQuerySet(models.QuerySet):
         return self.filter(reservation__in=allowed_reservations)
 
 
+@reversion.register(follow=('order_lines',))
 class CateringOrder(TimeStampedModel):
     reservation = models.ForeignKey(
         Reservation, verbose_name=_('Reservation'), related_name='catering_orders', on_delete=models.CASCADE
@@ -92,6 +94,7 @@ class CateringOrder(TimeStampedModel):
         return 'catering order for %s' % self.reservation
 
 
+@reversion.register()
 class CateringOrderLine(models.Model):
     product = models.ForeignKey(
         CateringProduct, verbose_name=_('Product'), related_name='catering_order_line',

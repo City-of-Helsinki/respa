@@ -1,5 +1,6 @@
 from django.contrib import admin
 from modeltranslation.admin import TranslationAdmin
+from reversion.admin import VersionAdmin
 
 from .models import CateringProduct, CateringProductCategory, CateringOrder, CateringOrderLine, CateringProvider
 
@@ -21,7 +22,7 @@ class CateringOrderLineInline(admin.TabularInline):
     extra = 0
 
 
-class CateringOrderAdmin(admin.ModelAdmin):
+class CateringOrderAdmin(VersionAdmin):
     inlines = (CateringOrderLineInline,)
 
 

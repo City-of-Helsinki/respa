@@ -38,3 +38,4 @@ lxml
 requests
 requests-ntlm
 six
+django-reversion
