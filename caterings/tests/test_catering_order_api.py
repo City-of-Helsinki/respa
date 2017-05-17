@@ -28,16 +28,17 @@ def new_order_data(catering_product, reservation):
         'message': 'no sugar please',
     }
 
+
 @pytest.fixture
-def update_order_data(catering_product, catering_product2, reservation2):
+def update_order_data(catering_product2, catering_product3, reservation2):
     return {
         'reservation': reservation2.pk,
         'order_lines': [
             {
-                'product': catering_product.pk,
+                'product': catering_product2.pk,
             },
             {
-                'product': catering_product2.pk,
+                'product': catering_product3.pk,
                 'quantity': 7,
             }
         ],
@@ -136,7 +137,7 @@ def test_order_create(user_api_client, reservation, catering_product, new_order_
 
 
 @pytest.mark.django_db
-def test_order_update(user_api_client, reservation2, catering_product, catering_product2, catering_order,
+def test_order_update(user_api_client, reservation2, catering_product2, catering_product3, catering_order,
                       update_order_data):
     detail_url = get_detail_url(catering_order)
     response = user_api_client.put(detail_url, data=update_order_data, format='json')
@@ -150,39 +151,42 @@ def test_order_update(user_api_client, reservation2, catering_product, catering_
     assert CateringOrderLine.objects.count() == 2
 
     order_line_object = order_object.order_lines.all()[0]
-    assert order_line_object.product == catering_product
+    assert order_line_object.product == catering_product2
     assert order_line_object.quantity == 1
     order_line_object2 = order_object.order_lines.all()[1]
-    assert order_line_object2.product == catering_product2
+    assert order_line_object2.product == catering_product3
     assert order_line_object2.quantity == 7
 
 
 @pytest.mark.django_db
 def test_cannot_modify_orders_if_reservation_not_own(user_api_client, user2, catering_order, reservation3,
                                                      new_order_data):
-    error_message = "You are not permitted to modify this reservation's catering orders."
+    error_message = "No permission to modify this reservation's catering orders."
 
     # try to create an order
     new_order_data['reservation'] = reservation3.pk
-    response = user_api_client.post(LIST_URL, data=new_order_data, format='json')
+    response = user_api_client.post(LIST_URL, data=new_order_data, format='json', HTTP_ACCEPT_LANGUAGE='en')
     assert response.status_code == 403
     assert error_message in str(response.data)
 
     # try to update an order
     detail_url = get_detail_url(catering_order)
-    response = user_api_client.put(detail_url, data=new_order_data, format='json')
+    response = user_api_client.put(detail_url, data=new_order_data, format='json', HTTP_ACCEPT_LANGUAGE='en')
     assert response.status_code == 403
     assert error_message in str(response.data)
 
     detail_url = get_detail_url(catering_order)
-    response = user_api_client.patch(detail_url, data={'reservation': reservation3.pk}, format='json')
+    response = user_api_client.patch(
+        detail_url, data={'reservation': reservation3.pk}, format='json', HTTP_ACCEPT_LANGUAGE='en')
     assert response.status_code == 403
     assert error_message in str(response.data)
 
     # try to update an order belonging to another user
     user_api_client.force_authenticate(user=user2)
     detail_url = get_detail_url(catering_order)
-    response = user_api_client.patch(detail_url, data={'reservation': reservation3.pk}, format='json')
+    response = user_api_client.patch(
+        detail_url, data={'reservation': reservation3.pk}, format='json', HTTP_ACCEPT_LANGUAGE='en'
+    )
     assert response.status_code == 404
 
 
@@ -198,3 +202,29 @@ def test_can_view_others_orders_if_has_perm(user_api_client, user2, catering_ord
     response = user_api_client.get(LIST_URL)
     assert response.status_code == 200
     assert_response_objects(response, catering_order)
+
+
+@pytest.mark.django_db
+def test_order_cannot_contain_products_from_several_providers(user_api_client, catering_product, catering_product2,
+                                                              new_order_data):
+    new_order_data['order_lines'] = [
+        {
+            'product': catering_product.pk,
+        },
+        {
+            'product': catering_product2.pk,
+        }
+    ]
+
+    response = user_api_client.post(LIST_URL, data=new_order_data, format='json', HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 400
+    assert 'The order contains products from several providers.' in str(response.data)
+
+
+@pytest.mark.django_db
+def test_order_cannot_have_provider_not_available_in_unit(user_api_client, reservation2, new_order_data):
+    new_order_data['reservation'] = reservation2.pk
+
+    response = user_api_client.post(LIST_URL, data=new_order_data, format='json', HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 400
+    assert "The provider isn't available in the reservation's unit." in str(response.data)

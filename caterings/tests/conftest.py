@@ -61,6 +61,14 @@ def catering_product2(catering_product_category2):
 
 
 @pytest.fixture
+def catering_product3(catering_product_category2):
+    return CateringProduct.objects.create(
+        name_fi='Kalakeitto',
+        category=catering_product_category2,
+    )
+
+
+@pytest.fixture
 def catering_order(catering_product, reservation, user):
     order = CateringOrder.objects.create(
         reservation=reservation,

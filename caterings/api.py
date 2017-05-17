@@ -137,7 +137,18 @@ class CateringOrderSerializer(serializers.ModelSerializer):
     def validate(self, validated_data):
         reservation = validated_data.get('reservation') or self.instance.reservation
         if reservation and reservation.user != self.context['request'].user:
-            raise exceptions.PermissionDenied(_("You are not permitted to modify this reservation's catering orders."))
+            raise exceptions.PermissionDenied(_("No permission to modify this reservation's catering orders."))
+
+        provider = validated_data['order_lines'][0]['product'].category.provider
+        for order_line in validated_data['order_lines'][1:]:
+            if order_line['product'].category.provider != provider:
+                raise exceptions.ValidationError(_('The order contains products from several providers.'))
+
+        if reservation.resource.unit not in provider.units.all():
+            raise exceptions.ValidationError(
+                "The provider isn't available in the reservation's unit."
+            )
+
         return validated_data
 
 
