@@ -17,7 +17,7 @@ django-anymail==0.9
 django-appconf==1.0.1     # via django-image-cropping
 django-autoslug==1.9.3
 django-cors-headers==2.0.2
-django-filter==1.0.2
+django-filter==1.0.4
 django-grappelli==2.9.1
 django-guardian==1.4.8
 django-helusers==0.2.5
@@ -26,7 +26,8 @@ django-image-cropping==1.0.4
 django-jinja==2.3.0
 django-modeltranslation==0.12.1
 django-mptt==0.8.7
-django==1.11.1            # via django-allauth, django-anymail, django-helusers, django-jinja, easy-thumbnails
+django-reversion==2.0.8
+django==1.11.1
 djangorestframework-jwt==1.10.0
 djangorestframework==3.6.3
 easy-thumbnails==2.4.1
@@ -37,7 +38,7 @@ freezegun==0.3.9
 humanize==0.5.1           # via delorean
 icalendar==3.11.4
 iso8601==0.1.11
-jinja2==2.9.6             # via django-jinja
+jinja2==2.9.6
 lxml==3.7.3
 markupsafe==1.0           # via jinja2
 mccabe==0.6.1             # via flake8

@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'guardian',
     'django_jinja',
     'anymail',
+    'reversion',
 
     'allauth',
     'allauth.account',

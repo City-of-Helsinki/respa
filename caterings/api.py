@@ -2,6 +2,7 @@ from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 
 import django_filters
+import reversion
 from rest_framework import exceptions, serializers, viewsets
 
 from resources.api.base import NullableDateTimeField, TranslatedModelSerializer, register_view
@@ -146,5 +147,17 @@ class CateringOrderViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return super().get_queryset().can_view(self.request.user)
+
+    def perform_create(self, serializer):
+        with reversion.create_revision():
+            serializer.save()
+            reversion.set_user(self.request.user)
+            reversion.set_comment('Created using the API.')
+
+    def perform_update(self, serializer):
+        with reversion.create_revision():
+            serializer.save()
+            reversion.set_user(self.request.user)
+            reversion.set_comment('Updated using the API.')
 
 register_view(CateringOrderViewSet, 'catering_order')
