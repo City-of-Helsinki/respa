@@ -15,7 +15,7 @@ coverage
 django-cors-headers
 django-image-cropping
 easy_thumbnails
--e git+https://github.com/City-of-Helsinki/django-helusers.git#egg=django-helusers
+django-helusers
 django-allauth
 django-autoslug
 djangorestframework-jwt
