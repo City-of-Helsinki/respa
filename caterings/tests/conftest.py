@@ -81,3 +81,31 @@ def catering_order(catering_product, reservation, user):
         order=order,
     )
     return order
+
+
+@pytest.fixture
+def catering_order2(catering_product2, reservation2):
+    order = CateringOrder.objects.create(
+        reservation=reservation2,
+        invoicing_data='123456',
+        message='NO SUGAR!',
+    )
+    order_line = CateringOrderLine.objects.create(
+        product=catering_product2,
+        quantity=777,
+        order=order,
+    )
+    return order
+
+
+@pytest.fixture
+def catering_order3(catering_product3, reservation3):
+    order = CateringOrder.objects.create(
+        reservation=reservation3,
+        invoicing_data='xyz',
+    )
+    order_line = CateringOrderLine.objects.create(
+        product=catering_product3,
+        order=order,
+    )
+    return order

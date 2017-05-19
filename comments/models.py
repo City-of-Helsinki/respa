@@ -5,9 +5,10 @@ from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from guardian.shortcuts import get_objects_for_user
+from caterings.models import CateringOrder
 from resources.models import Reservation, Unit
 
-COMMENTABLE_MODELS = ('reservation',)
+COMMENTABLE_MODELS = ('reservation', 'cateringorder')
 
 
 class CommentQuerySet(models.QuerySet):
@@ -15,17 +16,27 @@ class CommentQuerySet(models.QuerySet):
         if not user.is_authenticated():
             return self.none()
 
-        allowed_units = get_objects_for_user(
+        allowed_reservation_units = get_objects_for_user(
             user, 'resources.can_access_reservation_comments', klass=Unit
         )
         allowed_reservation_ids = Reservation.objects.filter(
-            Q(resource__unit__in=allowed_units) | Q(user=user)
+            Q(resource__unit__in=allowed_reservation_units) | Q(user=user)
         ).values_list('id', flat=True)
 
-        content_type = ContentType.objects.get_for_model(Reservation)
+        allowed_catering_order_units = get_objects_for_user(
+            user, 'resources.can_view_reservation_catering_orders', klass=Unit
+        )
+        allowed_catering_order_ids = CateringOrder.objects.filter(
+            Q(reservation__resource__unit__in=allowed_catering_order_units) | Q(reservation__user=user)
+        ).values_list('id', flat=True)
+
+        reservation_content_type = ContentType.objects.get_for_model(Reservation)
+        catering_order_content_type = ContentType.objects.get_for_model(CateringOrder)
+
         return self.filter(
             Q(created_by=user) |
-            (Q(content_type=content_type) & Q(object_id__in=allowed_reservation_ids))
+            (Q(content_type=reservation_content_type) & Q(object_id__in=allowed_reservation_ids)) |
+            (Q(content_type=catering_order_content_type) & Q(object_id__in=allowed_catering_order_ids))
         )
 
 
@@ -69,5 +80,9 @@ class Comment(models.Model):
                 return True
             if user.has_perm('resources.can_access_reservation_comments', target_object.resource.unit):
                 return True
-
+        elif target_type == 'cateringorder':
+            if user == target_object.reservation.user:
+                return True
+            if user.has_perm('resources.can_view_reservation_catering_orders', target_object.reservation.resource.unit):
+                return True
         return False
