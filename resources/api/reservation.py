@@ -205,7 +205,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         return data
 
     def to_internal_value(self, data):
-        user_data = data.pop('user', None)  # handle user manually
+        user_data = data.copy().pop('user', None)  # handle user manually
         deserialized_data = super().to_internal_value(data)
 
         # validate user and convert it to User object

@@ -29,7 +29,7 @@ def get_test_image_data(size=(32, 32), color=(250, 250, 210), format="JPEG"):
     :rtype: bytes
     """
     img = Image.new(mode="RGB", size=size)
-    img.paste(color)
+    img.paste(color, box=size + (0,0))
     sio = BytesIO()
     img.save(sio, format=format, quality=75)
     return sio.getvalue()
