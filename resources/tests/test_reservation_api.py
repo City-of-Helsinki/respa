@@ -1379,3 +1379,21 @@ def test_resource_group_filter(user_api_client, user, reservation, reservation2,
     response = user_api_client.get(list_url + '?' + 'resource_group=foobar')
     assert response.status_code == 200
     assert len(response.data['results']) == 0
+
+
+@pytest.mark.django_db
+def test_unit_filter(user_api_client, reservation, reservation2, resource_in_unit2, list_url):
+    reservation2.resource = resource_in_unit2
+    reservation2.save()
+
+    response = user_api_client.get(list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation, reservation2))
+
+    response = user_api_client.get(list_url + '?unit=' + resource_in_unit2.unit.id)
+    assert response.status_code == 200
+    assert_response_objects(response, reservation2)
+
+    response = user_api_client.get(list_url + '?unit=foobar')
+    assert response.status_code == 200
+    assert not len(response.data['results'])
