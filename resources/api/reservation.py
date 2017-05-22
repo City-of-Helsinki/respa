@@ -393,7 +393,7 @@ class CanApproveFilterBackend(filters.BaseFilterBackend):
 class ReservationFilterSet(django_filters.rest_framework.FilterSet):
     class Meta:
         model = Reservation
-        fields = ('event_subject', 'host_name', 'reserver_name', 'resource_name', 'is_favorite_resource')
+        fields = ('event_subject', 'host_name', 'reserver_name', 'resource_name', 'is_favorite_resource', 'unit')
 
     @property
     def qs(self):
@@ -414,6 +414,7 @@ class ReservationFilterSet(django_filters.rest_framework.FilterSet):
                                                         widget=DRFFilterBooleanWidget)
     resource_group = django_filters.Filter(name='resource__groups__identifier', lookup_expr='in',
                                            widget=django_filters.widgets.CSVWidget, distinct=True)
+    unit = django_filters.CharFilter(name='resource__unit_id')
 
     def filter_is_favorite_resource(self, queryset, name, value):
         user = self.request.user
