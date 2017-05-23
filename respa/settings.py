@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'reports',
     'resources',
     'users',
+    'caterings',
 
     'respa_exchange',
 ]
@@ -217,6 +218,7 @@ THUMBNAIL_PROCESSORS = (
 
 RESPA_MAILS_ENABLED = False
 RESPA_MAILS_FROM_ADDRESS = ""
+RESPA_CATERINGS_ENABLED = False
 
 
 # local_settings.py can be used to override environment-specific settings
