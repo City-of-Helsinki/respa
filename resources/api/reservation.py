@@ -398,13 +398,18 @@ class ReservationFilterSet(django_filters.rest_framework.FilterSet):
     @property
     def qs(self):
         qs = super().qs
-
-        # check if any of the filters is actually used, if not then do nothing to the qs
-        if set(self.request.query_params).isdisjoint(self.Meta.fields):
-            return qs
-
         user = self.request.user
-        return qs.can_view_extra_fields(user)
+        query_params = set(self.request.query_params)
+
+        # if any of the extra field related filters are used, restrict results to reservations
+        # the user has right to see
+        if bool(query_params & set(RESERVATION_EXTRA_FIELDS)):
+            qs = qs.can_view_extra_fields(user)
+
+        if 'has_catering_order' in query_params:
+            qs = qs.can_view_catering_orders(user)
+
+        return qs
 
     event_subject = django_filters.CharFilter(lookup_expr='icontains')
     host_name = django_filters.CharFilter(lookup_expr='icontains')
@@ -415,6 +420,7 @@ class ReservationFilterSet(django_filters.rest_framework.FilterSet):
     resource_group = django_filters.Filter(name='resource__groups__identifier', lookup_expr='in',
                                            widget=django_filters.widgets.CSVWidget, distinct=True)
     unit = django_filters.CharFilter(name='resource__unit_id')
+    has_catering_order = django_filters.BooleanFilter(method='filter_has_catering_order', widget=DRFFilterBooleanWidget)
 
     def filter_is_favorite_resource(self, queryset, name, value):
         user = self.request.user
@@ -424,6 +430,9 @@ class ReservationFilterSet(django_filters.rest_framework.FilterSet):
 
         filtering = {'resource__favorited_by': user}
         return queryset.filter(**filtering) if value else queryset.exclude(**filtering)
+
+    def filter_has_catering_order(self, queryset, name, value):
+        return queryset.exclude(catering_orders__isnull=value)
 
 
 class ReservationPermission(permissions.BasePermission):
