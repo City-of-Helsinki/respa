@@ -13,43 +13,7 @@ from django.utils.translation import override
 from modeltranslation.translator import translator, NotRegistered
 from django.apps import apps
 import xlsxwriter
-
-
-def make_excel(data):
-    """
-    Based on models.utils.generate_reservation_xlsx
-
-    Data is a dict where key is the model's name and value is a list
-    with first item the translated field names and second item list of instances
-    (or a queryset returning such)
-
-    Each model gets added to its own sheet (tab) in XLS file
-
-    :param data:{model_name: [[translated field names], queryset for model]}
-    :return:XLS file as bytes
-    """
-
-    output = io.BytesIO()
-    workbook = xlsxwriter.Workbook(output)
-
-    for name, (translated_fields, items) in data.items():
-
-        worksheet = workbook.add_worksheet(name)
-
-        headers = [(field, 50) for field in translated_fields]
-
-        header_format = workbook.add_format({'bold': True})
-
-        for column, header in enumerate(headers):
-            worksheet.write(0, column, str(header[0]), header_format)
-            worksheet.set_column(column, column, header[1])
-
-        for row, item in enumerate(items, 1):
-            for column, field in enumerate(translated_fields):
-                worksheet.write(row, column, getattr(item, field) or '')
-
-    workbook.close()
-    return output.getvalue()
+from resources.models.utils import make_translation_excel
 
 
 class Command(BaseCommand):
@@ -78,8 +42,10 @@ class Command(BaseCommand):
 
         if options.get('all'):
             models = self.export_models
-        else:
+        elif options.get('models'):
             models = options.get('models')
+        else:
+            raise CommandError("Please give option --all or specific models with --models")
 
         # Validate models
         for model_name in models:
@@ -97,11 +63,15 @@ class Command(BaseCommand):
 
             data[model_name] = [translated_fields, model.objects.all()]
 
-        output = make_excel(data)
+        output = io.BytesIO()
+        result = make_translation_excel(output, data)
+
+        if not result:
+            raise CommandError("Something went wrong with producing Excel")
 
         doc = open(options.get('out')[0], 'bw+')
         try:
-            doc.write(output)
+            doc.write(output.getvalue())
         except (IOError, OSError) as e:
             print("Problems with file production", e)
         finally:
