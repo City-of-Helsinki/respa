@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_jwt',
     'rest_framework.authtoken',
+    'django_filters',
     'corsheaders',
     'easy_thumbnails',
     'image_cropping',
