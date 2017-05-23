@@ -38,6 +38,15 @@ class ReservationQuerySet(models.QuerySet):
         allowed_units = get_objects_for_user(user, 'resources.can_view_reservation_extra_fields', klass=Unit)
         return self.filter(Q(user=user) | Q(resource__unit__in=allowed_units))
 
+    def can_view_catering_orders(self, user):
+        if not user.is_authenticated():
+            return self.none()
+        if user.is_staff:
+            return self
+        allowed_units = get_objects_for_user(user, 'resources.can_view_reservation_catering_orders', klass=Unit)
+
+        return self.filter(Q(user=user) | Q(resource__unit__in=allowed_units))
+
 
 class Reservation(ModifiableModel):
     CANCELLED = 'cancelled'

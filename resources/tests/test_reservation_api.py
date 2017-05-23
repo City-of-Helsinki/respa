@@ -8,6 +8,7 @@ from django.test.utils import override_settings
 from django.utils import dateparse, timezone
 from guardian.shortcuts import assign_perm
 from freezegun import freeze_time
+from caterings.models import CateringOrder
 
 from resources.models import (Period, Day, Reservation, Resource, ResourceGroup, ReservationMetadataField,
                               ReservationMetadataSet)
@@ -1282,7 +1283,6 @@ def test_user_permissions_field(api_client, user_api_client, user, user2, resour
     'event_subject=not so fancy',
     'host_name=arkku',
     'reserver_name=irkko',
-    'resource_name=in unit 2',
 ))
 @pytest.mark.django_db
 def test_charfield_filters(user_api_client, staff_api_client, user, reservation, reservation2, reservation3,
@@ -1314,6 +1314,17 @@ def test_charfield_filters(user_api_client, staff_api_client, user, reservation,
 
 
 @pytest.mark.django_db
+def test_resource_name_filter(user_api_client, user, reservation, reservation2, reservation3, list_url):
+    response = user_api_client.get(list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation, reservation2, reservation3))
+
+    response = user_api_client.get(list_url + '?resource_name=in unit 2')
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation2, reservation3))
+
+
+@pytest.mark.django_db
 def test_is_favorite_resource_filter(user_api_client, user, resource_in_unit, reservation, reservation2,
                                      reservation3, list_url):
     user.favorite_resources.add(resource_in_unit)
@@ -1321,20 +1332,6 @@ def test_is_favorite_resource_filter(user_api_client, user, resource_in_unit, re
     response = user_api_client.get(list_url + '?is_favorite_resource=true')
     assert response.status_code == 200
     assert_response_objects(response, reservation)
-
-    response = user_api_client.get(list_url + '?is_favorite_resource=false')
-    assert response.status_code == 200
-    assert_response_objects(response, reservation2)
-
-    user.is_staff = True
-    user.save()
-    response = user_api_client.get(list_url + '?is_favorite_resource=false')
-    assert response.status_code == 200
-    assert_response_objects(response, (reservation2, reservation3))
-
-    user.is_staff = False
-    user.save()
-    assign_perm('resources.can_view_reservation_extra_fields', user, reservation3.resource.unit)
 
     response = user_api_client.get(list_url + '?is_favorite_resource=false')
     assert response.status_code == 200
@@ -1397,3 +1394,35 @@ def test_unit_filter(user_api_client, reservation, reservation2, resource_in_uni
     response = user_api_client.get(list_url + '?unit=foobar')
     assert response.status_code == 200
     assert not len(response.data['results'])
+
+
+@pytest.mark.django_db
+def test_has_catering_order_filter(user_api_client, user, user2, resource_in_unit, reservation, reservation2,
+                                   reservation3, list_url):
+    CateringOrder.objects.create(
+        reservation=reservation,
+    )
+    CateringOrder.objects.create(
+        reservation=reservation3,
+    )
+    response = user_api_client.get(list_url + '?has_catering_order=true')
+    assert response.status_code == 200
+    assert_response_objects(response, reservation)
+
+    response = user_api_client.get(list_url + '?has_catering_order=false')
+    assert response.status_code == 200
+    assert_response_objects(response, reservation2)
+
+    user.is_staff = True
+    user.save()
+    response = user_api_client.get(list_url + '?has_catering_order=true')
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation, reservation3))
+
+    user.is_staff = False
+    user.save()
+    assign_perm('resources.can_view_reservation_catering_orders', user, reservation3.resource.unit)
+
+    response = user_api_client.get(list_url + '?has_catering_order=true')
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation, reservation3))

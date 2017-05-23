@@ -201,11 +201,10 @@ def assert_response_objects(response, objects):
     if not (isinstance(objects, list) or isinstance(objects, tuple)):
         objects = [objects]
 
-    assert len(objects) == len(data), '%s does not match %s' % (len(data), len(objects))
     expected_ids = {obj.id for obj in objects}
     actual_ids = {obj['id'] for obj in data}
     assert expected_ids == actual_ids, '%s does not match %s' % (expected_ids, actual_ids)
-
+    assert len(objects) == len(data), '%s does not match %s' % (len(data), len(objects))
 
 def check_keys(data, expected_keys):
     assert len(data.keys()) == len(expected_keys)
