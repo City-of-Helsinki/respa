@@ -29,7 +29,7 @@ admin.autodiscover()
 if 'comments' in settings.INSTALLED_APPS:
     import comments.api
 
-if 'caterings' in settings.INSTALLED_APPS:
+if getattr(settings, 'RESPA_CATERINGS_ENABLED', False):
     import caterings.api
 
 router = RespaAPIRouter()
