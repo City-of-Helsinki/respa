@@ -26,7 +26,7 @@ from resources.views import testing as testing_views
 
 admin.autodiscover()
 
-if 'comments' in settings.INSTALLED_APPS:
+if getattr(settings, 'RESPA_COMMENTS_ENABLED', False):
     import comments.api
 
 if getattr(settings, 'RESPA_CATERINGS_ENABLED', False):
