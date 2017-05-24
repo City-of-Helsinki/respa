@@ -228,3 +228,35 @@ def test_order_cannot_have_provider_not_available_in_unit(user_api_client, reser
     response = user_api_client.post(LIST_URL, data=new_order_data, format='json', HTTP_ACCEPT_LANGUAGE='en')
     assert response.status_code == 400
     assert "The provider isn't available in the reservation's unit." in str(response.data)
+
+
+@pytest.mark.django_db
+def test_reservation_filter(user_api_client, catering_order, reservation, reservation2, reservation3):
+    catering_order2 = CateringOrder.objects.create(
+        reservation=reservation2,
+        invoicing_data='123456',
+    )
+    catering_order3 = CateringOrder.objects.create(
+        reservation=reservation2,
+        invoicing_data='654321',
+    )
+    catering_order_that_should_not_be_visible = CateringOrder.objects.create(
+        reservation=reservation3,
+        invoicing_data='xxx',
+    )
+
+    response = user_api_client.get(LIST_URL)
+    assert response.status_code == 200
+    assert_response_objects(response, (catering_order, catering_order2, catering_order3))
+
+    response = user_api_client.get(LIST_URL + '?reservation=%s' % reservation.pk)
+    assert response.status_code == 200
+    assert_response_objects(response, catering_order)
+
+    response = user_api_client.get(LIST_URL + '?reservation=%s' % reservation2.pk)
+    assert response.status_code == 200
+    assert_response_objects(response, (catering_order2, catering_order3))
+
+    response = user_api_client.get(LIST_URL + '?reservation=%s' % reservation3.pk)
+    assert response.status_code == 200
+    assert not len(response.data['results'])
