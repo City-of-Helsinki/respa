@@ -152,9 +152,17 @@ class CateringOrderSerializer(serializers.ModelSerializer):
         return validated_data
 
 
+class CateringOrderFilter(django_filters.rest_framework.FilterSet):
+    class Meta:
+        model = CateringOrder
+        fields = ('reservation',)
+
+
 class CateringOrderViewSet(viewsets.ModelViewSet):
     queryset = CateringOrder.objects.prefetch_related('order_lines')
     serializer_class = CateringOrderSerializer
+    filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
+    filter_class = CateringOrderFilter
 
     def get_queryset(self):
         return super().get_queryset().can_view(self.request.user)
