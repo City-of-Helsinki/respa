@@ -1,4 +1,5 @@
 import sys
+import types
 
 from django.utils.crypto import get_random_string
 from lxml import etree
@@ -6,6 +7,13 @@ from requests.models import Response
 
 from respa_exchange.ews.session import ExchangeSession
 from respa_exchange.ews.xml import S
+
+
+def iter_content(self, *args, **kwargs):
+    """
+    Monkey-patched version of Response.iter_content()
+    """
+    yield self._content
 
 
 class SoapSeller(ExchangeSession):
@@ -61,6 +69,8 @@ class SoapSeller(ExchangeSession):
             "Content-Type": "text/xml; encoding=UTF-8",
         }
         handler_rv._content = etree.tostring(envelope, encoding="utf-8", pretty_print=True)
+        # Make iter_content work for streaming
+        handler_rv.iter_content = types.MethodType(iter_content, handler_rv)
         return handler_rv
 
     @classmethod

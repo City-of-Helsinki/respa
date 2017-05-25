@@ -45,15 +45,7 @@ class ExchangeSession(requests.Session):
         self.auth = HttpNtlmAuth(username, password)
         self.log = logging.getLogger("ExchangeSession")
 
-    def soap(self, request, timeout=10):
-        """
-        Send an EWSRequest by SOAP.
-
-        :type request: respa_exchange.base.EWSRequest
-        :param timeout: request timeout (see `requests` docs)
-        :type timeout: float|None|tuple[float, float]
-        :rtype: lxml.etree.Element
-        """
+    def _prepare_soap(self, request):
         envelope = request.envelop()
         body = etree.tostring(envelope, pretty_print=True, encoding=self.encoding)
         self.log.debug(
@@ -64,13 +56,33 @@ class ExchangeSession(requests.Session):
             "Accept": "text/xml",
             "Content-type": "text/xml; charset=%s" % self.encoding
         }
-        resp = self.post(self.url, data=body, headers=headers, auth=self.auth, timeout=timeout)
-        return self._process_soap_response(resp)
+        return dict(data=body, headers=headers, auth=self.auth)
 
-    def _process_soap_response(self, resp):
-        content = resp.content
-        if not content:
-            resp.raise_for_status()
+    def soap(self, request, timeout=10):
+        """
+        Send an EWSRequest by SOAP.
+
+        :type request: respa_exchange.base.EWSRequest
+        :param timeout: request timeout (see `requests` docs)
+        :type timeout: float|None|tuple[float, float]
+        :rtype: lxml.etree.Element
+        """
+        resp = self.post(self.url, timeout=timeout, **self._prepare_soap(request))
+        resp.raise_for_status()
+        return self._process_soap_response(resp.content)
+
+    def soap_stream(self, request, timeout=10):
+        """
+        Send an EWSRequest by SOAP and stream the response.
+        """
+        resp = self.post(self.url, timeout=timeout, stream=True, **self._prepare_soap(request))
+        for data in resp.iter_content(chunk_size=None):
+            data = data.strip()
+            if not data:
+                continue
+            yield self._process_soap_response(data)
+
+    def _process_soap_response(self, content):
         if content.count(SOAP_ENVELOPE_TAG) > 1:
             self.log.debug('Multiple envelopes in response %r, using `recover` mode for parsing.', content)
             recover = True
@@ -86,5 +98,4 @@ class ExchangeSession(requests.Session):
         fault_nodes = tree.xpath(u'//s:Fault', namespaces=NAMESPACES)
         if fault_nodes:
             raise SoapFault.from_xml(fault_nodes[0])
-        resp.raise_for_status()
         return tree
