@@ -54,7 +54,7 @@ class SubscribeRequest(EWSRequest):
         Send the subscription request.
 
         :type sess: respa_exchange.session.ExchangeSession
-        :return: The subscription ID, used for message streaming
+        :return: Tuple with subscription ID and possible watermark
         """
         resp = sess.soap(self)
         srm = resp.find('*//m:SubscribeResponseMessage', namespaces=NAMESPACES)
@@ -62,7 +62,12 @@ class SubscribeRequest(EWSRequest):
         if response_code_el.text != 'NoError':
             raise Exception(etree.tostring(srm))
         sub_id_el = srm.find('m:SubscriptionId', namespaces=NAMESPACES)
-        return sub_id_el.text
+        watermark_el = srm.find('m:Watermark', namespaces=NAMESPACES)
+        if watermark_el:
+            watermark = watermark_el.text
+        else:
+            watermark = None
+        return (sub_id_el.text, watermark)
 
 
 class UnsubscribeRequest(EWSRequest):
@@ -133,31 +138,21 @@ class GetStreamingEventsRequest(EWSRequest):
     """
     version = 'Exchange2013'
 
-    def __init__(self, principal, subscription_id, timeout_minutes=30):
+    def __init__(self, subscription_ids, timeout_minutes=30):
         """
         Initialize the request.
 
         :param principal: Principal email to impersonate
         :param subscription_id: Subscription ID to get rid of
         """
+        self.timeout_minutes = timeout_minutes
         root = M.GetStreamingEvents(
-            M.SubscriptionId(subscription_id),
+            M.SubscriptionIds(*[T.SubscriptionId(x) for x in subscription_ids]),
             M.ConnectionTimeout(str(timeout_minutes)),
         )
-        super(GetStreamingEventsRequest, self).__init__(root, impersonation=principal)
+        super(GetStreamingEventsRequest, self).__init__(root)
 
-    def send(self, sess):
-        """
-        Send the event request request [sic].
-
-        Note that this is a long-polling operation; returning from this function
-        may take up to `timeout_minutes` minutes.
-
-        :type sess: respa_exchange.session.ExchangeSession
-        :return: Iterable of StreamingEvents
-        :rtype: list[respa_exchange.ews.notifications.StreamingEvent]
-        """
-        resp = sess.soap(self, timeout=None)
+    def process_response(self, resp):
         gserm = resp.find('*//m:GetStreamingEventsResponseMessage', namespaces=NAMESPACES)
 
         if gserm.attrib['ResponseClass'] != 'Success':
@@ -178,3 +173,20 @@ class GetStreamingEventsRequest(EWSRequest):
                     type=ev_tag.tag,
                     data=data_dict,
                 )
+
+    def send(self, sess):
+        """
+        Send the event request request [sic].
+
+        Note that this is a long-polling operation; returning from this function
+        may take up to `timeout_minutes` minutes.
+
+        :type sess: respa_exchange.session.ExchangeSession
+        :return: Iterable of StreamingEvents
+        :rtype: list[respa_exchange.ews.notifications.StreamingEvent]
+        """
+        timeout = (self.timeout_minutes + 1) * 60
+        for resp in sess.soap_stream(self, timeout=timeout):
+            events = self.process_response(resp)
+            for event in events:
+                yield event

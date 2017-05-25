@@ -22,54 +22,186 @@ class EventAwaiterThread(threading.Thread):
     A thread that makes long-polling GetStreamingEventsRequests until told to stop (or if many errors occur).
     """
 
-    def __init__(self, event_callback, resource, subscription_id, timeout_minutes=15):
+    def __init__(self, event_callback, exchange, subscription_ids, timeout_minutes=20):
         """
         :param event_callback: A function to call when an event is received.
         :type event_callback: function[respa_exchange.ews.notifications.StreamingEvent]
-        :param resource: The resource we're managing.
-        :type resource: respa_exchange.models.Resource
-        :param subscription_id: The EWS subscription ID to listen to notifications for.
-        :type subscription_id: str
+        :param exchange: The Exchange configuration the thread is bound to
+        :type exchange: respa_exchange.models.ExchangeConfiguration
+        :param subscription_ids: The subscriptions we're managing.
+        :type subscription_ids: list
         :param timeout_minutes: How many minutes each GetStreamingEventsRequests is requested to live for.
                                 The shorter this value, the easier the thread is to kill.
         :type timeout_minutes: int
         """
         assert callable(event_callback)
         self.event_callback = event_callback
-        self.resource = resource
-        self.subscription_id = subscription_id
+        self.exchange = exchange
+        self.subscription_ids = subscription_ids
         self.timeout_minutes = int(timeout_minutes)
         self.please_stop = False
-        super(EventAwaiterThread, self).__init__(name="Listener-%s" % resource)
+        super(EventAwaiterThread, self).__init__(name="Listener-%s" % exchange)
 
     def run(self):
         """Method representing the thread's activity. (See superclass.)"""
-        sess = self.resource.exchange.get_ews_session()
+        sess = self.exchange.get_ews_session()
         failures = 0
+        last_loop_time = 0
         while not self.please_stop:
             try:
                 event_req = GetStreamingEventsRequest(
-                    principal=self.resource.principal_email,
-                    subscription_id=self.subscription_id,
+                    subscription_ids=self.subscription_ids,
                     timeout_minutes=self.timeout_minutes,
                 )
                 try:
+                    # Make sure we don't overwhelm the server with requests.
+                    now = time.time()
+                    if now - last_loop_time < 1:
+                        time.sleep(1 - (now - last_loop_time))
+                    last_loop_time = now
+
                     for event in event_req.send(sess):
-                        event.resource = self.resource  # We know the resource, so augment here.
+                        if self.please_stop:
+                            break
                         self.event_callback(event)
-                    time.sleep(0.5)
+                        # Reset failure count when an event is successfully received.
+                        failures = 0
                 except StreamingEventError as see:  # pragma: no cover
+                    if self.please_stop:
+                        break
                     if see.code == 'ErrorSubscriptionNotFound':
                         log.info('Received ErrorSubscriptionNotFound for %s' % self.subscription_id)
                         break
                     raise
-            except:  # pragma: no cover
+            except Exception:  # pragma: no cover
                 log.warn('Error in %s', self, exc_info=True)
                 failures += 1
                 if failures >= 10:
                     log.warn('Killing off %s, too many failures', self)
                     self.please_stop = True
+
         log.info('Event thread %s dying', self)
+
+    def stop(self):
+        self.please_stop = True
+
+
+class ExchangeListener(object):
+    def __init__(self, exchange, event_callback):
+        self.exchange = exchange
+        self.event_callback = event_callback
+        self.listener_thread = None
+        self.resource_to_subscription_map = {}
+
+    def manage_subscriptions(self):
+        """
+        Ensure the subscription map is up to date.
+
+        This is called periodically by the `subscription_manage_timer` timeout.
+        """
+        resources = set(get_active_download_resources(exchange_configs=[self.exchange]))
+        new_resources = set(resources) - set(self.resource_to_subscription_map)
+        gone_resources = set(self.resource_to_subscription_map) - set(resources)
+
+        if not new_resources and not gone_resources:
+            return
+
+        if self.listener_thread:
+            self.listener_thread.stop()
+            self.listener_thread = None
+
+        for resource in gone_resources:
+            try:
+                log.debug('Unsubscribing %s', resource)
+                self.unsubscribe_resource(resource)
+            except SoapFault:  # pragma: no cover
+                log.warn('Unsubscription for %s failed', resource, exc_info=True)
+
+        for resource in new_resources:
+            try:
+                log.debug('Subscribing %s', resource)
+                self.subscribe_resource(resource)
+            except SoapFault:  # pragma: no cover
+                log.warn('Subscription to %s failed', resource, exc_info=True)
+
+        self.spawn_thread()
+
+    def subscribe_resource(self, resource):
+        """
+        Attempt to create an Exchange subscription for the given resource.
+
+        :param resource: The resource to subscribe.
+        :type resource: respa_exchange.models.Resource
+        """
+        assert self.exchange == resource.exchange
+        sess = self.exchange.get_ews_session()
+        sub = SubscribeRequest(resource.principal_email)
+        sub_id, _ = sub.send(sess)
+        self.resource_to_subscription_map[resource] = sub_id
+        log.info('Subscribed to %s on channel %s', resource, sub_id)
+
+    def unsubscribe_resource(self, resource):
+        """
+        Attempt to remove an existing Exchange subscription for the given resource.
+
+        If we don't know about a subscription for that resource, nothing happens
+        and False is returned.
+
+        :param resource: The resource to subscribe.
+        :type resource: respa_exchange.models.Resource
+        :return: Whether or not an unsubscription attempt was made.
+        :rtype: bool
+        """
+
+        assert self.exchange == resource.exchange
+        sub_id = self.resource_to_subscription_map.pop(resource, None)
+        if not sub_id:
+            return False
+        unsub = UnsubscribeRequest(resource.principal_email, sub_id)
+        unsub.send(self.exchange.get_ews_session())
+        return True
+
+    def spawn_thread(self):
+        """
+        Spawn event awaiter thread for newly created subscriptions.
+        """
+
+        if self.listener_thread:
+            return
+
+        subscription_ids = self.resource_to_subscription_map.values()
+        self.listener_thread = EventAwaiterThread(
+            event_callback=self.post_event,
+            exchange=self.exchange,
+            subscription_ids=subscription_ids,
+        )
+        self.listener_thread.start()
+        log.debug('Started awaiter thread %s', self.listener_thread)
+
+    def post_event(self, event):
+        for resource, sub_id in self.resource_to_subscription_map.items():
+            if sub_id == event.subscription_id:
+                break
+        else:
+            log.warn('Unable to find subscription for event %r', event)
+            return
+
+        event.resource = resource
+        self.event_callback(event)
+
+    def start(self):
+        self.manage_subscriptions()
+
+    def close(self):
+        """
+        Close all related resources (unsubscribe in Exchange and reap threads).
+
+        This is called automatically by `.start()` when the loop ends, but it should be
+        safe to call from wherever.
+        """
+        self.listener_thread.stop()
+        for resource in list(self.resource_to_subscription_map.keys()):
+            self.unsubscribe_resource(resource)
 
 
 class NotificationListener(object):
@@ -77,13 +209,12 @@ class NotificationListener(object):
     This class manages a number of threads that hold long-poll connections.
     """
 
-    SUBSCRIPTION_MANAGE_INTERVAL = 60
+    SUBSCRIPTION_MANAGE_INTERVAL = 180
     DATABASE_RECONNECT_INTERVAL = 1800
 
     def __init__(self):
-        self.exchanges = ExchangeConfiguration.objects.filter(enabled=True)
-        self.resource_to_subscription_map = {}
-        self.subscription_to_thread_map = {}
+        exchanges = ExchangeConfiguration.objects.filter(enabled=True)
+        self.listeners = {ex: ExchangeListener(ex, self.post_event) for ex in exchanges}
         self.events = Queue()
         self.subscription_manage_timer = EventedTimeout(
             seconds=self.SUBSCRIPTION_MANAGE_INTERVAL,
@@ -104,15 +235,16 @@ class NotificationListener(object):
         """
         self.subscription_manage_timer.reset()
         self.database_reconnect_timer.reset()
-        self.manage_subscriptions()
         self._please_stop = False
 
-        log.debug('Starting loop.')
+        log.debug('Starting listeners.')
+        for listener in self.listeners.values():
+            listener.start()
 
+        log.debug('Starting loop.')
         try:
             while not self._please_stop:
                 self.step()
-                time.sleep(1)
         finally:
             self.close()
 
@@ -133,8 +265,7 @@ class NotificationListener(object):
         """
         self.subscription_manage_timer.check()
         self.database_reconnect_timer.check()
-        self.reap_threads()
-        self.spawn_threads()
+        # handle_events() will sleep if no events are available
         self.handle_events()
 
     def post_event(self, event):
@@ -168,111 +299,8 @@ class NotificationListener(object):
                 log.exception('Failed reconnecting %s', conn)
 
     def manage_subscriptions(self):
-        """
-        Ensure the subscription map is up to date.
-
-        This is called periodically by the `subscription_manage_timer` timeout.
-        """
-        resources = set(get_active_download_resources(exchange_configs=self.exchanges))
-        new_resources = set(resources) - set(self.resource_to_subscription_map)
-        gone_resources = set(self.resource_to_subscription_map) - set(resources)
-        for resource in gone_resources:
-            try:
-                log.debug('Unsubscribing %s', resource)
-                self.unsubscribe_resource(resource)
-            except SoapFault:  # pragma: no cover
-                log.warn('Unsubscription for %s failed', resource, exc_info=True)
-
-        for resource in new_resources:
-            try:
-                log.debug('Subscribing %s', resource)
-                self.subscribe_resource(resource)
-            except SoapFault:  # pragma: no cover
-                log.warn('Subscription to %s failed', resource, exc_info=True)
-
-    def subscribe_resource(self, resource):
-        """
-        Attempt to create an Exchange subscription for the given resource.
-
-        :param resource: The resource to subscribe.
-        :type resource: respa_exchange.models.Resource
-        """
-        sub = SubscribeRequest(resource.principal_email)
-        sub_id = sub.send(resource.exchange.get_ews_session())
-        self.resource_to_subscription_map[resource] = sub_id
-        log.info('Subscribed to %s on channel %s', resource, sub_id)
-
-    def unsubscribe_resource(self, resource):
-        """
-        Attempt to remove an existing Exchange subscription for the given resource.
-
-        If we don't know about a subscription for that resource, nothing happens
-        and False is returned.
-
-        :param resource: The resource to subscribe.
-        :type resource: respa_exchange.models.Resource
-        :return: Whether or not an unsubscription attempt was made.
-        :rtype: bool
-        """
-
-        sub_id = self.resource_to_subscription_map.pop(resource, None)
-        if not sub_id:
-            return False
-        unsub = UnsubscribeRequest(resource.principal_email, sub_id)
-        unsub.send(resource.exchange.get_ews_session())
-        return True
-
-    def spawn_threads(self):
-        """
-        Spawn event awaiter threads for newly created subscriptions.
-
-        """
-        for resource, subscription_id in self.resource_to_subscription_map.items():
-            if subscription_id in self.subscription_to_thread_map:
-                # We already have a thread for this subscription -- never mind!
-                continue
-
-            self.subscription_to_thread_map[subscription_id] = awaiter_thread = EventAwaiterThread(
-                event_callback=self.post_event,
-                resource=resource,
-                subscription_id=subscription_id,
-            )
-            awaiter_thread.start()
-            log.debug('Started new awaiter thread %s', awaiter_thread)
-
-    def reap_threads(self):
-        """
-        Reap all threads that are somehow out of control.
-
-        Out of control, in this context, means:
-
-        * exited (i.e. too many errors, or something similar)
-        * managing a subscription that we no longer care about
-        """
-        known_subscription_ids = set(self.resource_to_subscription_map.values())
-        for subscription_id, thread in list(self.subscription_to_thread_map.items()):  # List to copy the pairs
-            assert isinstance(thread, EventAwaiterThread)
-
-            if subscription_id not in known_subscription_ids:
-                log.debug('Abandoning wild thread %s (subid %s not known)', thread, subscription_id)
-                thread.please_stop = True  # Try to tell the thread to stop when possible (no guarantee it'll listen)
-                self.subscription_to_thread_map.pop(subscription_id, None)
-                continue
-
-            if not thread.is_alive():  # pragma: no cover
-                log.debug('Reaped dead thread %s', thread)
-                self.subscription_to_thread_map.pop(subscription_id, None)
-
-    def close(self):
-        """
-        Close all related resources (unsubscribe in Exchange and reap threads).
-
-        This is called automatically by `.start()` when the loop ends, but it should be
-        safe to call from wherever.
-        """
-        for resource in list(self.resource_to_subscription_map.keys()):
-            self.unsubscribe_resource(resource)
-        self.reap_threads()
+        for listener in self.listeners.values():
+            listener.manage_subscriptions()
 
     def handle_events(self):
         """
@@ -283,7 +311,9 @@ class NotificationListener(object):
         changed_resources = set()
         while True:
             try:
-                event = self.events.get(block=False)
+                event = self.events.get(timeout=1)
+                if hasattr(self.events, 'task_done'):
+                    self.events.task_done()
             except Empty:
                 break
 
@@ -293,5 +323,10 @@ class NotificationListener(object):
             # TODO: Maybe process different events in different ways? ->
             #       Right now, whatever happens we just re-sync everything.
             changed_resources.add(event.resource)
+
         for resource in changed_resources:
             sync_from_exchange(resource)
+
+    def close(self):
+        for listener in self.listeners.values():
+            listener.close()

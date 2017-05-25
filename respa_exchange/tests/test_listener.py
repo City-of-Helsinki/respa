@@ -51,7 +51,7 @@ class SubscriptionHandler(object):
     def handle_get_events(self, request):
         if not request.xpath('//m:GetStreamingEvents', namespaces=NAMESPACES):  # pragma: no cover
             return
-        sub_id = request.xpath('//m:SubscriptionId', namespaces=NAMESPACES)[0].text
+        sub_id = request.xpath('//t:SubscriptionId', namespaces=NAMESPACES)[0].text
         # This would be a long-polling operation,
         # but ain't nobody got time for that
         return M.GetStreamingEventsResponse(
