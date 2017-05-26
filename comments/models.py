@@ -8,7 +8,18 @@ from guardian.shortcuts import get_objects_for_user
 from caterings.models import CateringOrder
 from resources.models import Reservation, Unit
 
-COMMENTABLE_MODELS = ('reservation', 'cateringorder')
+COMMENTABLE_MODELS = {
+    'reservation': Reservation,
+}
+
+if getattr(settings, 'RESPA_CATERINGS_ENABLED', False):
+    COMMENTABLE_MODELS.update({
+        'catering_order': CateringOrder,
+    })
+
+
+def get_commentable_content_types():
+    return ContentType.objects.get_for_models(*COMMENTABLE_MODELS.values()).values()
 
 
 class CommentQuerySet(models.QuerySet):
@@ -48,7 +59,7 @@ class Comment(models.Model):
     content_type = models.ForeignKey(
         ContentType,
         on_delete=models.CASCADE,
-        limit_choices_to={'model__in': COMMENTABLE_MODELS}
+        limit_choices_to=lambda: {'id__in': (ct.id for ct in get_commentable_content_types())}
     )
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
@@ -71,16 +82,16 @@ class Comment(models.Model):
         if not (user and user.is_authenticated()):
             return False
 
-        target_type = target_object.__class__.__name__.lower()
-        if target_type not in COMMENTABLE_MODELS:
+        target_model = target_object.__class__
+        if target_model not in COMMENTABLE_MODELS.values():
             return False
 
-        if target_type == 'reservation':
+        if target_model == Reservation:
             if user == target_object.user:
                 return True
             if user.has_perm('resources.can_access_reservation_comments', target_object.resource.unit):
                 return True
-        elif target_type == 'cateringorder':
+        elif target_model == CateringOrder:
             if user == target_object.reservation.user:
                 return True
             if user.has_perm('resources.can_view_reservation_catering_orders', target_object.reservation.resource.unit):
