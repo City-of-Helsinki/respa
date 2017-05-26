@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from guardian.shortcuts import assign_perm
 
 from caterings.models import CateringOrder
-from resources.models import Reservation
+from resources.models import Reservation, ResourceGroup
 
 from resources.tests.test_reservation_api import reservation, reservation2, reservation3
 from resources.tests.utils import assert_response_objects
@@ -21,7 +21,7 @@ LIST_URL = reverse('comment-list')
 @pytest.fixture
 def new_catering_order_comment_data(catering_order):
     return {
-        'target_type': 'cateringorder',
+        'target_type': 'catering_order',
         'target_id': catering_order.id,
         'text': 'new catering order comment text',
     }
@@ -80,23 +80,13 @@ def catering_order2_comment(catering_order2, user):
     )
 
 
-@pytest.fixture
-def resource_group_comment(resource_group, user):  # just some model that has int id
-    return Comment.objects.create(
-        content_type=ContentType.objects.get(app_label='resources', model='resourcegroup'),
-        object_id=resource_group.id,
-        created_by=user,
-        text='test resource group comment text',
-    )
-
-
 @pytest.mark.parametrize('endpoint', (
     'list',
     'detail',
 ))
 @pytest.mark.django_db
-def test_comment_endpoints_get(user_api_client, user, reservation_comment, endpoint):
-    url = LIST_URL if endpoint == 'list' else get_detail_url(reservation_comment)
+def test_comment_endpoints_get(user_api_client, user, catering_order_comment, endpoint):
+    url = LIST_URL if endpoint == 'list' else get_detail_url(catering_order_comment)
 
     response = user_api_client.get(url)
     assert response.status_code == 200
@@ -121,10 +111,12 @@ def test_comment_endpoints_get(user_api_client, user, reservation_comment, endpo
     author = data['created_by']
     assert len(author.keys()) == 1
     assert author['display_name'] == user.get_display_name()
+    assert data['target_type'] == 'catering_order'
+    assert data['text'] == 'test catering order comment text'
 
 
 @pytest.mark.django_db
-def test_comment_create(user_api_client, user, reservation, new_reservation_comment_data):
+def test_reservation_comment_create(user_api_client, user, reservation, new_reservation_comment_data):
     response = user_api_client.post(LIST_URL, data=new_reservation_comment_data)
     assert response.status_code == 201
 
@@ -281,11 +273,11 @@ def test_catering_order_comment_creation_rights(user_api_client, user, catering_
 
 
 @pytest.mark.django_db
-def test_comment_filtering(user_api_client, user, reservation_comment, reservation2_comment, resource_group_comment,
-                           reservation):
+def test_reservation_comment_filtering(user_api_client, reservation_comment, reservation2_comment,
+                                       catering_order_comment, reservation):
     response = user_api_client.get(LIST_URL)
     assert response.status_code == 200
-    assert_response_objects(response, (reservation_comment, reservation2_comment, resource_group_comment))
+    assert_response_objects(response, (reservation_comment, reservation2_comment, catering_order_comment))
 
     response = user_api_client.get(LIST_URL + '?target_type=reservation')
     assert response.status_code == 200
@@ -294,3 +286,33 @@ def test_comment_filtering(user_api_client, user, reservation_comment, reservati
     response = user_api_client.get(LIST_URL + '?target_type=reservation&target_id=%s' % reservation.id)
     assert response.status_code == 200
     assert_response_objects(response, reservation_comment)
+
+
+@pytest.mark.django_db
+def test_catering_order_comment_filtering(user_api_client, catering_order, catering_order_comment,
+                                          catering_order2_comment, reservation_comment):
+    response = user_api_client.get(LIST_URL)
+    assert response.status_code == 200
+    assert_response_objects(response, (catering_order_comment, catering_order2_comment, reservation_comment))
+
+    response = user_api_client.get(LIST_URL + '?target_type=catering_order')
+    assert response.status_code == 200
+    assert_response_objects(response, (catering_order_comment, catering_order2_comment))
+
+    response = user_api_client.get(LIST_URL + '?target_type=catering_order&target_id=%s' % catering_order.id)
+    assert response.status_code == 200
+    assert_response_objects(response, catering_order_comment)
+
+
+@pytest.mark.django_db
+def test_non_commentable_model_comments_hidden(user_api_client, resource_group, user):
+    Comment.objects.create(
+        content_type=ContentType.objects.get_for_model(ResourceGroup),
+        object_id=resource_group.id,
+        created_by=user,
+        text='this comment should be hidden because ResourceGroup in not a commentable model',
+    )
+
+    response = user_api_client.get(LIST_URL)
+    assert response.status_code == 200
+    assert not response.data['results']
