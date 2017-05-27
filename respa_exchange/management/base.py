@@ -1,6 +1,8 @@
 import logging
 import sys
 
+from django.core.management import CommandError
+
 from respa_exchange.models import ExchangeResource
 
 rx_logger = logging.getLogger("respa_exchange")
@@ -35,3 +37,20 @@ def configure_console_log(logger="respa_exchange", level=logging.INFO):
         datefmt=logging.Formatter.default_time_format
     ))
     logger.addHandler(handler)
+
+
+def select_resources(resources, selected_resources):
+    ret = []
+    for res_id in selected_resources:
+        for res in resources:
+            try:
+                if int(res_id) == res.id:
+                    break
+            except ValueError:
+                pass
+            if res_id == res.principal_email:
+                break
+        else:
+            raise CommandError('Resource with ID "%s" not found' % res_id)
+        ret.append(res)
+    return ret
