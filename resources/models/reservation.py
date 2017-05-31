@@ -207,6 +207,15 @@ class Reservation(ModifiableModel):
             return True
         return user.has_perm('resources.can_view_reservation_extra_fields', self.resource.unit)
 
+    def can_view_catering_orders(self, user):
+        if not user:
+            return False
+        if user == self.user:
+            return True
+        if user.has_perm('resources.can_view_reservation_catering_orders', self.resource.unit):
+            return True
+        return False
+
     class Meta:
         verbose_name = _("reservation")
         verbose_name_plural = _("reservations")
