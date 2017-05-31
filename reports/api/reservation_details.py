@@ -51,6 +51,7 @@ class ReservationDetailsDocxRenderer(DocxRenderer):
             'event_subject',
             'host_name',
             'number_of_participants',
+            'participants',
         ) if getattr(reservation, field) and reservation.can_view_field(user, field)]
 
         if attrs:
