@@ -44,6 +44,7 @@ class DocxRenderer(renderers.BaseRenderer):
             else:
                 first_resource = False
 
+            user = renderer_context['request'].user
             name_h = document.add_heading(resource.name, 1)
             name_h.paragraph_format.space_after = Pt(12)
             date_h = document.add_heading(formats.date_format(day, format='D j.n.Y'), 2)
@@ -67,11 +68,9 @@ class DocxRenderer(renderers.BaseRenderer):
                     'reserver_name',
                     'host_name',
                     'number_of_participants',
-                ) if getattr(reservation, field)]
+                ) if getattr(reservation, field) and reservation.can_view_field(user, field)]
 
                 if not attrs:
-                    # this should not normally happen as event_subject and number_of_participants
-                    # should be required fields
                     p = document.add_paragraph(_('No information available'))
                     p.paragraph_format.space_before = Pt(24)
                     continue
