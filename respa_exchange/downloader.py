@@ -10,6 +10,7 @@ from django.utils.timezone import now
 
 from resources.models.reservation import Reservation
 from respa_exchange.ews.calendar import GetCalendarItemsRequest
+from respa_exchange.ews.user import ResolveNamesRequest
 from respa_exchange.ews.objs import ItemID
 from respa_exchange.ews.xml import NAMESPACES
 from respa_exchange.models import ExchangeReservation
@@ -39,6 +40,7 @@ def _update_reservation_from_exchange(item_id, ex_reservation, ex_resource, item
     _populate_reservation(reservation, ex_resource, item_props)
     reservation.save()
     ex_reservation.item_id = item_id
+    ex_reservation.organizer_email = item_props.get('organizer_email')
     ex_reservation.save()
 
     log.info("Updated: %s", ex_reservation)
@@ -55,10 +57,38 @@ def _create_reservation_from_exchange(item_id, ex_resource, item_props):
         managed_in_exchange=True,
     )
     ex_reservation.item_id = item_id
+    ex_reservation.organizer_email = item_props.get('organizer_email')
     ex_reservation.save()
 
     log.info("Created: %s", ex_reservation)
     return ex_reservation
+
+
+def _resolve_user_email(ex_resource, name):
+    req = ResolveNamesRequest([name], principal=ex_resource.principal_email)
+    resolutions = req.send(ex_resource.exchange.get_ews_session())
+    for res in resolutions:
+        mb = res.find("t:Mailbox", namespaces=NAMESPACES)
+        if mb is None:
+            continue
+        routing_type = mb.find("t:RoutingType", namespaces=NAMESPACES).text
+        assert routing_type == "SMTP"
+        email = mb.find("t:EmailAddress", namespaces=NAMESPACES).text
+        break
+    else:
+        email = ''
+    return email
+
+
+def _determine_organizer(ex_resource, organizer):
+    mailbox = organizer.find("t:Mailbox", namespaces=NAMESPACES)
+    routing_type = mailbox.find("t:RoutingType", namespaces=NAMESPACES).text
+    email_address = mailbox.find("t:EmailAddress", namespaces=NAMESPACES).text
+    if routing_type == 'SMTP':
+        return email_address.lower()
+    if routing_type == 'EX':
+        return _resolve_user_email(ex_resource, email_address).lower()
+    raise Exception("Unknown routing type %s" % routing_type)
 
 
 @atomic
@@ -108,7 +138,7 @@ def sync_from_exchange(ex_resource, future_days=30):
         managed_in_exchange=True,  # Reservations we've downloaded ...
         reservation__begin__gte=start_date.replace(hour=0, minute=0, second=0),  # that are in ...
         reservation__end__lte=end_date.replace(hour=23, minute=59, second=59),  # ... our get items range ...
-        reservation__resource__exchange_resource=ex_resource, # and belong to this resource,
+        reservation__resource__exchange_resource=ex_resource,  # and belong to this resource,
     ).exclude(item_id_hash__in=hashes)  # but aren't ones we're going to mangle
 
     for ex_reservation in items_to_delete:
@@ -132,13 +162,15 @@ def sync_from_exchange(ex_resource, future_days=30):
             end=iso8601.parse_date(item.find("t:End", namespaces=NAMESPACES).text),
             subject=item.find("t:Subject", namespaces=NAMESPACES).text,
         )
+        organizer = item.find("t:Organizer", namespaces=NAMESPACES)
+        if organizer is not None:
+            item_props['organizer_email'] = _determine_organizer(ex_resource, organizer)
 
         if not ex_reservation:  # It's a new one!
             ex_reservation = _create_reservation_from_exchange(item_id, ex_resource, item_props)
         else:
-            res = ex_reservation.reservation
-            if res.begin != item_props["start"] or res.end != item_props["end"]:
-                # Important things changed, so edit the reservation
+            if ex_reservation._change_key != item_id.change_key:
+                # Things changed, so edit the reservation
                 _update_reservation_from_exchange(item_id, ex_reservation, ex_resource, item_props)
-    
+
     log.info("%s: download processing complete", ex_resource.principal_email)

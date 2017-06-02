@@ -1,7 +1,7 @@
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
 
@@ -9,7 +9,9 @@ from resources.models import Reservation, Resource
 from respa_exchange.ews.objs import ItemID
 
 
-@python_2_unicode_compatible
+User = get_user_model()
+
+
 class ExchangeConfiguration(models.Model):
     """
     Encapsulates a configuration for a particular Exchange installation.
@@ -68,7 +70,6 @@ class ExchangeConfiguration(models.Model):
         return self._ews_session
 
 
-@python_2_unicode_compatible
 class ExchangeResource(models.Model):
     """
     Links a Respa resource to an Exchange calendar.
@@ -122,7 +123,6 @@ class ExchangeResource(models.Model):
         return ExchangeReservation.objects.filter(reservation__resource=self.resource)
 
 
-@python_2_unicode_compatible
 class ExchangeReservation(models.Model):
     """
     Links a Respa reservation with its Exchange item information.
@@ -140,6 +140,7 @@ class ExchangeReservation(models.Model):
         db_index=True,
         editable=False
     )
+    organizer_email = models.EmailField(max_length=250, db_index=True, editable=False, blank=True)
     exchange = models.ForeignKey(  # Cached Exchange configuration
         to=ExchangeConfiguration,
         on_delete=models.PROTECT,
@@ -187,6 +188,15 @@ class ExchangeReservation(models.Model):
         :rtype: respa_exchange.objs.ItemID
         """
         return ItemID(id=self._item_id, change_key=self._change_key)
+
+    def find_organizer_user(self):
+        if not self.organizer_email:
+            return None
+        try:
+            user = User.objects.get(email=self.organizer_email)
+        except User.DoesNotExist:
+            return None
+        return user
 
     @item_id.setter
     def item_id(self, value):
