@@ -92,7 +92,7 @@ def _determine_organizer(ex_resource, organizer):
 
 
 @atomic
-def sync_from_exchange(ex_resource, future_days=30):
+def sync_from_exchange(ex_resource, future_days=365):
     """
     Synchronize from Exchange to Respa
 
