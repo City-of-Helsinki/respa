@@ -94,6 +94,33 @@ class FindItemsHandler(object):
             )
         )
 
+    def handle_resolve_names(self, request):
+        if not request.xpath("//m:ResolveNames", namespaces=NAMESPACES):
+            return  # pragma: no cover
+        ldap_address = request.xpath("//m:UnresolvedEntry", namespaces=NAMESPACES)[0].text
+        assert ldap_address == '/O=Dummy'
+        return M.ResolveNamesResponse(
+            M.ResponseMessages(
+                M.ResolveNamesResponseMessage(
+                    {'ResponseClass': 'Success'},
+                    M.ResponseCode('NoError'),
+                    M.ResolutionSet(
+                        {
+                            'TotalItemsInView': '1',
+                            'IncludesLastItemInRange': 'true',
+                        },
+                        T.Resolution(
+                            T.Mailbox(
+                                T.EmailAddress('dummy@example.com'),
+                                T.RoutingType('SMTP'),
+                                T.MailboxType('Mailbox')
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
     def _generate_calendar_item(self, props):
         return T.CalendarItem(
             props['id'].to_xml(),
