@@ -5,8 +5,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils import formats
 from django.utils.timezone import localtime
 from rest_framework import exceptions, serializers
-from docx import Document
-from docx.shared import Pt
 
 from resources.models import Reservation, Resource, Unit
 from .base import BaseReport, DocxRenderer
@@ -58,7 +56,7 @@ class DailyReservationsDocxRenderer(DocxRenderer):
         resource_qs = data['resource_qs']
 
         include_resources_without_reservations = data['include_resources_without_reservations']
-        document = Document()
+        document = self.create_document()
 
         first_resource = True
         atleast_one_reservation = False
@@ -79,22 +77,17 @@ class DailyReservationsDocxRenderer(DocxRenderer):
                 first_resource = False
 
             user = renderer_context['request'].user
-            name_h = document.add_heading(resource.name, 1)
-            name_h.paragraph_format.space_after = Pt(12)
-            date_h = document.add_heading(formats.date_format(day, format='D j.n.Y'), 2)
-            date_h.paragraph_format.space_after = Pt(48)
+            document.add_heading(resource.name, 1)
+            document.add_heading(formats.date_format(day, format='D j.n.Y'), 2)
 
             if reservation_count == 0:
-                p = document.add_paragraph(_('No reservations'))
-                p.paragraph_format.space_before = Pt(24)
+                document.add_paragraph(_('No reservations'))
 
             for reservation in reservations:
 
                 # the time
-                p = document.add_paragraph()
-                p.paragraph_format.space_before = Pt(24)
-                p.add_run(formats.time_format(localtime(reservation.begin)) + '–' +
-                          formats.time_format(localtime(reservation.end))).bold = True
+                document.add_heading(formats.time_format(localtime(reservation.begin)) + '–' +
+                                     formats.time_format(localtime(reservation.end)), 3)
 
                 # collect attributes from the reservation, skip empty ones
                 attrs = [(field, getattr(reservation, field)) for field in (
@@ -105,8 +98,7 @@ class DailyReservationsDocxRenderer(DocxRenderer):
                 ) if getattr(reservation, field) and reservation.can_view_field(user, field)]
 
                 if not attrs:
-                    p = document.add_paragraph(_('No information available'))
-                    p.paragraph_format.space_before = Pt(24)
+                    document.add_paragraph(_('No information available'))
                     continue
 
                 table = document.add_table(rows=0, cols=2)

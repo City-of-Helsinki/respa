@@ -4,8 +4,6 @@ from django.utils.translation import pgettext_lazy, ugettext_lazy as _
 from django.utils import formats
 from django.utils.timezone import localtime
 from rest_framework import exceptions, serializers
-from docx import Document
-from docx.shared import Pt
 
 from caterings.models import CateringOrder
 from resources.models import Reservation
@@ -29,7 +27,7 @@ class ReservationDetailsDocxRenderer(DocxRenderer):
     def render(self, data, media_type=None, renderer_context=None):
         reservation = data['reservation']
         user = renderer_context['request'].user
-        document = Document()
+        document = self.create_document()
 
         begin_date = formats.date_format(reservation.begin.date())
         begin_time = formats.time_format(localtime(reservation.begin))
@@ -37,12 +35,11 @@ class ReservationDetailsDocxRenderer(DocxRenderer):
         end_time = formats.time_format(localtime(reservation.end))
         end_str = '%s' % end_time if begin_date == end_date else '%s %s' % (end_date, end_time)
         place_str = '%s / %s' % (reservation.resource.unit.name, reservation.resource.name)
-        name = '%s %s %s %s -> %s' % (place_str, begin_date, pgettext_lazy('time', 'at'), begin_time, end_str)
+        time_str = '%s %s %s -> %s' % (begin_date, pgettext_lazy('time', 'at'), begin_time, end_str)
 
-        name_h = document.add_heading(name, 1)
-        name_h.paragraph_format.space_after = Pt(48)
-        date_h = document.add_heading(_('Basic information'), 2)
-        date_h.paragraph_format.space_after = Pt(12)
+        document.add_heading(place_str, 1)
+        document.add_heading(time_str, 2)
+        document.add_heading(_('Basic information'), 2)
 
         # collect attributes from the reservation, skip empty ones
         attrs = [(field, getattr(reservation, field)) for field in (
@@ -64,9 +61,7 @@ class ReservationDetailsDocxRenderer(DocxRenderer):
         else:
             document.add_paragraph(_('No information available'))
 
-        catering_h = document.add_heading(pgettext_lazy('report', 'Catering order'), 2)
-        catering_h.paragraph_format.space_before = Pt(12)
-        catering_h.paragraph_format.space_after = Pt(12)
+        document.add_heading(pgettext_lazy('report', 'Catering order'), 2)
 
         if not reservation.can_view_catering_orders(user):
             document.add_paragraph(_('No information available'))

@@ -221,6 +221,7 @@ RESPA_MAILS_ENABLED = False
 RESPA_MAILS_FROM_ADDRESS = ""
 RESPA_CATERINGS_ENABLED = False
 RESPA_COMMENTS_ENABLED = False
+RESPA_DOCX_TEMPLATE = os.path.join(BASE_DIR, 'reports', 'data', 'default.docx')
 
 
 # local_settings.py can be used to override environment-specific settings

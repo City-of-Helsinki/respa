@@ -1,3 +1,5 @@
+from django.conf import settings
+from docx import Document
 from rest_framework import renderers, status, views
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
@@ -51,3 +53,8 @@ class DocxRenderer(renderers.BaseRenderer):
     format = 'docx'
     charset = None
     render_style = 'binary'
+
+    @staticmethod
+    def create_document():
+        base_template = getattr(settings, 'RESPA_DOCX_TEMPLATE', None)
+        return Document(base_template) if base_template else Document()
