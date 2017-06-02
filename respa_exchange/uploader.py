@@ -48,13 +48,16 @@ def _build_body(res):
 def _get_calendar_item_props(exres):
     res = exres.reservation
     assert isinstance(res, Reservation)
-    return dict(
+    ret = dict(
         start=res.begin,
         end=res.end,
         subject=_build_subject(res),
         body=_build_body(res),
         location=force_text(res.resource)
     )
+    if res.user and res.user.email:
+        ret['required_attendees'] = [res.user.email]
+    return ret
 
 
 def create_on_remote(exres):

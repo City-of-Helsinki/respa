@@ -60,6 +60,8 @@ class BaseCalendarItemRequest(EWSRequest):
         ("end", ("calendar:End", (lambda value: T.End(format_date_for_xml(value))))),
         ("all_day", ("calendar:IsAllDayEvent", (lambda value: T.IsAllDayEvent(str(bool(value)).lower())))),
         ("location", ("calendar:Location", (lambda value: T.Location(value)))),
+        ("required_attendees", ("calendar:RequiredAttendees", (
+            lambda value: T.RequiredAttendees(*[T.Attendee(T.Mailbox(T.EmailAddress(str(x)))) for x in value])))),
     ]
     PROP_DEFAULTS = {
         "all_day": False,
