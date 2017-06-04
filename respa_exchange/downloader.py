@@ -9,7 +9,7 @@ from django.db.transaction import atomic
 from django.utils.timezone import now
 
 from resources.models.reservation import Reservation
-from respa_exchange.ews.calendar import GetCalendarItemsRequest
+from respa_exchange.ews.calendar import GetCalendarItemsRequest, FindCalendarItemsRequest
 from respa_exchange.ews.user import ResolveNamesRequest
 from respa_exchange.ews.objs import ItemID
 from respa_exchange.ews.xml import NAMESPACES
@@ -40,7 +40,7 @@ def _update_reservation_from_exchange(item_id, ex_reservation, ex_resource, item
     _populate_reservation(reservation, ex_resource, item_props)
     reservation.save()
     ex_reservation.item_id = item_id
-    ex_reservation.organizer_email = item_props.get('organizer_email')
+    ex_reservation.organizer_email = item_props.get("organizer_email")
     ex_reservation.save()
 
     log.info("Updated: %s", ex_reservation)
@@ -57,7 +57,7 @@ def _create_reservation_from_exchange(item_id, ex_resource, item_props):
         managed_in_exchange=True,
     )
     ex_reservation.item_id = item_id
-    ex_reservation.organizer_email = item_props.get('organizer_email')
+    ex_reservation.organizer_email = item_props.get("organizer_email")
     ex_reservation.save()
 
     log.info("Created: %s", ex_reservation)
@@ -76,7 +76,7 @@ def _resolve_user_email(ex_resource, name):
         email = mb.find("t:EmailAddress", namespaces=NAMESPACES).text
         break
     else:
-        email = ''
+        email = ""
     return email
 
 
@@ -84,11 +84,23 @@ def _determine_organizer(ex_resource, organizer):
     mailbox = organizer.find("t:Mailbox", namespaces=NAMESPACES)
     routing_type = mailbox.find("t:RoutingType", namespaces=NAMESPACES).text
     email_address = mailbox.find("t:EmailAddress", namespaces=NAMESPACES).text
-    if routing_type == 'SMTP':
+    if routing_type == "SMTP":
         return email_address.lower()
-    if routing_type == 'EX':
+    if routing_type == "EX":
         return _resolve_user_email(ex_resource, email_address).lower()
     raise Exception("Unknown routing type %s" % routing_type)
+
+
+def _parse_item_props(ex_resource, item):
+    item_props = dict(
+        start=iso8601.parse_date(item.find("t:Start", namespaces=NAMESPACES).text),
+        end=iso8601.parse_date(item.find("t:End", namespaces=NAMESPACES).text),
+        subject=item.find("t:Subject", namespaces=NAMESPACES).text,
+    )
+    organizer = item.find("t:Organizer", namespaces=NAMESPACES)
+    if organizer is not None:
+        item_props["organizer_email"] = _determine_organizer(ex_resource, organizer)
+    return item_props
 
 
 @atomic
@@ -115,7 +127,7 @@ def sync_from_exchange(ex_resource, future_days=365):
         start_date,
         end_date
     )
-    gcir = GetCalendarItemsRequest(
+    gcir = FindCalendarItemsRequest(
         principal=ex_resource.principal_email,
         start_date=start_date,
         end_date=end_date
@@ -157,14 +169,7 @@ def sync_from_exchange(ex_resource, future_days=365):
 
     for item_id, item in calendar_items.items():
         ex_reservation = extant_exchange_reservations.get(item_id.hash)
-        item_props = dict(
-            start=iso8601.parse_date(item.find("t:Start", namespaces=NAMESPACES).text),
-            end=iso8601.parse_date(item.find("t:End", namespaces=NAMESPACES).text),
-            subject=item.find("t:Subject", namespaces=NAMESPACES).text,
-        )
-        organizer = item.find("t:Organizer", namespaces=NAMESPACES)
-        if organizer is not None:
-            item_props['organizer_email'] = _determine_organizer(ex_resource, organizer)
+        item_props = _parse_item_props(ex_resource, item)
 
         if not ex_reservation:  # It's a new one!
             ex_reservation = _create_reservation_from_exchange(item_id, ex_resource, item_props)

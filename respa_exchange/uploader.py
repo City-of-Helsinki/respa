@@ -18,6 +18,8 @@ def _build_subject(res):
     :type res: resources.models.Reservation
     :return: str
     """
+    if res.event_subject:
+        return res.event_subject
     bits = ["Respa"]
     if res.reserver_name:
         bits.append(res.reserver_name)
@@ -33,16 +35,16 @@ def _build_body(res):
     :type res: resources.models.Reservation
     :return: str
     """
-    bits = []
-    for field in Reservation._meta.get_fields():
-        try:
-            val = getattr(res, field.attname)
-        except AttributeError:
-            continue
-        if not val:
-            continue
-        bits.append("%s: %s" % (field.verbose_name, val))
-    return "\n".join(bits)
+    return res.event_description or ''
+
+
+def _build_location(exres, res):
+    resource = res.resource
+    if resource.name:
+        if resource.unit:
+            return "%s (%s)" % (resource.name, resource.unit.name)
+        return resource.name
+    return exres.principal_email
 
 
 def _get_calendar_item_props(exres):
@@ -53,7 +55,7 @@ def _get_calendar_item_props(exres):
         end=res.end,
         subject=_build_subject(res),
         body=_build_body(res),
-        location=force_text(res.resource)
+        location=_build_location(exres, res)
     )
     if res.user and res.user.email:
         ret['required_attendees'] = [res.user.email]

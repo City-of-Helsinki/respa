@@ -5,7 +5,7 @@ from .utils import format_date_for_xml
 from .xml import M, NAMESPACES, T
 
 
-class GetCalendarItemsRequest(EWSRequest):
+class FindCalendarItemsRequest(EWSRequest):
     """
     An EWS request to request the calendar items for a given principal's calendar folder.
     """
@@ -32,7 +32,40 @@ class GetCalendarItemsRequest(EWSRequest):
             }),
             M.ParentFolderIds(get_distinguished_folder_id_element(principal, "calendar")),
         )
-        super(GetCalendarItemsRequest, self).__init__(body, impersonation=principal)
+        super().__init__(body, impersonation=principal)
+
+    def send(self, sess):
+        """
+        Send the calendar item request, and return a list of CalendarItem XML elements.
+
+        :type sess: respa_exchange.session.ExchangeSession
+        :rtype: list[lxml.etree.Element]
+        """
+        resp = sess.soap(self)
+        return resp.xpath("//t:CalendarItem", namespaces=NAMESPACES)
+
+
+class GetCalendarItemsRequest(EWSRequest):
+    """
+    An EWS request to request the detailed information about given items.
+    """
+
+    def __init__(self, principal, item_ids):
+        """
+        Initialize the request.
+
+        :param principal: The principal email whose calendar to query.
+        :param item_ids: Item IDs for the requested calendar items.
+        """
+
+        body = M.GetItem(
+            M.ItemShape(
+                T.BaseShape("AllProperties"),
+                T.BodyType("HTML"),
+            ),
+            M.ItemIds(*[T.ItemId(dict(Id=i.id, ChangeKey=i.change_key)) for i in item_ids]),
+        )
+        super().__init__(body, impersonation=principal)
 
     def send(self, sess):
         """
@@ -54,7 +87,7 @@ class BaseCalendarItemRequest(EWSRequest):
 
     PROP_MAP = [  # The order is significant.
         ("subject", ("item:Subject", (lambda value: T.Subject(value)))),
-        ("body", ("item:Body", (lambda value: T.Body(value, BodyType="HTML")))),
+        ("body", ("item:Body", (lambda value: T.Body(value, BodyType="Text")))),
         ("reminder", ("item:ReminderIsSet", (lambda value: T.ReminderIsSet(str(bool(value)).lower())))),
         ("start", ("calendar:Start", (lambda value: T.Start(format_date_for_xml(value))))),
         ("end", ("calendar:End", (lambda value: T.End(format_date_for_xml(value))))),
