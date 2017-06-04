@@ -376,7 +376,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         return user.is_staff
 
     def can_make_reservations(self, user):
-        return self.is_admin(user) or self.reservable
+        has_explicit_permission = user.has_perm('can_make_reservations', self.unit)
+        return self.is_admin(user) or self.reservable or has_explicit_permission
 
     def can_approve_reservations(self, user):
         return self.is_admin(user) and user.has_perm('can_approve_reservation', self.unit)

@@ -386,7 +386,8 @@ def test_reservation_can_be_modified_by_overlapping_reservation(api_client, rese
 
 
 @pytest.mark.django_db
-def test_non_reservable_resource_restrictions(api_client, list_url, resource_in_unit, reservation_data, user):
+def test_non_reservable_resource_restrictions(api_client, list_url, resource_in_unit,
+                                              reservation_data, user, group):
     """
     Tests that a normal user cannot make a reservation to a non reservable resource but staff can.
 
@@ -407,15 +408,34 @@ def test_non_reservable_resource_restrictions(api_client, list_url, resource_in_
     )
     detail_url = reverse('reservation-detail', kwargs={'pk': reservation.pk})
     response = api_client.put(detail_url, reservation_data)
-    assert response.status_code == 403
+    reservation.delete()
+
+    assert Reservation.objects.count() == 0
 
     # a staff member should be allowed to create and update
     user.is_staff = True
     user.save()
     response = api_client.post(list_url, data=reservation_data)
     assert response.status_code == 201
-    reservation_data['begin'] = dateparse.parse_datetime('2115-04-08T09:00:00+02:00')
-    reservation_data['end'] = dateparse.parse_datetime('2115-04-08T10:00:00+02:00')
+
+    staff_reservation_data = reservation_data.copy()
+    staff_reservation_data['id'] = response.json()['id']
+    staff_reservation_data['begin'] = dateparse.parse_datetime('2115-04-08T09:00:00+02:00')
+    staff_reservation_data['end'] = dateparse.parse_datetime('2115-04-08T10:00:00+02:00')
+    detail_url = reverse('reservation-detail', kwargs={'pk': staff_reservation_data['id']})
+    response = api_client.put(detail_url, data=staff_reservation_data)
+    assert response.status_code == 200
+    Reservation.objects.first().delete()
+    assert Reservation.objects.count() == 0
+    user.is_staff = False
+    user.save()
+
+    # If the has explicit permission to make reservations, it should be allowed.
+    user.groups.add(group)
+    assign_perm('can_make_reservations', group, resource_in_unit.unit)
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201
+    detail_url = reverse('reservation-detail', kwargs={'pk': response.json()['id']})
     response = api_client.put(detail_url, data=reservation_data)
     assert response.status_code == 200
 

@@ -2,6 +2,7 @@
 import pytest
 import datetime
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from rest_framework.test import APIClient, APIRequestFactory
 
 from resources.models import Resource, ResourceType, Unit, Purpose, Day, Period
@@ -227,6 +228,12 @@ def staff_user():
         is_staff=True,
         preferred_language='en'
     )
+
+
+@pytest.mark.django_db
+@pytest.fixture
+def group():
+    return Group.objects.create(name='test group')
 
 
 @pytest.mark.django_db

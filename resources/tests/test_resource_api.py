@@ -5,6 +5,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.gis.geos import Point
 from django.utils import timezone
 from freezegun import freeze_time
+from guardian.shortcuts import assign_perm
 
 from resources.models import (Day, Equipment, Period, Reservation, ReservationMetadataSet, ResourceEquipment,
                               ResourceType)
@@ -50,7 +51,7 @@ def test_disallowed_methods(all_user_types_api_client, list_url, detail_url):
 
 
 @pytest.mark.django_db
-def test_user_permissions_in_resource_endpoint(api_client, resource_in_unit, user):
+def test_user_permissions_in_resource_endpoint(api_client, resource_in_unit, user, group):
     """
     Tests that resource endpoint returns a permissions dict with correct values.
     """
@@ -69,6 +70,14 @@ def test_user_permissions_in_resource_endpoint(api_client, resource_in_unit, use
     user.save()
     api_client.force_authenticate(user=user)
     _check_permissions_dict(api_client, resource_in_unit, True, True)
+    user.is_staff = False
+    user.save()
+
+    # user has explicit permission to make reservation
+    user.groups.add(group)
+    assign_perm('can_make_reservations', group, resource_in_unit.unit)
+    api_client.force_authenticate(user=user)
+    _check_permissions_dict(api_client, resource_in_unit, False, True)
 
 
 @pytest.mark.django_db
