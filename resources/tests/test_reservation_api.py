@@ -12,7 +12,6 @@ from caterings.models import CateringOrder
 
 from resources.models import (Period, Day, Reservation, Resource, ResourceGroup, ReservationMetadataField,
                               ReservationMetadataSet)
-from users.models import User
 from .utils import (check_disallowed_methods, assert_non_field_errors_contain, check_received_mail_exists,
                     assert_response_objects)
 
@@ -25,6 +24,8 @@ DEFAULT_RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'r
 DEFAULT_REQUIRED_RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street',
                                              'reserver_address_zip', 'reserver_address_city', 'event_description',
                                              'reserver_id', 'reserver_email_address')
+
+User = get_user_model()
 
 
 @pytest.fixture

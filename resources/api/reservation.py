@@ -5,7 +5,9 @@ from datetime import datetime
 from arrow.parser import ParserError
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
-from django.core.exceptions import PermissionDenied, ValidationError as DjangoValidationError
+from django.core.exceptions import (
+    PermissionDenied, FieldDoesNotExist, ValidationError as DjangoValidationError
+)
 from django.db.models import Q
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -21,17 +23,20 @@ from munigeo import api as munigeo_api
 from resources.models import Reservation, Resource, Unit
 from resources.models.reservation import RESERVATION_EXTRA_FIELDS
 from resources.pagination import ReservationPagination
-from users.models import User
 from resources.models.utils import generate_reservation_xlsx, get_object_or_none
 
-from .base import NullableDateTimeField, TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
+from .base import (
+    NullableDateTimeField, TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
+)
+
+User = get_user_model()
 
 # FIXME: Make this configurable?
 USER_ID_ATTRIBUTE = 'id'
 try:
-    get_user_model()._meta.get_field('uuid')
+    User._meta.get_field('uuid')
     USER_ID_ATTRIBUTE = 'uuid'
-except:
+except Exception:
     pass
 
 
