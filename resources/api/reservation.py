@@ -404,10 +404,10 @@ class ReservationFilterSet(django_filters.rest_framework.FilterSet):
         # if any of the extra field related filters are used, restrict results to reservations
         # the user has right to see
         if bool(query_params & set(RESERVATION_EXTRA_FIELDS)):
-            qs = qs.can_view_extra_fields(user)
+            qs = qs.extra_fields_visible(user)
 
         if 'has_catering_order' in query_params:
-            qs = qs.can_view_catering_orders(user)
+            qs = qs.catering_orders_visible(user)
 
         return qs
 

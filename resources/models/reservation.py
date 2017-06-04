@@ -26,7 +26,7 @@ class ReservationQuerySet(models.QuerySet):
     def active(self):
         return self.filter(end__gte=timezone.now()).exclude(state__in=(Reservation.CANCELLED, Reservation.DENIED))
 
-    def can_view_extra_fields(self, user):
+    def extra_fields_visible(self, user):
         # the following logic is also implemented in Reservation.are_extra_fields_visible()
         # so if this is changed that probably needs to be changed as well
 
@@ -38,7 +38,7 @@ class ReservationQuerySet(models.QuerySet):
         allowed_units = get_objects_for_user(user, 'resources.can_view_reservation_extra_fields', klass=Unit)
         return self.filter(Q(user=user) | Q(resource__unit__in=allowed_units))
 
-    def can_view_catering_orders(self, user):
+    def catering_orders_visible(self, user):
         if not user.is_authenticated():
             return self.none()
         if user.is_staff:
