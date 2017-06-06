@@ -264,6 +264,9 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         if 'access_code' in data and data['access_code'] == '':
             data['access_code'] = None
 
+        if instance.can_view_catering_orders(user):
+            data['has_catering_order'] = instance.catering_orders.exists()
+
         return data
 
     def get_is_own(self, obj):

@@ -1447,3 +1447,43 @@ def test_has_catering_order_filter(user_api_client, user, user2, resource_in_uni
     response = user_api_client.get(list_url + '?has_catering_order=true')
     assert response.status_code == 200
     assert_response_objects(response, (reservation, reservation3))
+
+
+@pytest.mark.django_db
+def test_has_catering_order_field(user_api_client, user, user2, reservation, detail_url):
+    reservation.user = user2
+    reservation.save()
+
+    response = user_api_client.get(detail_url)
+    assert response.status_code == 200
+    assert 'has_catering_order' not in response.data
+
+    user_api_client.force_authenticate(user2)
+    response = user_api_client.get(detail_url)
+    assert response.status_code == 200
+    assert response.data['has_catering_order'] is False
+
+    CateringOrder.objects.create(
+        reservation=reservation,
+    )
+
+    response = user_api_client.get(detail_url)
+    assert response.status_code == 200
+    assert response.data['has_catering_order'] is True
+
+    user_api_client.force_authenticate(user)
+    user.is_staff = True
+    user.save()
+
+    response = user_api_client.get(detail_url)
+    assert response.status_code == 200
+    assert response.data['has_catering_order'] is True
+
+    user.is_staff = False
+    user.save()
+    assign_perm('resources.can_view_reservation_catering_orders', user, reservation.resource.unit)
+    reservation.catering_orders.all().delete()
+
+    response = user_api_client.get(detail_url)
+    assert response.status_code == 200
+    assert response.data['has_catering_order'] is False
