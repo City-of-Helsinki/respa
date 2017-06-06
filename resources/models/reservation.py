@@ -211,7 +211,7 @@ class Reservation(ModifiableModel):
     def can_view_catering_orders(self, user):
         if not user:
             return False
-        if user == self.user:
+        if user == self.user or user.is_staff:
             return True
         if user.has_perm('resources.can_view_reservation_catering_orders', self.resource.unit):
             return True
