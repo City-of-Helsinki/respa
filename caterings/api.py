@@ -113,7 +113,10 @@ class CateringOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CateringOrder
-        fields = ('id', 'created_at', 'modified_at', 'reservation', 'order_lines', 'invoicing_data', 'message')
+        fields = (
+            'id', 'created_at', 'modified_at', 'reservation', 'order_lines', 'invoicing_data', 'message',
+            'serving_time',
+        )
 
     def _handle_order_lines(self, order, order_line_data):
         order.order_lines.all().delete()
