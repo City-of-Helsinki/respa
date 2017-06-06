@@ -83,6 +83,7 @@ class CateringOrder(TimeStampedModel):
     )
     invoicing_data = models.CharField(max_length=100, verbose_name=_('Invoicing data'))
     message = models.TextField(verbose_name=_('Message'), blank=True)
+    serving_time = models.TimeField(verbose_name=_('Serving time'), blank=True, null=True)
 
     objects = CateringOrderQuerySet.as_manager()
 

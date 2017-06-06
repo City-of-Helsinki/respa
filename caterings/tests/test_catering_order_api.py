@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 from django.core.urlresolvers import reverse
 
@@ -26,6 +28,7 @@ def new_order_data(catering_product, reservation):
         ],
         'invoicing_data': '123456',
         'message': 'no sugar please',
+        'serving_time': '13:00:00',
     }
 
 
@@ -43,6 +46,7 @@ def update_order_data(catering_product2, catering_product3, reservation2):
             }
         ],
         'invoicing_data': '654321',
+        'serving_time': None,
     }
 
 
@@ -77,6 +81,7 @@ def test_catering_orders_endpoints_get(user_api_client, user, catering_order, ca
         'order_lines',
         'invoicing_data',
         'message',
+        'serving_time',
     }
     check_keys(data, expected_keys)
 
@@ -86,6 +91,7 @@ def test_catering_orders_endpoints_get(user_api_client, user, catering_order, ca
     assert data['reservation'] == catering_order.reservation.pk
     assert data['invoicing_data'] == catering_order.invoicing_data
     assert data['message'] == catering_order.message
+    assert data['serving_time'] == '12:00:00'
 
     order_lines = data['order_lines']
     assert len(order_lines) == 1
@@ -130,6 +136,7 @@ def test_order_create(user_api_client, reservation, catering_product, new_order_
     order_object = CateringOrder.objects.latest('id')
     assert order_object.created_at and order_object.modified_at
     assert order_object.reservation == reservation
+    assert order_object.serving_time == datetime.time(13, 00, 00)
     assert order_object.order_lines.count() == 1
     order_line_object = order_object.order_lines.all()[0]
     assert order_line_object.product == catering_product
@@ -147,6 +154,7 @@ def test_order_update(user_api_client, reservation2, catering_product2, catering
     order_object = CateringOrder.objects.latest('id')
     assert order_object.created_at and order_object.modified_at
     assert order_object.reservation == reservation2
+    assert order_object.serving_time is None
     assert order_object.order_lines.count() == 2
     assert CateringOrderLine.objects.count() == 2
 

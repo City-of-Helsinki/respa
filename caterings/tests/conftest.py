@@ -74,6 +74,7 @@ def catering_order(catering_product, reservation, user):
         reservation=reservation,
         invoicing_data='777-777',
         message='lots of salt please',
+        serving_time=datetime.time(12, 00, 00),
     )
     order_line = CateringOrderLine.objects.create(
         product=catering_product,
