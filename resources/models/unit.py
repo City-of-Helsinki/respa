@@ -12,6 +12,14 @@ from .availability import get_opening_hours
 from munigeo.models import Municipality
 
 
+def _get_default_timezone():
+    return timezone.get_default_timezone().zone
+
+
+def _get_timezone_choices():
+    return [(x, x) for x in pytz.all_timezones]
+
+
 class Unit(ModifiableModel, AutoIdentifiedModel):
     id = models.CharField(primary_key=True, max_length=50)
     name = models.CharField(verbose_name=_('Name'), max_length=200)
@@ -19,8 +27,7 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
 
     location = models.PointField(verbose_name=_('Location'), null=True, srid=settings.DEFAULT_SRID)
     time_zone = models.CharField(verbose_name=_('Time zone'), max_length=50,
-                                 default=timezone.get_default_timezone().zone,
-                                 choices=[(x, x) for x in pytz.all_timezones])
+                                 default=_get_default_timezone)
 
     # organization = models.ForeignKey(...)
     street_address = models.CharField(verbose_name=_('Street address'), max_length=100, null=True)
@@ -53,6 +60,12 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
             ('can_view_reservation_catering_orders', _('Can view reservation catering orders')),
         )
         ordering = ('name',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Set the time zone choices here in order to avoid spawning
+        # spurious migrations.
+        self._meta.get_field('time_zone').choices = _get_timezone_choices()
 
     def __str__(self):
         return "%s (%s)" % (get_translated(self, 'name'), self.id)
