@@ -204,9 +204,13 @@ class Reservation(ModifiableModel):
     def can_view_field(self, user, field):
         if field not in RESERVATION_EXTRA_FIELDS:
             return True
-        if user and user == self.user:
+        if not user:
+            return False
+        if user == self.user or user.is_staff:
             return True
-        return user.has_perm('resources.can_view_reservation_extra_fields', self.resource.unit)
+        if user.has_perm('resources.can_view_reservation_extra_fields', self.resource.unit):
+            return True
+        return False
 
     def can_view_catering_orders(self, user):
         if not user:
