@@ -35,7 +35,7 @@ class ReservationDetailsDocxRenderer(DocxRenderer):
         end_time = formats.time_format(localtime(reservation.end))
         end_str = '%s' % end_time if begin_date == end_date else '%s %s' % (end_date, end_time)
         place_str = '%s / %s' % (reservation.resource.unit.name, reservation.resource.name)
-        time_str = '%s %s %s -> %s' % (begin_date, pgettext_lazy('time', 'at'), begin_time, end_str)
+        time_str = '%s %s %s–%s' % (begin_date, pgettext_lazy('time', 'at'), begin_time, end_str)
 
         document.add_heading(place_str, 1)
         document.add_heading(time_str, 2)
