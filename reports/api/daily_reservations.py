@@ -62,7 +62,9 @@ class DailyReservationsDocxRenderer(DocxRenderer):
         atleast_one_reservation = False
 
         for resource in resource_qs:
-            reservations = Reservation.objects.filter(resource=resource, begin__date=day).order_by('resource', 'begin')
+            reservations = Reservation.objects.filter(
+                resource=resource, begin__date=day, state=Reservation.CONFIRMED
+            ).order_by('resource', 'begin')
             reservation_count = reservations.count()
 
             if reservation_count == 0 and not include_resources_without_reservations:
