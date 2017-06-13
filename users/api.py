@@ -39,7 +39,10 @@ class UserSerializer(serializers.ModelSerializer):
             if p.content_type.model_class() != Unit:
                 continue
             obj_perms = perms.setdefault(p.object_pk, [])
-            obj_perms.append(p.permission.codename)
+            perm_name = p.permission.codename
+            if perm_name.startswith('unit:'):
+                perm_name = perm_name[5:]
+            obj_perms.append(perm_name)
         if not perms:
             return {}
         return {'unit': perms}

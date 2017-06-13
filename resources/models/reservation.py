@@ -8,16 +8,14 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 from psycopg2.extras import DateTimeTZRange
 
-from guardian.shortcuts import get_objects_for_user, get_users_with_perms
-
 from .base import ModifiableModel
 from .resource import generate_access_code, validate_access_code
-from .unit import Unit
+from .resource import Resource
 from .utils import get_dt, save_dt, is_valid_time_slot, humanize_duration, send_respa_mail, DEFAULT_LANG
 
 
 RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street', 'reserver_address_zip',
-                            'reserver_address_city', 'billing_address_street',  'billing_address_zip',
+                            'reserver_address_city', 'billing_address_street', 'billing_address_zip',
                             'billing_address_city', 'company', 'event_description', 'event_subject', 'reserver_id',
                             'number_of_participants', 'participants', 'reserver_email_address', 'host_name')
 
@@ -32,20 +30,20 @@ class ReservationQuerySet(models.QuerySet):
 
         if not user.is_authenticated():
             return self.none()
-        if user.is_staff:
+        if user.is_superuser:
             return self
 
-        allowed_units = get_objects_for_user(user, 'resources.can_view_reservation_extra_fields', klass=Unit)
-        return self.filter(Q(user=user) | Q(resource__unit__in=allowed_units))
+        allowed_resources = Resource.objects.with_perm('can_view_reservation_extra_fields', user)
+        return self.filter(Q(user=user) | Q(resource__in=allowed_resources))
 
     def catering_orders_visible(self, user):
         if not user.is_authenticated():
             return self.none()
-        if user.is_staff:
+        if user.is_superuser:
             return self
-        allowed_units = get_objects_for_user(user, 'resources.can_view_reservation_catering_orders', klass=Unit)
 
-        return self.filter(Q(user=user) | Q(resource__unit__in=allowed_units))
+        allowed_resources = Resource.objects.with_perm('can_view_reservation_catering_orders', user)
+        return self.filter(Q(user=user) | Q(resource__in=allowed_resources))
 
 
 class Reservation(ModifiableModel):
@@ -142,6 +140,11 @@ class Reservation(ModifiableModel):
     def is_active(self):
         return self.end >= timezone.now() and self.state not in (Reservation.CANCELLED, Reservation.DENIED)
 
+    def is_own(self, user):
+        if not (user and user.is_authenticated()):
+            return False
+        return user == self.user
+
     def need_manual_confirmation(self):
         return self.resource.need_manual_confirmation
 
@@ -149,16 +152,14 @@ class Reservation(ModifiableModel):
         # the following logic is used also implemented in ReservationQuerySet
         # so if this is changed that probably needs to be changed as well
 
-        if not (user and user.is_authenticated()):
-            return False
-
-        is_own = user == self.user
-        is_admin = self.resource.is_admin(user)
-        has_perm = user.has_perm('resources.can_view_reservation_extra_fields', self.resource.unit)
-        return is_own or is_admin or has_perm
+        if self.is_own(user):
+            return True
+        return self.resource.can_view_reservation_extra_fields(user)
 
     def can_view_access_code(self, user):
-        return user == self.user or self.resource.can_view_access_codes(user)
+        if self.is_own(user):
+            return True
+        return self.resource.can_view_access_codes(user)
 
     def set_state(self, new_state, user):
         if new_state == self.state:
@@ -193,33 +194,21 @@ class Reservation(ModifiableModel):
         return self.resource.is_admin(user) or self.user == user
 
     def can_add_comment(self, user):
-        if not user:
-            return False
-        if user == self.user:
+        if self.is_own(user):
             return True
-        if user.has_perm('resources.can_access_reservation_comments', self.resource.unit):
-            return True
-        return False
+        return self.resource.can_access_reservation_comments(user)
 
     def can_view_field(self, user, field):
         if field not in RESERVATION_EXTRA_FIELDS:
             return True
-        if not user:
-            return False
-        if user == self.user or user.is_staff:
+        if self.is_own(user):
             return True
-        if user.has_perm('resources.can_view_reservation_extra_fields', self.resource.unit):
-            return True
-        return False
+        return self.resource.can_view_reservation_extra_fields(user)
 
     def can_view_catering_orders(self, user):
-        if not user:
-            return False
-        if user == self.user or user.is_staff:
+        if self.is_own(user):
             return True
-        if user.has_perm('resources.can_view_reservation_catering_orders', self.resource.unit):
-            return True
-        return False
+        return self.resource.can_view_catering_orders(user)
 
     class Meta:
         verbose_name = _("reservation")
@@ -283,10 +272,11 @@ class Reservation(ModifiableModel):
         self.send_reservation_mail(_("You've made a preliminary reservation"), 'reservation_requested')
 
     def send_reservation_requested_mail_to_officials(self):
-        unit = self.resource.unit
-        for user in get_users_with_perms(unit):
-            if user.has_perm('can_approve_reservation', unit):
-                self.send_reservation_mail(_('Reservation requested'), 'reservation_requested_official', user=user)
+        notify_users = self.resource.get_users_with_perm('can_approve_reservation')
+        if len(notify_users) > 100:
+            raise Exception("Refusing to notify more than 100 users (%s)" % self)
+        for user in notify_users:
+            self.send_reservation_mail(_('Reservation requested'), 'reservation_requested_official', user=user)
 
     def send_reservation_denied_mail(self):
         self.send_reservation_mail(_('Reservation denied'), 'reservation_denied')

@@ -191,13 +191,13 @@ def test_reservation_comment_visibility(user_api_client, user, user2, reservatio
     assert_response_objects(response, reservation_comment)
 
     # adding comment access perm to an unrelated unit, the hidden comment should still be hidden
-    assign_perm('resources.can_access_reservation_comments', user, test_unit)
+    assign_perm('unit:can_access_reservation_comments', user, test_unit)
     response = user_api_client.get(LIST_URL)
     assert response.status_code == 200
     assert_response_objects(response, reservation_comment)
 
     # adding comment access perm to the second commit's unit, both comment should be visible once again
-    assign_perm('resources.can_access_reservation_comments', user, test_unit2)
+    assign_perm('unit:can_access_reservation_comments', user, test_unit2)
     response = user_api_client.get(LIST_URL)
     assert response.status_code == 200
     assert_response_objects(response, (reservation_comment, reservation2_comment))
@@ -227,13 +227,13 @@ def test_catering_order_comment_visibility(user_api_client, user, user2, caterin
     assert_response_objects(response, catering_order_comment)
 
     # adding comment access perm to an unrelated unit, the hidden comment should still be hidden
-    assign_perm('resources.can_access_reservation_comments', user, test_unit)
+    assign_perm('unit:can_access_reservation_comments', user, test_unit)
     response = user_api_client.get(LIST_URL)
     assert response.status_code == 200
     assert_response_objects(response, catering_order_comment)
 
     # adding comment access perm to the second commit's unit, both comment should be visible once again
-    assign_perm('resources.can_view_reservation_catering_orders', user, test_unit2)
+    assign_perm('unit:can_view_reservation_catering_orders', user, test_unit2)
     response = user_api_client.get(LIST_URL)
     assert response.status_code == 200
     assert_response_objects(response, (catering_order_comment, catering_order2_comment))
@@ -250,7 +250,7 @@ def test_reservation_comment_creation_rights(user_api_client, user, reservation3
     assert response.status_code == 400
     assert 'You cannot comment this object.' in str(response.data)
 
-    assign_perm('resources.can_access_reservation_comments', user, reservation3.resource.unit)
+    assign_perm('unit:can_access_reservation_comments', user, reservation3.resource.unit)
     response = user_api_client.post(LIST_URL, data=new_reservation_comment_data)
     assert response.status_code == 201
 
@@ -267,7 +267,7 @@ def test_catering_order_comment_creation_rights(user_api_client, user, catering_
     assert response.status_code == 400
     assert 'You cannot comment this object.' in str(response.data)
 
-    assign_perm('resources.can_view_reservation_catering_orders', user, catering_order3.reservation.resource.unit)
+    assign_perm('unit:can_view_reservation_catering_orders', user, catering_order3.reservation.resource.unit)
     response = user_api_client.post(LIST_URL, data=new_catering_order_comment_data)
     assert response.status_code == 201
 

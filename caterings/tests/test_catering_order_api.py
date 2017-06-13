@@ -205,7 +205,7 @@ def test_can_view_others_orders_if_has_perm(user_api_client, user2, catering_ord
     assert response.status_code == 200
     assert not response.data['results']
 
-    assign_perm('resources.can_view_reservation_catering_orders', user2, reservation.resource.unit)
+    assign_perm('unit:can_view_reservation_catering_orders', user2, reservation.resource.unit)
     user_api_client.force_authenticate(user=user2)
     response = user_api_client.get(LIST_URL)
     assert response.status_code == 200

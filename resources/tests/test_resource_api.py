@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.gis.geos import Point
 from django.utils import timezone
 from freezegun import freeze_time
-from guardian.shortcuts import assign_perm
+from guardian.shortcuts import assign_perm, remove_perm
 
 from resources.models import (Day, Equipment, Period, Reservation, ReservationMetadataSet, ResourceEquipment,
                               ResourceType)
@@ -75,7 +75,13 @@ def test_user_permissions_in_resource_endpoint(api_client, resource_in_unit, use
 
     # user has explicit permission to make reservation
     user.groups.add(group)
-    assign_perm('can_make_reservations', group, resource_in_unit.unit)
+    assign_perm('unit:can_make_reservations', group, resource_in_unit.unit)
+    api_client.force_authenticate(user=user)
+    _check_permissions_dict(api_client, resource_in_unit, False, True)
+    remove_perm('unit:can_make_reservations', group, resource_in_unit.unit)
+
+    resource_group = resource_in_unit.groups.create(name='rg1')
+    assign_perm('group:can_make_reservations', group, resource_group)
     api_client.force_authenticate(user=user)
     _check_permissions_dict(api_client, resource_in_unit, False, True)
 

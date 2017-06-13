@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.admin import site as admin_site
 from django.contrib.admin.utils import unquote
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.contrib.gis.admin import OSMGeoAdmin
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -33,7 +34,16 @@ class CustomUserManage(forms.Form):
     )
 
 
+class CustomGroupManage(forms.Form):
+    group = forms.ModelChoiceField(Group.objects.all())
+
+
 class FixedGuardedModelAdminMixin(guardian_admin.GuardedModelAdminMixin):
+    def get_obj_perms_user_select_form(self, request):
+        return CustomUserManage
+
+    def get_obj_perms_group_select_form(self, request):
+        return CustomGroupManage
 
     # fix editing an object with quoted chars in pk
     def obj_perms_manage_user_view(self, request, object_pk, user_id):
@@ -88,9 +98,6 @@ class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, FixedGuarde
     default_lon = 2776460  # Central Railway Station in EPSG:3857
     default_lat = 8438120
     default_zoom = 12
-
-    def get_obj_perms_user_select_form(self, request):
-        return CustomUserManage
 
 
 class ResourceImageAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, ImageCroppingMixin, TranslationAdmin):
@@ -153,7 +160,8 @@ class ReservationMetadataSetAdmin(PopulateCreatedAndModifiedMixin, admin.ModelAd
     form = ReservationMetadataSetForm
 
 
-class ResourceGroupAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, admin.ModelAdmin):
+class ResourceGroupAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, FixedGuardedModelAdminMixin,
+                         admin.ModelAdmin):
     pass
 
 
