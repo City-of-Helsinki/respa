@@ -42,7 +42,7 @@ def test_user_perms(api_client, list_url, staff_user, user, test_unit):
     user_data = response.data['results'][0]
     assert not user_data['staff_perms']
 
-    assign_perm('can_approve_reservation', staff_user, test_unit)
+    assign_perm('unit:can_approve_reservation', staff_user, test_unit)
     response = api_client.get(list_url)
     assert response.status_code == 200
     assert response.data['count'] == 1

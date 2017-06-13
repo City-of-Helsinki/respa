@@ -5,6 +5,7 @@ from decimal import Decimal
 
 import arrow
 import django.db.models as dbm
+from django.db.models import Q
 from django.apps import apps
 from django.conf import settings
 from django.contrib.gis.db import models
@@ -20,13 +21,16 @@ from django.contrib.postgres.fields import HStoreField
 from image_cropping import ImageRatioField
 from PIL import Image
 from autoslug import AutoSlugField
+from guardian.shortcuts import get_objects_for_user, get_users_with_perms
 
 from resources.errors import InvalidImage
 
 from .base import AutoIdentifiedModel, NameIdentifiedModel, ModifiableModel
 from .utils import create_reservable_before_datetime, get_translated, get_translated_name, humanize_duration
 from .equipment import Equipment
+from .unit import Unit
 from .availability import get_opening_hours
+from .permissions import RESOURCE_PERMISSIONS
 
 
 def generate_access_code(access_code_type):
@@ -95,6 +99,13 @@ class TermsOfUse(ModifiableModel, AutoIdentifiedModel):
         return get_translated_name(self)
 
 
+class ResourceQuerySet(models.QuerySet):
+    def with_perm(self, perm, user):
+        units = get_objects_for_user(user, 'unit:%s' % perm, klass=Unit)
+        resource_groups = get_objects_for_user(user, 'group:%s' % perm, klass=ResourceGroup)
+        return self.filter(Q(unit__in=units) | Q(groups__in=resource_groups)).distinct()
+
+
 class Resource(ModifiableModel, AutoIdentifiedModel):
     AUTHENTICATION_TYPES = (
         ('none', _('None')),
@@ -148,6 +159,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     reservable_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable days in advance'),
                                                                   null=True, blank=True)
     reservation_metadata_set = models.ForeignKey('resources.ReservationMetadataSet', null=True, blank=True)
+
+    objects = ResourceQuerySet.as_manager()
 
     class Meta:
         verbose_name = _("resource")
@@ -375,18 +388,46 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         # so if this is changed those need to be changed as well.
         return user.is_staff
 
+    def _has_perm(self, user, perm, allow_admin=True):
+        # Admins are almighty.
+        if self.is_admin(user) and allow_admin:
+            return True
+        # Permissions can be given per-unit
+        if user.has_perm('unit:%s' % perm, self.unit):
+            return True
+        # ... or through Resource Groups
+        resource_group_perms = [user.has_perm('group:%s' % perm, rg) for rg in self.groups.all()]
+        return any(resource_group_perms)
+
+    def get_users_with_perm(self, perm):
+        users = {u for u in get_users_with_perms(self.unit) if u.has_perm('unit:%s' % perm, self.unit)}
+        for rg in self.groups.all():
+            users |= {u for u in get_users_with_perms(rg) if u.has_perm('group:%s' % perm, rg)}
+        return users
+
     def can_make_reservations(self, user):
-        has_explicit_permission = user.has_perm('can_make_reservations', self.unit)
-        return self.is_admin(user) or self.reservable or has_explicit_permission
+        return self.reservable or self._has_perm(user, 'can_make_reservations')
+
+    def can_ignore_opening_hours(self, user):
+        return self._has_perm(user, 'can_ignore_opening_hours')
+
+    def can_view_reservation_extra_fields(self, user):
+        return self._has_perm(user, 'can_view_reservation_extra_fields')
+
+    def can_access_reservation_comments(self, user):
+        return self._has_perm(user, 'can_access_reservation_comments')
+
+    def can_view_catering_orders(self, user):
+        return self._has_perm(user, 'can_view_reservation_catering_orders')
 
     def can_approve_reservations(self, user):
-        return self.is_admin(user) and user.has_perm('can_approve_reservation', self.unit)
+        return self._has_perm(user, 'can_approve_reservation', allow_admin=False)
+
+    def can_view_access_codes(self, user):
+        return self._has_perm(user, 'can_view_reservation_access_code')
 
     def is_access_code_enabled(self):
         return self.access_code_type != Resource.ACCESS_CODE_TYPE_NONE
-
-    def can_view_access_codes(self, user):
-        return self.is_admin(user) or user.has_perm('can_view_reservation_access_code', self.unit)
 
     def get_reservable_days_in_advance(self):
         return self.reservable_days_in_advance or self.unit.reservable_days_in_advance
@@ -521,6 +562,10 @@ class ResourceEquipment(ModifiableModel):
         return "%s / %s" % (self.equipment, self.resource)
 
 
+def _generate_resource_group_permissions():
+    return [('group:%s' % p, t) for p, t in RESOURCE_PERMISSIONS]
+
+
 class ResourceGroup(ModifiableModel):
     identifier = models.CharField(verbose_name=_('Identifier'), max_length=100)
     name = models.CharField(verbose_name=_('Name'), max_length=200)
@@ -529,6 +574,8 @@ class ResourceGroup(ModifiableModel):
     class Meta:
         verbose_name = _('Resource group')
         verbose_name_plural = _('Resource groups')
+        permissions = _generate_resource_group_permissions()
+        ordering = ('name',)
 
     def __str__(self):
         return self.name

@@ -6,7 +6,7 @@ from arrow.parser import ParserError
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import (
-    PermissionDenied, FieldDoesNotExist, ValidationError as DjangoValidationError
+    PermissionDenied, ValidationError as DjangoValidationError
 )
 from django.db.models import Q
 from django.utils import timezone
@@ -169,7 +169,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
                 raise ValidationError(dict(comments=_('Only allowed to be set by staff members')))
 
         if 'access_code' in data:
-            if data['access_code'] == None:
+            if data['access_code'] is None:
                 data['access_code'] = ''
 
             access_code_enabled = resource.is_access_code_enabled()
@@ -285,6 +285,7 @@ class UserFilterBackend(filters.BaseFilterBackend):
     """
     Filter by user uuid and by is_own.
     """
+
     def filter_queryset(self, request, queryset, view):
         user = request.query_params.get('user', None)
         if user:
@@ -389,12 +390,12 @@ class CanApproveFilterBackend(filters.BaseFilterBackend):
         filter_value = request.query_params.get('can_approve', None)
         if filter_value:
             queryset = queryset.filter(resource__need_manual_confirmation=True)
-            units = get_objects_for_user(user=request.user, perms=['can_approve_reservation'], klass=Unit)
+            allowed_resources = Resource.objects.with_perm('can_approve_reservation', request.user)
             can_approve = BooleanField().to_internal_value(filter_value)
             if can_approve:
-                queryset = queryset.filter(resource__unit__in=units)
+                queryset = queryset.filter(resource__in=allowed_resources)
             else:
-                queryset = queryset.exclude(resource__unit__in=units)
+                queryset = queryset.exclude(resource__in=allowed_resources)
         return queryset
 
 
@@ -540,4 +541,3 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
         return response
 
 register_view(ReservationViewSet, 'reservation')
-

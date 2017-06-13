@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Q
@@ -6,9 +5,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import pgettext_lazy
 
 import reversion
-from guardian.shortcuts import get_objects_for_user
 
-from resources.models import Reservation, Unit
+from resources.models import Reservation, Resource, Unit
 
 
 class TimeStampedModel(models.Model):
@@ -68,10 +66,8 @@ class CateringOrderQuerySet(models.QuerySet):
         if not user.is_authenticated():
             return self.none()
 
-        allowed_units = get_objects_for_user(
-            user, 'resources.can_view_reservation_catering_orders', klass=Unit
-        )
-        allowed_reservations = Reservation.objects.filter(Q(resource__unit__in=allowed_units) | Q(user=user))
+        allowed_resources = Resource.objects.with_perm('can_view_reservation_catering_orders', user)
+        allowed_reservations = Reservation.objects.filter(Q(resource__in=allowed_resources) | Q(user=user))
 
         return self.filter(reservation__in=allowed_reservations)
 

@@ -8,6 +8,7 @@ from autoslug import AutoSlugField
 from .base import AutoIdentifiedModel, ModifiableModel
 from .utils import create_reservable_before_datetime, get_translated, get_translated_name
 from .availability import get_opening_hours
+from .permissions import RESOURCE_PERMISSIONS
 
 from munigeo.models import Municipality
 
@@ -18,6 +19,10 @@ def _get_default_timezone():
 
 def _get_timezone_choices():
     return [(x, x) for x in pytz.all_timezones]
+
+
+def _generate_unit_permissions():
+    return [('unit:%s' % p, t) for p, t in RESOURCE_PERMISSIONS]
 
 
 class Unit(ModifiableModel, AutoIdentifiedModel):
@@ -51,14 +56,7 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
     class Meta:
         verbose_name = _("unit")
         verbose_name_plural = _("units")
-        permissions = (
-            ('can_approve_reservation', _('Can approve reservation')),
-            ('can_make_reservations', _('Can make reservations')),
-            ('can_view_reservation_access_code', _('Can view reservation access code')),
-            ('can_view_reservation_extra_fields', _('Can view reservation extra fields')),
-            ('can_access_reservation_comments', _('Can access reservation comments')),
-            ('can_view_reservation_catering_orders', _('Can view reservation catering orders')),
-        )
+        permissions = _generate_unit_permissions()
         ordering = ('name',)
 
     def __init__(self, *args, **kwargs):
