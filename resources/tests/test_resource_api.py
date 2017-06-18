@@ -27,7 +27,8 @@ def detail_url(resource_in_unit):
     return reverse('resource-detail', kwargs={'pk': resource_in_unit.pk})
 
 
-def _check_permissions_dict(api_client, resource, is_admin, can_make_reservation):
+def _check_permissions_dict(api_client, resource, is_admin, can_make_reservations,
+                            can_ignore_opening_hours):
     """
     Check that user permissions returned from resource endpoint contain correct values
     for given user and resource. api_client should have the user authenticated.
@@ -37,9 +38,10 @@ def _check_permissions_dict(api_client, resource, is_admin, can_make_reservation
     response = api_client.get(url)
     assert response.status_code == 200
     permissions = response.data['user_permissions']
-    assert len(permissions) == 2
+    assert len(permissions) == 3
     assert permissions['is_admin'] == is_admin
-    assert permissions['can_make_reservations'] == can_make_reservation
+    assert permissions['can_make_reservations'] == can_make_reservations
+    assert permissions['can_ignore_opening_hours'] == can_ignore_opening_hours
 
 
 @pytest.mark.django_db
@@ -57,19 +59,22 @@ def test_user_permissions_in_resource_endpoint(api_client, resource_in_unit, use
     """
     api_client.force_authenticate(user=user)
 
-    # normal user reservable True, expect is_admin False can_make_reservations True
-    _check_permissions_dict(api_client, resource_in_unit, False, True)
+    # normal user, reservable = True
+    _check_permissions_dict(api_client, resource_in_unit, is_admin=False,
+                            can_make_reservations=True, can_ignore_opening_hours=False)
 
-    # normal user reservable False, expect is_admin False can_make_reservations False
+    # normal user, reservable = False
     resource_in_unit.reservable = False
     resource_in_unit.save()
-    _check_permissions_dict(api_client, resource_in_unit, False, False)
+    _check_permissions_dict(api_client, resource_in_unit, is_admin=False,
+                            can_make_reservations=False, can_ignore_opening_hours=False)
 
-    # staff member reservable False, expect is_admin True can_make_reservations True
+    # staff member, reservable = False
     user.is_staff = True
     user.save()
     api_client.force_authenticate(user=user)
-    _check_permissions_dict(api_client, resource_in_unit, True, True)
+    _check_permissions_dict(api_client, resource_in_unit, is_admin=True,
+                            can_make_reservations=True, can_ignore_opening_hours=True)
     user.is_staff = False
     user.save()
 
@@ -77,13 +82,20 @@ def test_user_permissions_in_resource_endpoint(api_client, resource_in_unit, use
     user.groups.add(group)
     assign_perm('unit:can_make_reservations', group, resource_in_unit.unit)
     api_client.force_authenticate(user=user)
-    _check_permissions_dict(api_client, resource_in_unit, False, True)
+    _check_permissions_dict(api_client, resource_in_unit, is_admin=False,
+                            can_make_reservations=True, can_ignore_opening_hours=False)
     remove_perm('unit:can_make_reservations', group, resource_in_unit.unit)
 
     resource_group = resource_in_unit.groups.create(name='rg1')
     assign_perm('group:can_make_reservations', group, resource_group)
     api_client.force_authenticate(user=user)
-    _check_permissions_dict(api_client, resource_in_unit, False, True)
+    _check_permissions_dict(api_client, resource_in_unit, is_admin=False,
+                            can_make_reservations=True, can_ignore_opening_hours=False)
+
+    assign_perm('unit:can_ignore_opening_hours', group, resource_in_unit.unit)
+    api_client.force_authenticate(user=user)
+    _check_permissions_dict(api_client, resource_in_unit, is_admin=False,
+                            can_make_reservations=True, can_ignore_opening_hours=True)
 
 
 @pytest.mark.django_db

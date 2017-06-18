@@ -218,7 +218,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         opening_hours = self.get_opening_hours(begin.date(), end.date())
         days = opening_hours.get(begin.date(), None)
         if days is None or not any(day['opens'] and begin >= day['opens'] and end <= day['closes'] for day in days):
-            raise ValidationError(_("You must start and end the reservation during opening hours"))
+            if not self._has_perm(user, 'can_ignore_opening_hours'):
+                raise ValidationError(_("You must start and end the reservation during opening hours"))
 
         if self.max_period and (end - begin) > self.max_period:
             raise ValidationError(_("The maximum reservation length is %(max_period)s") %

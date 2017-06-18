@@ -130,6 +130,7 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
         request = self.context.get('request', None)
         return {
             'can_make_reservations': obj.can_make_reservations(request.user) if request else False,
+            'can_ignore_opening_hours': obj.can_ignore_opening_hours(request.user) if request else False,
             'is_admin': obj.is_admin(request.user) if request else False,
         }
 

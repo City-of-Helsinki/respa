@@ -265,7 +265,8 @@ def test_staff_has_no_reservation_limit(api_client, list_url, reservation, reser
 
 
 @pytest.mark.django_db
-def test_normal_user_cannot_make_reservation_outside_open_hours(api_client, list_url, reservation_data, user):
+def test_opening_hours(api_client, list_url, reservation_data, resource_group,
+                       user):
     """
     Tests that a normal user cannot make reservations outside open hours.
     """
@@ -291,6 +292,21 @@ def test_normal_user_cannot_make_reservation_outside_open_hours(api_client, list
     response = api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
     assert response.status_code == 400
     assert_non_field_errors_contain(response, 'You must start and end the reservation during opening hours')
+
+    # If the user has explicit permission ignore opening hours, the reservation should
+    # be allowed.
+    reservation_data['end'] = '2115-04-04T07:00:00+02:00'
+    resource = resource_group.resources.first()
+    group = user.groups.create(name='test group')
+    assign_perm('unit:can_ignore_opening_hours', group, resource.unit)
+    response = api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 201
+    Reservation.objects.all().delete()
+    remove_perm('unit:can_ignore_opening_hours', group, resource.unit)
+
+    assign_perm('group:can_ignore_opening_hours', group, resource_group)
+    response = api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 201
 
 
 @pytest.mark.django_db
