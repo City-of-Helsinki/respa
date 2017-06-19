@@ -19,7 +19,7 @@ msgstr ""
 
 #: caterings/api.py:143
 msgid "No permission to modify this reservation's catering orders."
-msgstr "Ei oikeutta muokata tämän varauksen cateringtilauksia."
+msgstr "Ei oikeutta muokata tämän varauksen tarjoilutilauksia."
 
 #: caterings/api.py:148
 msgid "The order contains products from several providers."
@@ -91,7 +91,7 @@ msgstr "Varaus"
 
 #: caterings/models.py:80 reports/api/reservation_details.py:84
 msgid "Invoicing data"
-msgstr "Projektinumero"
+msgstr "Laskutusnumero"
 
 #: caterings/models.py:81
 msgid "Message"
@@ -103,11 +103,11 @@ msgstr "Tarjoiluaika"
 
 #: caterings/models.py:87
 msgid "Catering order"
-msgstr "Tilaus"
+msgstr "Tarjoilutilaus"
 
 #: caterings/models.py:88
 msgid "Catering orders"
-msgstr "Tilaukset"
+msgstr "Tarjoilutilaukset"
 
 #: caterings/models.py:97
 msgid "Product"
@@ -191,7 +191,7 @@ msgstr "Perustiedot"
 #: reports/api/reservation_details.py:64
 msgctxt "report"
 msgid "Catering order"
-msgstr "Cateringtilaus"
+msgstr "Tarjoilutilaus"
 
 #: reports/api/reservation_details.py:81
 msgid "pcs."
