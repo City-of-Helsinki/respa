@@ -77,7 +77,7 @@ class CateringOrder(TimeStampedModel):
     reservation = models.ForeignKey(
         Reservation, verbose_name=_('Reservation'), related_name='catering_orders', on_delete=models.CASCADE
     )
-    invoicing_data = models.CharField(max_length=100, verbose_name=_('Invoicing data'))
+    invoicing_data = models.TextField(verbose_name=_('Invoicing data'))
     message = models.TextField(verbose_name=_('Message'), blank=True)
     serving_time = models.TimeField(verbose_name=_('Serving time'), blank=True, null=True)
 
