@@ -10,6 +10,8 @@ def forwards_func(apps, schema_editor):
     # Assign permissions from old permission names to new ones (unit_*)
     Permission = apps.get_model('auth', 'Permission')
     Unit = apps.get_model('resources', 'Unit')
+    UserPermission = Permission.user_set.through
+    GroupPermission = Permission.group_set.through
 
     app_config = apps.get_app_config('resources')
     app_config.models_module = True
@@ -34,6 +36,8 @@ def forwards_func(apps, schema_editor):
         )
         old_perm.userobjectpermission_set.update(permission=new_perm)
         old_perm.groupobjectpermission_set.update(permission=new_perm)
+        UserPermission.objects.filter(permission=old_perm).update(permission=new_perm)
+        GroupPermission.objects.filter(permission=old_perm).update(permission=new_perm)
         related_object_count, _ = old_perm.delete()
         assert related_object_count == 1
 
