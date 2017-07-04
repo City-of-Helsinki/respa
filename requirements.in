@@ -1,7 +1,7 @@
 Django
 django-modeltranslation
 psycopg2
--e git+https://github.com/City-of-Helsinki/munigeo#egg=django-munigeo
+django-munigeo
 djangorestframework
 django-filter
 django-grappelli
