@@ -5,6 +5,7 @@ django-munigeo
 djangorestframework
 django-filter
 django-grappelli
+django-parler
 pytest
 pytest-cov
 pytest-django
