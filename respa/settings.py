@@ -19,18 +19,17 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
 ALLOWED_HOSTS = []
 
+SITE_ID = 1
 
 # Application definition
-
-
 INSTALLED_APPS = [
     'helusers',
     'modeltranslation',
+    'parler',
     'grappelli',
     'django.contrib.sites',
     'django.contrib.admin',
@@ -67,6 +66,7 @@ INSTALLED_APPS = [
     'users',
     'caterings',
     'comments',
+    'notifications',
 
     'respa_exchange',
 ]
@@ -156,6 +156,13 @@ LOCALE_PATHS = (
 
 MODELTRANSLATION_FALLBACK_LANGUAGES = ('fi', 'en', 'sv')
 MODELTRANSLATION_PREPOPULATE_LANGUAGE = 'fi'
+PARLER_LANGUAGES = {
+    SITE_ID: (
+        {'code': 'fi'},
+        {'code': 'en'},
+        {'code': 'sv'},
+    ),
+}
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
@@ -177,7 +184,6 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
     'guardian.backends.ObjectPermissionBackend',
 )
-SITE_ID = 1
 
 SOCIALACCOUNT_PROVIDERS = {
     'helsinki': {
