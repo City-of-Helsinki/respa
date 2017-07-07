@@ -1057,7 +1057,7 @@ def test_reservation_mails(staff_api_client, staff_user, user_api_client, test_u
     check_received_mail_exists(
         "You've made a preliminary reservation",
         reservation_data_extra['reserver_email_address'],
-        'made a preliminary reservation',
+        ('made a preliminary reservation', 'Starts: April 4, 2115, 11 a.m.'),
         clear_outbox=False
     )
     check_received_mail_exists(
@@ -1102,6 +1102,99 @@ def test_reservation_mails(staff_api_client, staff_user, user_api_client, test_u
         'Reservation cancelled',
         reservation_data_extra['reserver_email_address'],
         'has been cancelled.'
+    )
+
+
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.parametrize('perm_type', ['unit', 'resource_group'])
+@pytest.mark.django_db
+def test_reservation_mails_in_finnish(staff_api_client, staff_user, user_api_client, test_unit2,
+                                      list_url, reservation_data_extra, perm_type, user):
+    resource = Resource.objects.get(id=reservation_data_extra['resource'])
+    resource.need_manual_confirmation = True
+    resource.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
+    resource.save()
+    if perm_type == 'unit':
+        assign_perm('unit:can_approve_reservation', staff_user, resource.unit)
+    elif perm_type == 'resource_group':
+        resource_group = resource.groups.create(name='test group')
+        assign_perm('group:can_approve_reservation', staff_user, resource_group)
+
+    user.preferred_language = 'fi'
+    user.save(update_fields=('preferred_language',))
+    staff_user.preferred_language = 'fi'
+    staff_user.save(update_fields=('preferred_language',))
+
+    # create other staff user who should not receive mails because he doesn't have permission to the right unit
+    other_official = get_user_model().objects.create(
+        username='other_unit_official',
+        first_name='Ozzy',
+        last_name='Official',
+        email='ozzy@test_unit2.com',
+        is_staff=True,
+        preferred_language='fi'
+    )
+
+    assign_perm('unit:can_approve_reservation', other_official, test_unit2)
+
+    # test REQUESTED
+    reservation_data_extra['state'] = Reservation.REQUESTED
+    response = user_api_client.post(list_url, data=reservation_data_extra, format='json')
+    assert response.status_code == 201
+
+    # 2 mails should be sent, one to the customer, and one to the staff user who can approve the reservation
+    # (and no mail for the other staff user)
+    assert len(mail.outbox) == 2
+
+    check_received_mail_exists(
+        'Olet tehnyt alustavan varauksen',
+        reservation_data_extra['reserver_email_address'],
+        ('Olet tehnyt alustavan varauksen', 'Alkaa: 4. huhtikuuta 2115 kello 11.00'),
+        clear_outbox=False
+    )
+    check_received_mail_exists(
+        'Alustava varaus tehty',
+        staff_user.email,
+        'Uusi alustava varaus on tehty'
+    )
+
+    detail_url = '%s%s/' % (list_url, response.data['id'])
+
+    # test DENIED
+    reservation_data_extra['state'] = Reservation.DENIED
+    response = staff_api_client.put(detail_url, data=reservation_data_extra, format='json')
+    assert response.status_code == 200
+    assert len(mail.outbox) == 1
+    check_received_mail_exists(
+        'Varaus hylätty',
+        reservation_data_extra['reserver_email_address'],
+        'Varauksesi on hylätty.'
+    )
+
+    # test CONFIRMED
+    reservation_data_extra['state'] = Reservation.CONFIRMED
+    response = staff_api_client.put(detail_url, data=reservation_data_extra, format='json')
+    assert response.status_code == 200
+    assert len(mail.outbox) == 1
+
+    check_received_mail_exists(
+        'Varaus vahvistettu',
+        reservation_data_extra['reserver_email_address'],
+        'Varauksesi on hyväksytty.',
+        clear_outbox=False
+    )
+    assert 'this resource rocks' in str(mail.outbox[0].message())
+    mail.outbox = []
+
+    # test CANCELLED
+    reservation_data_extra['state'] = Reservation.CANCELLED
+    response = staff_api_client.delete(detail_url, format='json')
+    assert response.status_code == 204
+    assert len(mail.outbox) == 1
+    check_received_mail_exists(
+        'Varaus peruttu',
+        reservation_data_extra['reserver_email_address'],
+        'Varauksesi on peruttu.'
     )
 
 

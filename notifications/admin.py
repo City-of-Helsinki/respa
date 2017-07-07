@@ -1,5 +1,4 @@
 from parler.admin import TranslatableAdmin
-from django.contrib import admin
 from django.contrib.admin import site as admin_site
 
 from .models import NotificationTemplate

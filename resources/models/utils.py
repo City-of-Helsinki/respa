@@ -6,9 +6,8 @@ import io
 
 import arrow
 from django.conf import settings
-from django.utils import timezone, translation
+from django.utils import formats
 from django.utils.translation import ungettext
-from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.contrib.sites.models import Site
 from django.utils.translation import ugettext_lazy as _
@@ -96,29 +95,14 @@ def humanize_duration(duration):
     return ' '.join(filter(None, (hours_string, mins_string)))
 
 
-def send_respa_mail(email_address, subject, template_name, context, language=DEFAULT_LANG):
-    """
-    Send a mail containing common Respa extras and given template rendered.
-
-    :type email_address: str
-    :type subject: str
-    :type template_name: str
-    :param template_name: Name of the template to use from /templates/mail/ excluding .jinja
-    :type context: dict
-    :param context: Context for the template
-    :type language: str
-    :param language: language code
-    """
+def send_respa_mail(email_address, subject, body):
     if not getattr(settings, 'RESPA_MAILS_ENABLED', False):
         return
 
-    with translation.override(language):
-        content = render_to_string('mail/%s.jinja' % template_name, context)
-        final_message = render_to_string('mail/base_message.jinja', {'content': content})
-        from_address = (getattr(settings, 'RESPA_MAILS_FROM_ADDRESS', None) or
-                        'noreply@%s' % Site.objects.get_current().domain)
+    from_address = (getattr(settings, 'RESPA_MAILS_FROM_ADDRESS', None) or
+                    'noreply@%s' % Site.objects.get_current().domain)
 
-        send_mail(str(subject), final_message, from_address, [email_address])
+    send_mail(subject, body, from_address, [email_address])
 
 
 def generate_reservation_xlsx(reservations):
@@ -183,3 +167,7 @@ def create_reservable_before_datetime(days_from_now):
     dt = dt.replace(hour=0, minute=0, second=0, microsecond=0)
 
     return dt
+
+
+def localize_datetime(dt):
+    return formats.date_format(timezone.localtime(dt), 'DATETIME_FORMAT')
