@@ -390,6 +390,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         return user.is_staff
 
     def _has_perm(self, user, perm, allow_admin=True):
+        if not (user and user.is_authenticated()):
+            return False
         # Admins are almighty.
         if self.is_admin(user) and allow_admin:
             return True

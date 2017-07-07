@@ -66,7 +66,7 @@ INSTALLED_APPS = [
     'users',
     'caterings',
     'comments',
-    'notifications',
+    'notifications.apps.NotificationsConfig',
 
     'respa_exchange',
 ]

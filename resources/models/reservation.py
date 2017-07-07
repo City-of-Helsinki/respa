@@ -1,18 +1,25 @@
 # -*- coding: utf-8 -*-
+import logging
+
 from django.utils import timezone
 import django.contrib.postgres.fields as pgfields
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from psycopg2.extras import DateTimeTZRange
 
+from notifications.models import NotificationTemplateException, NotificationType, render_notification_template
 from .base import ModifiableModel
 from .resource import generate_access_code, validate_access_code
 from .resource import Resource
-from .utils import get_dt, save_dt, is_valid_time_slot, humanize_duration, send_respa_mail, DEFAULT_LANG
+from .utils import (
+    get_dt, save_dt, is_valid_time_slot, humanize_duration, send_respa_mail, DEFAULT_LANG, localize_datetime
+)
 
+logger = logging.getLogger(__name__)
 
 RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street', 'reserver_address_zip',
                             'reserver_address_city', 'billing_address_street', 'billing_address_zip',
@@ -247,13 +254,29 @@ class Reservation(ModifiableModel):
         if self.access_code:
             validate_access_code(self.access_code, self.resource.access_code_type)
 
-    def send_reservation_mail(self, subject, template_name, extra_context=None, user=None):
+    def get_notification_context(self, language_code, user=None):
+        if not user:
+            user = self.user
+        with translation.override(language_code):
+            context = {
+                'resource': self.resource.name,
+                'begin': localize_datetime(self.begin),
+                'end': localize_datetime(self.end),
+            }
+            if self.resource.unit:
+                context['unit'] = self.resource.unit
+            if self.can_view_access_code(user) and self.access_code:
+                context['access_code'] = self.access_code
+            if self.resource.reservation_confirmed_notification_extra:
+                context['extra_content'] = self.resource.reservation_confirmed_notification_extra
+        return context
+
+    def send_reservation_mail(self, notification_type, user=None):
         """
         Stuff common to all reservation related mails.
 
         If user isn't given use self.user.
         """
-
         if user:
             email_address = user.email
         else:
@@ -261,34 +284,39 @@ class Reservation(ModifiableModel):
                 return
             email_address = self.reserver_email_address or self.user.email
             user = self.user
-        language = user.get_preferred_language() if user else DEFAULT_LANG
 
-        context = {'reservation': self}
-        if extra_context:
-            context.update(extra_context)
-        send_respa_mail(email_address, subject, template_name, context, language)
+        language = user.get_preferred_language() if user else DEFAULT_LANG
+        context = self.get_notification_context(language)
+
+        try:
+            rendered_notification = render_notification_template(notification_type, context, language)
+        except NotificationTemplateException as e:
+            logger.error(e, exc_info=True, extra={'user': user.uuid})
+            return
+
+        send_respa_mail(email_address, rendered_notification['subject'], rendered_notification['body'])
 
     def send_reservation_requested_mail(self):
-        self.send_reservation_mail(_("You've made a preliminary reservation"), 'reservation_requested')
+        self.send_reservation_mail(NotificationType.RESERVATION_REQUESTED)
 
     def send_reservation_requested_mail_to_officials(self):
         notify_users = self.resource.get_users_with_perm('can_approve_reservation')
         if len(notify_users) > 100:
             raise Exception("Refusing to notify more than 100 users (%s)" % self)
         for user in notify_users:
-            self.send_reservation_mail(_('Reservation requested'), 'reservation_requested_official', user=user)
+            self.send_reservation_mail(NotificationType.RESERVATION_REQUESTED_OFFICIAL, user=user)
 
     def send_reservation_denied_mail(self):
-        self.send_reservation_mail(_('Reservation denied'), 'reservation_denied')
+        self.send_reservation_mail(NotificationType.RESERVATION_DENIED)
 
     def send_reservation_confirmed_mail(self):
-        self.send_reservation_mail(_('Reservation confirmed'), 'reservation_confirmed')
+        self.send_reservation_mail(NotificationType.RESERVATION_CONFIRMED)
 
     def send_reservation_cancelled_mail(self):
-        self.send_reservation_mail(_('Reservation cancelled'), 'reservation_cancelled')
+        self.send_reservation_mail(NotificationType.RESERVATION_CANCELLED)
 
     def send_reservation_created_with_access_code_mail(self):
-        self.send_reservation_mail(_('Reservation created'), 'reservation_created_with_access_code')
+        self.send_reservation_mail(NotificationType.RESERVATION_CREATED_WITH_ACCESS_CODE)
 
     def save(self, *args, **kwargs):
         self.duration = DateTimeTZRange(self.begin, self.end, '[)')
