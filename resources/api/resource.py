@@ -196,8 +196,10 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
                 times['during_closing'] = True
 
         if len(times):
-            if len(times) < 2:
+            if 'start' not in times or 'end' not in times:
                 raise exceptions.ParseError("You must supply both 'start' and 'end'")
+            if times['end'] < times['start']:
+                raise exceptions.ParseError("'end' must be after 'start'")
             self.context.update(times)
 
     def get_opening_hours(self, obj):
