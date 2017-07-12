@@ -188,7 +188,10 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
                 raise exceptions.ParseError("'%s' must be a timestamp in ISO 8601 format" % name)
 
         if 'duration' in params:
-            times['duration'] = params['duration']
+            try:
+                times['duration'] = int(params['duration'])
+            except ValueError:
+                raise exceptions.ParseError("'duration' must be supplied as an integer")
 
         if 'during_closing' in params:
             during_closing = params['during_closing'].lower()
