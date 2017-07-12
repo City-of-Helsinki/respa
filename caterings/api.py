@@ -172,14 +172,23 @@ class CateringOrderViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         with reversion.create_revision():
-            serializer.save()
+            instance = serializer.save()
             reversion.set_user(self.request.user)
             reversion.set_comment('Created using the API.')
 
+        instance.send_created_notification(request=self.request)
+
     def perform_update(self, serializer):
         with reversion.create_revision():
-            serializer.save()
+            instance = serializer.save()
             reversion.set_user(self.request.user)
             reversion.set_comment('Updated using the API.')
+
+        # TODO somehow check that the order is actually modified before sending the notification?
+        instance.send_modified_notification(request=self.request)
+
+    def perform_destroy(self, instance):
+        instance.send_deleted_notification(request=self.request)
+        super().perform_destroy(instance)
 
 register_view(CateringOrderViewSet, 'catering_order')

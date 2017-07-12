@@ -17,6 +17,9 @@ class NotificationType:
     RESERVATION_CONFIRMED = 'reservation_confirmed'
     RESERVATION_DENIED = 'reservation_denied'
     RESERVATION_CREATED_WITH_ACCESS_CODE = 'reservation_created_with_access_code'
+    CATERING_ORDER_CREATED = 'catering_order_created'
+    CATERING_ORDER_MODIFIED = 'catering_order_modified'
+    CATERING_ORDER_DELETED = 'catering_order_deleted'
 
 
 class NotificationTemplateException(Exception):
@@ -31,6 +34,9 @@ class NotificationTemplate(TranslatableModel):
         (NotificationType.RESERVATION_CONFIRMED, _('Reservation confirmed')),
         (NotificationType.RESERVATION_DENIED, _('Reservation_denied')),
         (NotificationType.RESERVATION_CREATED_WITH_ACCESS_CODE, _('Reservation created with access code')),
+        (NotificationType.CATERING_ORDER_CREATED, _('Catering order created')),
+        (NotificationType.CATERING_ORDER_MODIFIED, _('Catering order modified')),
+        (NotificationType.CATERING_ORDER_DELETED, _('Catering order deleted')),
     )
 
     type = models.CharField(
