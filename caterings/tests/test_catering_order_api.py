@@ -316,6 +316,14 @@ Order lines: {% for line in order_lines %}
     check_received_mail_exists("Catering order for %s created" % reservation.resource.name,
                                provider.notification_email, strings)
 
+    # Test that serving time is set to the reservation begin time
+    # if no specific serving time is given.
+    order = CateringOrder.objects.first()
+    order.serving_time = None
+    order.save()
+    context = order.get_notification_context(DEFAULT_LANG)
+    assert context['serving_time'] == '9.00'
+
     #
     # Modify
     #

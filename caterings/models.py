@@ -109,11 +109,14 @@ class CateringOrder(TimeStampedModel):
 
     def get_notification_context(self, language_code):
         with translation.override(language_code):
+            serving_time = self.serving_time
+            if not serving_time:
+                serving_time = self.reservation.begin.astimezone(self.reservation.resource.unit.get_tz())
             context = {
                 'resource': self.reservation.resource.name,
                 'reservation': self.reservation,
                 'unit': self.reservation.resource.unit.name if self.reservation.resource.unit else '',
-                'serving_time': formats.date_format(self.serving_time, 'TIME_FORMAT'),
+                'serving_time': formats.date_format(serving_time, 'TIME_FORMAT'),
                 'invoicing_data': self.invoicing_data,
                 'message': self.message,
                 'order_lines': [],
