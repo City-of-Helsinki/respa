@@ -191,4 +191,5 @@ class CateringOrderViewSet(viewsets.ModelViewSet):
         instance.send_deleted_notification(request=self.request)
         super().perform_destroy(instance)
 
+
 register_view(CateringOrderViewSet, 'catering_order')

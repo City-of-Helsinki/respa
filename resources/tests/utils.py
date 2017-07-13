@@ -3,7 +3,6 @@ import datetime
 
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
-from django.core import mail
 from django.test.testcases import SimpleTestCase
 from django.utils.six import BytesIO
 from django.utils.encoding import force_text
@@ -29,7 +28,7 @@ def get_test_image_data(size=(32, 32), color=(250, 250, 210), format="JPEG"):
     :rtype: bytes
     """
     img = Image.new(mode="RGB", size=size)
-    img.paste(color, box=size + (0,0))
+    img.paste(color, box=size + (0, 0))
     sio = BytesIO()
     img.save(sio, format=format, quality=75)
     return sio.getvalue()
@@ -141,27 +140,6 @@ def assert_non_field_errors_contain(response, text):
     assert any(text in error_message for error_message in error_messages)
 
 
-def _mail_exists(subject, to, strings):
-    for mail_instance in mail.outbox:
-        if subject not in mail_instance.subject:
-            continue
-        if set(mail_instance.to) != set([to]):
-            continue
-        mail_message = str(mail_instance.message())
-        if not all(string in mail_message for string in strings):
-            continue
-        return True
-    return False
-
-
-def check_received_mail_exists(subject, to, strings, clear_outbox=True):
-    if not (isinstance(strings, list) or isinstance(strings, tuple)):
-        strings = (strings,)
-    assert _mail_exists(subject, to, strings)
-    if clear_outbox:
-        mail.outbox = []
-
-
 def get_field_errors(validation_error, field_name):
     """
     Return an individual field's validation error messages.
@@ -207,6 +185,7 @@ def assert_response_objects(response, objects):
     actual_ids = {obj['id'] for obj in data}
     assert expected_ids == actual_ids, '%s does not match %s' % (expected_ids, actual_ids)
     assert len(objects) == len(data), '%s does not match %s' % (len(data), len(objects))
+
 
 def check_keys(data, expected_keys):
     assert len(data.keys()) == len(expected_keys)

@@ -33,6 +33,7 @@ class CateringProvider(TimeStampedModel):
     class Meta:
         verbose_name = _('Catering provider')
         verbose_name_plural = _('Catering providers')
+        ordering = ('id',)
 
     def __str__(self):
         return self.name
@@ -94,6 +95,7 @@ class CateringOrder(TimeStampedModel):
     class Meta:
         verbose_name = _('Catering order')
         verbose_name_plural = _('Catering orders')
+        ordering = ('id',)
 
     def __str__(self):
         return 'catering order for %s' % self.reservation
@@ -109,6 +111,7 @@ class CateringOrder(TimeStampedModel):
         with translation.override(language_code):
             context = {
                 'resource': self.reservation.resource.name,
+                'reservation': self.reservation,
                 'unit': self.reservation.resource.unit.name if self.reservation.resource.unit else '',
                 'serving_time': formats.date_format(self.serving_time, 'TIME_FORMAT'),
                 'invoicing_data': self.invoicing_data,

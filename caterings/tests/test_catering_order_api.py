@@ -1,13 +1,15 @@
 import datetime
-
 import pytest
+from django.test.utils import override_settings
 from django.core.urlresolvers import reverse
-
+from parler.utils.context import switch_language
 from guardian.shortcuts import assign_perm
-
 from resources.tests.utils import assert_response_objects, check_disallowed_methods, check_keys
+from resources.models.utils import DEFAULT_LANG
+from caterings.models import CateringOrder, CateringOrderLine, CateringProduct
+from notifications.models import NotificationTemplate, NotificationType
+from notifications.tests.utils import check_received_mail_exists
 
-from caterings.models import CateringOrder, CateringOrderLine
 
 LIST_URL = reverse('cateringorder-list')
 
@@ -53,7 +55,7 @@ def update_order_data(catering_product2, catering_product3, reservation2):
 @pytest.mark.django_db
 def test_catering_order_endpoint_disallowed_methods(user_api_client, catering_product):
     detail_url = get_detail_url(catering_product)
-    check_disallowed_methods(user_api_client, (LIST_URL,),  ('put', 'patch', 'delete'))
+    check_disallowed_methods(user_api_client, (LIST_URL,), ('put', 'patch', 'delete'))
     check_disallowed_methods(user_api_client, (detail_url,), ('post',))
 
 
@@ -268,3 +270,90 @@ def test_reservation_filter(user_api_client, catering_order, reservation, reserv
     response = user_api_client.get(LIST_URL + '?reservation=%s' % reservation3.pk)
     assert response.status_code == 200
     assert not len(response.data['results'])
+
+
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
+def test_catering_notifications(user, user_api_client, catering_product,
+                                reservation, new_order_data):
+    provider = catering_product.category.provider
+    provider.notification_email = 'catering.person@caterer.org'
+    provider.save()
+
+    #
+    # Create
+    #
+    CREATED_BODY = """Resource: {{ resource }}
+Reservation: {{ reservation|reservation_time }}
+Serving time: {{ serving_time }}
+Invoicing data: {{ invoicing_data }}
+Message: {{ message }}
+Order lines: {% for line in order_lines %}
+  {{ line.quantity }}x {{ line.product }}
+{% endfor %}
+"""
+    strings = [
+        "Resource: %s" % reservation.resource.name,
+        "Reservation: to 4.4.2115 klo 9.00–10.00",
+        "Serving time: 13.00",
+        "Invoicing data: %s" % new_order_data['invoicing_data'],
+        "Message: %s" % new_order_data['message'],
+        "  2x Kahvi\n"
+    ]
+    NotificationTemplate.objects.language(DEFAULT_LANG).create(
+        type=NotificationType.CATERING_ORDER_CREATED,
+        short_message="Catering order for {{ resource }} created",
+        subject="Catering order for {{ resource }} created",
+        body=CREATED_BODY
+    )
+
+    response = user_api_client.post(LIST_URL, data=new_order_data, format='json')
+    assert response.status_code == 201
+
+    user.preferred_language = DEFAULT_LANG
+    user.save()
+
+    check_received_mail_exists("Catering order for %s created" % reservation.resource.name,
+                               provider.notification_email, strings)
+
+    #
+    # Modify
+    #
+    product2 = CateringProduct.objects.create(
+        name_fi='Aatsipoppa',
+        category=catering_product.category,
+    )
+    NotificationTemplate.objects.language(DEFAULT_LANG).create(
+        type=NotificationType.CATERING_ORDER_MODIFIED,
+        short_message="Catering order for {{ resource }} modified",
+        subject="Catering order for {{ resource }} modified",
+        body=CREATED_BODY
+    )
+    strings = [
+        "  3x Kahvi\n"
+        "  4x Aatsipoppa\n"
+    ]
+
+    new_order_data['order_lines'][0]['quantity'] = 3
+    new_order_data['order_lines'].append(dict(product=product2.id, quantity=4))
+
+    detail_url = get_detail_url(CateringOrder.objects.first())
+    response = user_api_client.put(detail_url, data=new_order_data, format='json')
+    assert response.status_code == 200
+    check_received_mail_exists("Catering order for %s modified" % reservation.resource.name,
+                               provider.notification_email, strings)
+
+    #
+    # Delete
+    #
+    NotificationTemplate.objects.language(DEFAULT_LANG).create(
+        type=NotificationType.CATERING_ORDER_DELETED,
+        short_message="Catering order for {{ resource }} deleted",
+        subject="Catering order for {{ resource }} deleted",
+        body=""
+    )
+
+    response = user_api_client.delete(detail_url, data=new_order_data, format='json')
+    assert response.status_code == 204
+    check_received_mail_exists("Catering order for %s deleted" % reservation.resource.name,
+                               provider.notification_email, [])

@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from django.utils.formats import date_format
 from jinja2 import StrictUndefined
 from jinja2.exceptions import TemplateError
 from jinja2.sandbox import SandboxedEnvironment
@@ -64,6 +65,25 @@ class NotificationTemplate(TranslatableModel):
         return 'N/A'
 
 
+def reservation_time(res):
+    tz = res.resource.unit.get_tz()
+    begin = res.begin.astimezone(tz)
+    end = res.end.astimezone(tz)
+
+    # ma 1.1.2017 klo 12.00
+    # begin_format = '%a %-d.%-m.%Y klo %-H.%M'
+    begin_format = r'D j.n.Y \k\l\o G.i'
+    if begin.date() == end.date():
+        end_format = 'G.i'
+        sep = '–'
+    else:
+        end_format = begin_format
+        sep = ' – '
+
+    res = sep.join([date_format(begin, begin_format), date_format(end, end_format)])
+    return res
+
+
 def render_notification_template(notification_type, context, language_code=DEFAULT_LANG):
     """
     Render a notification template with given context
@@ -79,6 +99,7 @@ def render_notification_template(notification_type, context, language_code=DEFAU
         raise NotificationTemplateException(e) from e
 
     env = SandboxedEnvironment(trim_blocks=True, lstrip_blocks=True, undefined=StrictUndefined)
+    env.filters['reservation_time'] = reservation_time
 
     with switch_language(template, language_code):
         try:
