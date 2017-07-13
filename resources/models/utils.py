@@ -3,6 +3,7 @@ import datetime
 import struct
 import time
 import io
+import logging
 
 import arrow
 from django.conf import settings
@@ -95,6 +96,9 @@ def humanize_duration(duration):
     return ' '.join(filter(None, (hours_string, mins_string)))
 
 
+notification_logger = logging.getLogger('respa.notifications')
+
+
 def send_respa_mail(email_address, subject, body):
     if not getattr(settings, 'RESPA_MAILS_ENABLED', False):
         return
@@ -102,6 +106,7 @@ def send_respa_mail(email_address, subject, body):
     from_address = (getattr(settings, 'RESPA_MAILS_FROM_ADDRESS', None) or
                     'noreply@%s' % Site.objects.get_current().domain)
 
+    notification_logger.info('Sending notification email to %s: "%s"' % (email_address, subject))
     send_mail(subject, body, from_address, [email_address])
 
 

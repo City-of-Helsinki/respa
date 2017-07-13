@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -9,6 +11,8 @@ from parler.models import TranslatableModel, TranslatedFields
 from parler.utils.context import switch_language
 
 DEFAULT_LANG = settings.LANGUAGES[0][0]
+
+logger = logging.getLogger('respa.notifications')
 
 
 class NotificationType:
@@ -101,6 +105,7 @@ def render_notification_template(notification_type, context, language_code=DEFAU
     env = SandboxedEnvironment(trim_blocks=True, lstrip_blocks=True, undefined=StrictUndefined)
     env.filters['reservation_time'] = reservation_time
 
+    logger.info('Rendering template for notification %s' % notification_type)
     with switch_language(template, language_code):
         try:
             return {
