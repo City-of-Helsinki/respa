@@ -65,6 +65,7 @@ class CateringProduct(TimeStampedModel):
     class Meta:
         verbose_name = _('Catering product')
         verbose_name_plural = _('Catering products')
+        ordering = ('name',)
 
     def __str__(self):
         return '%s (%s)' % (self.name, self.category.provider)
