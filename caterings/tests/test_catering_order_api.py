@@ -5,6 +5,7 @@ from django.core.urlresolvers import reverse
 from parler.utils.context import switch_language
 from guardian.shortcuts import assign_perm
 from resources.tests.utils import assert_response_objects, check_disallowed_methods, check_keys
+from resources.models import Reservation
 from resources.models.utils import DEFAULT_LANG
 from caterings.models import CateringOrder, CateringOrderLine, CateringProduct
 from notifications.models import NotificationTemplate, NotificationType
@@ -344,12 +345,23 @@ Order lines: {% for line in order_lines %}
 
     new_order_data['order_lines'][0]['quantity'] = 3
     new_order_data['order_lines'].append(dict(product=product2.id, quantity=4))
+    new_order_data['serving_time'] = None
 
-    detail_url = get_detail_url(CateringOrder.objects.first())
+    detail_url = get_detail_url(order)
     response = user_api_client.put(detail_url, data=new_order_data, format='json')
     assert response.status_code == 200
     check_received_mail_exists("Catering order for %s modified" % reservation.resource.name,
                                provider.notification_email, strings)
+
+    # Make sure we send a notification also if the underlying reservation changes.
+    reservation = CateringOrder.objects.first().reservation
+    reservation.begin += datetime.timedelta(hours=1)
+    reservation.end += datetime.timedelta(hours=1)
+    reservation.save()
+    reservation.set_state(Reservation.CONFIRMED, reservation.user)
+
+    check_received_mail_exists("Catering order for %s modified" % reservation.resource.name,
+                               provider.notification_email, ["Serving time: 10.00"])
 
     #
     # Delete
@@ -363,5 +375,11 @@ Order lines: {% for line in order_lines %}
 
     response = user_api_client.delete(detail_url, data=new_order_data, format='json')
     assert response.status_code == 204
+    check_received_mail_exists("Catering order for %s deleted" % reservation.resource.name,
+                               provider.notification_email, [])
+
+    response = user_api_client.post(LIST_URL, data=new_order_data, format='json')
+    assert response.status_code == 201
+    reservation.set_state(Reservation.CANCELLED, reservation.user)
     check_received_mail_exists("Catering order for %s deleted" % reservation.resource.name,
                                provider.notification_email, [])

@@ -8,7 +8,6 @@ def _mail_exists(subject, to, strings):
         if set(mail_instance.to) != set([to]):
             continue
         mail_message = str(mail_instance.message())
-        print([string in mail_message for string in strings])
         if not all(string in mail_message for string in strings):
             continue
         return True

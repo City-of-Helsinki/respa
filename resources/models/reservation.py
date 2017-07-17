@@ -11,12 +11,18 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 from psycopg2.extras import DateTimeTZRange
 
-from notifications.models import NotificationTemplateException, NotificationType, render_notification_template
+from notifications.models import (
+    NotificationTemplateException, NotificationType, render_notification_template
+)
+from resources.signals import (
+    reservation_modified, reservation_confirmed, reservation_cancelled
+)
 from .base import ModifiableModel
 from .resource import generate_access_code, validate_access_code
 from .resource import Resource
 from .utils import (
-    get_dt, save_dt, is_valid_time_slot, humanize_duration, send_respa_mail, DEFAULT_LANG, localize_datetime
+    get_dt, save_dt, is_valid_time_slot, humanize_duration, send_respa_mail,
+    DEFAULT_LANG, localize_datetime
 )
 
 logger = logging.getLogger(__name__)
@@ -54,11 +60,13 @@ class ReservationQuerySet(models.QuerySet):
 
 
 class Reservation(ModifiableModel):
+    CREATED = 'created'
     CANCELLED = 'cancelled'
     CONFIRMED = 'confirmed'
     DENIED = 'denied'
     REQUESTED = 'requested'
     STATE_CHOICES = (
+        (CREATED, _('created')),
         (CANCELLED, _('cancelled')),
         (CONFIRMED, _('confirmed')),
         (DENIED, _('denied')),
@@ -169,21 +177,42 @@ class Reservation(ModifiableModel):
         return self.resource.can_view_access_codes(user)
 
     def set_state(self, new_state, user):
-        if new_state == self.state:
+        # Make sure it is a known state
+        assert new_state in (
+            Reservation.REQUESTED, Reservation.CONFIRMED, Reservation.DENIED,
+            Reservation.CANCELLED
+        )
+
+        old_state = self.state
+        if new_state == old_state:
+            if old_state == Reservation.CONFIRMED:
+                reservation_modified.send(sender=self.__class__, instance=self,
+                                          user=user)
             return
 
         if new_state == Reservation.CONFIRMED:
             self.approver = user
-            if self.need_manual_confirmation():
-                self.send_reservation_confirmed_mail()
-        elif self.state == Reservation.CONFIRMED:
+            reservation_confirmed.send(sender=self.__class__, instance=self,
+                                       user=user)
+        elif old_state == Reservation.CONFIRMED:
             self.approver = None
 
-        if new_state == Reservation.DENIED:
+        # Notifications
+        if new_state == Reservation.REQUESTED:
+            self.send_reservation_requested_mail()
+            self.send_reservation_requested_mail_to_officials()
+        elif new_state == Reservation.CONFIRMED:
+            if self.need_manual_confirmation():
+                self.send_reservation_confirmed_mail()
+            elif self.resource.is_access_code_enabled():
+                self.send_reservation_created_with_access_code_mail()
+        elif new_state == Reservation.DENIED:
             self.send_reservation_denied_mail()
         elif new_state == Reservation.CANCELLED:
             if user != self.user:
                 self.send_reservation_cancelled_mail()
+            reservation_cancelled.send(sender=self.__class__, instance=self,
+                                       user=user)
 
         self.state = new_state
         self.save()

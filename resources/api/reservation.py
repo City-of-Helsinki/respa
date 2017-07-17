@@ -499,25 +499,21 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        kwargs = {'created_by': self.request.user, 'modified_by': self.request.user}
+        override_data = {'created_by': self.request.user, 'modified_by': self.request.user}
         if 'user' not in serializer.validated_data:
-            kwargs['user'] = self.request.user
+            override_data['user'] = self.request.user
+        override_data['state'] = Reservation.CREATED
+        instance = serializer.save(**override_data)
 
         resource = serializer.validated_data['resource']
         staff_event = (self.request.data.get('staff_event', False) and
                        resource.can_approve_reservations(self.request.user))
         if resource.need_manual_confirmation and not staff_event:
-            kwargs['state'] = Reservation.REQUESTED
+            new_state = Reservation.REQUESTED
         else:
-            kwargs['state'] = Reservation.CONFIRMED
+            new_state = Reservation.CONFIRMED
 
-        instance = serializer.save(**kwargs)
-
-        if instance.state == Reservation.REQUESTED:
-            instance.send_reservation_requested_mail()
-            instance.send_reservation_requested_mail_to_officials()
-        elif instance.state == Reservation.CONFIRMED and resource.is_access_code_enabled():
-            instance.send_reservation_created_with_access_code_mail()
+        instance.set_state(new_state, self.request.user)
 
     def perform_update(self, serializer):
         old_instance = self.get_object()
@@ -539,5 +535,6 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
         if request.accepted_renderer.format == 'xlsx':
             response['Content-Disposition'] = 'attachment; filename={}-{}.xlsx'.format(_('reservation'), kwargs['pk'])
         return response
+
 
 register_view(ReservationViewSet, 'reservation')
