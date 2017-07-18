@@ -67,6 +67,7 @@ class ResourceType(ModifiableModel, AutoIdentifiedModel):
     class Meta:
         verbose_name = _("resource type")
         verbose_name_plural = _("resource types")
+        ordering = ('name',)
 
     def __str__(self):
         return "%s (%s)" % (get_translated(self, 'name'), self.id)
@@ -81,6 +82,7 @@ class Purpose(ModifiableModel, NameIdentifiedModel):
     class Meta:
         verbose_name = _("purpose")
         verbose_name_plural = _("purposes")
+        ordering = ('name',)
 
     def __str__(self):
         return "%s (%s)" % (get_translated(self, 'name'), self.id)
@@ -165,6 +167,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     class Meta:
         verbose_name = _("resource")
         verbose_name_plural = _("resources")
+        ordering = ('unit', 'name',)
 
     def __str__(self):
         return "%s (%s)/%s" % (get_translated(self, 'name'), self.id, self.unit)

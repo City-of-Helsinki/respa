@@ -1,7 +1,6 @@
 import uuid
 import arrow
 import django_filters
-from datetime import datetime
 from arrow.parser import ParserError
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
@@ -16,11 +15,10 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.fields import BooleanField, IntegerField
 from rest_framework import renderers
 from rest_framework.exceptions import NotAcceptable, ValidationError
-from guardian.shortcuts import get_objects_for_user
 
 from helusers.jwt import JWTAuthentication
 from munigeo import api as munigeo_api
-from resources.models import Reservation, Resource, Unit
+from resources.models import Reservation, Resource
 from resources.models.reservation import RESERVATION_EXTRA_FIELDS
 from resources.pagination import ReservationPagination
 from resources.models.utils import generate_reservation_xlsx, get_object_or_none
@@ -319,7 +317,7 @@ class ExcludePastFilterBackend(filters.BaseFilterBackend):
         past = request.query_params.get('all', 'false')
         past = BooleanField().to_internal_value(past)
         if not past:
-            now = datetime.now()
+            now = timezone.now()
             return queryset.filter(end__gte=now)
         return queryset
 
@@ -359,7 +357,7 @@ class ReservationFilterBackend(filters.BaseFilterBackend):
             past = params.get('all', 'false')
             past = BooleanField().to_internal_value(past)
             if not past:
-                now = datetime.now()
+                now = timezone.now()
                 queryset = queryset.filter(end__gte=now)
         if times.get('start', None):
             queryset = queryset.filter(end__gte=times['start'])

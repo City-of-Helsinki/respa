@@ -16,6 +16,9 @@ class User(AbstractUser):
     favorite_resources = models.ManyToManyField(Resource, blank=True, verbose_name=_('Favorite resources'),
                                                 related_name='favorited_by')
 
+    class Meta:
+        ordering = ('id',)
+
     def get_display_name(self):
         return '{0} {1}'.format(self.first_name, self.last_name).strip()
 

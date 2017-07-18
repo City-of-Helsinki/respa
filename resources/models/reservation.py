@@ -110,6 +110,13 @@ class Reservation(ModifiableModel):
     billing_address_zip = models.CharField(verbose_name=_('Billing address zip'), max_length=30, blank=True)
     billing_address_city = models.CharField(verbose_name=_('Billing address city'), max_length=100, blank=True)
 
+    objects = ReservationQuerySet.as_manager()
+
+    class Meta:
+        verbose_name = _("reservation")
+        verbose_name_plural = _("reservations")
+        ordering = ('id',)
+
     def _save_dt(self, attr, dt):
         """
         Any DateTime object is converted to UTC time zone aware DateTime
@@ -246,10 +253,6 @@ class Reservation(ModifiableModel):
             return True
         return self.resource.can_view_catering_orders(user)
 
-    class Meta:
-        verbose_name = _("reservation")
-        verbose_name_plural = _("reservations")
-
     def __str__(self):
         return "%s -> %s: %s" % (self.begin, self.end, self.resource)
 
@@ -357,8 +360,6 @@ class Reservation(ModifiableModel):
             self.access_code = generate_access_code(access_code_type)
 
         return super().save(*args, **kwargs)
-
-    objects = ReservationQuerySet.as_manager()
 
 
 class ReservationMetadataField(models.Model):

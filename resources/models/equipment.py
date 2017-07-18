@@ -27,6 +27,7 @@ class Equipment(ModifiableModel, AutoIdentifiedModel):
     class Meta:
         verbose_name = pgettext_lazy('singular', 'equipment')
         verbose_name_plural = pgettext_lazy('plural', 'equipment')
+        ordering = ('category', 'name')
 
     def __str__(self):
         return get_translated(self, 'name')
