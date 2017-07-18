@@ -170,6 +170,22 @@ def test_order_update(user_api_client, reservation2, catering_product2, catering
 
 
 @pytest.mark.django_db
+def test_product_removal_with_zero_quantity(user_api_client, catering_product, new_order_data):
+    product2 = CateringProduct.objects.create(category=catering_product.category, name="Pulla")
+    new_order_data['order_lines'].append(dict(product=product2.id, quantity=1))
+    response = user_api_client.post(LIST_URL, data=new_order_data, format='json')
+    assert response.status_code == 201
+    order = CateringOrder.objects.last()
+    assert order.order_lines.count() == 2
+
+    detail_url = get_detail_url(order)
+    new_order_data['order_lines'][1]['quantity'] = 0
+    response = user_api_client.put(detail_url, data=new_order_data, format='json')
+    assert response.status_code == 200
+    assert order.order_lines.count() == 1
+
+
+@pytest.mark.django_db
 def test_cannot_modify_orders_if_reservation_not_own(user_api_client, user2, catering_order, reservation3,
                                                      new_order_data):
     error_message = "No permission to modify this reservation's catering orders."

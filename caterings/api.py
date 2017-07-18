@@ -137,6 +137,14 @@ class CateringOrderSerializer(serializers.ModelSerializer):
         self._handle_order_lines(updated_order, order_line_data)
         return updated_order
 
+    def to_internal_value(self, data):
+        # Remove order lines with quantity == 0
+        if 'order_lines' in data and isinstance(data['order_lines'], list):
+            order_lines = data['order_lines']
+            data['order_lines'] = [x for x in order_lines if x.get('quantity') != 0]
+
+        return super().to_internal_value(data)
+
     def validate(self, validated_data):
         reservation = validated_data.get('reservation') or self.instance.reservation
         if reservation and reservation.user != self.context['request'].user:
