@@ -40,3 +40,4 @@ requests
 requests-ntlm
 six
 django-reversion
+daemonize
