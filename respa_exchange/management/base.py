@@ -28,10 +28,11 @@ def get_active_download_resources(exchange_configs):
     return resources
 
 
-def configure_console_log(logger="respa_exchange", level=logging.INFO):
+def configure_logging(logger="respa_exchange", level=logging.INFO, handler=None):
     logger = logging.getLogger(logger)
     logger.setLevel(level)
-    handler = logging.StreamHandler(stream=sys.stdout)
+    if not handler:
+        handler = logging.StreamHandler(stream=sys.stdout)
     handler.setFormatter(logging.Formatter(
         fmt="%(asctime)s - %(name)s - %(levelname)s: %(message)s",
         datefmt=logging.Formatter.default_time_format

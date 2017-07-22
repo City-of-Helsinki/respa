@@ -17,6 +17,11 @@ from respa_exchange.utils.timeout import EventedTimeout
 log = logging.getLogger('respa_exchange.listener')
 
 
+class SyncEvent:
+    def __init__(self, resource):
+        self.resource = resource
+
+
 class EventAwaiterThread(threading.Thread):
     """
     A thread that makes long-polling GetStreamingEventsRequests until told to stop (or if many errors occur).
@@ -87,11 +92,12 @@ class EventAwaiterThread(threading.Thread):
 
 
 class ExchangeListener(object):
-    def __init__(self, exchange, event_callback):
+    def __init__(self, exchange, event_callback, sync_after_start=False):
         self.exchange = exchange
         self.event_callback = event_callback
         self.listener_thread = None
         self.resource_to_subscription_map = {}
+        self.sync_after_start = sync_after_start
 
     def manage_subscriptions(self):
         """
@@ -112,19 +118,23 @@ class ExchangeListener(object):
 
         for resource in gone_resources:
             try:
-                log.debug('Unsubscribing %s', resource)
+                log.info('Resource %s removed, unsubscribing', resource)
                 self.unsubscribe_resource(resource)
             except SoapFault:  # pragma: no cover
                 log.warn('Unsubscription for %s failed', resource, exc_info=True)
 
         for resource in new_resources:
             try:
-                log.debug('Subscribing %s', resource)
+                log.info('Resource %s added, subscribing', resource)
                 self.subscribe_resource(resource)
             except SoapFault:  # pragma: no cover
                 log.warn('Subscription to %s failed', resource, exc_info=True)
 
         self.spawn_thread()
+        if self.sync_after_start:
+            for resource in resources:
+                event = SyncEvent(resource=resource)
+                self.event_callback(event)
 
     def subscribe_resource(self, resource):
         """
@@ -159,6 +169,7 @@ class ExchangeListener(object):
             return False
         unsub = UnsubscribeRequest(resource.principal_email, sub_id)
         unsub.send(self.exchange.get_ews_session())
+        log.info('Unsubscribed from %s on channel %s', resource, sub_id)
         return True
 
     def spawn_thread(self):
@@ -176,7 +187,7 @@ class ExchangeListener(object):
             subscription_ids=subscription_ids,
         )
         self.listener_thread.start()
-        log.debug('Started awaiter thread %s', self.listener_thread)
+        log.info('Started awaiter thread %s', self.listener_thread)
 
     def post_event(self, event):
         for resource, sub_id in self.resource_to_subscription_map.items():
@@ -212,9 +223,9 @@ class NotificationListener(object):
     SUBSCRIPTION_MANAGE_INTERVAL = 180
     DATABASE_RECONNECT_INTERVAL = 1800
 
-    def __init__(self):
+    def __init__(self, sync_after_start=False):
         exchanges = ExchangeConfiguration.objects.filter(enabled=True)
-        self.listeners = {ex: ExchangeListener(ex, self.post_event) for ex in exchanges}
+        self.listeners = {ex: ExchangeListener(ex, self.post_event, sync_after_start) for ex in exchanges}
         self.events = Queue()
         self.subscription_manage_timer = EventedTimeout(
             seconds=self.SUBSCRIPTION_MANAGE_INTERVAL,
@@ -295,7 +306,7 @@ class NotificationListener(object):
         for conn in connections.all():
             try:
                 conn.connect()
-            except:
+            except Exception:
                 log.exception('Failed reconnecting %s', conn)
 
     def manage_subscriptions(self):
@@ -330,3 +341,4 @@ class NotificationListener(object):
     def close(self):
         for listener in self.listeners.values():
             listener.close()
+        self.listeners.clear()
