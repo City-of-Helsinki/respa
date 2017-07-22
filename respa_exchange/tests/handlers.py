@@ -114,6 +114,11 @@ class FindItemsHandler(object):
                                 T.EmailAddress('dummy@example.com'),
                                 T.RoutingType('SMTP'),
                                 T.MailboxType('Mailbox')
+                            ),
+                            T.Contact(
+                                T.DisplayName('Dummy Bob'),
+                                T.GivenName('Bob'),
+                                T.Surname('Dummy'),
                             )
                         )
                     )
@@ -134,7 +139,7 @@ class FindItemsHandler(object):
             T.CalendarItemType('Single'),
             T.Organizer(
                 T.Mailbox(
-                    T.Name('Dummy'),
+                    T.Name(props['organizer_name']),
                     T.EmailAddress('/O=Dummy'),
                     T.RoutingType('EX'),
                     T.MailboxType('OneOff')

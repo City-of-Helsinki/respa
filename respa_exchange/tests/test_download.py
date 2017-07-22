@@ -18,7 +18,8 @@ def _generate_item_dict():
         'id': item_id,
         'subject': get_random_string(),
         'start': now(),
-        'end': now() + timedelta(hours=1)
+        'end': now() + timedelta(hours=1),
+        'organizer_name': 'Bob Dummy'
     }
     return item_dict
 

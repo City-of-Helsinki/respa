@@ -3,8 +3,9 @@ Download Exchange events into Respa as reservations.
 """
 import datetime
 import logging
-
 import iso8601
+
+from lxml import etree
 from django.db.transaction import atomic
 from django.utils.timezone import now
 
@@ -13,7 +14,7 @@ from respa_exchange.ews.calendar import GetCalendarItemsRequest, FindCalendarIte
 from respa_exchange.ews.user import ResolveNamesRequest
 from respa_exchange.ews.objs import ItemID
 from respa_exchange.ews.xml import NAMESPACES
-from respa_exchange.models import ExchangeReservation
+from respa_exchange.models import ExchangeReservation, ExchangeUser
 
 log = logging.getLogger(__name__)
 
@@ -27,9 +28,18 @@ def _populate_reservation(reservation, ex_resource, item_props):
     :type item_props: dict
     :return:
     """
-    comment_text = "%s\nSynchronized from Exchange %s" % (item_props["subject"], ex_resource.exchange)
     reservation.begin = item_props["start"]
     reservation.end = item_props["end"]
+    reservation.event_subject = item_props["subject"]
+    organizer = item_props.get("organizer")
+    if organizer:
+        reservation.reserver_email_address = organizer.email_address
+        if organizer.given_name and organizer.surname:
+            name = "%s %s" % (organizer.given_name, organizer.surname)
+        else:
+            name = organizer.name
+        reservation.reserver_name = name or ""
+    comment_text = "Synchronized from Exchange %s" % ex_resource.exchange
     reservation.comments = comment_text
     reservation._from_exchange = True  # Set a flag to prevent immediate re-upload
     return reservation
@@ -40,7 +50,7 @@ def _update_reservation_from_exchange(item_id, ex_reservation, ex_resource, item
     _populate_reservation(reservation, ex_resource, item_props)
     reservation.save()
     ex_reservation.item_id = item_id
-    ex_reservation.organizer_email = item_props.get("organizer_email")
+    ex_reservation.organizer = item_props.get("organizer")
     ex_reservation.save()
 
     log.info("Updated: %s", ex_reservation)
@@ -57,41 +67,71 @@ def _create_reservation_from_exchange(item_id, ex_resource, item_props):
         managed_in_exchange=True,
     )
     ex_reservation.item_id = item_id
-    ex_reservation.organizer_email = item_props.get("organizer_email")
+    ex_reservation.organizer = item_props.get("organizer")
     ex_reservation.save()
 
     log.info("Created: %s", ex_reservation)
     return ex_reservation
 
 
-def _resolve_user_email(ex_resource, name):
-    req = ResolveNamesRequest([name], principal=ex_resource.principal_email)
+def _determine_organizer(ex_resource, organizer):
+    mailbox = organizer.find("t:Mailbox", namespaces=NAMESPACES)
+    routing_type = mailbox.find("t:RoutingType", namespaces=NAMESPACES).text
+    user_identifier = mailbox.find("t:EmailAddress", namespaces=NAMESPACES).text
+    user_name = mailbox.find("t:Name", namespaces=NAMESPACES)
+    if user_name is not None:
+        user_name = user_name.text
+    if routing_type == "SMTP":
+        id_field = 'email_address'
+        user_identifier = user_identifier.lower()
+    elif routing_type == "EX":
+        id_field = 'x500_address'
+    else:
+        log.error("Unknown mailbox routing type (%s)" % etree.tostring(mailbox, encoding=str))
+        return None
+
+    props = {id_field: user_identifier, 'exchange': ex_resource.exchange}
+    try:
+        ex_user = ExchangeUser.objects.get(**props)
+    except ExchangeUser.DoesNotExist:
+        ex_user = ExchangeUser(**props)
+
+    # If the user name remains the same, all other info is probably okay as well.
+    if ex_user.pk and user_name == ex_user.name:
+        return ex_user
+    ex_user.name = user_name
+
+    req = ResolveNamesRequest([user_identifier], principal=ex_resource.principal_email)
     resolutions = req.send(ex_resource.exchange.get_ews_session())
     for res in resolutions:
         mb = res.find("t:Mailbox", namespaces=NAMESPACES)
         if mb is None:
             continue
         routing_type = mb.find("t:RoutingType", namespaces=NAMESPACES).text
-        assert routing_type == "SMTP"
-        email = mb.find("t:EmailAddress", namespaces=NAMESPACES).text
+        email = mb.find("t:EmailAddress", namespaces=NAMESPACES)
+        contact = res.find("t:Contact", namespaces=NAMESPACES)
+        if routing_type != "SMTP" or email is None or contact is None:
+            log.error("Invalid response to ResolveNamesRequest (%s)" % user_identifier)
+            return None
+
+        props = dict(name=contact.find("t:DisplayName", namespaces=NAMESPACES),
+                     given_name=contact.find("t:GivenName", namespaces=NAMESPACES),
+                     surname=contact.find("t:Surname", namespaces=NAMESPACES))
+        props = {k: v.text for k, v in props.items() if v is not None}
+        email = email.text.lower()
+        props['email_address'] = email
         break
     else:
-        email = ""
-    return email
+        return None
+
+    for k, v in props.items():
+        setattr(ex_user, k, v)
+    log.info("Saving new ExchangeUser %s" % ex_user)
+    ex_user.save()
+    return ex_user
 
 
-def _determine_organizer(ex_resource, organizer):
-    mailbox = organizer.find("t:Mailbox", namespaces=NAMESPACES)
-    routing_type = mailbox.find("t:RoutingType", namespaces=NAMESPACES).text
-    email_address = mailbox.find("t:EmailAddress", namespaces=NAMESPACES).text
-    if routing_type == "SMTP":
-        return email_address.lower()
-    if routing_type == "EX":
-        return _resolve_user_email(ex_resource, email_address).lower()
-    raise Exception("Unknown routing type %s" % routing_type)
-
-
-def _parse_item_props(ex_resource, item):
+def _parse_item_props(ex_resource, item_id, item):
     item_props = dict(
         start=iso8601.parse_date(item.find("t:Start", namespaces=NAMESPACES).text),
         end=iso8601.parse_date(item.find("t:End", namespaces=NAMESPACES).text),
@@ -99,7 +139,20 @@ def _parse_item_props(ex_resource, item):
     )
     organizer = item.find("t:Organizer", namespaces=NAMESPACES)
     if organizer is not None:
-        item_props["organizer_email"] = _determine_organizer(ex_resource, organizer)
+        try:
+            organizer = _determine_organizer(ex_resource, organizer)
+        except Exception:
+            log.error("Unable to determine organizer for %s" % item_id.id, exc_info=True)
+            organizer = None
+
+    item_props["organizer"] = organizer
+    # Subjects often start with the organizer name, so we strip it
+    if organizer and organizer.name:
+        s = organizer.name + " "
+        subject = item_props["subject"]
+        if subject and subject.startswith(s):
+            item_props["subject"] = subject[len(s):]
+
     return item_props
 
 
@@ -169,7 +222,7 @@ def sync_from_exchange(ex_resource, future_days=365):
 
     for item_id, item in calendar_items.items():
         ex_reservation = extant_exchange_reservations.get(item_id.hash)
-        item_props = _parse_item_props(ex_resource, item)
+        item_props = _parse_item_props(ex_resource, item_id, item)
 
         if not ex_reservation:  # It's a new one!
             ex_reservation = _create_reservation_from_exchange(item_id, ex_resource, item_props)

@@ -140,7 +140,8 @@ class ExchangeReservation(models.Model):
         db_index=True,
         editable=False
     )
-    organizer_email = models.EmailField(max_length=250, db_index=True, editable=False, blank=True)
+    organizer = models.ForeignKey('ExchangeUser', editable=False, null=True,
+                                  related_name='reservations')
     exchange = models.ForeignKey(  # Cached Exchange configuration
         to=ExchangeConfiguration,
         on_delete=models.PROTECT,
@@ -206,3 +207,24 @@ class ExchangeReservation(models.Model):
         self._item_id = value.id
         self._change_key = value.change_key
         self.item_id_hash = value.hash
+
+
+class ExchangeUser(models.Model):
+    exchange = models.ForeignKey(
+        verbose_name=_('Exchange configuration'),
+        to=ExchangeConfiguration,
+        on_delete=models.PROTECT,
+        related_name='users',
+    )
+    x500_address = models.CharField(max_length=200, null=True, blank=True, db_index=True)
+    email_address = models.CharField(max_length=200, db_index=True)
+    name = models.CharField(max_length=100)
+    given_name = models.CharField(max_length=100, null=True, blank=True)
+    surname = models.CharField(max_length=100, null=True, blank=True)
+    user = models.OneToOneField(User, null=True, db_index=True, related_name='exchange_user')
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        unique_together = (('exchange', 'x500_address'), ('exchange', 'email_address'))
