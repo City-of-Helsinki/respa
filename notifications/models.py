@@ -2,7 +2,9 @@ import logging
 
 from django.conf import settings
 from django.db import models
+from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
+from django.utils.formats import date_format
 from jinja2 import StrictUndefined
 from jinja2.exceptions import TemplateError
 from jinja2.sandbox import SandboxedEnvironment
@@ -25,6 +27,9 @@ class NotificationType:
     CATERING_ORDER_MODIFIED = 'catering_order_modified'
     CATERING_ORDER_DELETED = 'catering_order_deleted'
 
+    RESERVATION_COMMENT_CREATED = 'reservation_comment_created'
+    CATERING_ORDER_COMMENT_CREATED = 'catering_order_comment_created'
+
 
 class NotificationTemplateException(Exception):
     pass
@@ -36,11 +41,13 @@ class NotificationTemplate(TranslatableModel):
         (NotificationType.RESERVATION_REQUESTED_OFFICIAL, _('Reservation requested official')),
         (NotificationType.RESERVATION_CANCELLED, _('Reservation cancelled')),
         (NotificationType.RESERVATION_CONFIRMED, _('Reservation confirmed')),
-        (NotificationType.RESERVATION_DENIED, _('Reservation_denied')),
+        (NotificationType.RESERVATION_DENIED, _('Reservation denied')),
         (NotificationType.RESERVATION_CREATED_WITH_ACCESS_CODE, _('Reservation created with access code')),
         (NotificationType.CATERING_ORDER_CREATED, _('Catering order created')),
         (NotificationType.CATERING_ORDER_MODIFIED, _('Catering order modified')),
         (NotificationType.CATERING_ORDER_DELETED, _('Catering order deleted')),
+        (NotificationType.RESERVATION_COMMENT_CREATED, _('Reservation comment created')),
+        (NotificationType.CATERING_ORDER_COMMENT_CREATED, _('Catering order comment created')),
     )
 
     type = models.CharField(
@@ -72,6 +79,23 @@ def reservation_time(res):
     return res.format_time()
 
 
+def format_datetime(dt):
+    current_language = translation.get_language()
+    if current_language == 'fi':
+        # ma 1.1.2017 klo 12.00
+        dt_format = r'D j.n.Y \k\l\o G.i'
+    else:
+        # default to English
+        dt_format = r'D j/n/Y G:i'
+
+    return date_format(dt, dt_format)
+
+
+def format_datetime_tz(dt, tz):
+    dt = dt.astimezone(tz)
+    return format_datetime(dt)
+
+
 def render_notification_template(notification_type, context, language_code=DEFAULT_LANG):
     """
     Render a notification template with given context
@@ -88,6 +112,8 @@ def render_notification_template(notification_type, context, language_code=DEFAU
 
     env = SandboxedEnvironment(trim_blocks=True, lstrip_blocks=True, undefined=StrictUndefined)
     env.filters['reservation_time'] = reservation_time
+    env.filters['format_datetime'] = format_datetime
+    env.filters['format_datetime_tz'] = format_datetime_tz
 
     logger.info('Rendering template for notification %s' % notification_type)
     with switch_language(template, language_code):

@@ -2,6 +2,7 @@ from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import ugettext_lazy as _
+from django.utils import timezone
 import django_filters
 from rest_framework import exceptions, mixins, serializers, viewsets
 
@@ -93,6 +94,9 @@ class CommentViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.
         return queryset.filter(content_type__in=get_commentable_content_types()).can_view(user)
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user, created_at=datetime.now())
+        obj = serializer.save(created_by=self.request.user, created_at=timezone.now())
+        obj.send_created_notification(self.request)
+        return obj
+
 
 register_view(CommentViewSet, 'comment')

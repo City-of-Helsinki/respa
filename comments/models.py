@@ -1,12 +1,20 @@
+import logging
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Q
 from django.utils.translation import ugettext_lazy as _
-from guardian.shortcuts import get_objects_for_user
 from caterings.models import CateringOrder
-from resources.models import Reservation, Unit, Resource
+from resources.models import Reservation, Resource
+from resources.models.utils import send_respa_mail
+from notifications.models import (
+    DEFAULT_LANG, render_notification_template, NotificationTemplateException, NotificationType
+)
+
+
+logger = logging.getLogger(__name__)
+
 
 COMMENTABLE_MODELS = {
     'reservation': Reservation,
@@ -93,3 +101,59 @@ class Comment(models.Model):
             if target_object.reservation.resource.can_view_catering_orders(user):
                 return True
         return False
+
+    def get_notification_context(self, language_code):
+        target_object = self.content_object
+        target_model = target_object.__class__
+        assert target_model in COMMENTABLE_MODELS.values()
+
+        target_type = next(api_name for api_name, model in COMMENTABLE_MODELS.items() if model == target_model)
+        context = dict(
+            text=self.text,
+            target_type=target_type,
+            created_at=self.created_at
+        )
+        if self.created_by:
+            context['created_by'] = dict(display_name=self.created_by.get_display_name())
+        else:
+            context['created_by'] = None
+
+        if target_model == Reservation:
+            context['reservation'] = target_object.get_notification_context(language_code)
+            tz = target_object.resource.unit.get_tz()
+        elif target_model == CateringOrder:
+            context['catering_order'] = target_object.get_notification_context(language_code)
+            tz = target_object.reservation.resource.unit.get_tz()
+
+        # Use local timezones by default
+        context['created_at'] = context['created_at'].astimezone(tz)
+
+        return context
+
+    def _send_notification(self, notification_type, request=None):
+        target_object = self.content_object
+        target_model = target_object.__class__
+        assert target_model in COMMENTABLE_MODELS.values()
+
+        if target_model == CateringOrder:
+            catering_provider = target_object.get_provider()
+            email = catering_provider.notification_email if catering_provider else None
+            reserver = target_object.reservation.user
+        else:
+            # FIXME: Add Reservation comment notifications
+            return
+
+        context = self.get_notification_context(DEFAULT_LANG)
+        try:
+            rendered_notification = render_notification_template(notification_type, context, DEFAULT_LANG)
+        except NotificationTemplateException as e:
+            logger.error(e, exc_info=True, extra={'request': request})
+            return
+
+        if email:
+            send_respa_mail(email, rendered_notification['subject'], rendered_notification['body'])
+        if self.created_by != reserver and reserver.email:
+            send_respa_mail(reserver.email, rendered_notification['subject'], rendered_notification['body'])
+
+    def send_created_notification(self, request=None):
+        self._send_notification(NotificationType.CATERING_ORDER_COMMENT_CREATED, request)

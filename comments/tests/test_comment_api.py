@@ -1,6 +1,7 @@
 import pytest
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
+from django.core import mail
 from guardian.shortcuts import assign_perm
 
 from caterings.models import CateringOrder
@@ -13,6 +14,8 @@ from caterings.tests.conftest import (
     catering_product_category, catering_product_category2, catering_provider, catering_provider2,
 )
 from comments.models import Comment
+from notifications.models import NotificationTemplate, NotificationType, DEFAULT_LANG, format_datetime_tz
+from notifications.tests.utils import check_received_mail_exists
 
 
 LIST_URL = reverse('comment-list')
@@ -316,3 +319,60 @@ def test_non_commentable_model_comments_hidden(user_api_client, resource_group, 
     response = user_api_client.get(LIST_URL)
     assert response.status_code == 200
     assert not response.data['results']
+
+
+@pytest.mark.django_db
+def test_catering_order_comment_create(user_api_client, user, staff_user, catering_order,
+                                       new_catering_order_comment_data):
+    COMMENT_CREATED_BODY = """Target type: {{ target_type }}
+Created by: {{ created_by.display_name }}
+Created at: {{ created_at|format_datetime }}
+Resource: {{ catering_order.reservation.resource.name }}
+Reservation: {{ catering_order.reservation|reservation_time }}
+Serving time: {{ catering_order.serving_time }}
+{{ text }}
+"""
+    NotificationTemplate.objects.language(DEFAULT_LANG).create(
+        type=NotificationType.CATERING_ORDER_COMMENT_CREATED,
+        short_message="Catering comment added for {{ catering_order.reservation.resource.name }}",
+        subject="Catering comment added for {{ catering_order.reservation.resource.name }}",
+        body=COMMENT_CREATED_BODY
+    )
+
+    user.preferred_language = DEFAULT_LANG
+    user.save()
+
+    provider = catering_order.get_provider()
+    provider.notification_email = 'catering.person@caterer.org'
+    provider.save()
+
+    # First make sure that the notification from a user's comment reaches catering.
+    response = user_api_client.post(LIST_URL, data=new_catering_order_comment_data)
+    assert response.status_code == 201
+
+    assert Comment.objects.count() == 1
+    comment = Comment.objects.first()
+    reservation = catering_order.reservation
+
+    created_at = format_datetime_tz(comment.created_at, reservation.resource.unit.get_tz())
+    strings = [
+        "Created by: %s" % user.get_display_name(),
+        "Created at: %s" % created_at,
+        "Resource: %s" % reservation.resource.name,
+        "Reservation: to 4.4.2115 klo 9.00–10.00",
+        "Serving time: 12.00",
+        new_catering_order_comment_data['text'],
+    ]
+
+    check_received_mail_exists("Catering comment added for %s" % reservation.resource.name,
+                               provider.notification_email, strings)
+
+    # Next make sure that a comment by another user reaches the reserver
+    user_api_client.force_authenticate(user=staff_user)
+    response = user_api_client.post(LIST_URL, data=new_catering_order_comment_data)
+    assert response.status_code == 201
+    assert Comment.objects.count() == 2
+
+    assert len(mail.outbox) == 2
+    check_received_mail_exists("Catering comment added for %s" % reservation.resource.name,
+                               user.email, [])
