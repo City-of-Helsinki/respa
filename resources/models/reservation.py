@@ -6,6 +6,7 @@ import django.contrib.postgres.fields as pgfields
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.utils import translation
+from django.utils.formats import date_format
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -253,8 +254,38 @@ class Reservation(ModifiableModel):
             return True
         return self.resource.can_view_catering_orders(user)
 
+    def format_time(self):
+        tz = self.resource.unit.get_tz()
+        begin = self.begin.astimezone(tz)
+        end = self.end.astimezone(tz)
+
+        current_language = translation.get_language()
+        if current_language == 'fi':
+            # ma 1.1.2017 klo 12.00
+            begin_format = r'D j.n.Y \k\l\o G.i'
+            if begin.date() == end.date():
+                end_format = 'G.i'
+                sep = '–'
+            else:
+                end_format = begin_format
+                sep = ' – '
+
+            res = sep.join([date_format(begin, begin_format), date_format(end, end_format)])
+        else:
+            # default to English
+            begin_format = r'D j/n/Y G:i'
+            if begin.date() == end.date():
+                end_format = 'G:i'
+                sep = '–'
+            else:
+                end_format = begin_format
+                sep = ' – '
+
+            res = sep.join([date_format(begin, begin_format), date_format(end, end_format)])
+        return res
+
     def __str__(self):
-        return "%s -> %s: %s" % (self.begin, self.end, self.resource)
+        return "%s: %s" % (self.format_time(), self.resource)
 
     def clean(self, **kwargs):
         """
