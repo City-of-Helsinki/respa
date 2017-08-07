@@ -1,3 +1,6 @@
+sudo: false
+dist: trusty
+
 language: python
 python:
   - '3.6'
@@ -5,8 +8,16 @@ python:
 
 cache: pip
 
-services:
-  - postgresql
+# Respa uses int4range (IntegerRangeField) so needs at least Postgres9.2
+# As of 2017-08 the new travis trusty images have broken postgis,
+# so we have to specify the exact postgres version to install right addons.
+# They also seem to miss the GDAL C library...
+addons:
+  postgresql: "9.6"
+  apt:
+    packages:
+      - libgdal-dev
+      - postgresql-9.6-postgis-2.3
 
 install: 'pip install codecov -r requirements.txt'
 
