@@ -1,7 +1,9 @@
+import logging
+
 from django.core.management import BaseCommand
 
 from respa_exchange.downloader import sync_from_exchange
-from respa_exchange.management.base import configure_console_log, get_active_download_resources, select_resources
+from respa_exchange.management.base import configure_logging, get_active_download_resources, select_resources
 from respa_exchange.models import ExchangeConfiguration
 
 
@@ -14,7 +16,7 @@ class Command(BaseCommand):
 
     def handle(self, verbosity, *args, **options):
         if verbosity >= 2:
-            configure_console_log()
+            configure_logging(level=logging.DEBUG)
 
         exchanges = ExchangeConfiguration.objects.filter(enabled=True)
 
