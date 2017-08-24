@@ -22,6 +22,11 @@ class SyncEvent:
         self.resource = resource
 
 
+class ThreadDyingEvent:
+    def __init__(self):
+        self.resource = None
+
+
 class EventAwaiterThread(threading.Thread):
     """
     A thread that makes long-polling GetStreamingEventsRequests until told to stop (or if many errors occur).
@@ -45,6 +50,7 @@ class EventAwaiterThread(threading.Thread):
         self.subscription_ids = subscription_ids
         self.timeout_minutes = int(timeout_minutes)
         self.please_stop = False
+        self.dead = False
         super(EventAwaiterThread, self).__init__(name="Listener-%s" % exchange)
 
     def run(self):
@@ -75,17 +81,23 @@ class EventAwaiterThread(threading.Thread):
                     if self.please_stop:
                         break
                     if see.code == 'ErrorSubscriptionNotFound':
-                        log.info('Received ErrorSubscriptionNotFound for %s' % self.subscription_id)
+                        log.info('Received ErrorSubscriptionNotFound for %s' % self.subscription_ids)
                         break
                     raise
             except Exception:  # pragma: no cover
-                log.warn('Error in %s', self, exc_info=True)
+                log.exception('Error in %s' % self)
                 failures += 1
-                if failures >= 10:
+                if failures >= 5:
                     log.warn('Killing off %s, too many failures', self)
                     self.please_stop = True
+                # For each failure, sleep a while so that we don't end up
+                # bombarding the server with requests.
+                time.sleep(failures ** 2.0)
 
         log.info('Event thread %s dying', self)
+        self.dead = True
+        self.event_callback(ThreadDyingEvent())
+        failed_once = True
 
     def stop(self):
         self.please_stop = True
@@ -97,6 +109,7 @@ class ExchangeListener(object):
         self.event_callback = event_callback
         self.listener_thread = None
         self.resource_to_subscription_map = {}
+        self.please_stop = False
         self.sync_after_start = sync_after_start
 
     def manage_subscriptions(self):
@@ -177,7 +190,7 @@ class ExchangeListener(object):
         Spawn event awaiter thread for newly created subscriptions.
         """
 
-        if self.listener_thread:
+        if self.listener_thread and not self.listener_thread.dead:
             return
 
         subscription_ids = self.resource_to_subscription_map.values()
@@ -190,6 +203,13 @@ class ExchangeListener(object):
         log.info('Started awaiter thread %s', self.listener_thread)
 
     def post_event(self, event):
+        if self.please_stop:
+            return
+        if isinstance(event, ThreadDyingEvent):
+            event.listener = self
+            self.event_callback(event)
+            return
+
         for resource, sub_id in self.resource_to_subscription_map.items():
             if sub_id == event.subscription_id:
                 break
@@ -210,6 +230,7 @@ class ExchangeListener(object):
         This is called automatically by `.start()` when the loop ends, but it should be
         safe to call from wherever.
         """
+        self.please_stop = True
         self.listener_thread.stop()
         for resource in list(self.resource_to_subscription_map.keys()):
             self.unsubscribe_resource(resource)
@@ -225,6 +246,7 @@ class NotificationListener(object):
 
     def __init__(self, sync_after_start=False):
         exchanges = ExchangeConfiguration.objects.filter(enabled=True)
+        self.sync_after_start = sync_after_start
         self.listeners = {ex: ExchangeListener(ex, self.post_event, sync_after_start) for ex in exchanges}
         self.events = Queue()
         self.subscription_manage_timer = EventedTimeout(
@@ -327,6 +349,18 @@ class NotificationListener(object):
                     self.events.task_done()
             except Empty:
                 break
+
+            if isinstance(event, ThreadDyingEvent):
+                log.warn('Listener %s died, starting a new one' % event.listener)
+                for ex, listener in self.listeners.items():
+                    if event.listener != listener:
+                        continue
+                    listener.close()
+                    listener = ExchangeListener(ex, self.post_event, self.sync_after_start)
+                    self.listeners[ex] = listener
+                    listener.start()
+                    break
+                return
 
             if not event.resource:  # pragma: no cover
                 log.warn('Unable to handle resourceless event %r', event)
