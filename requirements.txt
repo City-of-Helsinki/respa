@@ -22,7 +22,7 @@ django-cors-headers==2.1.0
 django-filter==1.0.4
 django-grappelli==2.10.1
 django-guardian==1.4.9
-django-helusers==0.4.1
+django-helusers==0.4.2
 django-hstore==1.4.2
 django-image-cropping==1.0.4
 django-jinja==2.3.1
