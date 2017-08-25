@@ -171,7 +171,7 @@ def sync_from_exchange(ex_resource, future_days=365):
     """
     if not ex_resource.sync_to_respa:
         return
-    start_date = now()
+    start_date = now().replace(hour=0, minute=0, second=0)
     end_date = start_date + datetime.timedelta(days=future_days)
 
     log.info(
@@ -201,8 +201,8 @@ def sync_from_exchange(ex_resource, future_days=365):
 
     items_to_delete = ExchangeReservation.objects.select_related("reservation").filter(
         managed_in_exchange=True,  # Reservations we've downloaded ...
-        reservation__begin__gte=start_date.replace(hour=0, minute=0, second=0),  # that are in ...
-        reservation__end__lte=end_date.replace(hour=23, minute=59, second=59),  # ... our get items range ...
+        reservation__begin__gte=start_date,  # that are in ...
+        reservation__end__lte=end_date,  # ... our get items range ...
         reservation__resource__exchange_resource=ex_resource,  # and belong to this resource,
     ).exclude(item_id_hash__in=hashes)  # but aren't ones we're going to mangle
 
