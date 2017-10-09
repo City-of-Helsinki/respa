@@ -103,8 +103,10 @@ class TermsOfUse(ModifiableModel, AutoIdentifiedModel):
 
 class ResourceQuerySet(models.QuerySet):
     def with_perm(self, perm, user):
-        units = get_objects_for_user(user, 'unit:%s' % perm, klass=Unit)
-        resource_groups = get_objects_for_user(user, 'group:%s' % perm, klass=ResourceGroup)
+        units = get_objects_for_user(user, 'unit:%s' % perm, klass=Unit,
+                                     with_superuser=False)
+        resource_groups = get_objects_for_user(user, 'group:%s' % perm, klass=ResourceGroup,
+                                               with_superuser=False)
         return self.filter(Q(unit__in=units) | Q(groups__in=resource_groups)).distinct()
 
 
