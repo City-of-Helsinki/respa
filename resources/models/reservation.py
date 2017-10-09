@@ -1,36 +1,73 @@
 # -*- coding: utf-8 -*-
+import logging
+
 from django.utils import timezone
 import django.contrib.postgres.fields as pgfields
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.utils import translation
+from django.utils.formats import date_format
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from psycopg2.extras import DateTimeTZRange
 
-from guardian.shortcuts import get_users_with_perms
-
+from notifications.models import (
+    NotificationTemplateException, NotificationType, render_notification_template
+)
+from resources.signals import (
+    reservation_modified, reservation_confirmed, reservation_cancelled
+)
 from .base import ModifiableModel
-from .resource import Resource, generate_access_code, validate_access_code
-from .utils import get_dt, save_dt, is_valid_time_slot, humanize_duration, send_respa_mail, DEFAULT_LANG
+from .resource import generate_access_code, validate_access_code
+from .resource import Resource
+from .utils import (
+    get_dt, save_dt, is_valid_time_slot, humanize_duration, send_respa_mail,
+    DEFAULT_LANG, localize_datetime
+)
 
+logger = logging.getLogger(__name__)
 
 RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street', 'reserver_address_zip',
-                            'reserver_address_city', 'billing_address_street',  'billing_address_zip',
+                            'reserver_address_city', 'billing_address_street', 'billing_address_zip',
                             'billing_address_city', 'company', 'event_description', 'event_subject', 'reserver_id',
-                            'number_of_participants', 'reserver_email_address', 'host_name')
+                            'number_of_participants', 'participants', 'reserver_email_address', 'host_name')
 
 
 class ReservationQuerySet(models.QuerySet):
     def active(self):
         return self.filter(end__gte=timezone.now()).exclude(state__in=(Reservation.CANCELLED, Reservation.DENIED))
 
+    def extra_fields_visible(self, user):
+        # the following logic is also implemented in Reservation.are_extra_fields_visible()
+        # so if this is changed that probably needs to be changed as well
+
+        if not user.is_authenticated():
+            return self.none()
+        if user.is_superuser:
+            return self
+
+        allowed_resources = Resource.objects.with_perm('can_view_reservation_extra_fields', user)
+        return self.filter(Q(user=user) | Q(resource__in=allowed_resources))
+
+    def catering_orders_visible(self, user):
+        if not user.is_authenticated():
+            return self.none()
+        if user.is_superuser:
+            return self
+
+        allowed_resources = Resource.objects.with_perm('can_view_reservation_catering_orders', user)
+        return self.filter(Q(user=user) | Q(resource__in=allowed_resources))
+
 
 class Reservation(ModifiableModel):
+    CREATED = 'created'
     CANCELLED = 'cancelled'
     CONFIRMED = 'confirmed'
     DENIED = 'denied'
     REQUESTED = 'requested'
     STATE_CHOICES = (
+        (CREATED, _('created')),
         (CANCELLED, _('cancelled')),
         (CONFIRMED, _('confirmed')),
         (DENIED, _('denied')),
@@ -58,6 +95,7 @@ class Reservation(ModifiableModel):
     event_description = models.TextField(verbose_name=_('Event description'), blank=True)
     number_of_participants = models.PositiveSmallIntegerField(verbose_name=_('Number of participants'), blank=True,
                                                               null=True)
+    participants = models.TextField(verbose_name=_('Participants'), blank=True)
     host_name = models.CharField(verbose_name=_('Host name'), max_length=100, blank=True)
 
     # extra detail fields for manually confirmed reservations
@@ -72,6 +110,13 @@ class Reservation(ModifiableModel):
     billing_address_street = models.CharField(verbose_name=_('Billing address street'), max_length=100, blank=True)
     billing_address_zip = models.CharField(verbose_name=_('Billing address zip'), max_length=30, blank=True)
     billing_address_city = models.CharField(verbose_name=_('Billing address city'), max_length=100, blank=True)
+
+    objects = ReservationQuerySet.as_manager()
+
+    class Meta:
+        verbose_name = _("reservation")
+        verbose_name_plural = _("reservations")
+        ordering = ('id',)
 
     def _save_dt(self, attr, dt):
         """
@@ -118,45 +163,129 @@ class Reservation(ModifiableModel):
     def is_active(self):
         return self.end >= timezone.now() and self.state not in (Reservation.CANCELLED, Reservation.DENIED)
 
+    def is_own(self, user):
+        if not (user and user.is_authenticated()):
+            return False
+        return user == self.user
+
     def need_manual_confirmation(self):
         return self.resource.need_manual_confirmation
 
     def are_extra_fields_visible(self, user):
-        if not self.need_manual_confirmation():
+        # the following logic is used also implemented in ReservationQuerySet
+        # so if this is changed that probably needs to be changed as well
+
+        if self.is_own(user):
             return True
-        if not (user and user.is_authenticated()):
-            return False
-        return user == self.user or self.resource.is_admin(user)
+        return self.resource.can_view_reservation_extra_fields(user)
 
     def can_view_access_code(self, user):
-        return user == self.user or self.resource.can_view_access_codes(user)
+        if self.is_own(user):
+            return True
+        return self.resource.can_view_access_codes(user)
 
     def set_state(self, new_state, user):
-        if new_state == self.state:
+        # Make sure it is a known state
+        assert new_state in (
+            Reservation.REQUESTED, Reservation.CONFIRMED, Reservation.DENIED,
+            Reservation.CANCELLED
+        )
+
+        old_state = self.state
+        if new_state == old_state:
+            if old_state == Reservation.CONFIRMED:
+                reservation_modified.send(sender=self.__class__, instance=self,
+                                          user=user)
             return
 
         if new_state == Reservation.CONFIRMED:
             self.approver = user
-            if self.need_manual_confirmation():
-                self.send_reservation_confirmed_mail()
-        elif self.state == Reservation.CONFIRMED:
+            reservation_confirmed.send(sender=self.__class__, instance=self,
+                                       user=user)
+        elif old_state == Reservation.CONFIRMED:
             self.approver = None
 
-        if new_state == Reservation.DENIED:
+        # Notifications
+        if new_state == Reservation.REQUESTED:
+            self.send_reservation_requested_mail()
+            self.send_reservation_requested_mail_to_officials()
+        elif new_state == Reservation.CONFIRMED:
+            if self.need_manual_confirmation():
+                self.send_reservation_confirmed_mail()
+            elif self.resource.is_access_code_enabled():
+                self.send_reservation_created_with_access_code_mail()
+        elif new_state == Reservation.DENIED:
             self.send_reservation_denied_mail()
         elif new_state == Reservation.CANCELLED:
             if user != self.user:
                 self.send_reservation_cancelled_mail()
+            reservation_cancelled.send(sender=self.__class__, instance=self,
+                                       user=user)
 
         self.state = new_state
         self.save()
 
-    class Meta:
-        verbose_name = _("reservation")
-        verbose_name_plural = _("reservations")
+    def can_modify(self, user):
+        if not user:
+            return False
+
+        # reservations that need manual confirmation and are confirmed cannot be
+        # modified or cancelled without reservation approve permission
+        cannot_approve = not self.resource.can_approve_reservations(user)
+        if self.need_manual_confirmation() and self.state == Reservation.CONFIRMED and cannot_approve:
+            return False
+
+        return self.resource.is_admin(user) or self.user == user
+
+    def can_add_comment(self, user):
+        if self.is_own(user):
+            return True
+        return self.resource.can_access_reservation_comments(user)
+
+    def can_view_field(self, user, field):
+        if field not in RESERVATION_EXTRA_FIELDS:
+            return True
+        if self.is_own(user):
+            return True
+        return self.resource.can_view_reservation_extra_fields(user)
+
+    def can_view_catering_orders(self, user):
+        if self.is_own(user):
+            return True
+        return self.resource.can_view_catering_orders(user)
+
+    def format_time(self):
+        tz = self.resource.unit.get_tz()
+        begin = self.begin.astimezone(tz)
+        end = self.end.astimezone(tz)
+
+        current_language = translation.get_language()
+        if current_language == 'fi':
+            # ma 1.1.2017 klo 12.00
+            begin_format = r'D j.n.Y \k\l\o G.i'
+            if begin.date() == end.date():
+                end_format = 'G.i'
+                sep = '–'
+            else:
+                end_format = begin_format
+                sep = ' – '
+
+            res = sep.join([date_format(begin, begin_format), date_format(end, end_format)])
+        else:
+            # default to English
+            begin_format = r'D j/n/Y G:i'
+            if begin.date() == end.date():
+                end_format = 'G:i'
+                sep = '–'
+            else:
+                end_format = begin_format
+                sep = ' – '
+
+            res = sep.join([date_format(begin, begin_format), date_format(end, end_format)])
+        return res
 
     def __str__(self):
-        return "%s -> %s: %s" % (self.begin, self.end, self.resource)
+        return "%s: %s" % (self.format_time(), self.resource)
 
     def clean(self, **kwargs):
         """
@@ -188,13 +317,29 @@ class Reservation(ModifiableModel):
         if self.access_code:
             validate_access_code(self.access_code, self.resource.access_code_type)
 
-    def send_reservation_mail(self, subject, template_name, extra_context=None, user=None):
+    def get_notification_context(self, language_code, user=None):
+        if not user:
+            user = self.user
+        with translation.override(language_code):
+            context = {
+                'resource': self.resource.name,
+                'begin': localize_datetime(self.begin),
+                'end': localize_datetime(self.end),
+            }
+            if self.resource.unit:
+                context['unit'] = self.resource.unit
+            if self.can_view_access_code(user) and self.access_code:
+                context['access_code'] = self.access_code
+            if self.resource.reservation_confirmed_notification_extra:
+                context['extra_content'] = self.resource.reservation_confirmed_notification_extra
+        return context
+
+    def send_reservation_mail(self, notification_type, user=None):
         """
         Stuff common to all reservation related mails.
 
         If user isn't given use self.user.
         """
-
         if user:
             email_address = user.email
         else:
@@ -202,33 +347,39 @@ class Reservation(ModifiableModel):
                 return
             email_address = self.reserver_email_address or self.user.email
             user = self.user
-        language = user.get_preferred_language() if user else DEFAULT_LANG
 
-        context = {'reservation': self}
-        if extra_context:
-            context.update(extra_context)
-        send_respa_mail(email_address, subject, template_name, context, language)
+        language = user.get_preferred_language() if user else DEFAULT_LANG
+        context = self.get_notification_context(language)
+
+        try:
+            rendered_notification = render_notification_template(notification_type, context, language)
+        except NotificationTemplateException as e:
+            logger.error(e, exc_info=True, extra={'user': user.uuid})
+            return
+
+        send_respa_mail(email_address, rendered_notification['subject'], rendered_notification['body'])
 
     def send_reservation_requested_mail(self):
-        self.send_reservation_mail(_("You've made a preliminary reservation"), 'reservation_requested')
+        self.send_reservation_mail(NotificationType.RESERVATION_REQUESTED)
 
     def send_reservation_requested_mail_to_officials(self):
-        unit = self.resource.unit
-        for user in get_users_with_perms(unit):
-            if user.has_perm('can_approve_reservation', unit):
-                self.send_reservation_mail(_('Reservation requested'), 'reservation_requested_official', user=user)
+        notify_users = self.resource.get_users_with_perm('can_approve_reservation')
+        if len(notify_users) > 100:
+            raise Exception("Refusing to notify more than 100 users (%s)" % self)
+        for user in notify_users:
+            self.send_reservation_mail(NotificationType.RESERVATION_REQUESTED_OFFICIAL, user=user)
 
     def send_reservation_denied_mail(self):
-        self.send_reservation_mail(_('Reservation denied'), 'reservation_denied')
+        self.send_reservation_mail(NotificationType.RESERVATION_DENIED)
 
     def send_reservation_confirmed_mail(self):
-        self.send_reservation_mail(_('Reservation confirmed'), 'reservation_confirmed')
+        self.send_reservation_mail(NotificationType.RESERVATION_CONFIRMED)
 
     def send_reservation_cancelled_mail(self):
-        self.send_reservation_mail(_('Reservation cancelled'), 'reservation_cancelled')
+        self.send_reservation_mail(NotificationType.RESERVATION_CANCELLED)
 
     def send_reservation_created_with_access_code_mail(self):
-        self.send_reservation_mail(_('Reservation created'), 'reservation_created_with_access_code')
+        self.send_reservation_mail(NotificationType.RESERVATION_CREATED_WITH_ACCESS_CODE)
 
     def save(self, *args, **kwargs):
         self.duration = DateTimeTZRange(self.begin, self.end, '[)')
@@ -240,8 +391,6 @@ class Reservation(ModifiableModel):
             self.access_code = generate_access_code(access_code_type)
 
         return super().save(*args, **kwargs)
-
-    objects = ReservationQuerySet.as_manager()
 
 
 class ReservationMetadataField(models.Model):

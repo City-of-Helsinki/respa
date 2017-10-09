@@ -26,6 +26,12 @@ from resources.views import testing as testing_views
 
 admin.autodiscover()
 
+if getattr(settings, 'RESPA_COMMENTS_ENABLED', False):
+    import comments.api
+
+if getattr(settings, 'RESPA_CATERINGS_ENABLED', False):
+    import caterings.api
+
 router = RespaAPIRouter()
 
 urlpatterns = [
@@ -39,10 +45,11 @@ urlpatterns = [
 ]
 
 if 'reports' in settings.INSTALLED_APPS:
-    from reports.api import DailyReservationsReport
-    urlpatterns.append(
-        url(r'^reports/daily_reservations/', DailyReservationsReport.as_view(), name='daily-reservations-report')
-    )
+    from reports.api import DailyReservationsReport, ReservationDetailsReport
+    urlpatterns.extend([
+        url(r'^reports/daily_reservations/', DailyReservationsReport.as_view(), name='daily-reservations-report'),
+        url(r'^reports/reservation_details/', ReservationDetailsReport.as_view(), name='reservation-details-report'),
+    ])
 
 
 if settings.DEBUG:

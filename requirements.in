@@ -1,10 +1,11 @@
 Django
 django-modeltranslation
 psycopg2
--e git+https://github.com/City-of-Helsinki/munigeo#egg=django-munigeo
+django-munigeo
 djangorestframework
 django-filter
 django-grappelli
+django-parler
 pytest
 pytest-cov
 pytest-django
@@ -15,7 +16,7 @@ coverage
 django-cors-headers
 django-image-cropping
 easy_thumbnails
--e git+https://github.com/City-of-Helsinki/django-helusers.git#egg=django-helusers
+django-helusers
 django-allauth
 django-autoslug
 djangorestframework-jwt
@@ -33,3 +34,10 @@ raven
 delorean
 freezegun
 python-docx
+iso8601
+lxml
+requests
+requests-ntlm
+six
+django-reversion
+daemonize

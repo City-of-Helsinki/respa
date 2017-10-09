@@ -6,12 +6,14 @@ from django.core.urlresolvers import reverse
 from django.core import mail
 from django.test.utils import override_settings
 from django.utils import dateparse, timezone
-from guardian.shortcuts import assign_perm
+from guardian.shortcuts import assign_perm, remove_perm
 from freezegun import freeze_time
+from caterings.models import CateringOrder
 
-from resources.models import (Period, Day, Reservation, Resource, ReservationMetadataField, ReservationMetadataSet)
-from users.models import User
-from .utils import check_disallowed_methods, assert_non_field_errors_contain, check_received_mail_exists
+from resources.models import (Period, Day, Reservation, Resource, ResourceGroup, ReservationMetadataField,
+                              ReservationMetadataSet)
+from notifications.tests.utils import check_received_mail_exists
+from .utils import check_disallowed_methods, assert_non_field_errors_contain, assert_response_objects
 
 
 DEFAULT_RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street',
@@ -22,6 +24,8 @@ DEFAULT_RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'r
 DEFAULT_REQUIRED_RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street',
                                              'reserver_address_zip', 'reserver_address_city', 'event_description',
                                              'reserver_id', 'reserver_email_address')
+
+User = get_user_model()
 
 
 @pytest.fixture
@@ -85,6 +89,36 @@ def reservation(resource_in_unit, user):
         begin='2115-04-04T09:00:00+02:00',
         end='2115-04-04T10:00:00+02:00',
         user=user,
+        event_subject='some fancy event',
+        host_name='esko',
+        reserver_name='martta',
+    )
+
+
+@pytest.fixture
+def reservation2(resource_in_unit2, user):
+    return Reservation.objects.create(
+        resource=resource_in_unit2,
+        begin='2115-04-05T09:00:00+02:00',
+        end='2115-04-05T10:00:00+02:00',
+        user=user,
+        event_subject='not so fancy event',
+        host_name='markku',
+        reserver_name='pirkko',
+    )
+
+
+@pytest.fixture
+def reservation3(resource_in_unit2, user2):
+    # the same as reservation2 but different user
+    return Reservation.objects.create(
+        resource=resource_in_unit2,
+        begin='2115-04-05T09:00:00+02:00',
+        end='2115-04-05T10:00:00+02:00',
+        user=user2,
+        event_subject='not so fancy event',
+        host_name='markku',
+        reserver_name='pirkko',
     )
 
 
@@ -231,7 +265,8 @@ def test_staff_has_no_reservation_limit(api_client, list_url, reservation, reser
 
 
 @pytest.mark.django_db
-def test_normal_user_cannot_make_reservation_outside_open_hours(api_client, list_url, reservation_data, user):
+def test_opening_hours(api_client, list_url, reservation_data, resource_group,
+                       user):
     """
     Tests that a normal user cannot make reservations outside open hours.
     """
@@ -257,6 +292,21 @@ def test_normal_user_cannot_make_reservation_outside_open_hours(api_client, list
     response = api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
     assert response.status_code == 400
     assert_non_field_errors_contain(response, 'You must start and end the reservation during opening hours')
+
+    # If the user has explicit permission ignore opening hours, the reservation should
+    # be allowed.
+    reservation_data['end'] = '2115-04-04T07:00:00+02:00'
+    resource = resource_group.resources.first()
+    group = user.groups.create(name='test group')
+    assign_perm('unit:can_ignore_opening_hours', group, resource.unit)
+    response = api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 201
+    Reservation.objects.all().delete()
+    remove_perm('unit:can_ignore_opening_hours', group, resource.unit)
+
+    assign_perm('group:can_ignore_opening_hours', group, resource_group)
+    response = api_client.post(list_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 201
 
 
 @pytest.mark.django_db
@@ -351,13 +401,16 @@ def test_reservation_can_be_modified_by_overlapping_reservation(api_client, rese
     assert reservation.end == dateparse.parse_datetime('2115-04-04T11:00:00+02:00')
 
 
+@pytest.mark.parametrize('perm_type', ['unit', 'resource_group'])
 @pytest.mark.django_db
-def test_non_reservable_resource_restrictions(api_client, list_url, resource_in_unit, reservation_data, user):
+def test_non_reservable_resource_restrictions(api_client, list_url, resource_group,
+                                              reservation_data, user, group, perm_type):
     """
     Tests that a normal user cannot make a reservation to a non reservable resource but staff can.
 
     Creating a new reservation with POST and updating an existing one with PUT are both tested.
     """
+    resource_in_unit = resource_group.resources.first()
     resource_in_unit.reservable = False
     resource_in_unit.save()
     api_client.force_authenticate(user=user)
@@ -373,15 +426,38 @@ def test_non_reservable_resource_restrictions(api_client, list_url, resource_in_
     )
     detail_url = reverse('reservation-detail', kwargs={'pk': reservation.pk})
     response = api_client.put(detail_url, reservation_data)
-    assert response.status_code == 403
+    reservation.delete()
+
+    assert Reservation.objects.count() == 0
 
     # a staff member should be allowed to create and update
     user.is_staff = True
     user.save()
     response = api_client.post(list_url, data=reservation_data)
     assert response.status_code == 201
-    reservation_data['begin'] = dateparse.parse_datetime('2115-04-08T09:00:00+02:00')
-    reservation_data['end'] = dateparse.parse_datetime('2115-04-08T10:00:00+02:00')
+
+    staff_reservation_data = reservation_data.copy()
+    staff_reservation_data['id'] = response.json()['id']
+    staff_reservation_data['begin'] = dateparse.parse_datetime('2115-04-08T09:00:00+02:00')
+    staff_reservation_data['end'] = dateparse.parse_datetime('2115-04-08T10:00:00+02:00')
+    detail_url = reverse('reservation-detail', kwargs={'pk': staff_reservation_data['id']})
+    response = api_client.put(detail_url, data=staff_reservation_data)
+    assert response.status_code == 200
+    Reservation.objects.first().delete()
+    assert Reservation.objects.count() == 0
+    user.is_staff = False
+    user.save()
+
+    # If the has explicit permission to make reservations, it should be allowed.
+    user.groups.add(group)
+    if perm_type == 'unit':
+        assign_perm('unit:can_make_reservations', group, resource_in_unit.unit)
+    elif perm_type == 'resource_group':
+        assign_perm('group:can_make_reservations', group, resource_group)
+
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201
+    detail_url = reverse('reservation-detail', kwargs={'pk': response.json()['id']})
     response = api_client.put(detail_url, data=reservation_data)
     assert response.status_code == 200
 
@@ -646,6 +722,31 @@ def test_extra_fields_visibility(user_api_client, list_url, detail_url, reservat
             assert (field_name in reservation_data) is need_manual_confirmation
 
 
+@pytest.mark.parametrize('user_fixture, has_perm, expected_visibility', [
+    ('user', False, True),
+    ('user2', False, False),
+    ('staff_user', False, True),
+    ('user2', True, True),
+])
+@pytest.mark.django_db
+def test_extra_fields_visibility_per_user(user_api_client, staff_user, user, user2, list_url, detail_url,
+                                          reservation, resource_in_unit, user_fixture, has_perm, expected_visibility):
+    resource_in_unit.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
+    resource_in_unit.save()
+
+    test_user = locals().get(user_fixture)
+    user_api_client.force_authenticate(test_user)
+    if has_perm:
+        assign_perm('unit:can_view_reservation_extra_fields', test_user, resource_in_unit.unit)
+
+    for url in (list_url, detail_url):
+        response = user_api_client.get(url)
+        assert response.status_code == 200
+        reservation_data = response.data['results'][0] if 'results' in response.data else response.data
+        for field_name in DEFAULT_RESERVATION_EXTRA_FIELDS:
+            assert (field_name in reservation_data) is expected_visibility
+
+
 @pytest.mark.django_db
 def test_extra_fields_required_for_paid_reservations(user_api_client, staff_api_client, staff_user, list_url,
                                                      resource_in_unit, reservation_data):
@@ -661,7 +762,7 @@ def test_extra_fields_required_for_paid_reservations(user_api_client, staff_api_
     assert response.status_code == 400
     assert set(DEFAULT_REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
 
-    assign_perm('can_approve_reservation', staff_user, resource_in_unit.unit)
+    assign_perm('unit:can_approve_reservation', staff_user, resource_in_unit.unit)
     response = staff_api_client.post(list_url, data=reservation_data)
     assert response.status_code == 400
     assert set(DEFAULT_REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
@@ -686,7 +787,7 @@ def test_staff_event_restrictions(user_api_client, staff_api_client, staff_user,
     assert set(DEFAULT_REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
 
     # staff with permission but reserver_name and event_description missing
-    assign_perm('can_approve_reservation', staff_user, resource_in_unit.unit)
+    assign_perm('unit:can_approve_reservation', staff_user, resource_in_unit.unit)
     response = staff_api_client.post(list_url, data=reservation_data)
     assert response.status_code == 400
     assert {'reserver_name', 'event_description'} == set(response.data)
@@ -708,7 +809,7 @@ def test_new_staff_event_gets_confirmed(user_api_client, staff_api_client, staff
 
     reservation.delete()
 
-    assign_perm('can_approve_reservation', staff_user, resource_in_unit.unit)
+    assign_perm('unit:can_approve_reservation', staff_user, resource_in_unit.unit)
     reservation_data['reserver_name'] = 'herra huu'
     reservation_data['event_description'] = 'herra huun bileet'
     response = staff_api_client.post(list_url, data=reservation_data)
@@ -793,7 +894,7 @@ def test_reservation_can_be_confirmed_with_permission(staff_api_client, staff_us
     reservation.state = Reservation.REQUESTED
     reservation.save()
     reservation_data['state'] = Reservation.CONFIRMED
-    assign_perm('can_approve_reservation', staff_user, reservation.resource.unit)
+    assign_perm('unit:can_approve_reservation', staff_user, reservation.resource.unit)
 
     response = staff_api_client.put(detail_url, data=reservation_data)
     assert response.status_code == 200
@@ -919,13 +1020,19 @@ def test_state_filters(user_api_client, user, list_url, reservations_in_all_stat
 
 
 @override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.parametrize('perm_type', ['unit', 'resource_group'])
 @pytest.mark.django_db
-def test_reservation_mails(staff_api_client, staff_user, user_api_client, test_unit2, list_url, reservation_data_extra):
+def test_reservation_mails(staff_api_client, staff_user, user_api_client, test_unit2,
+                           list_url, reservation_data_extra, perm_type):
     resource = Resource.objects.get(id=reservation_data_extra['resource'])
     resource.need_manual_confirmation = True
     resource.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
     resource.save()
-    assign_perm('can_approve_reservation', staff_user, resource.unit)
+    if perm_type == 'unit':
+        assign_perm('unit:can_approve_reservation', staff_user, resource.unit)
+    elif perm_type == 'resource_group':
+        resource_group = resource.groups.create(name='test group')
+        assign_perm('group:can_approve_reservation', staff_user, resource_group)
 
     # create other staff user who should not receive mails because he doesn't have permission to the right unit
     other_official = get_user_model().objects.create(
@@ -936,7 +1043,8 @@ def test_reservation_mails(staff_api_client, staff_user, user_api_client, test_u
         is_staff=True,
         preferred_language='en'
     )
-    assign_perm('can_approve_reservation', other_official, test_unit2)
+
+    assign_perm('unit:can_approve_reservation', other_official, test_unit2)
 
     # test REQUESTED
     reservation_data_extra['state'] = Reservation.REQUESTED
@@ -949,7 +1057,7 @@ def test_reservation_mails(staff_api_client, staff_user, user_api_client, test_u
     check_received_mail_exists(
         "You've made a preliminary reservation",
         reservation_data_extra['reserver_email_address'],
-        'made a preliminary reservation',
+        ('made a preliminary reservation', 'Starts: April 4, 2115, 11 a.m.'),
         clear_outbox=False
     )
     check_received_mail_exists(
@@ -997,8 +1105,103 @@ def test_reservation_mails(staff_api_client, staff_user, user_api_client, test_u
     )
 
 
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.parametrize('perm_type', ['unit', 'resource_group'])
 @pytest.mark.django_db
-def test_can_approve_filter(staff_api_client, staff_user, list_url, reservation):
+def test_reservation_mails_in_finnish(staff_api_client, staff_user, user_api_client, test_unit2,
+                                      list_url, reservation_data_extra, perm_type, user):
+    resource = Resource.objects.get(id=reservation_data_extra['resource'])
+    resource.need_manual_confirmation = True
+    resource.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
+    resource.save()
+    if perm_type == 'unit':
+        assign_perm('unit:can_approve_reservation', staff_user, resource.unit)
+    elif perm_type == 'resource_group':
+        resource_group = resource.groups.create(name='test group')
+        assign_perm('group:can_approve_reservation', staff_user, resource_group)
+
+    user.preferred_language = 'fi'
+    user.save(update_fields=('preferred_language',))
+    staff_user.preferred_language = 'fi'
+    staff_user.save(update_fields=('preferred_language',))
+
+    # create other staff user who should not receive mails because he doesn't have permission to the right unit
+    other_official = get_user_model().objects.create(
+        username='other_unit_official',
+        first_name='Ozzy',
+        last_name='Official',
+        email='ozzy@test_unit2.com',
+        is_staff=True,
+        preferred_language='fi'
+    )
+
+    assign_perm('unit:can_approve_reservation', other_official, test_unit2)
+
+    # test REQUESTED
+    reservation_data_extra['state'] = Reservation.REQUESTED
+    response = user_api_client.post(list_url, data=reservation_data_extra, format='json')
+    assert response.status_code == 201
+
+    # 2 mails should be sent, one to the customer, and one to the staff user who can approve the reservation
+    # (and no mail for the other staff user)
+    assert len(mail.outbox) == 2
+
+    check_received_mail_exists(
+        'Olet tehnyt alustavan varauksen',
+        reservation_data_extra['reserver_email_address'],
+        ('Olet tehnyt alustavan varauksen', 'Alkaa: 4. huhtikuuta 2115 kello 11.00'),
+        clear_outbox=False
+    )
+    check_received_mail_exists(
+        'Alustava varaus tehty',
+        staff_user.email,
+        'Uusi alustava varaus on tehty'
+    )
+
+    detail_url = '%s%s/' % (list_url, response.data['id'])
+
+    # test DENIED
+    reservation_data_extra['state'] = Reservation.DENIED
+    response = staff_api_client.put(detail_url, data=reservation_data_extra, format='json')
+    assert response.status_code == 200
+    assert len(mail.outbox) == 1
+    check_received_mail_exists(
+        'Varaus hylätty',
+        reservation_data_extra['reserver_email_address'],
+        'Varauksesi on hylätty.'
+    )
+
+    # test CONFIRMED
+    reservation_data_extra['state'] = Reservation.CONFIRMED
+    response = staff_api_client.put(detail_url, data=reservation_data_extra, format='json')
+    assert response.status_code == 200
+    assert len(mail.outbox) == 1
+
+    check_received_mail_exists(
+        'Varaus vahvistettu',
+        reservation_data_extra['reserver_email_address'],
+        'Varauksesi on hyväksytty.',
+        clear_outbox=False
+    )
+    assert 'this resource rocks' in str(mail.outbox[0].message())
+    mail.outbox = []
+
+    # test CANCELLED
+    reservation_data_extra['state'] = Reservation.CANCELLED
+    response = staff_api_client.delete(detail_url, format='json')
+    assert response.status_code == 204
+    assert len(mail.outbox) == 1
+    check_received_mail_exists(
+        'Varaus peruttu',
+        reservation_data_extra['reserver_email_address'],
+        'Varauksesi on peruttu.'
+    )
+
+
+@pytest.mark.parametrize('perm_type', ['unit', 'resource_group'])
+@pytest.mark.django_db
+def test_can_approve_filter(staff_api_client, staff_user, list_url, reservation,
+                            perm_type):
     reservation.resource.need_manual_confirmation = True
     reservation.resource.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
     reservation.resource.save()
@@ -1009,7 +1212,7 @@ def test_can_approve_filter(staff_api_client, staff_user, list_url, reservation)
     assert response.status_code == 200
     assert len(response.data['results']) == 0
 
-    assign_perm('can_approve_reservation', staff_user, reservation.resource.unit)
+    assign_perm('unit:can_approve_reservation', staff_user, reservation.resource.unit)
 
     response = staff_api_client.get('%s%s' % (list_url, '?can_approve=true'))
     assert response.status_code == 200
@@ -1091,7 +1294,7 @@ def test_access_code_visibility(user, user2, staff_user, api_client, resource_in
 
     current_user = User.objects.get(username=username)
     if has_perm:
-        assign_perm('can_view_reservation_access_code', current_user, resource_in_unit.unit)
+        assign_perm('unit:can_view_reservation_access_code', current_user, resource_in_unit.unit)
     api_client.force_authenticate(current_user)
 
     response = api_client.get(detail_url)
@@ -1197,3 +1400,233 @@ def test_detail_endpoint_does_not_need_all_true_filter(user_api_client, user, re
     detail_url = reverse('reservation-detail', kwargs={'pk': reservation_in_the_past.pk})
     response = user_api_client.get(detail_url)
     assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_user_permissions_field(api_client, user_api_client, user, user2, resource_in_unit, reservation, detail_url):
+    response = api_client.get(detail_url)
+    assert response.status_code == 200
+    assert response.data['user_permissions'] == {'can_delete': False, 'can_modify': False}
+
+    response = user_api_client.get(detail_url)
+    assert response.status_code == 200
+    assert response.data['user_permissions'] == {'can_delete': True, 'can_modify': True}
+
+    user_api_client.force_authenticate(user2)
+    response = user_api_client.get(detail_url)
+    assert response.status_code == 200
+    assert response.data['user_permissions'] == {'can_delete': False, 'can_modify': False}
+
+    user2.is_staff = True
+    user2.save()
+    response = user_api_client.get(detail_url)
+    assert response.status_code == 200
+    assert response.data['user_permissions'] == {'can_delete': True, 'can_modify': True}
+
+
+@pytest.mark.parametrize('filtering', (
+    'event_subject=not so fancy',
+    'host_name=arkku',
+    'reserver_name=irkko',
+))
+@pytest.mark.django_db
+def test_charfield_filters(user_api_client, staff_api_client, user, staff_user, reservation, reservation2,
+                           reservation3, list_url, filtering):
+    # without filters all reservations should be returned
+    response = user_api_client.get(list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [reservation, reservation2, reservation3])
+
+    url_with_filters = list_url + '?' + filtering
+
+    # with the filter only one of the matching reservations should be returned
+    # because the other one belongs to a different user
+    response = user_api_client.get(url_with_filters)
+    assert response.status_code == 200
+    assert_response_objects(response, reservation2)
+
+    # superusers don't have the above restriction
+    staff_user.is_superuser = True
+    staff_user.save()
+    response = staff_api_client.get(url_with_filters)
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation2, reservation3))
+
+    # having the right permission allows the user to filter the other user's reservation also
+    assign_perm('unit:can_view_reservation_extra_fields', user, reservation3.resource.unit)
+    response = user_api_client.get(url_with_filters)
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation2, reservation3))
+    remove_perm('unit:can_view_reservation_extra_fields', user, reservation3.resource.unit)
+
+    response = user_api_client.get(url_with_filters)
+    assert response.status_code == 200
+    assert_response_objects(response, reservation2)
+
+    resource_group = reservation3.resource.groups.create(name='group3')
+    group = user.groups.create(name='user group')
+    assign_perm('group:can_view_reservation_extra_fields', group, resource_group)
+    response = user_api_client.get(url_with_filters)
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation2, reservation3))
+
+
+@pytest.mark.django_db
+def test_resource_name_filter(user_api_client, user, reservation, reservation2, reservation3, list_url):
+    response = user_api_client.get(list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation, reservation2, reservation3))
+
+    response = user_api_client.get(list_url + '?resource_name=in unit 2')
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation2, reservation3))
+
+
+@pytest.mark.django_db
+def test_is_favorite_resource_filter(user_api_client, user, resource_in_unit, reservation, reservation2,
+                                     reservation3, list_url):
+    user.favorite_resources.add(resource_in_unit)
+
+    response = user_api_client.get(list_url + '?is_favorite_resource=true')
+    assert response.status_code == 200
+    assert_response_objects(response, reservation)
+
+    response = user_api_client.get(list_url + '?is_favorite_resource=false')
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation2, reservation3))
+
+
+@pytest.mark.django_db
+def test_resource_group_filter(user_api_client, user, reservation, reservation2, reservation3, resource_in_unit,
+                               resource_in_unit2, resource_in_unit3, list_url):
+    reservation2.resource = resource_in_unit2
+    reservation2.save()
+
+    reservation3.resource = resource_in_unit3
+    reservation3.user = user
+    reservation3.save()
+
+    group_1 = ResourceGroup.objects.create(name='test group 1', identifier='test_group_1')
+    resource_in_unit.groups = [group_1]
+
+    group_2 = ResourceGroup.objects.create(name='test group 2', identifier='test_group_2')
+    resource_in_unit2.groups = [group_1, group_2]
+
+    group_3 = ResourceGroup.objects.create(name='test group 3', identifier='test_group_3')
+    resource_in_unit3.groups = [group_3]
+
+    response = user_api_client.get(list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation, reservation2, reservation3))
+
+    response = user_api_client.get(list_url + '?' + 'resource_group=' + group_1.identifier)
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation, reservation2))
+
+    response = user_api_client.get(list_url + '?' + 'resource_group=' + group_2.identifier)
+    assert response.status_code == 200
+    assert_response_objects(response, reservation2)
+
+    response = user_api_client.get(list_url + '?' + 'resource_group=%s,%s' % (group_1.identifier, group_2.identifier))
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation, reservation2))
+
+    response = user_api_client.get(list_url + '?' + 'resource_group=foobar')
+    assert response.status_code == 200
+    assert len(response.data['results']) == 0
+
+
+@pytest.mark.django_db
+def test_unit_filter(user_api_client, reservation, reservation2, resource_in_unit2, list_url):
+    reservation2.resource = resource_in_unit2
+    reservation2.save()
+
+    response = user_api_client.get(list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation, reservation2))
+
+    response = user_api_client.get(list_url + '?unit=' + resource_in_unit2.unit.id)
+    assert response.status_code == 200
+    assert_response_objects(response, reservation2)
+
+    response = user_api_client.get(list_url + '?unit=foobar')
+    assert response.status_code == 200
+    assert not len(response.data['results'])
+
+
+@pytest.mark.django_db
+def test_has_catering_order_filter(user_api_client, user, user2, resource_in_unit, reservation, reservation2,
+                                   reservation3, list_url):
+    CateringOrder.objects.create(
+        reservation=reservation,
+    )
+    CateringOrder.objects.create(
+        reservation=reservation3,
+    )
+    response = user_api_client.get(list_url + '?has_catering_order=true')
+    assert response.status_code == 200
+    assert_response_objects(response, reservation)
+
+    response = user_api_client.get(list_url + '?has_catering_order=false')
+    assert response.status_code == 200
+    assert_response_objects(response, reservation2)
+
+    user.is_superuser = True
+    user.save()
+    response = user_api_client.get(list_url + '?has_catering_order=true')
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation, reservation3))
+
+    user.is_superuser = False
+    user.save()
+    assign_perm('unit:can_view_reservation_catering_orders', user, reservation3.resource.unit)
+    response = user_api_client.get(list_url + '?has_catering_order=true')
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation, reservation3))
+    remove_perm('unit:can_view_reservation_catering_orders', user, reservation3.resource.unit)
+
+    resource_group = reservation3.resource.groups.create(name='rg1')
+    assign_perm('group:can_view_reservation_catering_orders', user, resource_group)
+    response = user_api_client.get(list_url + '?has_catering_order=true')
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation, reservation3))
+
+
+@pytest.mark.django_db
+def test_has_catering_order_field(user_api_client, user, user2, reservation, detail_url):
+    reservation.user = user2
+    reservation.save()
+
+    response = user_api_client.get(detail_url)
+    assert response.status_code == 200
+    assert 'has_catering_order' not in response.data
+
+    user_api_client.force_authenticate(user2)
+    response = user_api_client.get(detail_url)
+    assert response.status_code == 200
+    assert response.data['has_catering_order'] is False
+
+    CateringOrder.objects.create(
+        reservation=reservation,
+    )
+
+    response = user_api_client.get(detail_url)
+    assert response.status_code == 200
+    assert response.data['has_catering_order'] is True
+
+    user_api_client.force_authenticate(user)
+    user.is_staff = True
+    user.save()
+
+    response = user_api_client.get(detail_url)
+    assert response.status_code == 200
+    assert response.data['has_catering_order'] is True
+
+    user.is_staff = False
+    user.save()
+    assign_perm('unit:can_view_reservation_catering_orders', user, reservation.resource.unit)
+    reservation.catering_orders.all().delete()
+
+    response = user_api_client.get(detail_url)
+    assert response.status_code == 200
+    assert response.data['has_catering_order'] is False

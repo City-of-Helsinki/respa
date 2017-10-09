@@ -8,8 +8,21 @@ from autoslug import AutoSlugField
 from .base import AutoIdentifiedModel, ModifiableModel
 from .utils import create_reservable_before_datetime, get_translated, get_translated_name
 from .availability import get_opening_hours
+from .permissions import RESOURCE_PERMISSIONS
 
 from munigeo.models import Municipality
+
+
+def _get_default_timezone():
+    return timezone.get_default_timezone().zone
+
+
+def _get_timezone_choices():
+    return [(x, x) for x in pytz.all_timezones]
+
+
+def _generate_unit_permissions():
+    return [('unit:%s' % p, t) for p, t in RESOURCE_PERMISSIONS]
 
 
 class Unit(ModifiableModel, AutoIdentifiedModel):
@@ -19,8 +32,7 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
 
     location = models.PointField(verbose_name=_('Location'), null=True, srid=settings.DEFAULT_SRID)
     time_zone = models.CharField(verbose_name=_('Time zone'), max_length=50,
-                                 default=timezone.get_default_timezone().zone,
-                                 choices=[(x, x) for x in pytz.all_timezones])
+                                 default=_get_default_timezone)
 
     # organization = models.ForeignKey(...)
     street_address = models.CharField(verbose_name=_('Street address'), max_length=100, null=True)
@@ -44,11 +56,14 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
     class Meta:
         verbose_name = _("unit")
         verbose_name_plural = _("units")
-        permissions = (
-            ('can_approve_reservation', _('Can approve reservation')),
-            ('can_view_reservation_access_code', _('Can view reservation access code')),
-        )
+        permissions = _generate_unit_permissions()
         ordering = ('name',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Set the time zone choices here in order to avoid spawning
+        # spurious migrations.
+        self._meta.get_field('time_zone').choices = _get_timezone_choices()
 
     def __str__(self):
         return "%s (%s)" % (get_translated(self, 'name'), self.id)

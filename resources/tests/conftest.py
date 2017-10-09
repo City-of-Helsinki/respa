@@ -2,6 +2,7 @@
 import pytest
 import datetime
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from rest_framework.test import APIClient, APIRequestFactory
 
 from resources.models import Resource, ResourceType, Unit, Purpose, Day, Period
@@ -64,6 +65,11 @@ def test_unit2():
 
 
 @pytest.fixture
+def test_unit3():
+    return Unit.objects.create(name="unit 3", time_zone='Europe/Helsinki')
+
+
+@pytest.fixture
 def terms_of_use():
     return TermsOfUse.objects.create(
         name_fi='testikäyttöehdot',
@@ -99,6 +105,20 @@ def resource_in_unit2(space_resource_type, test_unit2):
         authentication="none",
         name="resource in unit 2",
         unit=test_unit2,
+        max_reservations_per_user=2,
+        max_period=datetime.timedelta(hours=4),
+        reservable=True,
+    )
+
+
+@pytest.mark.django_db
+@pytest.fixture
+def resource_in_unit3(space_resource_type, test_unit3):
+    return Resource.objects.create(
+        type=space_resource_type,
+        authentication="none",
+        name="resource in unit 3",
+        unit=test_unit3,
         max_reservations_per_user=2,
         max_period=datetime.timedelta(hours=4),
         reservable=True,
@@ -208,6 +228,12 @@ def staff_user():
         is_staff=True,
         preferred_language='en'
     )
+
+
+@pytest.mark.django_db
+@pytest.fixture
+def group():
+    return Group.objects.create(name='test group')
 
 
 @pytest.mark.django_db

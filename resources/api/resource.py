@@ -15,11 +15,11 @@ from resources.pagination import PurposePagination
 from rest_framework import exceptions, filters, mixins, serializers, viewsets, response, status
 from rest_framework.decorators import detail_route
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.fields import BooleanField
 
 from munigeo import api as munigeo_api
-from resources.models import (Purpose, Resource, ResourceImage, ResourceType, ResourceEquipment, TermsOfUse)
-from .base import TranslatedModelSerializer, register_view
+from resources.models import (Purpose, Reservation, Resource, ResourceImage, ResourceType, ResourceEquipment,
+                              TermsOfUse)
+from .base import TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
 from .reservation import ReservationSerializer
 from .unit import UnitSerializer
 from .equipment import EquipmentSerializer
@@ -53,9 +53,20 @@ class ResourceTypeSerializer(TranslatedModelSerializer):
         fields = ['name', 'main_type', 'id']
 
 
+class ResourceTypeFilterSet(django_filters.FilterSet):
+    resource_group = django_filters.Filter(name='resource__groups__identifier', lookup_expr='in',
+                                           widget=django_filters.widgets.CSVWidget, distinct=True)
+
+    class Meta:
+        model = ResourceType
+        fields = ('resource_group',)
+
+
 class ResourceTypeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ResourceType.objects.all()
     serializer_class = ResourceTypeSerializer
+    filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
+    filter_class = ResourceTypeFilterSet
 
 register_view(ResourceTypeViewSet, 'type')
 
@@ -119,6 +130,7 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
         request = self.context.get('request', None)
         return {
             'can_make_reservations': obj.can_make_reservations(request.user) if request else False,
+            'can_ignore_opening_hours': obj.can_ignore_opening_hours(request.user) if request else False,
             'is_admin': obj.is_admin(request.user) if request else False,
         }
 
@@ -176,7 +188,10 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
                 raise exceptions.ParseError("'%s' must be a timestamp in ISO 8601 format" % name)
 
         if 'duration' in params:
-            times['duration'] = params['duration']
+            try:
+                times['duration'] = int(params['duration'])
+            except ValueError:
+                raise exceptions.ParseError("'duration' must be supplied as an integer")
 
         if 'during_closing' in params:
             during_closing = params['during_closing'].lower()
@@ -184,8 +199,10 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
                 times['during_closing'] = True
 
         if len(times):
-            if len(times) < 2:
+            if 'start' not in times or 'end' not in times:
                 raise exceptions.ParseError("You must supply both 'start' and 'end'")
+            if times['end'] < times['start']:
+                raise exceptions.ParseError("'end' must be after 'start'")
             self.context.update(times)
 
     def get_opening_hours(self, obj):
@@ -273,23 +290,24 @@ class ParentCharFilter(ParentFilter):
     field_class = forms.CharField
 
 
-class DRFFilterBooleanWidget(django_filters.widgets.BooleanWidget):
-    def render(self, *args, **kwargs):
-        return None
-
-
 class ResourceFilterSet(django_filters.FilterSet):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
         super().__init__(*args, **kwargs)
 
     purpose = ParentCharFilter(name='purposes__id', lookup_expr='iexact')
-    type = django_filters.CharFilter(name='type__id', lookup_expr='iexact')
+    type = django_filters.Filter(name='type__id', lookup_expr='in', widget=django_filters.widgets.CSVWidget)
     people = django_filters.NumberFilter(name='people_capacity', lookup_expr='gte')
-    need_manual_confirmation = django_filters.BooleanFilter(name='need_manual_confirmation', widget=DRFFilterBooleanWidget)
+    need_manual_confirmation = django_filters.BooleanFilter(name='need_manual_confirmation',
+                                                            widget=DRFFilterBooleanWidget)
     is_favorite = django_filters.BooleanFilter(method='filter_is_favorite', widget=DRFFilterBooleanWidget)
     unit = django_filters.CharFilter(name='unit__id', lookup_expr='iexact')
-    group = django_filters.Filter(name='groups__identifier', lookup_expr='in', widget=django_filters.widgets.CSVWidget)
+    resource_group = django_filters.Filter(name='groups__identifier', lookup_expr='in',
+                                           widget=django_filters.widgets.CSVWidget, distinct=True)
+    equipment = django_filters.Filter(name='resource_equipment__equipment__id', lookup_expr='in',
+                                      widget=django_filters.widgets.CSVWidget, distinct=True)
+    available_between = django_filters.Filter(method='filter_available_between',
+                                              widget=django_filters.widgets.CSVWidget)
 
     def filter_is_favorite(self, queryset, name, value):
         if not self.user.is_authenticated():
@@ -303,9 +321,55 @@ class ResourceFilterSet(django_filters.FilterSet):
         else:
             return queryset.exclude(favorited_by=self.user)
 
+    def _deserialize_datetime(self, value):
+        try:
+            return arrow.get(value).datetime
+        except ParserError:
+            raise exceptions.ParseError("'%s' must be a timestamp in ISO 8601 format" % value)
+
+    def _is_resource_open(self, resource, start, end):
+        opening_hours = resource.get_opening_hours(start, end)
+
+        if len(opening_hours) > 1:
+            # range spans over multiple days, assume resources aren't open all night and skip the resource
+            return False
+
+        hours = next(iter(opening_hours.values()))[0]  # assume there is only one hours obj per day
+        if not hours['opens'] and not hours['closes']:
+            return False
+
+        start_too_early = hours['opens'] and start < hours['opens']
+        end_too_late = hours['closes'] and end > hours['closes']
+        if start_too_early or end_too_late:
+            return False
+
+        return True
+
+    def filter_available_between(self, queryset, name, value):
+        if len(value) != 2:
+            raise exceptions.ParseError('available_between takes exactly two comma-separated values.')
+
+        available_start = self._deserialize_datetime(value[0])
+        available_end = self._deserialize_datetime(value[1])
+
+        if available_start.date() != available_end.date():
+            raise exceptions.ParseError('available_between timestamps must be on the same day.')
+
+        # exclude resources that have reservation(s) overlapping with the available_between range
+        overlapping_reservations = Reservation.objects.filter(end__gt=available_start).filter(begin__lt=available_end)
+        queryset = queryset.exclude(reservations__in=overlapping_reservations)
+
+        closed_resource_ids = {
+            resource.id
+            for resource in queryset
+            if not self._is_resource_open(resource, available_start, available_end)
+        }
+
+        return queryset.exclude(id__in=closed_resource_ids)
+
     class Meta:
         model = Resource
-        fields = ['purpose', 'type', 'people', 'need_manual_confirmation', 'is_favorite', 'unit']
+        fields = ['purpose', 'type', 'people', 'need_manual_confirmation', 'is_favorite', 'unit', 'available_between']
 
 
 class ResourceFilterBackend(filters.BaseFilterBackend):

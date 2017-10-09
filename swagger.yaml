@@ -71,6 +71,11 @@ paths:
 
         Returns 20 units per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 20 units per page.
       parameters:
+        - name: resource_group
+          in: query
+          required: false
+          type: string
+          description: Only return units whose resources belong to the speficied resource group(s). Accepts multiple comma-separated values.
         - name: page
           in: query
           description: Result page number
@@ -181,6 +186,11 @@ paths:
 
         Returns 20 types per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 20 units per page.
       parameters:
+        - name: resource_group
+          in: query
+          required: false
+          type: string
+          description: Only return types for which there are resources that belong to the speficied resource group(s). Accepts multiple comma-separated values.
         - name: page
           in: query
           description: Result page number
@@ -236,6 +246,11 @@ paths:
 
         Returns 20 pieces of equipment per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 20 pieces of equipment per page.
       parameters:
+        - name: resource_group
+          in: query
+          required: false
+          type: string
+          description: Only return pieces of equipment that belong to the speficied resource group(s). Accepts multiple comma-separated values.
         - name: page
           in: query
           description: Result page number
@@ -355,7 +370,7 @@ paths:
           type: string
         - name: type
           in: query
-          description: Only return resources of the specified type
+          description: Only return resources of the specified type(s). Accepts multiple comma-separated values.
           required: false
           type: string
         - name: search
@@ -390,6 +405,22 @@ paths:
           description: Only return resources with greater or equal capacity
           required: false
           type: number
+        - name: equipment
+          in: query
+          required: false
+          type: string
+          description: Only return resources that contain the specified piece(s) of equipment. Accepts multiple comma-separated values.
+        - name: resource_group
+          in: query
+          required: false
+          type: string
+          description: Only return resources that belong to the speficied resource group(s). Accepts multiple comma-separated values.
+        - name: available_between
+          in: query
+          required: false
+          type: string
+          format: date-time
+          description: Only return resources that are open and free on the given datetime range. Expects two comma-separated datetimes.
         - name: page
           in: query
           description: Result page number
@@ -496,6 +527,11 @@ paths:
           description: Display reservations that the request user has the right to approve.
           required: false
           type: boolean
+        - name: resource_group
+          in: query
+          required: false
+          type: string
+          description: Only return reservations for resources in the specified resource group(s). Accepts multiple comma-separated values.
       responses:
         '200':
           description: Successful response
@@ -828,6 +864,9 @@ definitions:
         description: 'The intervals when the resource is open during the queried period'
         items:
           type: object
+      reservable:
+        type: boolean
+        description: 'Is it possible to create or modify reservations for this resource through the API. Even if this is false, reservations by other means (eg. phone call) might still be possible.'
       reservations:
         type: array
         description: 'The reservations made for the resource during the queried period'

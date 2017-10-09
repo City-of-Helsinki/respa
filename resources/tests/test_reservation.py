@@ -54,7 +54,6 @@ class ReservationTestCase(TestCase):
         reservation = Reservation.objects.create(resource=r1a, begin=begin, end=end)
         reservation.clean()
 
-        print(Reservation.objects.all())
         # Attempt overlapping reservation
         with self.assertRaises(ValidationError):
             reservation = Reservation(resource=r1a, begin=begin, end=end)
