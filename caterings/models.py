@@ -85,6 +85,9 @@ class CateringOrderQuerySet(models.QuerySet):
 
 @reversion.register(follow=('order_lines',))
 class CateringOrder(TimeStampedModel):
+    provider = models.ForeignKey(
+        CateringProvider, verbose_name=_('Catering provider'), related_name='catering_orders', on_delete=models.PROTECT
+    )
     reservation = models.ForeignKey(
         Reservation, verbose_name=_('Reservation'), related_name='catering_orders', on_delete=models.CASCADE
     )
@@ -103,11 +106,7 @@ class CateringOrder(TimeStampedModel):
         return 'catering order for %s' % self.reservation
 
     def get_provider(self):
-        try:
-            order_line = self.order_lines.first()
-        except CateringOrderLine.DoesNotExist:
-            return None
-        return order_line.product.category.provider
+        return self.provider
 
     def get_notification_context(self, language_code):
         with translation.override(language_code):

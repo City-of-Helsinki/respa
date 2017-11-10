@@ -151,6 +151,7 @@ class CateringOrderSerializer(serializers.ModelSerializer):
             raise exceptions.PermissionDenied(_("No permission to modify this reservation's catering orders."))
 
         provider = validated_data['order_lines'][0]['product'].category.provider
+        validated_data['provider'] = provider
         for order_line in validated_data['order_lines'][1:]:
             if order_line['product'].category.provider != provider:
                 raise exceptions.ValidationError(_('The order contains products from several providers.'))

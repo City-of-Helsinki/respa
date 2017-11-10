@@ -75,6 +75,7 @@ def catering_order(catering_product, reservation, user):
         invoicing_data='777-777',
         message='lots of salt please',
         serving_time=datetime.time(12, 00, 00),
+        provider=catering_product.category.provider
     )
     order_line = CateringOrderLine.objects.create(
         product=catering_product,
@@ -90,6 +91,7 @@ def catering_order2(catering_product2, reservation2):
         reservation=reservation2,
         invoicing_data='123456',
         message='NO SUGAR!',
+        provider=catering_product2.category.provider
     )
     order_line = CateringOrderLine.objects.create(
         product=catering_product2,
@@ -104,6 +106,7 @@ def catering_order3(catering_product3, reservation3):
     order = CateringOrder.objects.create(
         reservation=reservation3,
         invoicing_data='xyz',
+        provider=catering_product3.category.provider
     )
     order_line = CateringOrderLine.objects.create(
         product=catering_product3,

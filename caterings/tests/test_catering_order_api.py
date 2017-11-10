@@ -261,14 +261,17 @@ def test_order_cannot_have_provider_not_available_in_unit(user_api_client, reser
 def test_reservation_filter(user_api_client, catering_order, reservation, reservation2, reservation3):
     catering_order2 = CateringOrder.objects.create(
         reservation=reservation2,
+        provider=catering_order.provider,
         invoicing_data='123456',
     )
     catering_order3 = CateringOrder.objects.create(
         reservation=reservation2,
+        provider=catering_order.provider,
         invoicing_data='654321',
     )
     catering_order_that_should_not_be_visible = CateringOrder.objects.create(
         reservation=reservation3,
+        provider=catering_order.provider,
         invoicing_data='xxx',
     )
 
