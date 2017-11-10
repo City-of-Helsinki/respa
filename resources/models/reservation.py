@@ -235,7 +235,7 @@ class Reservation(ModifiableModel):
         if self.need_manual_confirmation() and self.state == Reservation.CONFIRMED and cannot_approve:
             return False
 
-        return self.resource.is_admin(user) or self.user == user
+        return self.user == user or self.resource.can_modify_reservations(user)
 
     def can_add_comment(self, user):
         if self.is_own(user):

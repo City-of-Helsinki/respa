@@ -416,6 +416,9 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     def can_make_reservations(self, user):
         return self.reservable or self._has_perm(user, 'can_make_reservations')
 
+    def can_modify_reservations(self, user):
+        return self._has_perm(user, 'can_modify_reservations')
+
     def can_ignore_opening_hours(self, user):
         return self._has_perm(user, 'can_ignore_opening_hours')
 

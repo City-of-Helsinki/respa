@@ -198,6 +198,29 @@ def test_authenticated_user_can_modify_reservation(
 
 
 @pytest.mark.django_db
+def test_another_user_modifies_reservations(
+        api_client, detail_url, reservation_data, resource_in_unit, user2):
+    """
+    Tests that an authenticated user can modify her own reservation
+    """
+    api_client.force_authenticate(user=user2)
+
+    # No permission
+    response = api_client.put(detail_url, data=reservation_data)
+    assert response.status_code == 403
+
+    # Explicit permission
+    assign_perm('unit:can_modify_reservations', user2, resource_in_unit.unit)
+    response = api_client.put(detail_url, data=reservation_data)
+    assert response.status_code == 200
+
+    reservation = Reservation.objects.get(pk=response.data['id'])
+    assert reservation.resource == resource_in_unit
+    assert reservation.begin == dateparse.parse_datetime('2115-04-04T11:00:00+02:00')
+    assert reservation.end == dateparse.parse_datetime('2115-04-04T12:00:00+02:00')
+
+
+@pytest.mark.django_db
 def test_authenticated_user_can_delete_reservation(api_client, detail_url, reservation, user):
     """
     Tests that an authenticated user can delete her own reservation
