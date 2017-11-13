@@ -1,0 +1,8 @@
+Importer for City of Helsinki's old room reservation service
+
+- Generate the CSV files by:
+
+for table in $(mdb-tables hvara.mdb) ; do
+    outf=$(echo $table | tr "[A-Z]" "[a-z]")
+    mdb-export -D "%Y-%m-%dT%H:%M:%S" hvara.mdb $table > $outf.csv
+done
