@@ -21,7 +21,7 @@ class FindCalendarItemsRequest(EWSRequest):
         :param end_date: End date for the query
         """
         body = M.FindItem(
-            {u'Traversal': u'Shallow'},
+            {'Traversal': 'Shallow'},
             M.ItemShape(
                 T.BaseShape("Default")
             ),
@@ -140,7 +140,8 @@ class CreateCalendarItemRequest(BaseCalendarItemRequest):
     def __init__(
         self,
         principal,
-        item_props
+        item_props,
+        send_notifications=True,
     ):
         """
         Initialize the request.
@@ -157,10 +158,15 @@ class CreateCalendarItemRequest(BaseCalendarItemRequest):
             for (field_id, node)
             in self._convert_props(item_props, add_defaults=True)
         ]
+        if send_notifications:
+            send_notifications_string = "SendToAllAndSaveCopy"
+        else:
+            send_notifications_string = "SendToNone"
+
         root = M.CreateItem(
             M.SavedItemFolderId(get_distinguished_folder_id_element(principal, "calendar")),
             M.Items(T.CalendarItem(*fields)),
-            SendMeetingInvitations="SendToAllAndSaveCopy"
+            SendMeetingInvitations=send_notifications_string
         )
         super(CreateCalendarItemRequest, self).__init__(body=root, impersonation=principal)
 
@@ -174,7 +180,8 @@ class UpdateCalendarItemRequest(BaseCalendarItemRequest):
         self,
         principal,
         item_id,
-        update_props
+        update_props,
+        send_notifications=True,
     ):
         """
         Initialize the request.
@@ -195,6 +202,10 @@ class UpdateCalendarItemRequest(BaseCalendarItemRequest):
         if not updates:
             raise ValueError("No updates")
 
+        if send_notifications:
+            send_notifications_string = "SendToAllAndSaveCopy"
+        else:
+            send_notifications_string = "SendToNone"
         root = M.UpdateItem(
             M.ItemChanges(
                 T.ItemChange(
@@ -202,9 +213,9 @@ class UpdateCalendarItemRequest(BaseCalendarItemRequest):
                     T.Updates(*updates)
                 )
             ),
-            ConflictResolution=u"AlwaysOverwrite",
-            MessageDisposition=u"SendAndSaveCopy",
-            SendMeetingInvitationsOrCancellations="SendToAllAndSaveCopy"
+            ConflictResolution="AlwaysOverwrite",
+            MessageDisposition="SendAndSaveCopy",
+            SendMeetingInvitationsOrCancellations=send_notifications_string
         )
 
         super(UpdateCalendarItemRequest, self).__init__(root, impersonation=principal)
@@ -218,7 +229,8 @@ class DeleteCalendarItemRequest(EWSRequest):
     def __init__(
         self,
         principal,
-        item_id
+        item_id,
+        send_notifications=True,
     ):
         """
         Initialize the request.
@@ -227,10 +239,14 @@ class DeleteCalendarItemRequest(EWSRequest):
         :param item_id: Item ID object
         :type item_id: respa_exchange.objs.ItemID
         """
+        if send_notifications:
+            send_notifications_string = "SendToAllAndSaveCopy"
+        else:
+            send_notifications_string = "SendToNone"
         root = M.DeleteItem(
             M.ItemIds(item_id.to_xml()),
             DeleteType="HardDelete",
-            SendMeetingCancellations="SendToAllAndSaveCopy",
+            SendMeetingCancellations=send_notifications_string,
             AffectedTaskOccurrences="AllOccurrences"
         )
         super(DeleteCalendarItemRequest, self).__init__(root, impersonation=principal)

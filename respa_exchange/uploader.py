@@ -20,6 +20,7 @@ def _build_subject(res):
     """
     if res.event_subject:
         return res.event_subject
+
     bits = ["Respa"]
     if res.reserver_name:
         bits.append(res.reserver_name)
@@ -74,9 +75,14 @@ def create_on_remote(exres):
         return
     assert isinstance(res, Reservation)
 
+    send_notifications = True
+    if getattr(res, '_skip_notifications', False):
+        send_notifications = False
+
     ccir = CreateCalendarItemRequest(
         principal=force_text(exres.principal_email),
         item_props=_get_calendar_item_props(exres),
+        send_notifications=send_notifications
     )
     exres.item_id = ccir.send(exres.exchange.get_ews_session())
     exres.save()
@@ -93,11 +99,17 @@ def update_on_remote(exres):
     res = exres.reservation
     if res.state in (Reservation.DENIED, Reservation.CANCELLED):
         return delete_on_remote(exres)
+
+    send_notifications = True
+    if getattr(res, '_skip_notifications', False):
+        send_notifications = False
+
     # TODO: Should we try and track the state of the object to avoid sending superfluous updates?
     ucir = UpdateCalendarItemRequest(
         principal=force_text(exres.principal_email),
         item_id=exres.item_id,
         update_props=_get_calendar_item_props(exres),
+        send_notifications=send_notifications
     )
     exres.item_id = ucir.send(exres.exchange.get_ews_session())
     exres.save()
@@ -112,9 +124,13 @@ def delete_on_remote(exres):
     :param exres: Exchange Reservation
     :type exres: respa_exchange.models.ExchangeReservation
     """
+    send_notifications = True
+    if getattr(exres.reservation, '_skip_notifications', False):
+        send_notifications = False
     dcir = DeleteCalendarItemRequest(
         principal=exres.principal_email,
-        item_id=exres.item_id
+        item_id=exres.item_id,
+        send_notifications=send_notifications
     )
     dcir.send(exres.exchange.get_ews_session())
     log.info("Deleted %s", exres)
