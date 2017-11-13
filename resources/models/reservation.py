@@ -111,6 +111,9 @@ class Reservation(ModifiableModel):
     billing_address_zip = models.CharField(verbose_name=_('Billing address zip'), max_length=30, blank=True)
     billing_address_city = models.CharField(verbose_name=_('Billing address city'), max_length=100, blank=True)
 
+    # If the reservation was imported from another system, you can store the original ID in the field below.
+    origin_id = models.CharField(verbose_name=_('Original ID'), max_length=50, editable=False, null=True)
+
     objects = ReservationQuerySet.as_manager()
 
     class Meta:
