@@ -8,7 +8,7 @@ from django.test.utils import override_settings
 from django.utils import dateparse, timezone
 from guardian.shortcuts import assign_perm, remove_perm
 from freezegun import freeze_time
-from caterings.models import CateringOrder
+from caterings.models import CateringOrder, CateringProvider
 
 from resources.models import (Period, Day, Reservation, Resource, ResourceGroup, ReservationMetadataField,
                               ReservationMetadataSet)
@@ -1580,11 +1580,17 @@ def test_unit_filter(user_api_client, reservation, reservation2, resource_in_uni
 @pytest.mark.django_db
 def test_has_catering_order_filter(user_api_client, user, user2, resource_in_unit, reservation, reservation2,
                                    reservation3, list_url):
+    provider = CateringProvider.objects.create(
+        name='Kaikkein Kovin Catering Oy',
+        price_list_url_fi='www.kaikkeinkovincatering.biz/hinnasto/',
+    )
     CateringOrder.objects.create(
         reservation=reservation,
+        provider=provider
     )
     CateringOrder.objects.create(
         reservation=reservation3,
+        provider=provider
     )
     response = user_api_client.get(list_url + '?has_catering_order=true')
     assert response.status_code == 200
@@ -1629,8 +1635,13 @@ def test_has_catering_order_field(user_api_client, user, user2, reservation, det
     assert response.status_code == 200
     assert response.data['has_catering_order'] is False
 
+    provider = CateringProvider.objects.create(
+        name='Kaikkein Kovin Catering Oy',
+        price_list_url_fi='www.kaikkeinkovincatering.biz/hinnasto/',
+    )
     CateringOrder.objects.create(
         reservation=reservation,
+        provider=provider,
     )
 
     response = user_api_client.get(detail_url)
