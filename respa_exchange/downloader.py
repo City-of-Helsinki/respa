@@ -85,7 +85,7 @@ def _determine_organizer(ex_resource, organizer):
         id_field = 'email_address'
         user_identifier = user_identifier.lower()
     elif routing_type == "EX":
-        id_field = 'x500_address'
+        id_field = 'x500_address__iexact'
     else:
         log.error("Unknown mailbox routing type (%s)" % etree.tostring(mailbox, encoding=str))
         return None
@@ -114,9 +114,9 @@ def _determine_organizer(ex_resource, organizer):
             log.error("Invalid response to ResolveNamesRequest (%s)" % user_identifier)
             return None
 
-        props = dict(name=contact.find("t:DisplayName", namespaces=NAMESPACES),
-                     given_name=contact.find("t:GivenName", namespaces=NAMESPACES),
+        props = dict(given_name=contact.find("t:GivenName", namespaces=NAMESPACES),
                      surname=contact.find("t:Surname", namespaces=NAMESPACES))
+        # props['name'] = contact.find("t:DisplayName", namespaces=NAMESPACES),
         props = {k: v.text for k, v in props.items() if v is not None}
         email = email.text.lower()
         props['email_address'] = email
@@ -126,7 +126,7 @@ def _determine_organizer(ex_resource, organizer):
 
     for k, v in props.items():
         setattr(ex_user, k, v)
-    log.info("Saving new ExchangeUser %s" % ex_user)
+
     ex_user.save()
     return ex_user
 
