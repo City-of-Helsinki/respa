@@ -83,6 +83,11 @@ class ReservationDetailsDocxRenderer(DocxRenderer):
                 row_cells = table.add_row().cells
                 row_cells[0].text = _('Invoicing data')
                 row_cells[1].text = catering_order.invoicing_data
+
+                if catering_order.message:
+                    row_cells = table.add_row().cells
+                    row_cells[0].text = _('Message')
+                    row_cells[1].text = catering_order.message
             else:
                 document.add_paragraph(_('No catering order'))
 
