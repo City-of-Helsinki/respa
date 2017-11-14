@@ -54,7 +54,9 @@ def import_reservations(resources, users):
         for idx, row in enumerate(reader):
             if row['TilaId'] not in resources:
                 continue
-            if row['AlkuAika'] < '2017-11':
+            if row['AlkuAika'] < '2014-01':
+                continue
+            if row['LoppuAika'] <= row['AlkuAika']:
                 continue
             if row['Poistettu'] != '0':
                 continue
@@ -78,7 +80,6 @@ def import_reservations(resources, users):
             if not resource['object']:
                 continue
             resource['reservations'].append(row)
-            #print("%s: %s -> %s: %s" % (resource['Nimi'], row['AlkuAika'], row['LoppuAika'], user['Mail']))
     return reservations
 
 
@@ -168,11 +169,14 @@ def determine_resource_mapping(resources):
         name = res['Nimi'].split('/')[0].strip()
         matches = difflib.get_close_matches(name, res_list, cutoff=0.5)
         if not matches:
+            if res['Nimi'] in RESOURCE_MAP:
+                continue
             res['object'] = None
             print("    '%s': None" % (res['Nimi']))
             continue
         res['object'] = Resource.objects.get(unit__name__in=units, name=matches[0])
-        upcoming_reservations = res['object'].reservations.filter(begin__gte='2017-11-01').count()
+        upcoming_reservations = res['object'].reservations.filter(begin__gte='2017-11-01')\
+            .exclude(id__startswith='hvara:').count()
         print("    '%s': '%s', # %s" % (res['Nimi'], res['object'].id, res['object'].name))
         assert not res['object'].public
         assert upcoming_reservations == 0
@@ -187,7 +191,7 @@ def set_resource_mapping(resources):
             continue
 
         obj = Resource.objects.get(id=obj_id)
-        existing_reservations = obj.reservations.count()
+        existing_reservations = obj.reservations.exclude(origin_id__startswith='hvara:').count()
         print("    '%s': '%s', # %s" % (res['Nimi'], obj.id, obj.name))
         assert not obj.public
         assert existing_reservations == 0
@@ -206,6 +210,11 @@ set_resource_mapping(resources)
 #determine_resource_mapping(resources)
 users = import_users()
 reservations = import_reservations(resources, users)
+
+#res_list = sorted([x for x in reservations.values()], key=lambda x: x['AlkuAika'])
+#for res in res_list:
+#    print("%s: %s -> %s: %s" % (res['resource']['Nimi'], res['AlkuAika'], res['LoppuAika'], res['user']['Mail']))
+
 import_attendees(reservations)
 import_catering(reservations)
 import_equipment(reservations)
@@ -219,6 +228,7 @@ PAYER_FIELDS = [
 
 catering_provider = CateringProvider.objects.first()
 hvara_reservations = {x.origin_id: x for x in Reservation.objects.filter(origin_id__startswith='hvara:')}
+missing_users = {}
 
 
 def save_reservation(data):
@@ -239,6 +249,8 @@ def save_reservation(data):
     res.created_at = local_tz.localize(datetime.strptime(data['Perustettu'], "%Y-%m-%dT%H:%M:%S"))
     res.modified_at = local_tz.localize(datetime.strptime(data['Muutettu'], "%Y-%m-%dT%H:%M:%S"))
     res.number_of_participants = int(data['OsallistujaLkm'])
+    if res.number_of_participants < 0:
+        res.number_of_participants = None
     res.event_description = data['Selite'] or ''
     if data['VarusteluSelite']:
         res.event_description += 'Varustelu:\n' + data['VarusteluSelite']
@@ -251,23 +263,34 @@ def save_reservation(data):
     res.resource = data['resource']['object']
 
     user = data['user']
-    res.reserver_name = user['Nimi']
-    email = user['Mail'].strip().lower()
-    res.reserver_email_address = email
-    res.reserver_phone_number = user['Puhelin']
+    if user is not None:
+        res.reserver_name = user['Nimi']
+        email = user['Mail'].strip().lower()
+        res.reserver_email_address = email
+        res.reserver_phone_number = user['Puhelin']
 
-    if email not in user_objects_by_email:
-        try:
-            u_obj = User.objects.get(email=email)
-        except User.DoesNotExist:
-            print("%s does not exist" % email)
-            u_obj = None
-        res.user = u_obj
-        user_objects_by_email[email] = u_obj
+        if email not in user_objects_by_email:
+            try:
+                u_obj = User.objects.get(email=email)
+            except User.DoesNotExist:
+                print("%s does not exist" % email)
+                u_obj = None
+            user_objects_by_email[email] = u_obj
+
+        res.user = user_objects_by_email[email]
+        if not res.user:
+            missing_users.setdefault(email, 0)
+            missing_users[email] += 1
+    else:
+        res.reserver_name = ''
+        res.reserver_email_address = ''
+        res.reserver_phone_number = ''
+        res.user = None
+
 
     res._skip_notifications = True
-    res.save()
     print(res)
+    res.save()
 
     if data['catering'] or data['TarjoiluSelite']:
         order = CateringOrder(reservation=res, provider=catering_provider)
@@ -306,7 +329,10 @@ def save_reservations(reservations):
 
 
 save_reservations(reservations)
-
+print("Missing users")
+for email, count in missing_users.items():
+    print('%d\t%s' % (count, email))
+exit()
 
 resource_counts = []
 for res in resources.values():
