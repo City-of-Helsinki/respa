@@ -125,24 +125,85 @@ def import_equipment(reservations):
             eq = equipment[row['VarusteId']]
             reservation['equipment'].append(eq['Nimi'])
 
+RESOURCE_MAP = {
+    'Kaupunginjohtajan vastaanottohuone': 'avo5xlqtrpca',  # Pormestarin vastaanottohuone
+    'Juhlasali / 301': 'avbxbgsac7ha',  # Juhlasali
+    'Empiresali / 32': 'avbxastz46ja',  # Empiresali
+    'Sofiankabinetti / 12': 'avbxcharbo6q',  # Sofian kabinetti
+    'Katariinankabinetti / 12': 'avbxb7j2rc3q',  # Katariinankabinetti
+    'Khn istuntosali / 49': 'avo5zeaupfrq',  # Kaupunginhallituksen istuntosali
+    'Kvston ravintola / 96': 'avo5zfozbapq',  # Kaupunginvaltuuston ravintola
+    'Kvston istuntosali / 120': 'avbxa4zlt7sa',  # Kaupunginvaltuuston istuntosali
+    'Aulakabinetti 4 / 18': 'avbxbwlpfckq',  # Aulakabinetti 4
+    'Sami Sarvilinna, huone 154B': 'avo5zzo5huga',  # 154 Sarvilinna Sami
+    'Summanen Juha 202a / 10': 'avo5z2j3pacq',  # 202 Summanen Juha
+    'Kvston puheenjohtaja': 'avo5z3rk43ga',  # 238 Kaupunginvaltuuston puheenjohtaja
+    'Sinnemäki Anni': 'avo5z4sitjuq',  # 303 Sinnemäki Anni
+    'Razmyar Nasima': 'avo5z5sdyjla',  # 353 Razmyar Nasima
+    'Karvinen Marko': 'avo52d6jfeiq',  # 340 Karvinen Marko
+    'Sote apri Sanna Vesikansa': 'avo52fcayjtq',  # 350 Vesikansa Sanna
+    'Pakarinen Pia': 'avo52fwyk5aq',  # 353 Pakarinen Pia
+    'Kvston lähetystöt / 18': 'avbw6nhycqvq',  # Lähetystöhuone
+    'Raitio Markku, huone 250': 'avo52io5shda',  # 250 Raitio Markku
+    'Auditorio / 78': 'avbxcn4eobuq',  # Auditorio
+    'Suuri ruokasali / 10': 'avo52nbuwunq',  # Suuri ruokasali
+    'Piraattipuolue / ryhmähuone / 6': 'avbw6yts5e5a',  # Pieni kahvihuone/ Piraattipuolue
+    'Sosialidemokraatit / ryhmähuone 234 / 22': 'avbr7smqeghq',  # 234 Sosiaalidemokraatit
+    'Svenska folkpartiet / ryhmähuone  236 / 14': 'avbrbq65wlwa',  # 236 Svenska folkpartiet
+    'Perussuomalaiset / ryhmähuone 237 / 8': 'avbrcblqsoyq',  # 237 Perussuomalaiset
+    'Keskusta / ryhmähuone 239 / 8': 'avbjmwuetuba',  # 239 Keskusta
+    'Vasemmistoliitto /ryhmähuone 330 /  14': 'avbw7piv2meq',  # 330 Vasemmistoliitto
+    'Kokoomus /ryhmähuone 331 / 30': 'avbw7gwv5mcq',  # 331 Kokoomus
+    'Vihreät / ryhmähuone 333 / 28': 'avbbylrg3aga',  # 333 Vihreät
+    'Suomen Kristillisdemokraatit 337  / 10': 'avbxaj75iika',  # 337 Suomen Kristillisdemokraatit
+    'Unioninkadun neuvotteluhuone 211 /25': 'avnzustammjq',  # 211 neuvotteluhuone
+    'Feministinen puolue 335 / 4': 'avbxaaacrv4a',  # 335 Feministinen puolue
+}
+
 
 def determine_resource_mapping(resources):
-    res_list = [x.name for x in Resource.objects.all()]
+    units = ['Helsingin kaupungintalo', 'Bockin talo', 'Apteekintalo', 'Burtz-Hellenius']
+    res_list = [x.name for x in Resource.objects.filter(public=False).filter(unit__name__in=units)]
     for res in resources.values():
-        matches = difflib.get_close_matches(res['Nimi'], res_list, cutoff=0.66)
+        name = res['Nimi'].split('/')[0].strip()
+        matches = difflib.get_close_matches(name, res_list, cutoff=0.5)
         if not matches:
             res['object'] = None
+            print("    '%s': None" % (res['Nimi']))
             continue
-        res['object'] = Resource.objects.get(name=matches[0])
+        res['object'] = Resource.objects.get(unit__name__in=units, name=matches[0])
         upcoming_reservations = res['object'].reservations.filter(begin__gte='2017-11-01').count()
-        print('%s -> %s' % (res['Nimi'], matches[0]))
+        print("    '%s': '%s', # %s" % (res['Nimi'], res['object'].id, res['object'].name))
         assert not res['object'].public
         assert upcoming_reservations == 0
 
 
-resources = import_resources()
-determine_resource_mapping(resources)
+def set_resource_mapping(resources):
+    for res in resources.values():
+        obj_id = RESOURCE_MAP.get(res['Nimi'])
+        if not obj_id:
+            print("No match for %s" % res['Nimi'])
+            res['object'] = None
+            continue
 
+        obj = Resource.objects.get(id=obj_id)
+        existing_reservations = obj.reservations.count()
+        print("    '%s': '%s', # %s" % (res['Nimi'], obj.id, obj.name))
+        assert not obj.public
+        assert existing_reservations == 0
+
+        er = getattr(obj, 'exchange_resource', None)
+        if er:
+            print("Setting from ER: %s" % obj)
+            er.sync_to_respa = False
+            er.sync_from_respa = False
+            er.save()
+
+        res['object'] = obj
+
+resources = import_resources()
+set_resource_mapping(resources)
+#determine_resource_mapping(resources)
 users = import_users()
 reservations = import_reservations(resources, users)
 import_attendees(reservations)
