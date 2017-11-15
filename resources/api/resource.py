@@ -18,7 +18,7 @@ from rest_framework.exceptions import PermissionDenied
 
 from munigeo import api as munigeo_api
 from resources.models import (Purpose, Reservation, Resource, ResourceImage, ResourceType, ResourceEquipment,
-                              TermsOfUse)
+                              TermsOfUse, Equipment, EquipmentAlias, EquipmentCategory, ReservationMetadataSet)
 from .base import TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
 from .reservation import ReservationSerializer
 from .unit import UnitSerializer
@@ -87,14 +87,16 @@ class NestedResourceImageSerializer(TranslatedModelSerializer):
 
 
 class ResourceEquipmentSerializer(TranslatedModelSerializer):
+    equipment = EquipmentSerializer()
 
     class Meta:
         model = ResourceEquipment
         fields = ('equipment', 'data', 'id', 'description')
-    equipment = EquipmentSerializer()
 
     def to_representation(self, obj):
         # remove unnecessary nesting and aliases
+        if 'equipment_cache' in self.context:
+            obj.equipment = self.context['equipment_cache'][obj.equipment_id]
         ret = super().to_representation(obj)
         ret['name'] = ret['equipment']['name']
         ret['id'] = ret['equipment']['id']
@@ -157,6 +159,12 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
         if isinstance(obj, dict):
             # resource is already serialized
             return obj
+
+        # We cache the metadata objects to save on SQL roundtrips
+        if 'reservation_metadata_set_cache' in self.context:
+            set_id = obj.reservation_metadata_set_id
+            if set_id:
+                obj.reservation_metadata_set = self.context['reservation_metadata_set_cache'][set_id]
         ret = super().to_representation(obj)
         if hasattr(obj, 'distance'):
             if obj.distance is not None:
@@ -230,7 +238,7 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
         start = self.context['start']
         end = self.context['end']
         res_list = obj.reservations.all().filter(begin__lte=end)\
-            .filter(end__gte=start).order_by('begin')
+            .filter(end__gte=start).order_by('begin').prefetch_related('catering_orders').select_related('user')
         res_ser_list = ReservationSerializer(res_list, many=True, context=self.context).data
         return res_ser_list
 
@@ -436,13 +444,28 @@ class LocationFilterBackend(filters.BaseFilterBackend):
 class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
                           viewsets.GenericViewSet):
     queryset = Resource.objects.select_related('generic_terms', 'unit', 'type', 'reservation_metadata_set')
-    queryset = queryset.prefetch_related('favorited_by', 'resource_equipment', 'purposes', 'images', 'purposes')
+    queryset = queryset.prefetch_related('favorited_by', 'resource_equipment', 'resource_equipment__equipment',
+                                         'purposes', 'images', 'purposes')
     serializer_class = ResourceSerializer
     filter_backends = (filters.SearchFilter, ResourceFilterBackend,
                        LocationFilterBackend, AvailableFilterBackend)
     search_fields = ('name_fi', 'description_fi', 'unit__name_fi',
                      'name_sv', 'description_sv', 'unit__name_sv',
                      'name_en', 'description_en', 'unit__name_en')
+
+    def get_serializer(self, page, *args, **kwargs):
+        self._page = page
+        return super().get_serializer(page, *args, **kwargs)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        equipment_list = Equipment.objects.filter(resource_equipment__resource__in=self._page).distinct().\
+            select_related('category').prefetch_related('aliases')
+        equipment_cache = {x.id: x for x in equipment_list}
+        context['equipment_cache'] = equipment_cache
+        set_list = ReservationMetadataSet.objects.all().prefetch_related('supported_fields', 'required_fields')
+        context['reservation_metadata_set_cache'] = {x.id: x for x in set_list}
+        return context
 
     def get_queryset(self):
         if self.request.user.is_staff:

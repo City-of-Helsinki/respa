@@ -116,8 +116,6 @@ class ReservationApiTestCase(APITestCase, JWTMixin):
         # Check that available hours are reported correctly for a reserved resource
         url = '/v1/resource/r1a/?start=' + start.isoformat().replace('+', '%2b') + '&end=' + end.isoformat().replace('+', '%2b') + '&during_closing=true'
         response = self.client.get(url)
-        print("res after reservation", response.content)
-        print("res debug", res_start, res_end)
         self.assertContains(response, '"starts":"' + start.isoformat())
         self.assertContains(response, '"ends":"' + res_start.isoformat())
         self.assertContains(response, '"starts":"' + res_end.isoformat())

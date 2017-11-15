@@ -96,8 +96,9 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
 
         # set supported and required extra fields
         if resource:
-            supported = resource.get_supported_reservation_extra_field_names()
-            required = resource.get_required_reservation_extra_field_names()
+            cache = self.context.get('reservation_metadata_field_cache')
+            supported = resource.get_supported_reservation_extra_field_names(cache=cache)
+            required = resource.get_required_reservation_extra_field_names(cache=cache)
 
             if resource.need_manual_confirmation:
 

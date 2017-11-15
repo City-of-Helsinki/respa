@@ -446,15 +446,23 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     def get_reservable_before(self):
         return create_reservable_before_datetime(self.get_reservable_days_in_advance())
 
-    def get_supported_reservation_extra_field_names(self):
+    def get_supported_reservation_extra_field_names(self, cache=None):
         if not self.reservation_metadata_set:
             return []
-        return self.reservation_metadata_set.supported_fields.values_list('field_name', flat=True)
+        if cache:
+            metadata_set = cache[self.reservation_metadata_set_id]
+        else:
+            metadata_set = self.reservation_metadata_set
+        return [x.field_name for x in metadata_set.supported_fields.all()]
 
-    def get_required_reservation_extra_field_names(self):
+    def get_required_reservation_extra_field_names(self, cache=None):
         if not self.reservation_metadata_set:
             return []
-        return self.reservation_metadata_set.required_fields.values_list('field_name', flat=True)
+        if cache:
+            metadata_set = cache[self.reservation_metadata_set_id]
+        else:
+            metadata_set = self.reservation_metadata_set
+        return [x.field_name for x in metadata_set.required_fields.all()]
 
     def clean(self):
         if self.min_price_per_hour is not None and self.max_price_per_hour is not None:
