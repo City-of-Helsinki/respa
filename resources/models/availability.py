@@ -68,11 +68,11 @@ def get_opening_hours(time_zone, periods, begin, end=None):
     periods = periods.filter(duration__overlap=d_range)\
         .annotate(length=dbm.F('end')-dbm.F('start'))\
         .order_by('length')
-    days = Day.objects.filter(period__in=periods)
 
+    days = list(Day.objects.filter(period__in=periods))
     periods = list(periods)
     for period in periods:
-        period.range_days = {day.weekday: day for day in days if day.period == period}
+        period.range_days = {day.weekday: day for day in days if day.period_id == period.id}
 
     date = begin
     dates = {}
