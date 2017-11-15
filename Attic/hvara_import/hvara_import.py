@@ -159,6 +159,22 @@ RESOURCE_MAP = {
     'Suomen Kristillisdemokraatit 337  / 10': 'avbxaj75iika',  # 337 Suomen Kristillisdemokraatit
     'Unioninkadun neuvotteluhuone 211 /25': 'avnzustammjq',  # 211 neuvotteluhuone
     'Feministinen puolue 335 / 4': 'avbxaaacrv4a',  # 335 Feministinen puolue
+    'Opastettu kiertokäynti': 'avo65goiylvq',  # Opastettu kiertokäynti
+    'Vapaavuori Jan': 'avo63l33gpdq',  # 200 Vapaavuori Jan
+    'Pohjaniemi Marju': 'avo63nkpdy7a',  # 155 Pohjaniemi Marju
+    'Peltonen Antti 205A / 4': 'avo63og7h6ca',  # 205 Peltonen Antti
+    'Malinen Matti': 'avo63pcxlfva',  # 307 Malinen Matti
+    'Jyrkänne Sirpa': 'avo63r7pkdwq',  # 251 Jyrkänne Sirpa
+    'Saxholm Tuula': 'avo63swfptqa',  # 309 Saxholm Tuula
+    'Ravintolasali / 220': 'avo63ti6ljma',  # Ravintolasali
+    'Ala-aula Helsinki-tiedotus': 'avo5zjaz4n5q',
+    'Eri tilat': 'avo5zltoos6q',
+    'Raitio Markku': 'avo52io5shda',
+    'Pohjoisespa 15-17 b kokoustila 203': 'avnzrb4cl77a',
+    'Kaupunginjohtajan virka-asunto': 'avo53itltuuq',
+    'Ala-aula Kv-toiminta': 'avo63rkyy44q',
+    'Apteekintalo 3. krs kokoustila /10': 'avo63qa7n5ya',
+    'Pohjoisespa 15-17 B kokoustila 203 / 16': 'avnzrb4cl77a',
 }
 
 
@@ -168,18 +184,19 @@ def determine_resource_mapping(resources):
     for res in resources.values():
         name = res['Nimi'].split('/')[0].strip()
         matches = difflib.get_close_matches(name, res_list, cutoff=0.5)
-        if not matches:
-            if res['Nimi'] in RESOURCE_MAP:
-                continue
-            res['object'] = None
+        if res['Nimi'] in RESOURCE_MAP:
+            res['object'] = Resource.objects.get(id=RESOURCE_MAP[res['Nimi']])
+        elif not matches:
             print("    '%s': None" % (res['Nimi']))
+            res['object'] = None
             continue
-        res['object'] = Resource.objects.get(unit__name__in=units, name=matches[0])
+        else:
+            res['object'] = Resource.objects.get(unit__name__in=units, name=matches[0])
         upcoming_reservations = res['object'].reservations.filter(begin__gte='2017-11-01')\
             .exclude(id__startswith='hvara:').count()
-        print("    '%s': '%s', # %s" % (res['Nimi'], res['object'].id, res['object'].name))
+        print("    '%s': '%s',  # %s (%s)" % (res['Nimi'], res['object'].id, res['object'].name, res['object'].unit.name))
         assert not res['object'].public
-        assert upcoming_reservations == 0
+        #assert upcoming_reservations == 0
 
 
 def set_resource_mapping(resources):
@@ -194,20 +211,21 @@ def set_resource_mapping(resources):
         existing_reservations = obj.reservations.exclude(origin_id__startswith='hvara:').count()
         print("    '%s': '%s', # %s" % (res['Nimi'], obj.id, obj.name))
         assert not obj.public
-        assert existing_reservations == 0
-
         er = getattr(obj, 'exchange_resource', None)
         if er:
             print("Setting from ER: %s" % obj)
             er.sync_to_respa = False
             er.sync_from_respa = False
             er.save()
+        assert existing_reservations == 0
+
 
         res['object'] = obj
 
 resources = import_resources()
 set_resource_mapping(resources)
 #determine_resource_mapping(resources)
+#exit()
 users = import_users()
 reservations = import_reservations(resources, users)
 
