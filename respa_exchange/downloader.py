@@ -83,18 +83,20 @@ def _determine_organizer(ex_resource, organizer):
         user_name = user_name.text
     if routing_type == "SMTP":
         id_field = 'email_address'
+        id_search_field = id_field
         user_identifier = user_identifier.lower()
     elif routing_type == "EX":
-        id_field = 'x500_address__iexact'
+        id_field = 'x500_address'
+        id_search_field = id_field + '__iexact'
     else:
         log.error("Unknown mailbox routing type (%s)" % etree.tostring(mailbox, encoding=str))
         return None
 
-    props = {id_field: user_identifier, 'exchange': ex_resource.exchange}
+    search_args = {id_search_field: user_identifier, 'exchange': ex_resource.exchange}
     try:
-        ex_user = ExchangeUser.objects.get(**props)
+        ex_user = ExchangeUser.objects.get(**search_args)
     except ExchangeUser.DoesNotExist:
-        ex_user = ExchangeUser(**props)
+        ex_user = ExchangeUser(**{id_field: user_identifier, 'exchange': ex_resource.exchange})
 
     # If the user name remains the same, all other info is probably okay as well.
     if ex_user.pk and user_name == ex_user.name:
