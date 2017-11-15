@@ -68,6 +68,11 @@ class ExchangeSession(requests.Session):
         :rtype: lxml.etree.Element
         """
         resp = self.post(self.url, timeout=timeout, **self._prepare_soap(request))
+        if resp.status_code == 500:
+            try:
+                self._process_soap_response(resp.content)
+            except SoapFault:
+                raise
         resp.raise_for_status()
         return self._process_soap_response(resp.content)
 

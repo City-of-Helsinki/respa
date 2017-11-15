@@ -4,9 +4,11 @@ from django.db import models
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
+from django.core.exceptions import ValidationError
 
 from resources.models import Reservation, Resource
 from respa_exchange.ews.objs import ItemID
+from respa_exchange.ews.session import SoapFault
 
 
 User = get_user_model()
@@ -112,6 +114,16 @@ class ExchangeResource(models.Model):
 
     def __str__(self):
         return "%s (%s)" % (self.principal_email, self.resource)
+
+    def clean(self):
+        from .downloader import sync_from_exchange
+
+        super().clean()
+        if self.sync_from_respa or self.sync_to_respa:
+            try:
+                sync_from_exchange(self, future_days=1, no_op=True)
+            except SoapFault as fault:
+                raise ValidationError('Exchange error: %s' % str(fault))
 
     @property
     def reservations(self):

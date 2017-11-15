@@ -159,7 +159,7 @@ def _parse_item_props(ex_resource, item_id, item):
 
 
 @atomic
-def sync_from_exchange(ex_resource, future_days=365):
+def sync_from_exchange(ex_resource, future_days=365, no_op=False):
     """
     Synchronize from Exchange to Respa
 
@@ -170,8 +170,10 @@ def sync_from_exchange(ex_resource, future_days=365):
     :type ex_resource: respa_exchange.models.ExchangeResource
     :param future_days: How many days into the future to look
     :type future_days: int
+    :param no_op: If True, do not save the reservations
+    :type no_op: bool
     """
-    if not ex_resource.sync_to_respa:
+    if not ex_resource.sync_to_respa and not no_op:
         return
     start_date = now().replace(hour=0, minute=0, second=0)
     end_date = start_date + datetime.timedelta(days=future_days)
@@ -199,8 +201,11 @@ def sync_from_exchange(ex_resource, future_days=365):
         ex_resource.principal_email,
         len(calendar_items)
     )
-    # First handle deletions . . .
 
+    if no_op:
+        return
+
+    # First handle deletions . . .
     items_to_delete = ExchangeReservation.objects.select_related("reservation").filter(
         managed_in_exchange=True,  # Reservations we've downloaded ...
         reservation__begin__gte=start_date,  # that are in ...
