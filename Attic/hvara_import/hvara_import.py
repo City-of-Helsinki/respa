@@ -219,7 +219,6 @@ def set_resource_mapping(resources):
             er.save()
         assert existing_reservations == 0
 
-
         res['object'] = obj
 
 resources = import_resources()
@@ -270,8 +269,17 @@ def save_reservation(data):
     if res.number_of_participants < 0:
         res.number_of_participants = None
     res.event_description = data['Selite'] or ''
-    if data['VarusteluSelite']:
-        res.event_description += 'Varustelu:\n' + data['VarusteluSelite']
+    if data['VarusteluSelite'] or data['equipment']:
+        s = 'Varustelu:\n'
+        items = []
+        if data['equipment']:
+            items.append('\n'.join(['- ' + x for x in data['equipment']]))
+        if data['VarusteluSelite']:
+            items.append(data['VarusteluSelite'])
+        s += '\n\n'.join(items)
+        if res.event_description and not res.event_description.endswith('\n'):
+            s = '\n' + s
+        res.event_description += s
     res.participants = '\n'.join(data['attendees'])
     if data['OsallistujaSelite']:
         if res.participants:
