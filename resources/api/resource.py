@@ -117,7 +117,8 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     type = ResourceTypeSerializer()
     # FIXME: location field gets removed by munigeo
     location = serializers.SerializerMethodField()
-    available_hours = serializers.SerializerMethodField()
+    # FIXME: Enable available_hours when it's more performant
+    # available_hours = serializers.SerializerMethodField()
     opening_hours = serializers.SerializerMethodField()
     reservations = serializers.SerializerMethodField()
     user_permissions = serializers.SerializerMethodField()
@@ -447,8 +448,7 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
     queryset = queryset.prefetch_related('favorited_by', 'resource_equipment', 'resource_equipment__equipment',
                                          'purposes', 'images', 'purposes')
     serializer_class = ResourceSerializer
-    filter_backends = (filters.SearchFilter, ResourceFilterBackend,
-                       LocationFilterBackend, AvailableFilterBackend)
+    filter_backends = (filters.SearchFilter, ResourceFilterBackend, LocationFilterBackend)
     search_fields = ('name_fi', 'description_fi', 'unit__name_fi',
                      'name_sv', 'description_sv', 'unit__name_sv',
                      'name_en', 'description_en', 'unit__name_en')
