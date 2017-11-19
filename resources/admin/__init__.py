@@ -88,6 +88,10 @@ class ResourceAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Transla
     list_select_related = ('unit',)
     ordering = ('unit', 'name')
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        obj.update_opening_hours()
+
 
 class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, FixedGuardedModelAdminMixin,
                 TranslationAdmin, HttpsFriendlyGeoAdmin):
@@ -98,6 +102,10 @@ class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, FixedGuarde
     default_lon = 2776460  # Central Railway Station in EPSG:3857
     default_lat = 8438120
     default_zoom = 12
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        obj.update_opening_hours()
 
 
 class ResourceImageAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, ImageCroppingMixin, TranslationAdmin):

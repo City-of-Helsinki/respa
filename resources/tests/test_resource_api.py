@@ -475,6 +475,7 @@ def test_resource_available_between_filter_reservations(user_api_client, list_ur
             Day.objects.create(period=p1, weekday=weekday,
                                opens=datetime.time(0, 0),
                                closes=datetime.time(23, 59))
+        resource.update_opening_hours()
 
     response = user_api_client.get(list_url, filtering)
     assert response.status_code == 200
@@ -511,6 +512,9 @@ def test_resource_available_between_filter_opening_hours(user_api_client, list_u
         Day.objects.create(period=p1, weekday=weekday,
                            opens=datetime.time(12, 0),
                            closes=datetime.time(14, 0))
+
+    resource_in_unit.update_opening_hours()
+    resource_in_unit2.update_opening_hours()
 
     response = user_api_client.get(list_url, filtering)
     assert response.status_code == 200

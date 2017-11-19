@@ -27,6 +27,9 @@ class ReservationTestCase(TestCase):
         Day.objects.create(period=p2, weekday=1, opens='08:00', closes='16:00')
         Day.objects.create(period=p3, weekday=0, opens='08:00', closes='18:00')
 
+        u1.update_opening_hours()
+        u2.update_opening_hours()
+
     def test_opening_hours(self):
         r1a = Resource.objects.get(id='r1a')
         r1b = Resource.objects.get(id='r1b')

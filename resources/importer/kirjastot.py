@@ -64,6 +64,7 @@ def process_varaamo_libraries():
                 with transaction.atomic():
                     varaamo_unit.periods.all().delete()
                     process_periods(data, varaamo_unit)
+                    varaamo_unit.update_opening_hours()
             except Exception as e:
                 print("Problem in processing data of library ", varaamo_unit, e)
                 problems.append(" ".join(["Problem in processing data of library ", str(varaamo_unit), str(e)]))
@@ -107,6 +108,7 @@ def get_helmet_timetables():
             unit.periods.all().delete()
             print("Processing periods for %s" % unit)
             process_v2_periods(unit, unit_data)
+            unit.update_opening_hours()
 
 
 def process_v2_periods(unit, unit_data):
@@ -271,6 +273,7 @@ def process_periods(data, unit):
         nper.save()
 
     print("Periods processed for ", unit)
+    unit.update_opening_hours()
 
 
 def get_time_range(start=None, back=1, forward=12):

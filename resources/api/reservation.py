@@ -96,7 +96,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
 
         # set supported and required extra fields
         if resource:
-            cache = self.context.get('reservation_metadata_field_cache')
+            cache = self.context.get('reservation_metadata_set_cache')
             supported = resource.get_supported_reservation_extra_field_names(cache=cache)
             required = resource.get_required_reservation_extra_field_names(cache=cache)
 
@@ -249,7 +249,8 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             del data['user']
 
         if instance.are_extra_fields_visible(user):
-            supported_fields = set(resource.get_supported_reservation_extra_field_names())
+            cache = self.context.get('reservation_metadata_set_cache')
+            supported_fields = set(resource.get_supported_reservation_extra_field_names(cache=cache))
         else:
             supported_fields = set()
 

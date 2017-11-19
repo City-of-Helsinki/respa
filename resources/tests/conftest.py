@@ -130,11 +130,12 @@ def resource_in_unit3(space_resource_type, test_unit3):
 def resource_with_opening_hours(resource_in_unit):
     p1 = Period.objects.create(start=datetime.date(2115, 1, 1),
                                end=datetime.date(2115, 12, 31),
-                               unit=resource_in_unit, name='regular hours')
+                               resource=resource_in_unit, name='regular hours')
     for weekday in range(0, 7):
         Day.objects.create(period=p1, weekday=weekday,
                            opens=datetime.time(8, 0),
                            closes=datetime.time(18, 0))
+    resource_in_unit.update_opening_hours()
 
 
 @pytest.mark.django_db
@@ -142,7 +143,7 @@ def resource_with_opening_hours(resource_in_unit):
 def exceptional_period(resource_with_opening_hours):
     parent = resource_with_opening_hours.periods.first()
     period = Period.objects.create(start='2115-01-10', end='2115-01-12',
-                                   unit=resource_with_opening_hours,
+                                   resource=resource_with_opening_hours,
                                    name='exceptional hours',
                                    exceptional=True, parent=parent)
 

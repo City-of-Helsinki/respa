@@ -95,6 +95,7 @@ class ReservationApiTestCase(APITestCase, JWTMixin):
         # Set opening hours for tomorrow (required to make a reservation)
         tomorrow = Period.objects.create(start=start.date(), end=end.date(), resource_id='r1a', name='this')
         Day.objects.create(period=tomorrow, weekday=start.weekday(), opens='08:00', closes='22:00')
+        Resource.objects.get(id='r1a').update_opening_hours()
 
         # Check that available *and* opening hours are reported correctly for a free resource
         url = '/v1/resource/r1a/?start=' + start.isoformat().replace('+', '%2b') + '&end=' + end.isoformat().replace('+', '%2b') + '&during_closing=true'
@@ -111,7 +112,6 @@ class ReservationApiTestCase(APITestCase, JWTMixin):
 
         data = {'resource': 'r1a', 'begin': res_start, 'end': res_end}
         response = self.authenticated_post('/v1/reservation/', data)
-        print("reservation", response.content)
         self.assertContains(response, '"resource":"r1a"', status_code=201)
 
         # Check that available hours are reported correctly for a reserved resource

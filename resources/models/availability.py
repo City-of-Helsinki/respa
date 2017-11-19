@@ -1,10 +1,8 @@
 import datetime
+from collections import OrderedDict
 
-import arrow
 import pytz
 import django.contrib.postgres.fields as pgfields
-import django.db.models as dbm
-from django.db.models import Q
 from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.utils.dateformat import time_format
@@ -59,23 +57,17 @@ def get_opening_hours(time_zone, periods, begin, end=None):
 
     assert begin <= end
 
-    if begin == end:
-        d_range = DateRange(begin, end, '[]')
-    else:
-        d_range = DateRange(begin, end)
-
-    # Periods are taken into account the shortest first.
-    periods = periods.filter(duration__overlap=d_range)\
-        .annotate(length=dbm.F('end')-dbm.F('start'))\
-        .order_by('length')
+    periods = [p for p in periods if p.start <= end and p.end >= begin]
+    # Periods are taken into account the highest priority first, then
+    # the shortest length.
+    periods.sort(key=lambda x: (-x.priority, x.end - x.start))
 
     days = list(Day.objects.filter(period__in=periods))
-    periods = list(periods)
     for period in periods:
         period.range_days = {day.weekday: day for day in days if day.period_id == period.id}
 
     date = begin
-    dates = {}
+    dates = OrderedDict()
     while date <= end:
         opens = None
         closes = None
@@ -111,8 +103,6 @@ class Period(models.Model):
 
     start = models.DateField(verbose_name=_('Start date'))
     end = models.DateField(verbose_name=_('End date'))
-    duration = pgfields.DateRangeField(verbose_name=_('Length of period'), null=True,
-                                       blank=True, db_index=True)
 
     name = models.CharField(max_length=200, verbose_name=_('Name'), blank=True, default='')
     description = models.CharField(verbose_name=_('Description'), null=True,
@@ -152,11 +142,9 @@ class Period(models.Model):
         self._check_closed()
 
     def save(self, *args, **kwargs):
-
         ignore_overlap = kwargs.pop('ignore_overlap', False)
         self.clean(ignore_overlap=ignore_overlap)
         self.duration = DateRange(self.start, self.end, '[]')
-
         return super(Period, self).save(*args, **kwargs)
 
     def save_closedness(self):

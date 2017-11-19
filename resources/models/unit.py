@@ -74,7 +74,11 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
         :type begin: datetime.date
         :type end: datetime.date
         """
-        return get_opening_hours(self.time_zone, self.periods, begin, end)
+        return get_opening_hours(self.time_zone, list(self.periods.all()), begin, end)
+
+    def update_opening_hours(self):
+        for res in self.resources.all():
+            res.update_opening_hours()
 
     def get_tz(self):
         return pytz.timezone(self.time_zone)

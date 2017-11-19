@@ -27,6 +27,7 @@ def test_opening_hours(resource_in_unit):
 
     begin = tz.localize(datetime.datetime(2015, 6, 1))
     end = begin + datetime.timedelta(days=30)
+    resource_in_unit.update_opening_hours()
     hours = resource_in_unit.get_opening_hours(begin, end)
     for d in daterange(date(2015, 6, 1), date(2015, 6, 7)):
         assert_hours(tz, hours, d, '08:00', '18:00')
@@ -41,6 +42,7 @@ def test_opening_hours(resource_in_unit):
     Day.objects.create(period=p2, weekday=5, closed=True)
     Day.objects.create(period=p2, weekday=6, closed=True)
 
+    resource_in_unit.update_opening_hours()
     hours = resource_in_unit.get_opening_hours(begin, end)
     assert_hours(tz, hours, date(2015, 6, 1), '10:00', '16:00')
     assert_hours(tz, hours, date(2015, 6, 2), '10:00', '16:00')
@@ -51,6 +53,7 @@ def test_opening_hours(resource_in_unit):
     p3 = Period.objects.create(start=date(2015, 6, 9), end=date(2015, 6, 9),
                                unit=unit, name='closed june9')
     Day.objects.create(period=p3, weekday=1, closed=True)
+    resource_in_unit.update_opening_hours()
     hours = resource_in_unit.get_opening_hours(begin, end)
     assert_hours(tz, hours, date(2015, 6, 8), '10:00', '16:00')
     assert_hours(tz, hours, date(2015, 6, 9), None)
@@ -61,6 +64,7 @@ def test_opening_hours(resource_in_unit):
                                unit=unit, name='re-opened')
     for d in range(0, 7):
         Day.objects.create(period=p4, weekday=d, opens=datetime.time(12, 0), closes=datetime.time(14, 0))
+    resource_in_unit.update_opening_hours()
     hours = resource_in_unit.get_opening_hours(begin, end)
     assert_hours(tz, hours, date(2015, 6, 8), '12:00', '14:00')
     assert_hours(tz, hours, date(2015, 6, 9), None)
@@ -69,6 +73,7 @@ def test_opening_hours(resource_in_unit):
     # Dayless period; is closed
     Period.objects.create(start=date(2015, 6, 10), end=date(2015, 6, 14),
                           unit=unit, name='dayless')
+    resource_in_unit.update_opening_hours()
     hours = resource_in_unit.get_opening_hours(begin, end)
     assert_hours(tz, hours, date(2015, 6, 10), None)
     assert_hours(tz, hours, date(2015, 6, 11), None)
@@ -82,9 +87,8 @@ def test_opening_hours(resource_in_unit):
 
     begin = tz.localize(datetime.datetime(2014, 12, 29))
     end = begin + datetime.timedelta(days=30)
+    resource_in_unit.update_opening_hours()
     hours = resource_in_unit.get_opening_hours(begin, end)
-    from pprint import pprint
-    pprint(hours)
     assert_hours(tz, hours, date(2014, 12, 29), None)
     assert_hours(tz, hours, date(2014, 12, 30), '10:00', '14:00')
     assert_hours(tz, hours, date(2014, 12, 31), None)

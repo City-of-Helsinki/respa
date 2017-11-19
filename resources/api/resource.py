@@ -14,19 +14,45 @@ from django.contrib.gis.geos import Point
 from resources.pagination import PurposePagination
 from rest_framework import exceptions, filters, mixins, serializers, viewsets, response, status
 from rest_framework.decorators import detail_route
-from rest_framework.exceptions import PermissionDenied
 
 from munigeo import api as munigeo_api
-from resources.models import (Purpose, Reservation, Resource, ResourceImage, ResourceType, ResourceEquipment,
-                              TermsOfUse, Equipment, EquipmentAlias, EquipmentCategory, ReservationMetadataSet)
+from resources.models import (
+    Purpose, Reservation, Resource, ResourceImage, ResourceType, ResourceEquipment,
+    TermsOfUse, Equipment, ReservationMetadataSet, ResourceDailyOpeningHours
+)
+from resources.models.resource import determine_hours_time_range
 from .base import TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
 from .reservation import ReservationSerializer
 from .unit import UnitSerializer
 from .equipment import EquipmentSerializer
 
 
-class PurposeSerializer(TranslatedModelSerializer):
+def parse_query_time_range(params):
+    times = {}
+    for name in ('start', 'end'):
+        if name not in params:
+            continue
+        try:
+            times[name] = arrow.get(params[name]).to('utc').datetime
+        except ParserError:
+            raise exceptions.ParseError("'%s' must be a timestamp in ISO 8601 format" % name)
 
+    if len(times):
+        if 'start' not in times or 'end' not in times:
+            raise exceptions.ParseError("You must supply both 'start' and 'end'")
+        if times['end'] < times['start']:
+            raise exceptions.ParseError("'end' must be after 'start'")
+
+    return times
+
+
+def get_resource_reservations_queryset(begin, end):
+    qs = Reservation.objects.filter(begin__lte=end, end__gte=begin)
+    qs = qs.order_by('begin').prefetch_related('catering_orders').select_related('user')
+    return qs
+
+
+class PurposeSerializer(TranslatedModelSerializer):
     class Meta:
         model = Purpose
         fields = ['name', 'parent', 'id']
@@ -43,11 +69,11 @@ class PurposeViewSet(viewsets.ReadOnlyModelViewSet):
         else:
             return self.queryset.filter(public=True)
 
+
 register_view(PurposeViewSet, 'purpose')
 
 
 class ResourceTypeSerializer(TranslatedModelSerializer):
-
     class Meta:
         model = ResourceType
         fields = ['name', 'main_type', 'id']
@@ -187,14 +213,7 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
         """
 
         params = self.context['request'].query_params
-        times = {}
-        for name in ('start', 'end'):
-            if name not in params:
-                continue
-            try:
-                times[name] = arrow.get(params[name]).to('utc').datetime
-            except ParserError:
-                raise exceptions.ParseError("'%s' must be a timestamp in ISO 8601 format" % name)
+        times = parse_query_time_range(params)
 
         if 'duration' in params:
             try:
@@ -208,10 +227,6 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
                 times['during_closing'] = True
 
         if len(times):
-            if 'start' not in times or 'end' not in times:
-                raise exceptions.ParseError("You must supply both 'start' and 'end'")
-            if times['end'] < times['start']:
-                raise exceptions.ParseError("'end' must be after 'start'")
             self.context.update(times)
 
     def get_opening_hours(self, obj):
@@ -222,7 +237,8 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
             start = None
             end = None
 
-        hours_by_date = obj.get_opening_hours(start, end)
+        hours_cache = self.context.get('opening_hours_cache', {}).get(obj.id)
+        hours_by_date = obj.get_opening_hours(start, end, opening_hours_cache=hours_cache)
 
         ret = []
         for x in sorted(hours_by_date.items()):
@@ -236,43 +252,16 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
         if 'start' not in self.context:
             return None
 
-        start = self.context['start']
-        end = self.context['end']
-        res_list = obj.reservations.all().filter(begin__lte=end)\
-            .filter(end__gte=start).order_by('begin').prefetch_related('catering_orders').select_related('user')
-        res_ser_list = ReservationSerializer(res_list, many=True, context=self.context).data
-        return res_ser_list
+        if 'reservations_cache' in self.context:
+            rv_list = self.context['reservations_cache'].get(obj.id, [])
+            for rv in rv_list:
+                rv.resource = obj
+        else:
+            rv_list = get_resource_reservations_queryset(self.context['start'], self.context['end'])
+            rv_list = rv_list.filter(resource=obj)
 
-    def get_available_hours(self, obj):
-        """
-        The input datetimes must be converted to UTC before passing them to the model. Also, missing
-        parameters have to be replaced with the start and end of today, as defined in the unit timezone.
-        The returned UTC times are serialized in the unit timezone.
-        """
-
-        if 'start' not in self.context:
-            return None
-        zone = pytz.timezone(obj.unit.time_zone)
-
-        try:
-            duration = datetime.timedelta(minutes=int(self.context['duration']))
-        except KeyError:
-            duration = None
-
-        try:
-            during_closing = self.context['during_closing']
-        except KeyError:
-            during_closing = False
-
-        hour_list = obj.get_available_hours(start=self.context['start'],
-                                            end=self.context['end'],
-                                            duration=duration,
-                                            during_closing=during_closing)
-        # the hours must be localized when serializing
-        for hours in hour_list:
-            hours['starts'] = hours['starts'].astimezone(zone)
-            hours['ends'] = hours['ends'].astimezone(zone)
-        return hour_list
+        rv_ser_list = ReservationSerializer(rv_list, many=True, context=self.context).data
+        return rv_ser_list
 
     class Meta:
         model = Resource
@@ -338,7 +327,6 @@ class ResourceFilterSet(django_filters.FilterSet):
 
     def _is_resource_open(self, resource, start, end):
         opening_hours = resource.get_opening_hours(start, end)
-
         if len(opening_hours) > 1:
             # range spans over multiple days, assume resources aren't open all night and skip the resource
             return False
@@ -365,7 +353,9 @@ class ResourceFilterSet(django_filters.FilterSet):
             raise exceptions.ParseError('available_between timestamps must be on the same day.')
 
         # exclude resources that have reservation(s) overlapping with the available_between range
-        overlapping_reservations = Reservation.objects.filter(end__gt=available_start).filter(begin__lt=available_end)
+        overlapping_reservations = Reservation.objects.filter(
+            resource__in=queryset, end__gt=available_start, begin__lt=available_end
+        )
         queryset = queryset.exclude(reservations__in=overlapping_reservations)
 
         closed_resource_ids = {
@@ -385,29 +375,9 @@ class ResourceFilterBackend(filters.BaseFilterBackend):
     """
     Make request user available in the filter set.
     """
+
     def filter_queryset(self, request, queryset, view):
         return ResourceFilterSet(request.query_params, queryset=queryset, user=request.user).qs
-
-
-class AvailableFilterBackend(filters.BaseFilterBackend):
-    """
-    Filters resource availability based on request parameters, serializing the queryset
-    in the process. Therefore, AvailableFilterBackend must always be the final filter.
-    """
-
-    def filter_queryset(self, request, queryset, view):
-        params = request.query_params
-        # filtering is only done if all three parameters are provided
-        if 'start' in params and 'end' in params and 'duration' in params:
-            context = {'request': request}
-            serializer = view.serializer_class(context=context)
-            serialized_queryset = []
-            for resource in queryset:
-                serialized_resource = serializer.to_representation(resource)
-                if serialized_resource['available_hours'] and serialized_resource['opening_hours']:
-                    serialized_queryset.append(serialized_resource)
-            return serialized_queryset
-        return queryset
 
 
 class LocationFilterBackend(filters.BaseFilterBackend):
@@ -457,14 +427,55 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
         self._page = page
         return super().get_serializer(page, *args, **kwargs)
 
+    def _preload_opening_hours(self, times):
+        # We have to evaluate the query here to make sure all the
+        # resources are on the same timezone. In case of different
+        # time zones, we skip this optimization.
+        time_zone = None
+        hours_by_resource = {}
+        for resource in self._page:
+            if time_zone:
+                if resource.unit.time_zone != time_zone:
+                    return None
+            else:
+                time_zone = resource.unit.time_zone
+            hours_by_resource[resource.id] = []
+        if not time_zone:
+            return None
+
+        begin, end = determine_hours_time_range(times.get('start'), times.get('end'), pytz.timezone(time_zone))
+        hours = ResourceDailyOpeningHours.objects.filter(
+            resource__in=self._page, open_between__overlap=(begin, end, '[)')
+        )
+        for obj in hours:
+            hours_by_resource[obj.resource_id].append(obj)
+        return hours_by_resource
+
+    def _preload_reservations(self, times):
+        qs = get_resource_reservations_queryset(times['start'], times['end'])
+        reservations = qs.filter(resource__in=self._page)
+        reservations_by_resource = {}
+        for rv in reservations:
+            rv_list = reservations_by_resource.setdefault(rv.resource_id, [])
+            rv_list.append(rv)
+        return reservations_by_resource
+
     def get_serializer_context(self):
         context = super().get_serializer_context()
+
         equipment_list = Equipment.objects.filter(resource_equipment__resource__in=self._page).distinct().\
             select_related('category').prefetch_related('aliases')
         equipment_cache = {x.id: x for x in equipment_list}
+
         context['equipment_cache'] = equipment_cache
         set_list = ReservationMetadataSet.objects.all().prefetch_related('supported_fields', 'required_fields')
         context['reservation_metadata_set_cache'] = {x.id: x for x in set_list}
+
+        times = parse_query_time_range(self.request.query_params)
+        if times:
+            context['reservations_cache'] = self._preload_reservations(times)
+        context['opening_hours_cache'] = self._preload_opening_hours(times)
+
         return context
 
     def get_queryset(self):

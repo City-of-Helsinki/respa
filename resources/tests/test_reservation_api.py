@@ -42,12 +42,13 @@ def detail_url(reservation):
 @pytest.fixture(autouse=True)
 def day_and_period(resource_in_unit):
     period = Period.objects.create(
-        start='2005-04-01',
+        start='2115-04-01',
         end='2115-05-01',
         resource_id=resource_in_unit.id,
         name='test_period'
     )
     Day.objects.create(period=period, weekday=3, opens='08:00', closes='16:00')
+    resource_in_unit.update_opening_hours()
 
 
 @pytest.mark.django_db
@@ -174,7 +175,7 @@ def test_authenticated_user_can_make_reservation(api_client, list_url, reservati
     api_client.force_authenticate(user=user)
 
     response = api_client.post(list_url, data=reservation_data)
-    assert response.status_code == 201
+    assert response.status_code == 201, "Request failed with: %s" % (str(response.content, 'utf8'))
     reservation = Reservation.objects.filter(user=user).latest('created_at')
     assert reservation.resource == resource_in_unit
     assert reservation.begin == dateparse.parse_datetime('2115-04-04T11:00:00+02:00')
@@ -1358,7 +1359,7 @@ def test_reservation_created_with_access_code_mail(user_api_client, user, resour
     assert len(mail.outbox) == 0
 
 
-@freeze_time('2016-10-25')
+@freeze_time('2115-04-02')
 @pytest.mark.django_db
 def test_reservation_reservable_before(user_api_client, resource_in_unit, list_url, reservation_data):
     resource_in_unit.reservable_days_in_advance = 10

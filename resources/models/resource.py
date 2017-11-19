@@ -1,6 +1,8 @@
 import datetime
 import os
 import re
+import pytz
+from collections import OrderedDict
 from decimal import Decimal
 
 import arrow
@@ -17,7 +19,9 @@ from django.utils.crypto import get_random_string
 from django.utils.six import BytesIO
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import pgettext_lazy
-from django.contrib.postgres.fields import HStoreField
+from django.contrib.postgres.fields import HStoreField, DateTimeRangeField
+from .gistindex import GistIndex
+from psycopg2.extras import DateTimeTZRange
 from image_cropping import ImageRatioField
 from PIL import Image
 from autoslug import AutoSlugField
@@ -52,6 +56,20 @@ def validate_access_code(access_code, access_code_type):
         raise NotImplementedError('Don\'t know how to validate an access code of type "%s"' % access_code_type)
 
     return access_code
+
+
+def determine_hours_time_range(begin, end, tz):
+    if begin is None:
+        begin = tz.localize(datetime.datetime.now()).date()
+    if end is None:
+        end = begin
+
+    midnight = datetime.time(0, 0)
+    begin = tz.localize(datetime.datetime.combine(begin, midnight))
+    end = tz.localize(datetime.datetime.combine(end, midnight))
+    end += datetime.timedelta(days=1)
+
+    return begin, end
 
 
 class ResourceType(ModifiableModel, AutoIdentifiedModel):
@@ -341,50 +359,94 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         hours_list[-1]['ends'] = end
         return hours_list
 
-    def get_opening_hours(self, begin=None, end=None):
+    def get_opening_hours(self, begin=None, end=None, opening_hours_cache=None):
         """
         :rtype : dict[str, datetime.datetime]
         :type begin: datetime.date
         :type end: datetime.date
         """
-        if self.periods.exists():
-            periods = self.periods
+        tz = pytz.timezone(self.unit.time_zone)
+        begin, end = determine_hours_time_range(begin, end, tz)
+
+        if opening_hours_cache is None:
+            hours_objs = self.opening_hours.filter(open_between__overlap=(begin, end, '[)'))
         else:
-            periods = self.unit.periods
+            hours_objs = opening_hours_cache
 
-        return get_opening_hours(self.unit.time_zone, periods, begin, end)
+        opening_hours = dict()
+        for h in hours_objs:
+            opens = h.open_between.lower.astimezone(tz)
+            closes = h.open_between.upper.astimezone(tz)
+            date = opens.date()
+            hours_item = OrderedDict(opens=opens, closes=closes)
+            date_item = opening_hours.setdefault(date, [])
+            date_item.append(hours_item)
 
-    def get_open_from_now(self, dt):
-        """
-        Returns opening and closing for a given datetime starting from its moment
-        and ends on closing time
+        # Set the dates when the resource is closed.
+        date = begin.date()
+        end = end.date()
+        while date < end:
+            if date not in opening_hours:
+                opening_hours[date] = [OrderedDict(opens=None, closes=None)]
+            date += datetime.timedelta(days=1)
 
-        If no periods and days that contain given datetime are not found,
-        returns none both
+        return opening_hours
 
-        :rtype : dict[str, datetime.datetime]
-        :type dt: datetime.datetime
-        """
+    def update_opening_hours(self):
+        hours = self.opening_hours.order_by('open_between')
+        existing_hours = {}
+        for h in hours:
+            assert h.open_between.lower not in existing_hours
+            existing_hours[h.open_between.lower] = h.open_between.upper
 
-        date, weekday, moment = dt.date(), dt.weekday(), dt.time()
+        unit_periods = list(self.unit.periods.all())
+        resource_periods = list(self.periods.all())
 
-        if self.periods.exists():
-            periods = self.periods
-        else:
-            periods = self.unit.periods
+        # Periods set for the resource always carry a higher priority. If
+        # nothing is defined for the resource for a given day, use the
+        # periods configured for the unit.
+        for period in unit_periods:
+            period.priority = 0
+        for period in resource_periods:
+            period.priority = 1
 
-        res = periods.filter(
-            start__lte=date, end__gte=date).annotate(
-            length=dbm.F('end') - dbm.F('start')
-        ).order_by('length').first()
+        earliest_date = None
+        latest_date = None
+        all_periods = unit_periods + resource_periods
+        for period in all_periods:
+            if earliest_date is None or period.start < earliest_date:
+                earliest_date = period.start
+            if latest_date is None or period.end > latest_date:
+                latest_date = period.end
 
-        if res:
-            day = res.days.filter(weekday=weekday, opens__lte=moment, closes__gte=moment).first()
-            if day:
-                closes = dt.combine(dt, day.closes)
-                return {'opens': moment, 'closes': closes}
+        # Assume we delete everything, but remove items from the delete
+        # list if the hours are identical.
+        to_delete = existing_hours
+        to_add = {}
+        if all_periods:
+            hours = get_opening_hours(self.unit.time_zone, all_periods,
+                                      earliest_date, latest_date)
+            for hours_items in hours.values():
+                for h in hours_items:
+                    if not h['opens'] or not h['closes']:
+                        continue
+                    if h['opens'] in to_delete and h['closes'] == to_delete[h['opens']]:
+                            del to_delete[h['opens']]
+                            continue
+                    to_add[h['opens']] = h['closes']
 
-        return {'opens': None, 'closes': None}
+        if to_delete:
+            ret = ResourceDailyOpeningHours.objects.filter(
+                open_between__in=[(opens, closes, '[)') for opens, closes in to_delete.items()]
+            ).delete()
+            assert ret[0] == len(to_delete)
+
+        add_objs = [
+            ResourceDailyOpeningHours(resource=self, open_between=(opens, closes, '[)'))
+            for opens, closes in to_add.items()
+        ]
+        if add_objs:
+            ResourceDailyOpeningHours.objects.bulk_create(add_objs)
 
     def is_admin(self, user):
         # Currently all staff members are allowed to administrate
@@ -447,7 +509,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         return create_reservable_before_datetime(self.get_reservable_days_in_advance())
 
     def get_supported_reservation_extra_field_names(self, cache=None):
-        if not self.reservation_metadata_set:
+        if not self.reservation_metadata_set_id:
             return []
         if cache:
             metadata_set = cache[self.reservation_metadata_set_id]
@@ -598,3 +660,29 @@ class ResourceGroup(ModifiableModel):
 
     def __str__(self):
         return self.name
+
+
+class ResourceDailyOpeningHours(models.Model):
+    """
+    Calculated automatically for each day the resource is open
+    """
+    resource = models.ForeignKey(
+        Resource, related_name='opening_hours', on_delete=models.CASCADE, db_index=True
+    )
+    open_between = DateTimeRangeField()
+
+    def clean(self):
+        super().clean()
+        if self.objects.filter(resource=self.resource, open_between__overlaps=self.open_between):
+            raise ValidationError(_("Overlapping opening hours"))
+
+    class Meta:
+        unique_together = [
+            ('resource', 'open_between')
+        ]
+        indexes = [
+            GistIndex(fields=['open_between'])
+        ]
+
+    def __str__(self):
+        return "%s: %s -> %s" % (self.resource, self.open_between.lower, self.open_between.upper)
