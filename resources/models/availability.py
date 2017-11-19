@@ -60,6 +60,9 @@ def get_opening_hours(time_zone, periods, begin, end=None):
     periods = [p for p in periods if p.start <= end and p.end >= begin]
     # Periods are taken into account the highest priority first, then
     # the shortest length.
+    for p in periods:
+        if not hasattr(p, 'priority'):
+            p.priority = 0
     periods.sort(key=lambda x: (-x.priority, x.end - x.start))
 
     days = list(Day.objects.filter(period__in=periods))
