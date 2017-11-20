@@ -437,7 +437,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
         if to_delete:
             ret = ResourceDailyOpeningHours.objects.filter(
-                open_between__in=[(opens, closes, '[)') for opens, closes in to_delete.items()]
+                open_between__in=[(opens, closes, '[)') for opens, closes in to_delete.items()],
+                resource=self
             ).delete()
             assert ret[0] == len(to_delete)
 
