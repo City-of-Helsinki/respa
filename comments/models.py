@@ -130,7 +130,7 @@ class Comment(models.Model):
 
         return context
 
-    def _send_notification(self, notification_type, request=None):
+    def _send_notification(self, request=None):
         target_object = self.content_object
         target_model = target_object.__class__
         assert target_model in COMMENTABLE_MODELS.values()
@@ -139,9 +139,12 @@ class Comment(models.Model):
             catering_provider = target_object.get_provider()
             email = catering_provider.notification_email if catering_provider else None
             reserver = target_object.reservation.user
-        else:
-            # FIXME: Add Reservation comment notifications
-            return
+            notification_type = NotificationType.CATERING_ORDER_COMMENT_CREATED
+        elif target_model == Reservation:
+            unit = target_object.resource.unit
+            email = unit.manager_email if unit.manager_email else None
+            reserver = target_object.user
+            notification_type = NotificationType.RESERVATION_COMMENT_CREATED
 
         context = self.get_notification_context(DEFAULT_LANG)
         try:
@@ -156,4 +159,4 @@ class Comment(models.Model):
             send_respa_mail(reserver.email, rendered_notification['subject'], rendered_notification['body'])
 
     def send_created_notification(self, request=None):
-        self._send_notification(NotificationType.CATERING_ORDER_COMMENT_CREATED, request)
+        self._send_notification(request)

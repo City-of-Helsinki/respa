@@ -119,16 +119,60 @@ def test_comment_endpoints_get(user_api_client, user, catering_order_comment, en
 
 
 @pytest.mark.django_db
-def test_reservation_comment_create(user_api_client, user, reservation, new_reservation_comment_data):
+def test_reservation_comment_create(user_api_client, user, staff_user, reservation, new_reservation_comment_data):
+    COMMENT_CREATED_BODY = """Target type: {{ target_type }}
+Created by: {{ created_by.display_name }}
+Created at: {{ created_at|format_datetime }}
+Resource: {{ reservation.resource }}
+Reservation: {{ reservation|reservation_time }}
+{{ text }}
+"""
+    NotificationTemplate.objects.language(DEFAULT_LANG).create(
+        type=NotificationType.RESERVATION_COMMENT_CREATED,
+        short_message="Reservation comment added for {{ reservation.resource }}",
+        subject="Reservation comment added for {{ reservation.resource }}",
+        body=COMMENT_CREATED_BODY
+    )
+
+    user.preferred_language = DEFAULT_LANG
+    user.save()
+
+    unit = reservation.resource.unit
+    unit.manager_email = 'manager@management.com'
+    unit.save()
+
     response = user_api_client.post(LIST_URL, data=new_reservation_comment_data)
     assert response.status_code == 201
 
+    assert Comment.objects.count() == 1
     new_comment = Comment.objects.latest('id')
     assert new_comment.created_at
     assert new_comment.created_by == user
     assert new_comment.content_type == ContentType.objects.get_for_model(Reservation)
     assert new_comment.object_id == reservation.id
-    assert new_comment.text == 'new comment text'
+    assert new_comment.text == new_reservation_comment_data['text']
+
+    created_at = format_datetime_tz(new_comment.created_at, reservation.resource.unit.get_tz())
+    strings = [
+        "Created by: %s" % user.get_display_name(),
+        "Created at: %s" % created_at,
+        "Resource: %s" % reservation.resource.name,
+        "Reservation: to 4.4.2115 klo 9.00–10.00",
+        new_reservation_comment_data['text'],
+    ]
+
+    check_received_mail_exists("Reservation comment added for %s" % reservation.resource.name,
+                               unit.manager_email, strings)
+
+    # Next make sure that a comment by another user reaches the reserver
+    user_api_client.force_authenticate(user=staff_user)
+    response = user_api_client.post(LIST_URL, data=new_reservation_comment_data)
+    assert response.status_code == 201
+    assert Comment.objects.count() == 2
+
+    assert len(mail.outbox) == 2
+    check_received_mail_exists("Reservation comment added for %s" % reservation.resource.name,
+                               user.email, [])
 
 
 @pytest.mark.django_db

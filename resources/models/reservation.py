@@ -328,9 +328,12 @@ class Reservation(ModifiableModel):
                 'resource': self.resource.name,
                 'begin': localize_datetime(self.begin),
                 'end': localize_datetime(self.end),
+                'begin_dt': self.begin,
+                'end_dt': self.end,
+                'time_range': self.format_time()
             }
             if self.resource.unit:
-                context['unit'] = self.resource.unit
+                context['unit'] = self.resource.unit.name
             if self.can_view_access_code(user) and self.access_code:
                 context['access_code'] = self.access_code
             if self.resource.reservation_confirmed_notification_extra:

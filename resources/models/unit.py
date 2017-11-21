@@ -34,7 +34,8 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
     time_zone = models.CharField(verbose_name=_('Time zone'), max_length=50,
                                  default=_get_default_timezone)
 
-    # organization = models.ForeignKey(...)
+    manager_email = models.EmailField(verbose_name=_('Manager email'), max_length=100, null=True, blank=True)
+
     street_address = models.CharField(verbose_name=_('Street address'), max_length=100, null=True)
     address_zip = models.CharField(verbose_name=_('Postal code'), max_length=10, null=True, blank=True)
     phone = models.CharField(verbose_name=_('Phone number'), max_length=30, null=True, blank=True)

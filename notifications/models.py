@@ -76,6 +76,8 @@ class NotificationTemplate(TranslatableModel):
 
 
 def reservation_time(res):
+    if isinstance(res, dict):
+        return res['time_range']
     return res.format_time()
 
 
