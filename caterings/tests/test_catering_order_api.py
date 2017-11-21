@@ -186,8 +186,8 @@ def test_product_removal_with_zero_quantity(user_api_client, catering_product, n
 
 
 @pytest.mark.django_db
-def test_cannot_modify_orders_if_reservation_not_own(user_api_client, user2, catering_order, reservation3,
-                                                     new_order_data):
+def test_cannot_modify_orders_if_no_permission(user_api_client, user2, catering_order, reservation3,
+                                               new_order_data):
     error_message = "No permission to modify this reservation's catering orders."
 
     # try to create an order
@@ -202,7 +202,6 @@ def test_cannot_modify_orders_if_reservation_not_own(user_api_client, user2, cat
     assert response.status_code == 403
     assert error_message in str(response.data)
 
-    detail_url = get_detail_url(catering_order)
     response = user_api_client.patch(
         detail_url, data={'reservation': reservation3.pk}, format='json', HTTP_ACCEPT_LANGUAGE='en')
     assert response.status_code == 403
@@ -210,11 +209,24 @@ def test_cannot_modify_orders_if_reservation_not_own(user_api_client, user2, cat
 
     # try to update an order belonging to another user
     user_api_client.force_authenticate(user=user2)
-    detail_url = get_detail_url(catering_order)
     response = user_api_client.patch(
         detail_url, data={'reservation': reservation3.pk}, format='json', HTTP_ACCEPT_LANGUAGE='en'
     )
-    assert response.status_code == 404
+    assert response.status_code == 404  # user can't even access the catering order
+
+    # after giving a permission to view the catering orders, we still can't modify it
+    resource = catering_order.reservation.resource
+    assign_perm('unit:can_view_reservation_catering_orders', user2, resource.unit)
+    response = user_api_client.get(detail_url, format='json', HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 200
+    response = user_api_client.put(detail_url, data=response.data, format='json', HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 403
+
+    response = user_api_client.get(detail_url, format='json', HTTP_ACCEPT_LANGUAGE='en')
+    # but now we can!
+    assign_perm('unit:can_modify_reservation_catering_orders', user2, resource.unit)
+    response = user_api_client.put(detail_url, data=response.data, format='json', HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 200
 
 
 @pytest.mark.django_db

@@ -494,6 +494,9 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     def can_view_catering_orders(self, user):
         return self._has_perm(user, 'can_view_reservation_catering_orders')
 
+    def can_modify_catering_orders(self, user):
+        return self._has_perm(user, 'can_modify_reservation_catering_orders')
+
     def can_approve_reservations(self, user):
         return self._has_perm(user, 'can_approve_reservation', allow_admin=False)
 
