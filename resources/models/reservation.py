@@ -6,7 +6,6 @@ import django.contrib.postgres.fields as pgfields
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.utils import translation
-from django.utils.formats import date_format
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -23,7 +22,7 @@ from .resource import generate_access_code, validate_access_code
 from .resource import Resource
 from .utils import (
     get_dt, save_dt, is_valid_time_slot, humanize_duration, send_respa_mail,
-    DEFAULT_LANG, localize_datetime
+    DEFAULT_LANG, localize_datetime, format_dt_range
 )
 
 logger = logging.getLogger(__name__)
@@ -35,8 +34,11 @@ RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_
 
 
 class ReservationQuerySet(models.QuerySet):
+    def current(self):
+        return self.exclude(state__in=(Reservation.CANCELLED, Reservation.DENIED))
+
     def active(self):
-        return self.filter(end__gte=timezone.now()).exclude(state__in=(Reservation.CANCELLED, Reservation.DENIED))
+        return self.filter(end__gte=timezone.now()).current()
 
     def extra_fields_visible(self, user):
         # the following logic is also implemented in Reservation.are_extra_fields_visible()
@@ -261,31 +263,7 @@ class Reservation(ModifiableModel):
         tz = self.resource.unit.get_tz()
         begin = self.begin.astimezone(tz)
         end = self.end.astimezone(tz)
-
-        current_language = translation.get_language()
-        if current_language == 'fi':
-            # ma 1.1.2017 klo 12.00
-            begin_format = r'D j.n.Y \k\l\o G.i'
-            if begin.date() == end.date():
-                end_format = 'G.i'
-                sep = '–'
-            else:
-                end_format = begin_format
-                sep = ' – '
-
-            res = sep.join([date_format(begin, begin_format), date_format(end, end_format)])
-        else:
-            # default to English
-            begin_format = r'D j/n/Y G:i'
-            if begin.date() == end.date():
-                end_format = 'G:i'
-                sep = '–'
-            else:
-                end_format = begin_format
-                sep = ' – '
-
-            res = sep.join([date_format(begin, begin_format), date_format(end, end_format)])
-        return res
+        return format_dt_range(translation.get_language(), begin, end)
 
     def __str__(self):
         return "%s: %s" % (self.format_time(), self.resource)

@@ -1,72 +1,45 @@
 import datetime
 import io
+import pytz
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import get_language, ugettext_lazy as _
 from django.utils import formats
 from django.utils.timezone import localtime
-from rest_framework import exceptions, serializers
+from django.conf import settings
+from rest_framework import exceptions
 
 from resources.models import Reservation, Resource, Unit
+from resources.api.resource import ResourceSerializer
 from .base import BaseReport, DocxRenderer
+from .utils import iso_to_dt
 
 
-class DailyReservationsSerializer(serializers.Serializer):
-    day = serializers.DateField(required=False)
-    unit = serializers.CharField(required=False)
-    resource = serializers.CharField(required=False)
-    include_resources_without_reservations = serializers.BooleanField(required=False, default=False)
-
-    def validate_unit(self, value):
-        try:
-            unit = Unit.objects.get(id=value)
-        except Unit.DoesNotExist:
-            raise exceptions.ValidationError(
-                _('Invalid pk "{pk_value}" - object does not exist.').format(pk_value=value)
-            )
-        return unit
-
-    def validate_resource(self, value):
-        if not value:
-            return None
-
-        resource_ids = [x.strip() for x in value.split(',')]
-        resource_qs = Resource.objects.filter(id__in=resource_ids)
-        return resource_qs
-
-    def validate(self, data):
-        unit = data.get('unit')
-        resource_qs = data.get('resource')
-
-        if not (unit or resource_qs):
-            raise exceptions.ValidationError(_('Either unit or resource is required.'))
-
-        if not resource_qs:
-            resource_qs = unit.resources.all()
-        elif unit:
-            resource_qs = resource_qs.filter(unit=unit)
-        data['resource_qs'] = resource_qs
-
-        data['day'] = data.get('day', datetime.date.today())
-        return data
+FALLBACK_LANGUAGE = settings.LANGUAGES[0][0]
 
 
 class DailyReservationsDocxRenderer(DocxRenderer):
     def render(self, data, media_type=None, renderer_context=None):
-        day = data['day']
-        resource_qs = data['resource_qs']
+        renderer_context = renderer_context or {}
+        day = renderer_context.get('day')
 
-        include_resources_without_reservations = data['include_resources_without_reservations']
+        include_resources_without_reservations = renderer_context.get('include_resources_without_reservations')
         document = self.create_document()
 
         first_resource = True
         atleast_one_reservation = False
 
-        for resource in resource_qs:
-            reservations = Reservation.objects.filter(
-                resource=resource, begin__date=day, state=Reservation.CONFIRMED
-            ).order_by('resource', 'begin')
-            reservation_count = reservations.count()
+        current_language = get_language()
 
+        def get_translated_prop(obj, prop_name):
+            prop = obj.get(prop_name, {})
+            val = prop.get(current_language)
+            if not val:
+                return prop.get(FALLBACK_LANGUAGE)
+            return val
+
+        for resource in data:
+            reservations = [rv for rv in resource['reservations'] if rv['state'] == Reservation.CONFIRMED]
+            reservation_count = len(reservations)
             if reservation_count == 0 and not include_resources_without_reservations:
                 continue
 
@@ -78,26 +51,26 @@ class DailyReservationsDocxRenderer(DocxRenderer):
             else:
                 first_resource = False
 
-            user = renderer_context['request'].user
-            document.add_heading(resource.name, 1)
+            document.add_heading(get_translated_prop(resource, 'name'), 1)
             document.add_heading(formats.date_format(day, format='D j.n.Y'), 2)
 
             if reservation_count == 0:
                 document.add_paragraph(_('No reservations'))
 
             for reservation in reservations:
-
                 # the time
-                document.add_heading(formats.time_format(localtime(reservation.begin)) + '–' +
-                                     formats.time_format(localtime(reservation.end)), 3)
+                begin = iso_to_dt(reservation['begin'])
+                end = iso_to_dt(reservation['end'])
+                range_str = formats.time_format(localtime(begin)) + '–' + formats.time_format(localtime(end))
+                document.add_heading(range_str, 3)
 
                 # collect attributes from the reservation, skip empty ones
-                attrs = [(field, getattr(reservation, field)) for field in (
+                attrs = [(field, reservation.get(field)) for field in (
                     'event_subject',
                     'reserver_name',
                     'host_name',
                     'number_of_participants',
-                ) if getattr(reservation, field) and reservation.can_view_field(user, field)]
+                ) if reservation.get(field)]
 
                 if not attrs:
                     document.add_paragraph(_('No information available'))
@@ -120,8 +93,71 @@ class DailyReservationsDocxRenderer(DocxRenderer):
 
 
 class DailyReservationsReport(BaseReport):
-    serializer_class = DailyReservationsSerializer
+    serializer_class = ResourceSerializer
     renderer_classes = (DailyReservationsDocxRenderer,)
 
+    def get_queryset(self):
+        return Resource.objects.all().order_by('unit__name', 'name')
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['start'] = self.start
+        context['end'] = self.end
+        return context
+
+    def filter_queryset(self, queryset):
+        params = self.request.query_params
+        unit = params.get('unit', '').strip()
+        if unit:
+            try:
+                unit = Unit.objects.get(id=unit)
+            except Unit.DoesNotExist:
+                raise exceptions.NotFound(
+                    _('Unit "{pk_value}" does not exist.').format(pk_value=unit)
+                )
+            queryset = queryset.filter(unit=unit)
+
+        resources = params.get('resource', '').strip()
+        if resources:
+            resource_ids = [x.strip() for x in resources.split(',')]
+            queryset = queryset.filter(id__in=resource_ids)
+
+        if not unit and not resources:
+            raise exceptions.ParseError(_('Either unit or a valid resource id is required.'))
+
+        if not queryset:
+            raise exceptions.NotFound(_('No resources found'))
+
+        if unit:
+            tz = unit.time_zone
+        else:
+            tz = queryset.first().unit.time_zone
+        tz = pytz.timezone(tz)
+
+        day = params.get('day', '').strip()
+        if day:
+            try:
+                day = datetime.datetime.strptime(day, "%Y-%m-%d").date()
+            except ValueError:
+                raise exceptions.ParseError('day must be of ISO format (YYYY-MM-DD)')
+        else:
+            day = datetime.date.today()
+        self.day = day
+        start = tz.localize(datetime.datetime.combine(day, datetime.time(0, 0)))
+        end = start + datetime.timedelta(days=1)
+        self.start = start
+        self.end = end
+
+        return queryset
+
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        params = self.request.query_params
+        val = params.get('include_resources_without_reservations', '').lower() in ['true', '1', 't', 'y', 'yes']
+        context['include_resources_without_reservations'] = val
+        if hasattr(self, 'day'):
+            context['day'] = self.day
+        return context
+
     def get_filename(self, request, validated_data):
-        return '%s-%s.docx' % (_('day-report'), validated_data['day'])
+        return '%s-%s.docx' % (_('day-report'), self.day.isoformat())

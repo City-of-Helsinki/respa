@@ -176,3 +176,30 @@ def create_reservable_before_datetime(days_from_now):
 
 def localize_datetime(dt):
     return formats.date_format(timezone.localtime(dt), 'DATETIME_FORMAT')
+
+
+def format_dt_range(language, begin, end):
+    if language == 'fi':
+        # ma 1.1.2017 klo 12.00
+        begin_format = r'D j.n.Y \k\l\o G.i'
+        if begin.date() == end.date():
+            end_format = 'G.i'
+            sep = '–'
+        else:
+            end_format = begin_format
+            sep = ' – '
+
+        res = sep.join([formats.date_format(begin, begin_format), formats.date_format(end, end_format)])
+    else:
+        # default to English
+        begin_format = r'D j/n/Y G:i'
+        if begin.date() == end.date():
+            end_format = 'G:i'
+            sep = '–'
+        else:
+            end_format = begin_format
+            sep = ' – '
+
+        res = sep.join([formats.date_format(begin, begin_format), formats.date_format(end, end_format)])
+
+    return res

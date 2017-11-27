@@ -6,35 +6,24 @@ from django.utils.timezone import localtime
 from rest_framework import exceptions, serializers
 
 from caterings.models import CateringOrder
-from resources.models import Reservation
+from resources.models import Reservation, Resource
+from resources.api.reservation import ReservationSerializer, ReservationViewSet
 from .base import BaseReport, DocxRenderer
-
-
-class ReservationDetailsSerializer(serializers.Serializer):
-    reservation = serializers.IntegerField()
-
-    def validate_reservation(self, value):
-        try:
-            reservation = Reservation.objects.get(id=value)
-        except Reservation.DoesNotExist:
-            raise exceptions.ValidationError(
-               serializers.PrimaryKeyRelatedField.default_error_messages.get('does_not_exist').format(pk_value=value)
-            )
-        return reservation
+from .utils import iso_to_dt
 
 
 class ReservationDetailsDocxRenderer(DocxRenderer):
-    def render(self, data, media_type=None, renderer_context=None):
-        reservation = data['reservation']
-        user = renderer_context['request'].user
-        document = self.create_document()
-
-        begin_date = formats.date_format(reservation.begin.date())
-        begin_time = formats.time_format(localtime(reservation.begin))
-        end_date = formats.date_format(reservation.end.date())
-        end_time = formats.time_format(localtime(reservation.end))
+    def render_one(self, document, reservation, renderer_context):
+        begin = localtime(iso_to_dt(reservation['begin']))
+        end = localtime(iso_to_dt(reservation['end']))
+        begin_date = formats.date_format(begin.date())
+        begin_time = formats.time_format(begin)
+        end_date = formats.date_format(end.date())
+        end_time = formats.time_format(end)
         end_str = '%s' % end_time if begin_date == end_date else '%s %s' % (end_date, end_time)
-        place_str = '%s / %s' % (reservation.resource.unit.name, reservation.resource.name)
+
+        resource = Resource.objects.get(id=reservation['resource'])
+        place_str = '%s / %s' % (resource.unit.name, resource.name)
         time_str = '%s %s %s–%s' % (begin_date, pgettext_lazy('time', 'at'), begin_time, end_str)
 
         document.add_heading(place_str, 1)
@@ -42,14 +31,14 @@ class ReservationDetailsDocxRenderer(DocxRenderer):
         document.add_heading(_('Basic information'), 2)
 
         # collect attributes from the reservation, skip empty ones
-        attrs = [(field, getattr(reservation, field)) for field in (
+        attrs = [(field, reservation.get(field)) for field in (
             'reserver_name',
             'reserver_phone_number',
             'event_subject',
             'host_name',
             'number_of_participants',
             'participants',
-        ) if getattr(reservation, field) and reservation.can_view_field(user, field)]
+        ) if reservation.get(field)]
 
         if attrs:
             table = document.add_table(rows=0, cols=2)
@@ -61,35 +50,34 @@ class ReservationDetailsDocxRenderer(DocxRenderer):
         else:
             document.add_paragraph(_('No information available'))
 
-        document.add_heading(pgettext_lazy('report', 'Catering order'), 2)
+        user = renderer_context['request'].user
+        catering_order = CateringOrder.objects.filter(reservation=reservation['id']).last()
+        if catering_order and resource.can_view_catering_orders(user):
+            document.add_heading(pgettext_lazy('report', 'Catering order'), 2)
 
-        if not reservation.can_view_catering_orders(user):
-            document.add_paragraph(_('No information available'))
-        else:
-            # TODO for now assume there isn't more than one catering order per reservation
-            try:
-                catering_order = reservation.catering_orders.last()
-            except CateringOrder.DoesNotExist:
-                catering_order = None
+            table = document.add_table(rows=0, cols=2)
 
-            if catering_order:
-                table = document.add_table(rows=0, cols=2)
-
-                for order_line in catering_order.order_lines.all():
-                    row_cells = table.add_row().cells
-                    row_cells[0].text = order_line.product.name
-                    row_cells[1].text = '%s %s' % (str(order_line.quantity), _('pcs.'))
-
+            for order_line in catering_order.order_lines.all():
                 row_cells = table.add_row().cells
-                row_cells[0].text = _('Invoicing data')
-                row_cells[1].text = catering_order.invoicing_data
+                row_cells[0].text = order_line.product.name
+                row_cells[1].text = '%s %s' % (str(order_line.quantity), _('pcs.'))
 
-                if catering_order.message:
-                    row_cells = table.add_row().cells
-                    row_cells[0].text = _('Message')
-                    row_cells[1].text = catering_order.message
-            else:
-                document.add_paragraph(_('No catering order'))
+            if catering_order.message:
+                row_cells = table.add_row().cells
+                row_cells[0].text = _('Message')
+                row_cells[1].text = catering_order.message
+
+            row_cells = table.add_row().cells
+            row_cells[0].text = _('Invoicing data')
+            row_cells[1].text = catering_order.invoicing_data
+
+    def render(self, data, media_type=None, renderer_context=None):
+        document = self.create_document()
+
+        for idx, rv in enumerate(data):
+            if idx != 0:
+                document.add_page_break()
+            self.render_one(document, rv, renderer_context)
 
         output = io.BytesIO()
         document.save(output)
@@ -98,8 +86,36 @@ class ReservationDetailsDocxRenderer(DocxRenderer):
 
 
 class ReservationDetailsReport(BaseReport):
-    serializer_class = ReservationDetailsSerializer
+    serializer_class = ReservationSerializer
     renderer_classes = (ReservationDetailsDocxRenderer,)
+    filter_backends = ReservationViewSet.filter_backends
+    filter_class = ReservationViewSet.filter_class
 
-    def get_filename(self, request, validated_data):
-        return '%s-%s.docx' % (_('reservation-details'), validated_data['reservation'].id)
+    def get_queryset(self):
+        return Reservation.objects.all().order_by('resource__unit__name', 'resource__name', 'begin')
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        return context
+
+    def filter_queryset(self, queryset):
+        params = self.request.query_params
+        reservation_id = params.get('reservation')
+        if reservation_id:
+            try:
+                Reservation.objects.get(id=reservation_id)
+            except Reservation.DoesNotExist:
+                raise exceptions.NotFound(
+                   serializers.PrimaryKeyRelatedField.default_error_messages.get('does_not_exist').format(pk_value=reservation_id)
+                )
+            queryset = queryset.filter(id=reservation_id)
+        else:
+            queryset = super().filter_queryset(queryset)
+
+        if queryset.count() > 1000:
+            raise exceptions.NotAcceptable(_("Too many (> 1000) reservations to return"))
+
+        return queryset
+
+    def get_filename(self, request, data):
+        return '%s.docx' % (_('reservation-details'),)

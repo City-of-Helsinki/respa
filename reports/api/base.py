@@ -1,11 +1,11 @@
 from django.conf import settings
 from docx import Document
-from rest_framework import renderers, status, views
+from rest_framework import renderers, generics
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
 
-class BaseReport(views.APIView):
+class BaseReport(generics.GenericAPIView):
     """
     Base view for reports.
 
@@ -22,16 +22,11 @@ class BaseReport(views.APIView):
         return None
 
     def get(self, request, format=None):
-        serializer = self.serializer_class(data=request.query_params)
-        if not serializer.is_valid():
-            return Response(
-                data=serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        response = Response(serializer.data)
 
-        response = Response(serializer.validated_data)
-
-        filename = self.get_filename(request, serializer.validated_data)
+        filename = self.get_filename(request, serializer.data)
         if filename:
             response['Content-Disposition'] = 'attachment; filename=%s' % filename
         return response

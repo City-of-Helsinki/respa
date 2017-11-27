@@ -47,14 +47,10 @@ def test_get_reservation_details_report(api_client, reservation):
 
 @pytest.mark.django_db
 def test_daily_reservations_filter_errors(api_client, test_unit, reservation, resource_in_unit):
-    response = api_client.get(list_url, HTTP_ACCEPT_LANGUAGE='en')
-    assert response.status_code == 400
-    assert 'required' in str(response.data)
-
-    response = api_client.get(list_url + '?reservation=xyz', HTTP_ACCEPT_LANGUAGE='en')
-    assert response.status_code == 400
-    assert 'valid integer is required' in str(response.data)
-
     response = api_client.get(list_url + '?reservation=592843752987', HTTP_ACCEPT_LANGUAGE='en')
-    assert response.status_code == 400
+    assert response.status_code == 404
     assert 'does not exist' in str(response.data)
+
+    response = api_client.get(list_url + '?start=abc', HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 400
+    assert 'must be a timestamp in ISO' in str(response.data)

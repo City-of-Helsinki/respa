@@ -74,14 +74,14 @@ def test_daily_reservations_by_resources(api_client, test_unit, reservation, res
 
 @pytest.mark.django_db
 def test_daily_reservations_filter_errors(api_client, test_unit, reservation, resource_in_unit):
-    response = api_client.get(list_url + '?day=bogus-day')
-    assert response.status_code == 400
-    assert 'day' in response.data
-
-    response = api_client.get(list_url + '?unit=bogus-unit')
-    assert response.status_code == 400
-    assert 'unit' in response.data
-
     response = api_client.get(list_url + '', HTTP_ACCEPT_LANGUAGE='en')
     assert response.status_code == 400
-    assert 'Either unit or resource is required.' in response.data['non_field_errors']
+    assert 'Either unit or a valid resource' in response.data['detail']
+
+    response = api_client.get(list_url + '?day=bogus-day&unit=%s' % test_unit.id)
+    assert response.status_code == 400
+    assert 'day' in response.data['detail']
+
+    response = api_client.get(list_url + '?unit=bogus-unit')
+    assert response.status_code == 404
+    assert 'unit' in response.data['detail']
