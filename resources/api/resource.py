@@ -48,7 +48,7 @@ def parse_query_time_range(params):
 
 
 def get_resource_reservations_queryset(begin, end):
-    qs = Reservation.objects.filter(begin__lte=end, end__gte=begin)
+    qs = Reservation.objects.filter(begin__lte=end, end__gte=begin).current()
     qs = qs.order_by('begin').prefetch_related('catering_orders').select_related('user')
     return qs
 
