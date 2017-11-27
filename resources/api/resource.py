@@ -14,6 +14,7 @@ from django.contrib.gis.geos import Point
 from resources.pagination import PurposePagination
 from rest_framework import exceptions, filters, mixins, serializers, viewsets, response, status
 from rest_framework.decorators import detail_route
+from guardian.core import ObjectPermissionChecker
 
 from munigeo import api as munigeo_api
 from resources.models import (
@@ -416,7 +417,7 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
                           viewsets.GenericViewSet):
     queryset = Resource.objects.select_related('generic_terms', 'unit', 'type', 'reservation_metadata_set')
     queryset = queryset.prefetch_related('favorited_by', 'resource_equipment', 'resource_equipment__equipment',
-                                         'purposes', 'images', 'purposes')
+                                         'purposes', 'images', 'purposes', 'groups')
     serializer_class = ResourceSerializer
     filter_backends = (filters.SearchFilter, ResourceFilterBackend, LocationFilterBackend)
     search_fields = ('name_fi', 'description_fi', 'unit__name_fi',
@@ -460,6 +461,21 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
             rv_list.append(rv)
         return reservations_by_resource
 
+    def _preload_permissions(self):
+        units = set()
+        resource_groups = set()
+        checker = ObjectPermissionChecker(self.request.user)
+        for res in self._page:
+            units.add(res.unit)
+            for g in res.groups.all():
+                resource_groups.add(g)
+            res._permission_checker = checker
+
+        if units:
+            checker.prefetch_perms(units)
+        if resource_groups:
+            checker.prefetch_perms(resource_groups)
+
     def get_serializer_context(self):
         context = super().get_serializer_context()
 
@@ -475,6 +491,8 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
         if times:
             context['reservations_cache'] = self._preload_reservations(times)
         context['opening_hours_cache'] = self._preload_opening_hours(times)
+
+        self._preload_permissions()
 
         return context
 

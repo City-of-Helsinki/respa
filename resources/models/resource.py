@@ -26,6 +26,7 @@ from image_cropping import ImageRatioField
 from PIL import Image
 from autoslug import AutoSlugField
 from guardian.shortcuts import get_objects_for_user, get_users_with_perms
+from guardian.core import ObjectPermissionChecker
 
 from resources.errors import InvalidImage
 
@@ -463,11 +464,16 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         # Admins are almighty.
         if self.is_admin(user) and allow_admin:
             return True
+        if hasattr(self, '_permission_checker'):
+            checker = self._permission_checker
+        else:
+            checker = ObjectPermissionChecker(user)
+
         # Permissions can be given per-unit
-        if user.has_perm('unit:%s' % perm, self.unit):
+        if checker.has_perm('unit:%s' % perm, self.unit):
             return True
         # ... or through Resource Groups
-        resource_group_perms = [user.has_perm('group:%s' % perm, rg) for rg in self.groups.all()]
+        resource_group_perms = [checker.has_perm('group:%s' % perm, rg) for rg in self.groups.all()]
         return any(resource_group_perms)
 
     def get_users_with_perm(self, perm):
