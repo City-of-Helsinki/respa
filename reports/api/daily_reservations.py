@@ -1,6 +1,7 @@
 import datetime
 import io
 import pytz
+from docx.shared import Pt
 
 from django.utils.translation import get_language, ugettext_lazy as _
 from django.utils import formats
@@ -55,7 +56,8 @@ class DailyReservationsDocxRenderer(DocxRenderer):
             document.add_heading(formats.date_format(day, format='D j.n.Y'), 2)
 
             if reservation_count == 0:
-                document.add_paragraph(_('No reservations'))
+                run = document.add_paragraph().add_run(_('No reservations.'))
+                run.font.size = Pt(20)
 
             for reservation in reservations:
                 # the time

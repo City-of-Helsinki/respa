@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-11-27 21:47+0200\n"
+"POT-Creation-Date: 2017-11-28 14:30+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -93,11 +93,11 @@ msgstr "Tuotteet"
 msgid "Reservation"
 msgstr "Varaus"
 
-#: caterings/models.py:94 reports/api/reservation_details.py:66
+#: caterings/models.py:94 reports/api/reservation_details.py:71
 msgid "Invoicing data"
 msgstr "Laskutusnumero"
 
-#: caterings/models.py:95 reports/api/reservation_details.py:71
+#: caterings/models.py:95 reports/api/reservation_details.py:67
 msgid "Message"
 msgstr "Viesti"
 
@@ -245,28 +245,32 @@ msgstr "Herätemalli"
 msgid "Notification templates"
 msgstr "Herätemallit"
 
-#: reports/api/daily_reservations.py:58 reports/api/daily_reservations.py:87
-msgid "No reservations"
-msgstr "Ei varauksia"
+#: reports/api/daily_reservations.py:59
+msgid "No reservations."
+msgstr "Ei varauksia."
 
-#: reports/api/daily_reservations.py:76 reports/api/reservation_details.py:51
+#: reports/api/daily_reservations.py:78 reports/api/reservation_details.py:51
 msgid "No information available"
 msgstr "Ei tietoja saatavilla"
 
-#: reports/api/daily_reservations.py:116
+#: reports/api/daily_reservations.py:89
+msgid "No reservations"
+msgstr "Ei varauksia"
+
+#: reports/api/daily_reservations.py:118
 #, python-brace-format
 msgid "Unit \"{pk_value}\" does not exist."
 msgstr ""
 
-#: reports/api/daily_reservations.py:126
+#: reports/api/daily_reservations.py:128
 msgid "Either unit or a valid resource id is required."
 msgstr "Joko unit tai resource on pakollinen."
 
-#: reports/api/daily_reservations.py:129
+#: reports/api/daily_reservations.py:131
 msgid "No resources found"
 msgstr "Resurssia ei löytynyt"
 
-#: reports/api/daily_reservations.py:159
+#: reports/api/daily_reservations.py:165
 msgid "day-report"
 msgstr "päiväraportti"
 
@@ -288,7 +292,11 @@ msgstr "Tarjoilutilaus"
 msgid "pcs."
 msgstr "kpl"
 
-#: reports/api/reservation_details.py:118
+#: reports/api/reservation_details.py:116
+msgid "Too many (> 1000) reservations to return"
+msgstr "Liian monta (> 1000) varausta palautettavaksi"
+
+#: reports/api/reservation_details.py:121
 msgid "reservation-details"
 msgstr "varauksen-tiedot"
 
@@ -653,7 +661,7 @@ msgstr "Laskutusosoite kaupunki"
 
 #: resources/models/reservation.py:117
 msgid "Original ID"
-msgstr ""
+msgstr "Alkuperäinen tunniste"
 
 #: resources/models/reservation.py:280
 msgid "You must end the reservation after it has begun"
@@ -943,7 +951,7 @@ msgstr "Resurssit"
 
 #: resources/models/resource.py:687
 msgid "Overlapping opening hours"
-msgstr ""
+msgstr "Päällekkäiset aukioloajat"
 
 #: resources/models/unit.py:34
 msgid "Time zone"
@@ -951,7 +959,7 @@ msgstr "Aikavyöhyke"
 
 #: resources/models/unit.py:37
 msgid "Manager email"
-msgstr ""
+msgstr "Vahtimestarin sähköpostiosoite"
 
 #: resources/models/unit.py:39
 msgid "Street address"
@@ -1035,15 +1043,15 @@ msgstr "Lisää toinen"
 msgid "Delete Item"
 msgstr "Poista"
 
-#: respa/settings.py:140
+#: respa/settings.py:152
 msgid "Finnish"
 msgstr "suomi"
 
-#: respa/settings.py:141
+#: respa/settings.py:153
 msgid "English"
 msgstr "englanti"
 
-#: respa/settings.py:142
+#: respa/settings.py:154
 msgid "Swedish"
 msgstr "ruotsi"
 
@@ -1145,9 +1153,3 @@ msgstr ""
 #: users/models.py:16
 msgid "Favorite resources"
 msgstr "Suosikkiresurssit"
-
-#~ msgid "No catering order"
-#~ msgstr "Ei tilausta"
-
-#~ msgid "Length of period"
-#~ msgstr "Aikavälin kesto"
