@@ -39,6 +39,7 @@ def _populate_reservation(reservation, ex_resource, item_props):
         else:
             name = organizer.name
         reservation.reserver_name = name or ""
+        reservation.host_name = reservation.reserver_name
     comment_text = "Synchronized from Exchange %s" % ex_resource.exchange
     reservation.comments = comment_text
     reservation._from_exchange = True  # Set a flag to prevent immediate re-upload
