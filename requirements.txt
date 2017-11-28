@@ -4,8 +4,9 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
-arrow==0.10.0
+arrow==0.12.0
 asn1crypto==0.23.0        # via cryptography
+attrs==17.3.0             # via pytest
 babel==2.5.1              # via delorean
 certifi==2017.11.5        # via requests
 cffi==1.11.2              # via cryptography
@@ -21,19 +22,20 @@ django-anymail==1.2
 django-appconf==1.0.1     # via django-image-cropping
 django-autoslug==1.9.3
 django-cors-headers==2.1.0
+django-environ==0.4.4
 django-filter==1.1.0
 django-grappelli==2.10.1
 django-guardian==1.4.9
 django-helusers==0.4.2
 django-hstore==1.4.2
 django-image-cropping==1.1.0
-django-jinja==2.4.0
+django-jinja==2.4.1
 django-modeltranslation==0.12.1
 django-mptt==0.8.7        # via django-munigeo
 django-munigeo==0.2.0
-django-parler==1.8
-django-reversion==2.0.10
-django==1.11.7            # via django-allauth, django-anymail, django-helusers, django-jinja, django-munigeo, django-reversion, drf-oidc-auth, easy-thumbnails
+django-parler==1.8.1
+django-reversion==2.0.11
+django==1.11.7
 djangorestframework-jwt==1.11.0
 djangorestframework==3.7.3
 drf-oidc-auth==0.9        # via django-helusers
@@ -47,7 +49,7 @@ humanize==0.5.1           # via delorean
 icalendar==4.0.0
 idna==2.6                 # via cryptography, requests
 iso8601==0.1.12
-jinja2==2.10              # via django-jinja
+jinja2==2.10
 lxml==4.1.1
 markupsafe==1.0           # via jinja2
 mccabe==0.6.1             # via flake8
@@ -55,9 +57,10 @@ ntlm-auth==1.0.6          # via requests-ntlm
 oauthlib==2.0.6           # via requests-oauthlib
 olefile==0.44             # via pillow
 pillow==4.3.0             # via easy-thumbnails
-pip-tools==1.10.1
+pip-tools==1.10.2
+pluggy==0.6.0             # via pytest
 psycopg2==2.7.3.2
-py==1.4.34                # via pytest
+py==1.5.2                 # via pytest
 pycodestyle==2.3.1        # via flake8
 pycparser==2.18           # via cffi
 pycryptodomex==3.4.7      # via pyjwkest
@@ -66,7 +69,7 @@ pyjwkest==1.4.0           # via drf-oidc-auth
 pyjwt==1.5.3
 pytest-cov==2.5.1
 pytest-django==3.1.2
-pytest==3.2.4
+pytest==3.3.0
 python-dateutil==2.6.1    # via arrow, delorean, freezegun, icalendar
 python-docx==0.8.6
 python3-openid==3.1.0     # via django-allauth

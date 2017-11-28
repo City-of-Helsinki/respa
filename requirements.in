@@ -41,3 +41,4 @@ requests-ntlm
 six
 django-reversion
 daemonize
+django-environ
