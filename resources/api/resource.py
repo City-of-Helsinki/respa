@@ -412,22 +412,7 @@ class LocationFilterBackend(filters.BaseFilterBackend):
             queryset = queryset.filter(q)
         return queryset
 
-
-class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
-                          viewsets.GenericViewSet):
-    queryset = Resource.objects.select_related('generic_terms', 'unit', 'type', 'reservation_metadata_set')
-    queryset = queryset.prefetch_related('favorited_by', 'resource_equipment', 'resource_equipment__equipment',
-                                         'purposes', 'images', 'purposes', 'groups')
-    serializer_class = ResourceSerializer
-    filter_backends = (filters.SearchFilter, ResourceFilterBackend, LocationFilterBackend)
-    search_fields = ('name_fi', 'description_fi', 'unit__name_fi',
-                     'name_sv', 'description_sv', 'unit__name_sv',
-                     'name_en', 'description_en', 'unit__name_en')
-
-    def get_serializer(self, page, *args, **kwargs):
-        self._page = page
-        return super().get_serializer(page, *args, **kwargs)
-
+class ResourceCacheMixin:
     def _preload_opening_hours(self, times):
         # We have to evaluate the query here to make sure all the
         # resources are on the same timezone. In case of different
@@ -476,8 +461,8 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
         if resource_groups:
             checker.prefetch_perms(resource_groups)
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
+    def _get_cache_context(self):
+        context = {}
 
         equipment_list = Equipment.objects.filter(resource_equipment__resource__in=self._page).distinct().\
             select_related('category').prefetch_related('aliases')
@@ -496,6 +481,27 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
 
         return context
 
+
+class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
+                          viewsets.GenericViewSet, ResourceCacheMixin):
+    queryset = Resource.objects.select_related('generic_terms', 'unit', 'type', 'reservation_metadata_set')
+    queryset = queryset.prefetch_related('favorited_by', 'resource_equipment', 'resource_equipment__equipment',
+                                         'purposes', 'images', 'purposes', 'groups')
+    serializer_class = ResourceSerializer
+    filter_backends = (filters.SearchFilter, ResourceFilterBackend, LocationFilterBackend)
+    search_fields = ('name_fi', 'description_fi', 'unit__name_fi',
+                     'name_sv', 'description_sv', 'unit__name_sv',
+                     'name_en', 'description_en', 'unit__name_en')
+
+    def get_serializer(self, page, *args, **kwargs):
+        self._page = page
+        return super().get_serializer(page, *args, **kwargs)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update(self._get_cache_context())
+        return context
+
     def get_queryset(self):
         if self.request.user.is_staff:
             return self.queryset
@@ -503,9 +509,19 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
             return self.queryset.filter(public=True)
 
 
-class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
+                      viewsets.GenericViewSet, ResourceCacheMixin):
     serializer_class = ResourceDetailsSerializer
-    queryset = Resource.objects.all()
+    queryset = ResourceListViewSet.queryset
+
+    def get_serializer(self, page, *args, **kwargs):
+        self._page = [page]
+        return super().get_serializer(page, *args, **kwargs)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update(self._get_cache_context())
+        return context
 
     def get_queryset(self):
         if self.request.user.is_staff:
@@ -539,6 +555,7 @@ class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin, vi
     @detail_route(methods=['post'])
     def unfavorite(self, request, pk=None):
         return self._set_favorite(request, False)
+
 
 register_view(ResourceListViewSet, 'resource')
 register_view(ResourceViewSet, 'resource')
