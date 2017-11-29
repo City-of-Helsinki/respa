@@ -93,7 +93,7 @@ class ReservationDetailsDocxRenderer(DocxRenderer):
 
 
 class ReservationDetailsReport(BaseReport, ReservationCacheMixin):
-    queryset = ReservationViewSet.queryset.active()
+    queryset = ReservationViewSet.queryset.current()
     serializer_class = ReservationSerializer
     renderer_classes = (ReservationDetailsDocxRenderer,)
     filter_backends = ReservationViewSet.filter_backends
