@@ -34,8 +34,9 @@ class ReservationDetailsDocxRenderer(DocxRenderer):
         attrs = [(field, reservation.get(field)) for field in (
             'reserver_name',
             'reserver_phone_number',
-            'event_subject',
             'host_name',
+            'event_subject',
+            'event_description',
             'number_of_participants',
             'participants',
         ) if reservation.get(field)]
