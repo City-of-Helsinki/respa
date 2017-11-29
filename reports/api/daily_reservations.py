@@ -1,7 +1,7 @@
 import datetime
 import io
 import pytz
-from docx.shared import Pt
+from docx.shared import Pt, Cm
 
 from django.utils.translation import get_language, ugettext_lazy as _
 from django.utils import formats
@@ -64,7 +64,8 @@ class DailyReservationsDocxRenderer(DocxRenderer):
                 begin = iso_to_dt(reservation['begin'])
                 end = iso_to_dt(reservation['end'])
                 range_str = formats.time_format(localtime(begin)) + '–' + formats.time_format(localtime(end))
-                document.add_heading(range_str, 3)
+                time_paragraph = document.add_heading(range_str, 3)
+                time_paragraph.paragraph_format.space_before = Cm(1)
 
                 # collect attributes from the reservation, skip empty ones
                 attrs = [(field, reservation.get(field)) for field in (
