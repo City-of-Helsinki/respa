@@ -99,6 +99,12 @@ class ReservationDetailsReport(BaseReport, ReservationCacheMixin):
     filter_backends = ReservationViewSet.filter_backends
     filter_class = ReservationViewSet.filter_class
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user = self.request.user
+        queryset = queryset.filter(resource__in=Resource.objects.visible_for(user))
+        return queryset
+
     def get_serializer(self, *args, **kwargs):
         if 'data' not in kwargs and len(args) == 1:
             # It's a read operation

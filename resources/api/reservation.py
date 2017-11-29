@@ -550,8 +550,10 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         filters = Q(state__in=(Reservation.CONFIRMED, Reservation.REQUESTED))
         if user.is_authenticated():
             filters |= Q(user=user)
-
         queryset = queryset.filter(filters)
+
+        queryset = queryset.filter(resource__in=Resource.objects.visible_for(user))
+
         return queryset
 
     def perform_create(self, serializer):

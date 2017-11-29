@@ -121,6 +121,12 @@ class TermsOfUse(ModifiableModel, AutoIdentifiedModel):
 
 
 class ResourceQuerySet(models.QuerySet):
+    def visible_for(self, user):
+        if user.is_staff:
+            return self
+        else:
+            return self.filter(public=True)
+
     def with_perm(self, perm, user):
         units = get_objects_for_user(user, 'unit:%s' % perm, klass=Unit,
                                      with_superuser=False)
