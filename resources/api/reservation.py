@@ -2,6 +2,7 @@ import uuid
 import arrow
 import django_filters
 from arrow.parser import ParserError
+from guardian.core import ObjectPermissionChecker
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import (
@@ -18,7 +19,7 @@ from rest_framework.exceptions import NotAcceptable, ValidationError
 
 from helusers.jwt import JWTAuthentication
 from munigeo import api as munigeo_api
-from resources.models import Reservation, Resource
+from resources.models import Reservation, Resource, ReservationMetadataSet
 from resources.models.reservation import RESERVATION_EXTRA_FIELDS
 from resources.pagination import ReservationPagination
 from resources.models.utils import generate_reservation_xlsx, get_object_or_none
@@ -468,8 +469,39 @@ class ReservationExcelRenderer(renderers.BaseRenderer):
             return NotAcceptable()
 
 
-class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
-    queryset = Reservation.objects.select_related('user', 'resource', 'resource__unit')
+class ReservationCacheMixin:
+    def _preload_permissions(self):
+        units = set()
+        resource_groups = set()
+        resources = set()
+        checker = ObjectPermissionChecker(self.request.user)
+
+        for rv in self._page:
+            resources.add(rv.resource)
+            rv.resource._permission_checker = checker
+
+        for res in resources:
+            units.add(res.unit)
+            for g in res.groups.all():
+                resource_groups.add(g)
+
+        if units:
+            checker.prefetch_perms(units)
+        if resource_groups:
+            checker.prefetch_perms(resource_groups)
+
+    def _get_cache_context(self):
+        context = {}
+        set_list = ReservationMetadataSet.objects.all().prefetch_related('supported_fields', 'required_fields')
+        context['reservation_metadata_set_cache'] = {x.id: x for x in set_list}
+
+        self._preload_permissions()
+        return context
+
+
+class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, ReservationCacheMixin):
+    queryset = Reservation.objects.select_related('user', 'resource', 'resource__unit')\
+        .prefetch_related('catering_orders').prefetch_related('resource__groups').order_by('begin', 'resource__unit__name', 'resource__name')
 
     serializer_class = ReservationSerializer
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter, UserFilterBackend, ResourceFilterBackend,
@@ -481,6 +513,30 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
     pagination_class = ReservationPagination
     authentication_classes = (JWTAuthentication, TokenAuthentication)
     ordering_fields = ('begin',)
+
+    def get_serializer(self, *args, **kwargs):
+        serializer = super().get_serializer(*args, **kwargs)
+        if 'data' in kwargs or len(args) != 1:
+            # It's a write operation
+            return serializer
+
+        instance_or_page = args[0]
+        if isinstance(instance_or_page, Reservation):
+            self._page = [instance_or_page]
+        else:
+            self._page = instance_or_page
+        return serializer
+
+    def get_serializer_context(self, *args, **kwargs):
+        if 'data' not in kwargs and len(args) == 1:
+            # It's a read operation
+            instance_or_page = args[0]
+            if isinstance(instance_or_page, Reservation):
+                self._page = [instance_or_page]
+            else:
+                self._page = instance_or_page
+
+        return super().get_serializer_context(*args, **kwargs)
 
     def get_queryset(self):
         queryset = super().get_queryset()
