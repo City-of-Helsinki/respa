@@ -534,3 +534,55 @@ def test_resource_available_between_filter_constraints(user_api_client, list_url
     })
     assert response.status_code == 400
     assert 'available_between timestamps must be on the same day.' in str(response.data)
+
+
+@pytest.mark.django_db
+def test_resource_available_between_considers_inactive_reservations(user_api_client, user, list_url, resource_in_unit):
+    p1 = Period.objects.create(start=datetime.date(2115, 4, 1),
+                               end=datetime.date(2115, 4, 30),
+                               resource=resource_in_unit)
+    for weekday in range(0, 7):
+        Day.objects.create(period=p1, weekday=weekday,
+                           opens=datetime.time(0, 0),
+                           closes=datetime.time(23, 59))
+    resource_in_unit.update_opening_hours()
+
+    # First no reservations
+    params = {'available_between': '2115-04-08T08:00:00+02:00,2115-04-08T16:00:00+02:00'}
+    response = user_api_client.get(list_url, params)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit])
+
+    # One confirmed reservation
+    rv = Reservation.objects.create(
+        resource=resource_in_unit,
+        begin='2115-04-08T10:00:00+02:00',
+        end='2115-04-08T11:00:00+02:00',
+        user=user,
+    )
+    # Reload the reservation from database to make sure begin and end are
+    # datetimes (not strings).
+    rv = Reservation.objects.get(id=rv.id)
+
+    params = {'available_between': '2115-04-08T08:00:00+02:00,2115-04-08T16:00:00+02:00'}
+    response = user_api_client.get(list_url, params)
+    assert response.status_code == 200
+    assert_response_objects(response, [])
+
+    # Cancelled reservations should be ignored
+    rv.set_state(Reservation.CANCELLED, user)
+    response = user_api_client.get(list_url, params)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit])
+
+    # Requested should be taken into account
+    rv.set_state(Reservation.REQUESTED, user)
+    response = user_api_client.get(list_url, params)
+    assert response.status_code == 200
+    assert_response_objects(response, [])
+
+    # Denied ignored
+    rv.set_state(Reservation.DENIED, user)
+    response = user_api_client.get(list_url, params)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit])

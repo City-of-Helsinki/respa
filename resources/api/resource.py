@@ -356,9 +356,8 @@ class ResourceFilterSet(django_filters.FilterSet):
         # exclude resources that have reservation(s) overlapping with the available_between range
         overlapping_reservations = Reservation.objects.filter(
             resource__in=queryset, end__gt=available_start, begin__lt=available_end
-        )
+        ).current()
         queryset = queryset.exclude(reservations__in=overlapping_reservations)
-
         closed_resource_ids = {
             resource.id
             for resource in queryset
