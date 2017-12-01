@@ -312,11 +312,15 @@ def test_catering_notifications(user, user_api_client, catering_product,
     provider.notification_email = 'catering.person@caterer.org'
     provider.save()
 
+    reservation.number_of_participants = 42
+    reservation.save()
+
     #
     # Create
     #
     CREATED_BODY = """Resource: {{ resource }}
 Reservation: {{ reservation|reservation_time }}
+Participants: {{ reservation.number_of_participants }}
 Serving time: {{ serving_time }}
 Invoicing data: {{ invoicing_data }}
 Message: {{ message }}
@@ -326,6 +330,7 @@ Order lines: {% for line in order_lines %}
 """
     strings = [
         "Resource: %s" % reservation.resource.name,
+        "Participants: %d" % reservation.number_of_participants,
         "Reservation: to 4.4.2115 klo 9.00–10.00",
         "Serving time: 13.00",
         "Invoicing data: %s" % new_order_data['invoicing_data'],

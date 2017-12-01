@@ -308,7 +308,8 @@ class Reservation(ModifiableModel):
                 'end': localize_datetime(self.end),
                 'begin_dt': self.begin,
                 'end_dt': self.end,
-                'time_range': self.format_time()
+                'time_range': self.format_time(),
+                'number_of_participants': self.number_of_participants,
             }
             if self.resource.unit:
                 context['unit'] = self.resource.unit.name
