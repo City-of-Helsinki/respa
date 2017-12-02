@@ -13,14 +13,13 @@ cffi==1.11.2              # via cryptography
 chardet==3.0.4            # via requests
 click==6.7                # via pip-tools
 coverage==4.4.2
-cryptography==2.1.3       # via requests-ntlm
+cryptography==2.1.4       # via requests-ntlm
 daemonize==2.4.7
 defusedxml==0.5.0         # via python3-openid
 delorean==0.6.0
 django-allauth==0.34.0
 django-anymail==1.2
 django-appconf==1.0.1     # via django-image-cropping
-django-autoslug==1.9.3
 django-cors-headers==2.1.0
 django-environ==0.4.4
 django-filter==1.1.0
@@ -35,7 +34,7 @@ django-mptt==0.8.7        # via django-munigeo
 django-munigeo==0.2.0
 django-parler==1.8.1
 django-reversion==2.0.11
-django==1.11.7
+django==1.11.8
 djangorestframework-jwt==1.11.0
 djangorestframework==3.7.3
 drf-oidc-auth==0.9        # via django-helusers
@@ -57,7 +56,7 @@ ntlm-auth==1.0.6          # via requests-ntlm
 oauthlib==2.0.6           # via requests-oauthlib
 olefile==0.44             # via pillow
 pillow==4.3.0             # via easy-thumbnails
-pip-tools==1.10.2
+pip-tools==1.11.0
 pluggy==0.6.0             # via pytest
 psycopg2==2.7.3.2
 py==1.5.2                 # via pytest
@@ -81,6 +80,6 @@ requests-ntlm==1.1.0
 requests-oauthlib==0.8.0  # via django-allauth
 requests==2.18.4
 six==1.11.0
-tzlocal==1.4              # via delorean
+tzlocal==1.5.1            # via delorean
 urllib3==1.22             # via requests
 xlsxwriter==1.0.2

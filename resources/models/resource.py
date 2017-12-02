@@ -24,7 +24,6 @@ from .gistindex import GistIndex
 from psycopg2.extras import DateTimeTZRange
 from image_cropping import ImageRatioField
 from PIL import Image
-from autoslug import AutoSlugField
 from guardian.shortcuts import get_objects_for_user, get_users_with_perms
 from guardian.core import ObjectPermissionChecker
 
@@ -94,7 +93,8 @@ class ResourceType(ModifiableModel, AutoIdentifiedModel):
 
 class Purpose(ModifiableModel, NameIdentifiedModel):
     id = models.CharField(primary_key=True, max_length=100)
-    parent = models.ForeignKey('Purpose', verbose_name=_('Parent'), null=True, blank=True, related_name="children")
+    parent = models.ForeignKey('Purpose', verbose_name=_('Parent'), null=True, blank=True, related_name="children",
+                               on_delete=models.SET_NULL)
     name = models.CharField(verbose_name=_('Name'), max_length=200)
     public = models.BooleanField(default=True, verbose_name=_('Public'))
 
@@ -150,8 +150,9 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     id = models.CharField(primary_key=True, max_length=100)
     public = models.BooleanField(default=True, verbose_name=_('Public'))
     unit = models.ForeignKey('Unit', verbose_name=_('Unit'), db_index=True, null=True, blank=True,
-                             related_name="resources")
-    type = models.ForeignKey(ResourceType, verbose_name=_('Resource type'), db_index=True)
+                             related_name="resources", on_delete=models.PROTECT)
+    type = models.ForeignKey(ResourceType, verbose_name=_('Resource type'), db_index=True,
+                             on_delete=models.PROTECT)
     purposes = models.ManyToManyField(Purpose, verbose_name=_('Purposes'))
     name = models.CharField(verbose_name=_('Name'), max_length=200)
     description = models.TextField(verbose_name=_('Description'), null=True, blank=True)
@@ -168,14 +169,14 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                                       default=datetime.timedelta(minutes=30))
     max_period = models.DurationField(verbose_name=_('Maximum reservation time'), null=True, blank=True)
 
-    slug = AutoSlugField(populate_from=get_translated_name, unique=True)
     equipment = models.ManyToManyField(Equipment, verbose_name=_('Equipment'), through='ResourceEquipment')
     max_reservations_per_user = models.IntegerField(verbose_name=_('Maximum number of active reservations per user'),
                                                     null=True, blank=True)
     reservable = models.BooleanField(verbose_name=_('Reservable'), default=False)
     reservation_info = models.TextField(verbose_name=_('Reservation info'), null=True, blank=True)
     responsible_contact_info = models.TextField(verbose_name=_('Responsible contact info'), blank=True)
-    generic_terms = models.ForeignKey(TermsOfUse, verbose_name=_('Generic terms'), null=True, blank=True)
+    generic_terms = models.ForeignKey(TermsOfUse, verbose_name=_('Generic terms'), null=True, blank=True,
+                                      on_delete=models.SET_NULL)
     specific_terms = models.TextField(verbose_name=_('Specific terms'), blank=True)
     reservation_confirmed_notification_extra = models.TextField(verbose_name=_('Extra content to reservation confirmed '
                                                                                'notification'), blank=True)
@@ -187,7 +188,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                                         default=ACCESS_CODE_TYPE_NONE)
     reservable_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable days in advance'),
                                                                   null=True, blank=True)
-    reservation_metadata_set = models.ForeignKey('resources.ReservationMetadataSet', null=True, blank=True)
+    reservation_metadata_set = models.ForeignKey('resources.ReservationMetadataSet', null=True, blank=True,
+                                                 on_delete=models.SET_NULL)
 
     objects = ResourceQuerySet.as_manager()
 
@@ -465,7 +467,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         return user.is_staff
 
     def _has_perm(self, user, perm, allow_admin=True):
-        if not (user and user.is_authenticated()):
+        if not (user and user.is_authenticated):
             return False
         # Admins are almighty.
         if self.is_admin(user) and allow_admin:
@@ -558,7 +560,7 @@ class ResourceImage(ModifiableModel):
         ('other', _('Other')),
     )
     resource = models.ForeignKey('Resource', verbose_name=_('Resource'), db_index=True,
-                                 related_name='images')
+                                 related_name='images', on_delete=models.CASCADE)
     type = models.CharField(max_length=20, verbose_name=_('Type'), choices=TYPES)
     caption = models.CharField(max_length=100, verbose_name=_('Caption'), null=True, blank=True)
     # FIXME: name images based on resource, type, and sort_order
@@ -644,12 +646,10 @@ class ResourceEquipment(ModifiableModel):
     Contains data and description related to a specific equipment instance.
     Data field can be used to set custom attributes for more flexible and fast filtering.
     """
-    resource = models.ForeignKey(Resource, related_name='resource_equipment')
-    equipment = models.ForeignKey(Equipment, related_name='resource_equipment')
+    resource = models.ForeignKey(Resource, related_name='resource_equipment', on_delete=models.CASCADE)
+    equipment = models.ForeignKey(Equipment, related_name='resource_equipment', on_delete=models.CASCADE)
     data = HStoreField(null=True, blank=True)
     description = models.TextField(blank=True)
-
-    objects = models.GeoManager()
 
     class Meta:
         verbose_name = pgettext_lazy('singular', 'resource equipment')

@@ -47,10 +47,12 @@ class NameIdentifiedModel(models.Model):
 class ModifiableModel(models.Model):
     created_at = models.DateTimeField(verbose_name=_('Time of creation'), default=timezone.now)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Created by'),
-                                   null=True, blank=True, related_name="%(class)s_created")
+                                   null=True, blank=True, related_name="%(class)s_created",
+                                   on_delete=models.SET_NULL)
     modified_at = models.DateTimeField(verbose_name=_('Time of modification'), default=timezone.now)
     modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Modified by'),
-                                    null=True, blank=True, related_name="%(class)s_modified")
+                                    null=True, blank=True, related_name="%(class)s_modified",
+                                    on_delete=models.SET_NULL)
 
     class Meta:
         abstract = True

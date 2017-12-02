@@ -296,7 +296,7 @@ class UserFilterBackend(filters.BaseFilterBackend):
                 raise exceptions.ParseError(_('Invalid value in filter %(filter)s') % {'filter': 'user'})
             queryset = queryset.filter(user__uuid=user_uuid)
 
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             return queryset
 
         is_own = request.query_params.get('is_own', None)
@@ -435,7 +435,7 @@ class ReservationFilterSet(django_filters.rest_framework.FilterSet):
     def filter_is_favorite_resource(self, queryset, name, value):
         user = self.request.user
 
-        if not user.is_authenticated():
+        if not user.is_authenticated:
             return queryset.none if value else queryset
 
         filtering = {'resource__favorited_by': user}
@@ -548,7 +548,7 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
 
         # normal users can see only their own reservations and reservations that are confirmed or requested
         filters = Q(state__in=(Reservation.CONFIRMED, Reservation.REQUESTED))
-        if user.is_authenticated():
+        if user.is_authenticated:
             filters |= Q(user=user)
         queryset = queryset.filter(filters)
 

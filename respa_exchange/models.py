@@ -153,7 +153,7 @@ class ExchangeReservation(models.Model):
         editable=False
     )
     organizer = models.ForeignKey('ExchangeUser', editable=False, null=True,
-                                  related_name='reservations')
+                                  related_name='reservations', on_delete=models.PROTECT)
     exchange = models.ForeignKey(  # Cached Exchange configuration
         to=ExchangeConfiguration,
         on_delete=models.PROTECT,
@@ -233,7 +233,8 @@ class ExchangeUser(models.Model):
     name = models.CharField(max_length=100)
     given_name = models.CharField(max_length=100, null=True, blank=True)
     surname = models.CharField(max_length=100, null=True, blank=True)
-    user = models.OneToOneField(User, null=True, db_index=True, related_name='exchange_user')
+    user = models.OneToOneField(User, null=True, db_index=True, related_name='exchange_user',
+                                on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.name

@@ -74,7 +74,7 @@ class CateringProduct(TimeStampedModel):
 
 class CateringOrderQuerySet(models.QuerySet):
     def can_view(self, user):
-        if not user.is_authenticated():
+        if not user.is_authenticated:
             return self.none()
 
         allowed_resources = Resource.objects.with_perm('can_view_reservation_catering_orders', user)

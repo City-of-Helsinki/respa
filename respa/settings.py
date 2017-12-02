@@ -63,7 +63,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'easy_thumbnails',
     'image_cropping',
-    'autoslug',
     'guardian',
     'django_jinja',
     'anymail',
@@ -258,7 +257,8 @@ if os.path.exists(local_settings_path):
 if 'SECRET_KEY' not in locals():
     secret_file = os.path.join(BASE_DIR, '.django_secret')
     try:
-        SECRET_KEY = open(secret_file).read().strip()
+        with open(secret_file) as f:
+            SECRET_KEY = f.read().strip()
     except IOError:
         import random
         system_random = random.SystemRandom()

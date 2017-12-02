@@ -32,7 +32,7 @@ def get_commentable_content_types():
 
 class CommentQuerySet(models.QuerySet):
     def can_view(self, user):
-        if not user.is_authenticated():
+        if not user.is_authenticated:
             return self.none()
 
         reservation_resources = Resource.objects.with_perm('can_access_reservation_comments', user)
@@ -58,7 +58,8 @@ class CommentQuerySet(models.QuerySet):
 class Comment(models.Model):
     created_at = models.DateTimeField(verbose_name=_('Time of creation'), auto_now_add=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Created by'),
-                                   null=True, blank=True, related_name='%(class)s_created')
+                                   null=True, blank=True, related_name='%(class)s_created',
+                                   on_delete=models.PROTECT)
     text = models.TextField(verbose_name=_('Text'))
     content_type = models.ForeignKey(
         ContentType,
@@ -83,7 +84,7 @@ class Comment(models.Model):
 
     @staticmethod
     def can_user_comment_object(user, target_object):
-        if not (user and user.is_authenticated()):
+        if not (user and user.is_authenticated):
             return False
 
         target_model = target_object.__class__

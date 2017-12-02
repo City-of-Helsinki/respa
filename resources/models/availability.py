@@ -100,9 +100,9 @@ class Period(models.Model):
     Days that specifies the actual activity hours link here
     """
     resource = models.ForeignKey('Resource', verbose_name=_('Resource'), db_index=True,
-                                 null=True, blank=True, related_name='periods')
+                                 null=True, blank=True, related_name='periods', on_delete=models.CASCADE)
     unit = models.ForeignKey('Unit', verbose_name=_('Unit'), db_index=True,
-                             null=True, blank=True, related_name='periods')
+                             null=True, blank=True, related_name='periods', on_delete=models.CASCADE)
 
     start = models.DateField(verbose_name=_('Start date'))
     end = models.DateField(verbose_name=_('End date'))
@@ -174,7 +174,8 @@ class Day(models.Model):
         (6, _('Sunday'))
     )
 
-    period = models.ForeignKey(Period, verbose_name=_('Period'), db_index=True, related_name='days')
+    period = models.ForeignKey(Period, verbose_name=_('Period'), db_index=True, related_name='days',
+                               on_delete=models.CASCADE)
     weekday = models.IntegerField(verbose_name=_('Weekday'), choices=DAYS_OF_WEEK)
     opens = models.TimeField(verbose_name=_('Time when opens'), null=True, blank=True)
     closes = models.TimeField(verbose_name=_('Time when closes'), null=True, blank=True)

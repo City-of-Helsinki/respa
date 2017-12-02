@@ -3,7 +3,6 @@ from django.conf import settings
 from django.contrib.gis.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from autoslug import AutoSlugField
 
 from .base import AutoIdentifiedModel, ModifiableModel
 from .utils import create_reservable_before_datetime, get_translated, get_translated_name
@@ -43,14 +42,14 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
     www_url = models.URLField(verbose_name=_('WWW link'), max_length=400, null=True, blank=True)
     address_postal_full = models.CharField(verbose_name=_('Full postal address'), max_length=100,
                                            null=True, blank=True)
-    municipality = models.ForeignKey(Municipality, null=True, blank=True, verbose_name=_('Municipality'))
+    municipality = models.ForeignKey(Municipality, null=True, blank=True, verbose_name=_('Municipality'),
+                                     on_delete=models.SET_NULL)
 
     picture_url = models.URLField(verbose_name=_('Picture URL'), max_length=200,
                                   null=True, blank=True)
     picture_caption = models.CharField(verbose_name=_('Picture caption'), max_length=200,
                                        null=True, blank=True)
 
-    slug = AutoSlugField(populate_from=get_translated_name, unique=True)
     reservable_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable days in advance'),
                                                                   null=True, blank=True)
 
@@ -94,7 +93,8 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
 
 
 class UnitIdentifier(models.Model):
-    unit = models.ForeignKey('Unit', verbose_name=_('Unit'), db_index=True, related_name='identifiers')
+    unit = models.ForeignKey('Unit', verbose_name=_('Unit'), db_index=True, related_name='identifiers',
+                             on_delete=models.CASCADE)
     namespace = models.CharField(verbose_name=_('Namespace'), max_length=50)
     value = models.CharField(verbose_name=_('Value'), max_length=100)
 

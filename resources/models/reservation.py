@@ -44,7 +44,7 @@ class ReservationQuerySet(models.QuerySet):
         # the following logic is also implemented in Reservation.are_extra_fields_visible()
         # so if this is changed that probably needs to be changed as well
 
-        if not user.is_authenticated():
+        if not user.is_authenticated:
             return self.none()
         if user.is_superuser:
             return self
@@ -53,7 +53,7 @@ class ReservationQuerySet(models.QuerySet):
         return self.filter(Q(user=user) | Q(resource__in=allowed_resources))
 
     def catering_orders_visible(self, user):
-        if not user.is_authenticated():
+        if not user.is_authenticated:
             return self.none()
         if user.is_superuser:
             return self
@@ -76,17 +76,19 @@ class Reservation(ModifiableModel):
         (REQUESTED, _('requested')),
     )
 
-    resource = models.ForeignKey('Resource', verbose_name=_('Resource'), db_index=True, related_name='reservations')
+    resource = models.ForeignKey('Resource', verbose_name=_('Resource'), db_index=True, related_name='reservations',
+                                 on_delete=models.PROTECT)
     begin = models.DateTimeField(verbose_name=_('Begin time'))
     end = models.DateTimeField(verbose_name=_('End time'))
     duration = pgfields.DateTimeRangeField(verbose_name=_('Length of reservation'), null=True,
                                            blank=True, db_index=True)
     comments = models.TextField(null=True, blank=True, verbose_name=_('Comments'))
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('User'), null=True,
-                             blank=True, db_index=True)
+                             blank=True, db_index=True, on_delete=models.PROTECT)
     state = models.CharField(max_length=16, choices=STATE_CHOICES, verbose_name=_('State'), default=CONFIRMED)
     approver = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Approver'),
-                                 related_name='approved_reservations', null=True, blank=True)
+                                 related_name='approved_reservations', null=True, blank=True,
+                                 on_delete=models.SET_NULL)
 
     # access-related fields
     access_code = models.CharField(verbose_name=_('Access code'), max_length=32, null=True, blank=True)
@@ -169,7 +171,7 @@ class Reservation(ModifiableModel):
         return self.end >= timezone.now() and self.state not in (Reservation.CANCELLED, Reservation.DENIED)
 
     def is_own(self, user):
-        if not (user and user.is_authenticated()):
+        if not (user and user.is_authenticated):
             return False
         return user == self.user
 

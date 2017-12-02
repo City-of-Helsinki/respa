@@ -8,7 +8,7 @@ from arrow.parser import ParserError
 
 from django import forms
 from django.db.models import Q
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
 from resources.pagination import PurposePagination
