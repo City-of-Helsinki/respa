@@ -515,19 +515,6 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
     ordering_fields = ('begin',)
 
     def get_serializer(self, *args, **kwargs):
-        serializer = super().get_serializer(*args, **kwargs)
-        if 'data' in kwargs or len(args) != 1:
-            # It's a write operation
-            return serializer
-
-        instance_or_page = args[0]
-        if isinstance(instance_or_page, Reservation):
-            self._page = [instance_or_page]
-        else:
-            self._page = instance_or_page
-        return serializer
-
-    def get_serializer_context(self, *args, **kwargs):
         if 'data' not in kwargs and len(args) == 1:
             # It's a read operation
             instance_or_page = args[0]
@@ -536,7 +523,13 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
             else:
                 self._page = instance_or_page
 
-        return super().get_serializer_context(*args, **kwargs)
+        return super().get_serializer(*args, **kwargs)
+
+    def get_serializer_context(self, *args, **kwargs):
+        context = super().get_serializer_context(*args, **kwargs)
+        if hasattr(self, '_page'):
+            context.update(self._get_cache_context())
+        return context
 
     def get_queryset(self):
         queryset = super().get_queryset()
