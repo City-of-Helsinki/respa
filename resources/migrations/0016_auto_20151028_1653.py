@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-import autoslug.fields
 import resources.models.utils
 
 
@@ -16,11 +15,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='resource',
             name='slug',
-            field=autoslug.fields.AutoSlugField(editable=False, unique=True, populate_from=resources.models.utils.get_translated_name),
+            field=models.CharField(editable=False, blank=True, max_length=100, default=''),
         ),
         migrations.AlterField(
             model_name='unit',
             name='slug',
-            field=autoslug.fields.AutoSlugField(editable=False, unique=True, populate_from=resources.models.utils.get_translated_name),
+            field=models.CharField(editable=False, blank=True, max_length=100, default=''),
         ),
     ]
