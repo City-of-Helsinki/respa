@@ -19,8 +19,8 @@ env = environ.Env(
     DATABASE_URL=(str, 'postgis:///respa'),
     JWT_SECRET_KEY=(str, ''),
     JWT_AUDIENCE=(str, ''),
-    MEDIA_ROOT=(environ.Path, root('media')),
-    STATIC_ROOT=(environ.Path, root('static')),
+    MEDIA_ROOT=(environ.Path(), root('media')),
+    STATIC_ROOT=(environ.Path(), root('static')),
     MEDIA_URL=(str, '/media/'),
     STATIC_URL=(str, '/static/'),
     SENTRY_DSN=(str, ''),
@@ -30,9 +30,9 @@ environ.Env.read_env()
 
 BASE_DIR = root()
 
-DEBUG = env.bool('DEBUG')
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
-ADMINS = env.list('ADMINS')
+DEBUG = env('DEBUG')
+ALLOWED_HOSTS = env('ALLOWED_HOSTS')
+ADMINS = env('ADMINS')
 
 DATABASES = {
     'default': env.db()
@@ -85,9 +85,9 @@ INSTALLED_APPS = [
     'respa_exchange',
 ]
 
-if env.str('SENTRY_DSN'):
+if env('SENTRY_DSN'):
     RAVEN_CONFIG = {
-        'dsn': env.str('SENTRY_DSN', default=''),
+        'dsn': env('SENTRY_DSN'),
         'release': raven.fetch_git_sha(BASE_DIR),
     }
     INSTALLED_APPS.append('raven.contrib.django.raven_compat')
@@ -178,10 +178,10 @@ PARLER_LANGUAGES = {
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
-STATIC_URL = env.str('STATIC_URL')
-MEDIA_URL = env.str('MEDIA_URL')
-STATIC_ROOT = str(env.path('STATIC_ROOT'))
-MEDIA_ROOT = str(env.path('MEDIA_ROOT'))
+STATIC_URL = env('STATIC_URL')
+MEDIA_URL = env('MEDIA_URL')
+STATIC_ROOT = env('STATIC_ROOT')
+MEDIA_ROOT = env('MEDIA_ROOT')
 
 DEFAULT_SRID = 4326
 
