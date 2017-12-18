@@ -22,7 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*.hameenlinna.fi']
 
 
 # Application definition
@@ -51,23 +51,20 @@ INSTALLED_APPS = [
     'guardian',
     'django_jinja',
     'anymail',
-
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'helusers.providers.helsinki',
     'raven.contrib.django.raven_compat',
-
     'munigeo',
-
     'reports',
     'resources',
     'users',
+    'hmlvaraus'
 ]
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -96,7 +93,7 @@ TEMPLATES = [
     },
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates'), os.path.join(BASE_DIR, 'templates', 'allauth')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -148,6 +145,7 @@ LOCALE_PATHS = (
     os.path.join(BASE_DIR, 'locale'),
 )
 
+MODELTRANSLATION_DEFAULT_LANGUAGE = 'fi'
 MODELTRANSLATION_FALLBACK_LANGUAGES = ('fi', 'en', 'sv')
 MODELTRANSLATION_PREPOPULATE_LANGUAGE = 'fi'
 
@@ -155,6 +153,10 @@ MODELTRANSLATION_PREPOPULATE_LANGUAGE = 'fi'
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+
+STATICFILES_DIRS = (
+  BASE_DIR + '/static/',
+)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR + '/media/'
 
@@ -188,10 +190,10 @@ SOCIALACCOUNT_ADAPTER = 'helusers.providers.helsinki.provider.SocialAccountAdapt
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+        'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'helusers.jwt.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': 'resources.pagination.DefaultPagination',
 }

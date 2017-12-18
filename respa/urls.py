@@ -20,9 +20,13 @@ from helusers import admin
 from django.views.generic.base import RedirectView
 
 from resources.api import RespaAPIRouter
+from hmlvaraus.api.importer import ImporterView
 from resources.views.images import ResourceImageView
 from resources.views.ical import ICalFeedView
 from resources.views import testing as testing_views
+from django.contrib.auth.decorators import login_required
+
+from hmlvaraus.views.spa import IndexView
 
 admin.autodiscover()
 
@@ -32,10 +36,13 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^grappelli/', include('grappelli.urls')),
-    url(r'^resource_image/(?P<pk>\d+)$', ResourceImageView.as_view(), name='resource-image-view'),
+    #url(r'^resource_image/(?P<pk>\d+)$', ResourceImageView.as_view(), name='resource-image-view'),
     url(r'^v1/', include(router.urls)),
     url(r'^v1/reservation/ical/(?P<ical_token>[-\w\d]+).ics$', ICalFeedView.as_view(), name='ical-feed'),
-    url(r'^$', RedirectView.as_view(url='v1/'))
+    #url(r'^$', RedirectView.as_view(url='v1/'))
+    url(r'^$', login_required(IndexView.as_view())),
+    url(r'^api/', include(router.urls)),
+    url(r'^importer/', ImporterView.as_view())
 ]
 
 if 'reports' in settings.INSTALLED_APPS:

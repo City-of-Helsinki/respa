@@ -833,9 +833,6 @@ definitions:
         description: 'The intervals when the resource is open during the queried period'
         items:
           type: object
-      reservable:
-        type: boolean
-        description: 'Is it possible to create or modify reservations for this resource through the API. Even if this is false, reservations by other means (eg. phone call) might still be possible.'
       reservations:
         type: array
         description: 'The reservations made for the resource during the queried period'

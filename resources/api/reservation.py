@@ -418,7 +418,7 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, ReservationExcelRenderer)
     pagination_class = ReservationPagination
-    authentication_classes = (JWTAuthentication, TokenAuthentication)
+    #authentication_classes = (JWTAuthentication, TokenAuthentication)
     ordering_fields = ('begin',)
 
     def get_queryset(self):

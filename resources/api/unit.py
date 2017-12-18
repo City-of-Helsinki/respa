@@ -35,4 +35,4 @@ class UnitViewSet(munigeo_api.GeoModelAPIView, viewsets.ReadOnlyModelViewSet):
     serializer_class = UnitSerializer
 
 
-register_view(UnitViewSet, 'unit')
+#register_view(UnitViewSet, 'unit')

@@ -63,7 +63,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             obj = self.request.user
         return obj
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = get_user_model().objects.all()
     serializer_class = UserSerializer
 
