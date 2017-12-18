@@ -1,0 +1,32 @@
+{% extends "account/base.html" %}
+
+{% load i18n %}
+{% load account socialaccount %}
+
+{% block head_title %}{% trans "Sign In" %}{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div id="logo-container">
+        <div id="header-logo"></div>
+    </div>
+    <h1><!--{% trans "Sign In" %}-->Venevaraukset</h1>
+    <form class="login form" method="POST" action="{% url 'account_login' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        {% if redirect_field_value %}
+        <div class="form-group">
+            <input class="form-control" type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+        </div>
+        {% endif %}
+        <div class="form-group">
+            <a class="btn-default btn button secondaryAction" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
+        </div>
+        <div class="form-group">
+            <button class="btn btn-primary primaryAction" type="submit">{% trans "Sign In" %}</button>
+        </div>
+    </form>
+
+</div>
+
+{% endblock %}
