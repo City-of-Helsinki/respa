@@ -86,6 +86,10 @@ def get_opening_hours(time_zone, periods, begin, end=None):
                 break
             opens = combine_datetime(date, day.opens, tz)
             closes = combine_datetime(date, day.closes, tz)
+            if opens == closes:
+                # The interval is zero-length
+                opens = None
+                closes = None
             break
 
         dates[date] = [{'opens': opens, 'closes': closes}]
