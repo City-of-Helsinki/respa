@@ -128,7 +128,7 @@ information for cancelling your reservation can be found from Varaamo's
 "Omat varaukset" section which you can find when you are logged in to the
 service.
 
-{% if extra_content %}
+{% if extra_content is defined %}
 {{ extra_content }}
 {% endif %}
 """
@@ -147,7 +147,7 @@ peruminen tehdään tilasta vastaavan henkilökunnan kautta. Tarkemmat
 tiedot perumiseen löydätte Varaamon omista varauksista kirjautumalla
 palveluun.
 
-{% if extra_content %}
+{% if extra_content is defined %}
 {{ extra_content }}
 {% endif %}
 """
