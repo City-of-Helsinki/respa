@@ -6,6 +6,11 @@ python:
   - '3.6'
   - 'nightly'
 
+matrix:
+  allow_failures:
+# Nightly Python is more of an FYI for us
+  - python: "nightly"
+  
 cache: pip
 
 # Respa uses int4range (IntegerRangeField) so needs at least Postgres9.2
