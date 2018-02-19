@@ -701,4 +701,10 @@ class ResourceDailyOpeningHours(models.Model):
         ]
 
     def __str__(self):
-        return "%s: %s -> %s" % (self.resource, self.open_between.lower, self.open_between.upper)
+        if isinstance(self.open_between, tuple):
+            lower = self.open_between[0]
+            upper = self.open_between[1]
+        else:
+            lower = self.open_between.lower
+            upper = self.open_between.upper
+        return "%s: %s -> %s" % (self.resource, lower, upper)

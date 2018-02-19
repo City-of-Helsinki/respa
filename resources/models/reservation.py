@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
+import datetime
+import pytz
 
 from django.utils import timezone
 import django.contrib.postgres.fields as pgfields
@@ -25,6 +27,8 @@ from .utils import (
     DEFAULT_LANG, localize_datetime, format_dt_range
 )
 
+DEFAULT_TZ = pytz.timezone(settings.TIME_ZONE)
+
 logger = logging.getLogger(__name__)
 
 RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street', 'reserver_address_zip',
@@ -39,6 +43,20 @@ class ReservationQuerySet(models.QuerySet):
 
     def active(self):
         return self.filter(end__gte=timezone.now()).current()
+
+    def overlaps(self, begin, end):
+        qs = Q(begin__lt=end) & Q(end__gt=begin)
+        return self.filter(qs)
+
+    def for_date(self, date):
+        if isinstance(date, str):
+            date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
+        else:
+            assert isinstance(date, datetime.date)
+        dt = datetime.datetime.combine(date, datetime.datetime.min.time())
+        start_dt = DEFAULT_TZ.localize(dt)
+        end_dt = start_dt + datetime.timedelta(days=1)
+        return self.overlaps(start_dt, end_dt)
 
     def extra_fields_visible(self, user):
         # the following logic is also implemented in Reservation.are_extra_fields_visible()
@@ -268,7 +286,11 @@ class Reservation(ModifiableModel):
         return format_dt_range(translation.get_language(), begin, end)
 
     def __str__(self):
-        return "%s: %s" % (self.format_time(), self.resource)
+        if self.state != Reservation.CONFIRMED:
+            state_str = ' (%s)' % self.state
+        else:
+            state_str = ''
+        return "%s: %s%s" % (self.format_time(), self.resource, state_str)
 
     def clean(self, **kwargs):
         """
@@ -304,6 +326,9 @@ class Reservation(ModifiableModel):
         if not user:
             user = self.user
         with translation.override(language_code):
+            reserver_name = self.reserver_name
+            if not reserver_name and self.user and self.user.get_display_name():
+                reserver_name = self.user.get_display_name()
             context = {
                 'resource': self.resource.name,
                 'begin': localize_datetime(self.begin),
@@ -312,6 +337,9 @@ class Reservation(ModifiableModel):
                 'end_dt': self.end,
                 'time_range': self.format_time(),
                 'number_of_participants': self.number_of_participants,
+                'host_name': self.host_name,
+                'reserver_name': reserver_name,
+                'event_subject': self.event_subject,
             }
             if self.resource.unit:
                 context['unit'] = self.resource.unit.name
