@@ -159,6 +159,18 @@ def _parse_item_props(ex_resource, item_id, item):
     return item_props
 
 
+def fetch_reservation_data(ex_reservation):
+    ex_resource = ex_reservation.reservation.resource.exchange_resource
+    gcir = GetCalendarItemsRequest(
+        principal=ex_resource.principal_email,
+        item_ids=[ex_reservation.item_id]
+    )
+    session = ex_reservation.exchange.get_ews_session()
+    items = [item for item in gcir.send(session)]
+    assert len(items) == 1, "Exchange returned %d items instead of 1" % (len(items))
+    return str(etree.tostring(items[0], pretty_print=True), encoding='utf8')
+
+
 @atomic
 def sync_from_exchange(ex_resource, future_days=365, no_op=False):
     """
