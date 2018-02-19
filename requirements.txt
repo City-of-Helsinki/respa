@@ -34,7 +34,7 @@ django-mptt==0.8.7        # via django-munigeo
 django-munigeo==0.2.0
 django-parler==1.8.1
 django-reversion==2.0.11
-django==1.11.8
+django==1.11.10
 djangorestframework-jwt==1.11.0
 djangorestframework==3.7.3
 drf-oidc-auth==0.9        # via django-helusers
@@ -72,7 +72,7 @@ pytest==3.3.0
 python-dateutil==2.6.1    # via arrow, delorean, freezegun, icalendar
 python-docx==0.8.6
 python3-openid==3.1.0     # via django-allauth
-pytz==2017.3
+pytz==2018.3
 pyyaml==3.12              # via django-munigeo
 raven==6.3.0
 requests-cache==0.4.13    # via django-munigeo
