@@ -30,7 +30,7 @@ django-mptt==0.8.7        # via django-munigeo
 django-munigeo==0.2.0
 django-parler==1.8
 django-reversion==2.0.10
-django==1.11.5            # via django-allauth, django-anymail, django-helusers, django-jinja, django-munigeo, django-reversion, drf-oidc-auth, easy-thumbnails
+django==1.11.11
 djangorestframework-jwt==1.11.0
 djangorestframework==3.6.4
 drf-oidc-auth==0.9        # via django-helusers
@@ -44,7 +44,7 @@ humanize==0.5.1           # via delorean
 icalendar==3.11.7
 idna==2.6                 # via requests
 iso8601==0.1.12
-jinja2==2.9.6             # via django-jinja
+jinja2==2.9.6
 lxml==4.0.0
 markupsafe==1.0           # via jinja2
 mccabe==0.6.1             # via flake8

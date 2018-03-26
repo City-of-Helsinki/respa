@@ -1,4 +1,4 @@
-Django
+Django<2
 django-modeltranslation
 psycopg2
 django-munigeo
