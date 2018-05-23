@@ -41,5 +41,4 @@ script: true
 after_success:
   # - codecov
   - env
-  - ./containerize.sh
-
+  - ./deploy/containerize.sh
