@@ -5,9 +5,11 @@ if [ "$TRAVIS_PYTHON_VERSION" != "3.5" ]; then
     exit 0
 fi
 
+export ORGANIZATION="helsinki"
+
 export IMAGE="respa"
 
-export REPO="$DOCKER_USERNAME/$IMAGE"
+export REPO="$ORGANIZATION/$IMAGE"
 
 export COMMIT=${TRAVIS_COMMIT::7}
 
