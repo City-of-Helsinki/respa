@@ -20,7 +20,7 @@ docker build -t $IMAGE .
 
 docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
 
-docker run --net=host --rm $IMAGE /bin/bash -c "pytest --cov . resources respa_exchange caterings"
+docker run --net=host --rm $IMAGE /bin/bash -c "cp deploy/local_settings.py . && pytest --cov . resources respa_exchange caterings"
 
 # echo "Tagging branch " "$TRAVIS_BRANCH"
 # docker tag $IMAGE "$REPO:$COMMIT"
