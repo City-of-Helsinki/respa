@@ -3,7 +3,9 @@ FROM python:3
 
 WORKDIR /usr/src/app
 
-ENV APP_NAME infopankki
+ENV APP_NAME respa
+
+RUN apt-get update && apt-get install -y libgdal1h
 
 COPY requirements.txt .
 COPY deploy/requirements.txt ./deploy/requirements.txt
