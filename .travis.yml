@@ -28,17 +28,15 @@ addons:
       - libgdal-dev
       - postgresql-9.6-postgis-2.3
 
-install: true 
-#'pip install codecov -r requirements.txt'
+install: 'pip install codecov -r requirements.txt'
 
-# before_script:
-#   - psql template1 -c 'create extension hstore;'
+before_script:
+  - psql template1 -c 'create extension hstore;'
 
-#script: pytest --cov . resources respa_exchange caterings
+script: pytest --cov . resources respa_exchange caterings
 
 script: true
 
 after_success:
-  # - codecov
-  - env
+  - codecov
   - ./deploy/containerize.sh
