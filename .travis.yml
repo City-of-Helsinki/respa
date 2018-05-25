@@ -35,8 +35,6 @@ before_script:
 
 script: pytest --cov . resources respa_exchange caterings
 
-script: true
-
 after_success:
   - codecov
   - ./deploy/containerize.sh
