@@ -83,6 +83,8 @@ INSTALLED_APPS = [
     'notifications.apps.NotificationsConfig',
 
     'respa_exchange',
+
+    'sanitized_dump',
 ]
 
 if env('SENTRY_DSN'):
