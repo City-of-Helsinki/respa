@@ -2,16 +2,16 @@ config:
   addons: []
 strategy:
   account_emailaddress:
-    email: null
+    email: user.email
     id: null
     primary: null
     user_id: null
     verified: null
   account_emailconfirmation:
-    created: null
+    created: times.random_past_timestamp
     email_address_id: null
     id: null
-    key: null
+    key: string.random
     sent: null
   auth_group:
     id: null
@@ -27,7 +27,7 @@ strategy:
     name: null
   authtoken_token:
     created: null
-    key: null
+    key: string.random
     user_id: null
   caterings_cateringorder:
     created_at: null
@@ -70,7 +70,7 @@ strategy:
     id: null
     modified_at: null
     name: null
-    notification_email: null
+    notification_email: user.email
     price_list_url: null
     price_list_url_en: null
     price_list_url_fi: null
@@ -93,7 +93,7 @@ strategy:
     content_type_id: null
     id: null
     object_id: null
-    object_repr: null
+    object_repr: string.empty
     user_id: null
   django_content_type:
     app_label: null
@@ -101,8 +101,8 @@ strategy:
     model: null
   django_session:
     expire_date: null
-    session_data: null
-    session_key: null
+    session_data: string.empty
+    session_key: string.random
   django_site:
     domain: null
     id: null
@@ -512,7 +512,7 @@ strategy:
     url: null
     username: null
   respa_exchange_exchangereservation:
-    change_key: null
+    change_key: string.random
     created_at: null
     exchange_id: null
     id: null
@@ -521,24 +521,24 @@ strategy:
     managed_in_exchange: null
     modified_at: null
     organizer_id: null
-    principal_email: null
+    principal_email: user.email
     reservation_id: null
   respa_exchange_exchangeresource:
     exchange_id: null
     id: null
-    principal_email: null
+    principal_email: user.email
     resource_id: null
     sync_from_respa: null
     sync_to_respa: null
   respa_exchange_exchangeuser:
-    email_address: null
+    email_address: user.email
     exchange_id: null
-    given_name: null
+    given_name: user.given_name_en_gb
     id: null
-    name: null
-    surname: null
+    name: user.full_name_en_gb
+    surname: user.surname_en_gb
     user_id: null
-    x500_address: null
+    x500_address: string.empty
   reversion_revision:
     comment: null
     date_created: null
@@ -550,24 +550,24 @@ strategy:
     format: null
     id: null
     object_id: null
-    object_repr: null
+    object_repr: string.empty
     revision_id: null
-    serialized_data: null
+    serialized_data: string.empty
   socialaccount_socialaccount:
-    date_joined: null
-    extra_data: null
+    date_joined: times.random_past_timestamp
+    extra_data: constant.empty_json_dict
     id: null
-    last_login: null
+    last_login: times.random_past_timestamp
     provider: null
-    uid: null
+    uid: string.zfill
     user_id: null
   socialaccount_socialapp:
-    client_id: null
+    client_id: string.random
     id: null
-    key: null
+    key: string.random
     name: null
     provider: null
-    secret: null
+    secret: string.random
   socialaccount_socialapp_sites:
     id: null
     site_id: null
@@ -577,8 +577,8 @@ strategy:
     app_id: null
     expires_at: null
     id: null
-    token: null
-    token_secret: null
+    token: string.empty
+    token_secret: string.empty
   spatial_ref_sys:
     auth_name: null
     auth_srid: null
@@ -586,21 +586,21 @@ strategy:
     srid: null
     srtext: null
   users_user:
-    date_joined: null
+    date_joined: times.random_past_timestamp
     department_name: null
-    email: null
-    first_name: null
-    ical_token: null
+    email: user.email
+    first_name: user.given_name_en_gb
+    ical_token: string.random
     id: null
     is_active: null
     is_staff: null
     is_superuser: null
-    last_login: null
-    last_name: null
-    password: null
+    last_login: constant.null
+    last_name: user.surname_en_gb
+    password: constant.invalid_django_password
     preferred_language: null
-    username: null
-    uuid: null
+    username: respa_user.username
+    uuid: derived.uuid4
   users_user_ad_groups:
     adgroup_id: null
     id: null
