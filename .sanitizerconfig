@@ -32,8 +32,8 @@ strategy:
   caterings_cateringorder:
     created_at: null
     id: null
-    invoicing_data: null
-    message: null
+    invoicing_data: respa_string.replace_with_xxx
+    message: respa_string.replace_with_xxx
     modified_at: null
     provider_id: null
     reservation_id: null
@@ -85,7 +85,7 @@ strategy:
     created_by_id: null
     id: null
     object_id: null
-    text: null
+    text: respa_string.replace_with_xxx
   django_admin_log:
     action_flag: null
     action_time: null
