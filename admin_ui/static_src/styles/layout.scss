@@ -266,12 +266,12 @@ main {
 
             @for $i from 2 through 5 {
                 .col-#{$i} {
-                    grid-area: 1 / $i / 2 / $i + 1;
-                    padding: $padding-large-vertical 24px;
                     display: flex;
-                    overflow: hidden;
                     flex-direction: column;
+                    grid-area: 1 / $i / 2 / $i + 1;
                     justify-content: center;
+                    overflow: hidden;
+                    padding: $padding-large-vertical 24px;
                 }
             }
 
@@ -311,15 +311,15 @@ main {
                 $pager-size: 50px;
 
                 ul li a {
-                    @include box-shadow(0 1px 3px rgba(0,0,0,0.3));
-                    border: $panel-default-border;
+                    @include box-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
                     border-radius: $border-radius-small;
-                    margin: 5px;
-                    padding: $padding-large-horizontal;
+                    border: $panel-default-border;
                     font-size: $font-size-base;
                     font-weight: bold;
-                    width: $pager-size;
                     height: $pager-size;
+                    margin: 5px;
+                    padding: $padding-large-horizontal;
+                    width: $pager-size;
                 }
 
                 a.next, a.previous {
