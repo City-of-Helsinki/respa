@@ -36,6 +36,7 @@ router = RespaAPIRouter()
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^ra/', include('admin_ui.urls', namespace="admin_ui")),  # Path 'ra' as in 'respa admin'
     url(r'^accounts/', include('allauth.urls')),
     url(r'^grappelli/', include('grappelli.urls')),
     url(r'^resource_image/(?P<pk>\d+)$', ResourceImageView.as_view(), name='resource-image-view'),
