@@ -41,7 +41,8 @@ urlpatterns = [
     url(r'^resource_image/(?P<pk>\d+)$', ResourceImageView.as_view(), name='resource-image-view'),
     url(r'^v1/', include(router.urls)),
     url(r'^v1/reservation/ical/(?P<ical_token>[-\w\d]+).ics$', ICalFeedView.as_view(), name='ical-feed'),
-    url(r'^$', RedirectView.as_view(url='v1/'))
+    url(r'^$', RedirectView.as_view(url='v1/')),
+    url(r'^demolayout', include('demolayout.urls'))
 ]
 
 if 'reports' in settings.INSTALLED_APPS:
