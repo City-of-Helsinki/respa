@@ -21,7 +21,7 @@ span.glyphicon.icon-right {
     @if $status == success {
         background: $theme-success;
     } @else if $status == warning {
-        background: $theme-warning; 
+        background: $theme-warning;
     } @else {
         background: $theme-danger;
     }
@@ -47,7 +47,7 @@ span.glyphicon.icon-right {
 .header {
     a.hel-icon {
         padding: 13px 0;
-        
+
         svg {
             height: 36px;
         }
@@ -63,7 +63,7 @@ span.glyphicon.icon-right {
 
     .respa-nav {
         border: $panel-default-border;
-        
+
         ul.navbar-nav {
             margin-top: 0;
             margin-bottom: 0;
@@ -98,7 +98,7 @@ main {
     section.hero-section {
         position: relative;
         padding-top: 20px;
-        padding-bottom: 72px; 
+        padding-bottom: 72px;
 
         &:before {
             content: " ";
@@ -325,7 +325,7 @@ main {
                 a.next, a.previous {
                     transform: scale(0.7);
                 }
-            }   
+            }
         }
     }
 }

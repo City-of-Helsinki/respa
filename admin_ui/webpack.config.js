@@ -8,9 +8,10 @@ const CssRule = {
 }
 
 module.exports = {
-  entry: './index.js',
+  entry: './static_src/js/index.js',
   output: {
-    filename: 'bundle.js'
+    filename: 'bundle.js',
+    path: path.resolve(__dirname, './static/dist/'),
   },
   module: {
     // Add loader
