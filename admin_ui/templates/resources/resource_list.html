@@ -1,0 +1,15 @@
+{% extends "_base.html" %}
+
+{% block page_title %}Resources{% endblock page_title %}
+
+{% block body %}
+    <h2>List of resources:</h2>
+    Amount of resources: {{ resources|length }}
+    <ul>
+        {% for resource in resources %}
+            <li>{{ resource.name }}</li>
+        {% empty %}
+            <li>No resources</li>
+        {% endfor %}
+    </ul>
+{% endblock body %}
