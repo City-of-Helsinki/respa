@@ -12,7 +12,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 root = environ.Path(__file__) - 2  # two folders back
 env = environ.Env(
-    DEBUG=(bool, False),
+    DEBUG=(bool, True),
     SECRET_KEY=(str, ''),
     ALLOWED_HOSTS=(list, []),
     ADMINS=(list, []),
