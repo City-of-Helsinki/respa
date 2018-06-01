@@ -19,6 +19,7 @@ from django.conf.urls.static import static
 from helusers import admin
 from django.views.generic.base import RedirectView
 
+import respa_admin.urls
 from resources.api import RespaAPIRouter
 from resources.views.images import ResourceImageView
 from resources.views.ical import ICalFeedView
@@ -36,7 +37,7 @@ router = RespaAPIRouter()
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^ra/', include('admin_ui.urls', namespace="admin_ui")),  # Path 'ra' as in 'respa admin'
+    url(r'^ra/', include(respa_admin.urls, namespace='respa_admin')),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^grappelli/', include('grappelli.urls')),
     url(r'^resource_image/(?P<pk>\d+)$', ResourceImageView.as_view(), name='resource-image-view'),
