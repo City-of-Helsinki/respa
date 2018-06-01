@@ -1,5 +1,9 @@
-sudo: false
+
+sudo: required
 dist: trusty
+
+services:
+  - docker
 
 language: python
 python:
@@ -31,7 +35,9 @@ before_script:
 
 script: pytest --cov . resources respa_exchange caterings
 
-after_success: codecov
+after_success:
+  - codecov
+  - ./deploy/containerize.sh
 
 notifications:
   slack:
