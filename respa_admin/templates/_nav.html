@@ -28,16 +28,20 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="#">
+            <a class="navbar-brand" href="/ra">
                 Respa
             </a>
         </div>
-
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="respa-nav collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
-                <li><a href="#">Toimipaikat</a></li>
-                <li><a href="#">Resurssit</a></li>
+                {% if request.path == '/ra/office/' %}
+                <li class="active"><a href="/ra/office/">Toimipaikat</a></li>
+                {% else %}
+                <li><a href="/ra/office/">Toimipaikat</a></li>
+                {% endif %}
+                </li>
+                <li><a href="/ra/resource/">Resurssit</a></li>
                 <li><a href="#">Varusteet</a></li>
                 <li><a href="#">Aukioloajat</a></li>
                 <li><a href="#">Viestipohjat</a></li>

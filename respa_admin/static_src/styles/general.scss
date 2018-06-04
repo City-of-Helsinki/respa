@@ -1,0 +1,40 @@
+// general style
+
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+}
+
+span.glyphicon.icon-left {
+    padding-right: $padding-xs-horizontal;
+}
+
+span.glyphicon.icon-right {
+    padding-left: $padding-xs-horizontal;
+}
+
+@mixin shape($status) {
+    display: inline-block;
+    margin-right: 5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    @if $status == success {
+        background: $theme-success;
+    } @else if $status == warning {
+        background: $theme-warning; 
+    } @else {
+        background: $theme-danger;
+    }
+}
+
+.shape-success {
+    @include shape(success);
+}
+
+.shape-warning {
+    @include shape(warning);
+}
+
+.shape-danger {
+    @include shape(danger);
+}

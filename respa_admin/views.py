@@ -3,12 +3,14 @@ from django.views.generic.list import ListView
 
 from resources.models import Resource
 
-
-
-
 def admin_index(request):
     return TemplateResponse(request, 'index.html')
 
+def admin_office(request):
+    return TemplateResponse(request, 'page_office.html')
+
+def admin_resource(request):
+    return TemplateResponse(request, 'page_resource.html')
 
 class ResourceListView(ListView):
     model = Resource

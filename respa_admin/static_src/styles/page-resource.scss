@@ -1,0 +1,41 @@
+.headline {
+    & > * {
+        margin-top: 42px;
+    }
+
+    .resources-report {
+        display: flex;
+        flex-wrap: wrap;
+
+        .col-sm-6 {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+    
+        span.resources-count {
+            font-size: 24px;
+        }
+    }
+    
+    .resources-search {
+        max-width: 700px;
+
+        span.input-group-addon {
+            background-color: transparent;
+            border: 0;
+            padding-left: 0;
+            padding-right: 24px; 
+            font-size: $font-size-h5;
+        }
+
+        input, span.input-group-btn, span.input-group-btn button {
+            background-color: $white;
+            margin: 0;
+        }
+
+        input {
+            border-right: 0;
+        }
+    }
+}

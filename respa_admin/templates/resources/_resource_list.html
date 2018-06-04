@@ -1,0 +1,83 @@
+<section class='resources'>
+    <div class='container'>
+        <div class='filter-bar container-fluid'>
+            <h2 class="pull-left">Kaikki Resurssit</h2>
+            <div class='filter pull-right'>
+                <span class="dropdowns-label">Suodata:</span>
+                <div class='select-dropdown btn btn-primary'>
+                    <select>
+                        <option>Tyyppi</option>
+                        <option>Something long</option>
+                    </select>
+                    <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+                </div>
+                <div class='select-dropdown btn btn-primary'>
+                    <select>
+                        <option>Toimipaikka</option>
+                        <option>Something long</option>
+                    </select>
+                    <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+                </div>
+            </div>
+        </div>
+        <div class='resource-list container-fluid'>
+            <ul class='list-group'>
+                <li class="list-group-item sort-bar">
+                    <div class='pull-left empty-holder col-1'></div>
+                    <button class="col-2 btn">
+                        Nimi <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
+                    </button>
+                    <button class="col-3 btn">
+                        Varaustilanne <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
+                    </button>
+                    <button class="col-4 btn">
+                        Tilan näkyvyys <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
+                    </button>
+                </li>
+                {% for i in "1234" %}
+                <li class="list-group-item">
+                    <div class='panel panel-default'>
+                        <img class="img-rounded pull-left" src="https://picsum.photos/400/300/?random" alt="random image">
+                        <div class="panel-body">
+                            <div class="col-2">
+                                <span>Toimipaikan nimi</span>
+                                <h4>Resurssin nimi</h4>
+                            </div>
+                            <div class="col-3">
+                                <h6> <div class='shape-success'></div> Varatavissa</h6>
+                            </div>
+                            <div class="col-4">
+                                <h6> <div class='shape-warning'></div> Julkaistu</h6>
+                            </div>
+                            <div class="col-5">
+                                <h6> <span class='glyphicon glyphicon-pencil icon-left' aria-hidden="true"></span> Muokka</h6>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            <div class="page-navigation">
+                <nav aria-label="page-navigation">
+                    <ul class="pagination pagination-lg">
+                        <li>
+                            <a class='btn previous' href="#" aria-label="Previous">
+                                <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+                            </a>
+                        </li>
+                        <li><a class='btn' href="#">1</a></li>
+                        <li><a class='btn' href="#">2</a></li>
+                        <li><a class='btn' href="#">3</a></li>
+                        <li><a class='btn' href="#">4</a></li>
+                        <li><a class='btn' href="#">5</a></li>
+                        <li>
+                            <a class='btn next' href="#" aria-label="Next">
+                                <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</section>
