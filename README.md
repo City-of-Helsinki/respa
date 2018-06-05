@@ -28,6 +28,14 @@ sudo -u postgres createdb -Orespa respa
 sudo -u postgres psql respa -c "CREATE EXTENSION postgis;"
 ```
 
+### Build Respa Admin static resources
+
+Make sure you have Node 8 or LTS and yarn installed.
+
+```shell
+./build-resources
+```
+
 ### Run Django migrations and import data
 
 ```shell
