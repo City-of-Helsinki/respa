@@ -19,6 +19,7 @@ from django.conf.urls.static import static
 from helusers import admin
 from django.views.generic.base import RedirectView
 
+import respa_admin.urls
 from resources.api import RespaAPIRouter
 from resources.views.images import ResourceImageView
 from resources.views.ical import ICalFeedView
@@ -36,6 +37,7 @@ router = RespaAPIRouter()
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^ra/', include(respa_admin.urls, namespace='respa_admin')),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^grappelli/', include('grappelli.urls')),
     url(r'^resource_image/(?P<pk>\d+)$', ResourceImageView.as_view(), name='resource-image-view'),
@@ -53,7 +55,9 @@ if 'reports' in settings.INSTALLED_APPS:
 
 
 if settings.DEBUG:
-    urlpatterns.append(
-        url(r'test/availability$', testing_views.testing_view)
-    )
+    import debug_toolbar
+    urlpatterns = [
+        url(r'test/availability$', testing_views.testing_view),
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+    ] + urlpatterns
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

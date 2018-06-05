@@ -1,0 +1,142 @@
+// reuseable style
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+}
+
+body {
+    main {
+        margin-top: 120px;
+    }
+}
+
+span.glyphicon.icon-left {
+  padding-right: $padding-xs-horizontal;
+}
+
+span.glyphicon.icon-right {
+  padding-left: $padding-xs-horizontal;
+}
+
+@mixin shape($color, $size) {
+    display: inline-block;
+    width: $size;
+    height: $size;
+    border-radius: 50%;
+    background: $color;
+}
+
+.shape-success {
+    margin-right: 5px;
+    @include shape($theme-success, 10px);
+}
+
+.shape-warning {
+    margin-right: 5px;
+    @include shape($theme-warning, 10px);
+}
+
+.shape-danger {
+    margin-right: 5px;
+    @include shape($theme-danger, 10px);
+}
+
+.select-dropdown {
+    padding: 0;
+    padding: $padding-large-vertical $padding-large-horizontal;
+    font-weight: lighter;
+    background-color: $btn-default-bg;
+    position: relative;
+
+    &:hover, &:focus, &:active, &:active:focus, &:active:hover {
+        background-color: inherit;
+        cursor: default;
+    }
+
+    span {
+        color: black;
+        vertical-align: middle;
+        position: absolute;
+        top: $padding-large-horizontal;
+        right: $padding-large-horizontal;
+        pointer-events: none;
+    }
+
+    select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        border: $panel-default-border;
+        text-align: left;
+        color: $black;
+        background-color: $btn-default-bg;
+        padding-right: $padding-small-horizontal + 16px;
+    }
+}
+
+.body {
+  padding: 20px;
+}
+
+.rdio {
+  position: relative;
+  input[type="radio"] {
+    opacity: 0;
+  }
+  label {
+    padding-left: 10px;
+    cursor: pointer;
+    font-size: $font-size-small;
+    margin-bottom: 7px !important;
+    &:before {
+      width: 20px;
+      height: 20px;
+      position: absolute;
+      top: 1px;
+      left: 0;
+      content: '';
+      display: inline-block;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 50px;
+      border-radius: 50px;
+      border: 2px solid black;
+      background: #fff;
+    }
+  }
+  input[type="radio"] {
+    margin: 0px;
+    &:disabled + label {
+      color: #999;
+      &:before {
+        background-color: #fbc52d;
+      }
+    }
+    &:checked + label::after {
+      content: '';
+      position: absolute;
+      top: 5px;
+      left: 4px;
+      display: inline-block;
+      font-size: 11px;
+      width: 12px;
+      height: 12px;
+      background-color: #00ed95;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 50px;
+      border-radius: 50px;
+    }
+  }
+}
+
+.rdio input[type="radio"]:checked + label:before {
+  border-color: #003876;
+}
+
+.rdio input[type="radio"]:checked + label {
+  &:before {
+    border-color: #00ed95;
+  }
+  &::after {
+    background-color: #00ed95;
+  }
+}

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Respa Admin - {% block page_title %}{% endblock page_title %}</title>
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+    <link rel="author" href="humans.txt"/>
+    {% load staticfiles %}
+    <link rel="stylesheet" type="text/css" href="{% static 'dist/main.css' %}">
+
+</head>
+
+<body>
+    <div class='header navbar-fixed-top'>
+        {% include "_nav.html" %}
+        
+        {% block form_nav %}
+
+        {% endblock form_nav %}
+    </div>
+    
+    <main class='content'>
+        {% block koro_shape %}
+
+        {% endblock koro_shape %}
+
+        {% block body %}
+
+        {% endblock body %}
+    </main>
+
+    <div class="footer navbar-fixed-bottom">
+        {% block footer %}
+
+        {% endblock footer %}
+    </div>
+
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous"></script>
+</body>
+
+</html>

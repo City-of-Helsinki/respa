@@ -12,7 +12,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 root = environ.Path(__file__) - 2  # two folders back
 env = environ.Env(
-    DEBUG=(bool, False),
+    DEBUG=(bool, True),
     SECRET_KEY=(str, ''),
     ALLOWED_HOSTS=(list, []),
     ADMINS=(list, []),
@@ -83,6 +83,7 @@ INSTALLED_APPS = [
     'notifications.apps.NotificationsConfig',
 
     'respa_exchange',
+    'respa_admin',
 ]
 
 if env('SENTRY_DSN'):
@@ -106,6 +107,13 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
 ]
+
+if DEBUG:
+    INSTALLED_APPS.append('debug_toolbar')
+    INTERNAL_IPS = ['127.0.0.1', '172.20.0.1',]
+    MIDDLEWARE = [
+        'debug_toolbar.middleware.DebugToolbarMiddleware',
+    ] + MIDDLEWARE
 
 ROOT_URLCONF = 'respa.urls'
 from django_jinja.builtins import DEFAULT_EXTENSIONS

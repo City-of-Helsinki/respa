@@ -1,0 +1,33 @@
+{% extends "_base.html" %}
+
+{% block koro_shape %}
+    <section class="hero-section bg-light">
+        <div class="container">
+            <div class="headline">
+                <div class="resources-report row">
+                    <h1 class="col-sm-6">Kaikki hallitsemari resurssit</h1>
+                    <span class="col-sm-6 resources-count">238 kpl</span>
+                </div>
+                <a class="btn resource-control" href="#">
+                    <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
+                    Lisää uusi resurssit <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                </a>
+                <div class="form-group resources-search center-block">
+                    <div class="input-group">
+                        <span class="input-group-addon">Hae</span> 
+                        <input type="text" class="form-control text-input">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="button">
+                                <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                            </button>
+                        </span>
+                    </div>  
+                </div>
+            </div>    
+        </div>
+    </section>
+{% endblock koro_shape %}
+
+{% block body %}
+    {% include "resources/_resource_list.html" %}
+{% endblock body %}
