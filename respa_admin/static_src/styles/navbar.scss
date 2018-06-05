@@ -1,6 +1,7 @@
 .header {
     a.hel-icon {
-        padding: 13px 0;
+        padding-top: 13px;
+        padding-bottom: 13px;
         
         svg {
             height: 36px;
@@ -39,7 +40,8 @@
         }
 
         ul.navbar-nav li {
-            &.active, &:hover, &focus {
+
+            &.active, &:hover, &:focus {
                 a {
                     &:hover {
                         color: $white;

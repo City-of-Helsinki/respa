@@ -1,0 +1,58 @@
+.form-container {
+    padding-top: 180px;
+    padding-bottom: $input-height-default + $padding-large-vertical * 2;
+
+    .form-section-header {
+        display: flex;
+        position: relative;
+        padding-bottom: $padding-large-vertical;
+        border-bottom: solid 2px $hel-coat;
+        margin-bottom: 36px;
+
+        h2 {
+            color: $hel-coat;
+        }
+
+        span {
+            position: absolute;
+            right: 0;
+            align-self: flex-end;
+        }
+    }
+
+    .select-dropdown {
+        select {
+            font-weight: lighter;
+        }
+    }
+}
+
+#general-info {
+    & > * {
+        margin-top: 36px;
+    }
+
+    .select-group {
+        .select-dropdown {
+            margin-right: 10px;
+        }
+    }
+
+    .usage {
+
+    }
+
+    .description {
+        h4 {
+            padding-bottom: $padding-large-vertical;
+        }
+
+        label {
+            padding-bottom: $padding-large-vertical;
+        }
+
+        .text-input {
+            max-width: 350px;
+        }
+    }
+}

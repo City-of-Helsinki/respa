@@ -1,0 +1,84 @@
+// reuseable styling for specific elements of the form 
+
+$input-height-default: 50px;
+
+.select-dropdown {
+    padding: 0;
+    padding: $padding-large-vertical $padding-large-horizontal;
+    font-weight: lighter;
+    height: $input-height-default;
+    background-color: $btn-default-bg;
+    position: relative;
+
+    &:hover, &:focus, &:active, &:active:focus, &:active:hover {
+        background-color: inherit;
+        cursor: default;
+    }
+
+    span {
+        color: black;
+        vertical-align: middle;
+        position: absolute;
+        top: $padding-large-horizontal;
+        right: $padding-large-horizontal;
+        pointer-events: none;
+    }
+
+    select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        border: $panel-default-border;
+        text-align: left;
+        color: $black;
+        background-color: $btn-default-bg;
+        padding-right: $padding-small-horizontal + 16px;
+    }
+}
+
+label.input-label {
+    color: $dark-gray;
+}
+
+.checkbox-input {
+    input {
+        display: block;
+        width: 20px;
+        height: 20px;
+    }
+}
+
+.text-input {
+    padding: $padding-large-vertical $padding-large-horizontal;
+    border: solid 2px black;
+    font-size: 16px;
+    height: $input-height-default;
+    line-height: $line-height-small;
+}
+
+.textarea-with-toolbar {
+    max-width: 600px;
+
+    div {
+        display: flex;
+        border: solid 2px black;
+        border-bottom: 0;
+
+        & > * {
+            line-height: 1;
+            padding: $padding-base-vertical $padding-small-horizontal;
+            border: solid 1px $light-gray;
+            border-top-color: transparent;
+            border-bottom-color: transparent;
+            border-left-color: transparent;
+
+            span {
+                transform: scale(0.8);
+            }
+        }
+    }
+
+    textarea {
+        border-top-width: 1px;
+    }
+}

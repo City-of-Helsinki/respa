@@ -12,6 +12,9 @@ def admin_office(request):
 def admin_resource(request):
     return TemplateResponse(request, 'page_resource.html')
 
+def admin_form(request):
+    return TemplateResponse(request, 'page_form.html')
+
 class ResourceListView(ListView):
     model = Resource
     context_object_name = 'resources'

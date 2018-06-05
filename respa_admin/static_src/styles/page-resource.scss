@@ -21,6 +21,12 @@
     .resources-search {
         max-width: 700px;
 
+        .input-group > *, span.input-group-btn button {
+            height: $input-height-default;
+            background-color: $white;
+            margin: 0;
+        }
+
         span.input-group-addon {
             background-color: transparent;
             border: 0;
@@ -29,9 +35,12 @@
             font-size: $font-size-h5;
         }
 
-        input, span.input-group-btn, span.input-group-btn button {
-            background-color: $white;
-            margin: 0;
+        span.input-group-btn button {
+            width: $input-height-default;
+
+            span {
+                transform: scale(1.5);
+            }
         }
 
         input {

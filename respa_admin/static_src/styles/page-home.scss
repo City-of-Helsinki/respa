@@ -121,6 +121,10 @@ main {
             h2 {
                 margin: 0;
             }
+
+            .select-dropdown {
+                margin-left: 10px;
+            }
         }
 
         .filter {
@@ -129,35 +133,6 @@ main {
             span.dropdowns-label {
                 padding-right: 10px;
                 font-size: $font-size-small;
-            }
-
-            .select-dropdown {
-                padding: 0;
-                padding: $padding-large-vertical $padding-large-horizontal;
-                margin-left: 10px;
-                font-weight: lighter;
-                background-color: $btn-default-bg;
-                position: relative;
-
-                span {
-                    color: black;
-                    vertical-align: middle;
-                    position: absolute;
-                    top: $padding-large-horizontal;
-                    right: $padding-large-horizontal;
-                    pointer-events: none;
-                }
-            }
-
-            select {
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                appearance: none;
-                border: $panel-default-border;
-                text-align: left;
-                color: $black;
-                background-color: $btn-default-bg;
-                padding-right: $padding-small-horizontal + 16px;
             }
         }
 

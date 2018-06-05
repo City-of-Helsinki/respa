@@ -14,11 +14,15 @@
 </head>
 
 <body>
-    <div class='header'>
+    <div class='header navbar-fixed-top'>
         {% include "_nav.html" %}
+        
+        {% block form_nav %}
+
+        {% endblock form_nav %}
     </div>
     
-    <main>
+    <main class='content'>
         {% block koro_shape %}
 
         {% endblock koro_shape %}
@@ -28,7 +32,7 @@
         {% endblock body %}
     </main>
 
-    <div class="footer">
+    <div class="footer navbar-fixed-bottom">
         {% block footer %}
 
         {% endblock footer %}
