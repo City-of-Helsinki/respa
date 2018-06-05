@@ -9,12 +9,12 @@ def admin_index(request):
 def admin_office(request):
     return TemplateResponse(request, 'page_office.html')
 
-def admin_resource(request):
-    return TemplateResponse(request, 'page_resource.html')
 
 def admin_form(request):
     return TemplateResponse(request, 'page_form.html')
 
 class ResourceListView(ListView):
     model = Resource
+    paginate_by = 10
     context_object_name = 'resources'
+    template_name = 'page_resources.html'

@@ -34,50 +34,37 @@
                         Tilan näkyvyys <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
                     </button>
                 </li>
-                {% for i in "1234" %}
+                {% for resource in resources %}
                 <li class="list-group-item">
                     <div class='panel panel-default'>
                         <img class="img-rounded pull-left" src="https://picsum.photos/400/300/?random" alt="random image">
                         <div class="panel-body">
                             <div class="col-2">
-                                <span>Toimipaikan nimi</span>
-                                <h4>Resurssin nimi</h4>
+                                <span>{{ resource.unit.name }}</span>
+                                <h4>{{ resource.name }}</h4>
                             </div>
                             <div class="col-3">
                                 <h6> <div class='shape-success'></div> Varatavissa</h6>
                             </div>
                             <div class="col-4">
-                                <h6> <div class='shape-warning'></div> Julkaistu</h6>
+                                <h6>
+                                    <div class='shape-warning'></div>
+                                    {{ resource.public|yesno:"Julkaistu,Ei julkaistu" }}
+                                </h6>
                             </div>
                             <div class="col-5">
-                                <h6> <span class='glyphicon glyphicon-pencil icon-left' aria-hidden="true"></span> Muokka</h6>
+                                <h6>
+                                    <span class='glyphicon glyphicon-pencil icon-left' aria-hidden="true"></span>
+                                    Muokkaa
+                                </h6>
                             </div>
                         </div>
                     </div>
                 </li>
                 {% endfor %}
             </ul>
-            <div class="page-navigation">
-                <nav aria-label="page-navigation">
-                    <ul class="pagination pagination-lg">
-                        <li>
-                            <a class='btn previous' href="#" aria-label="Previous">
-                                <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-                            </a>
-                        </li>
-                        <li><a class='btn' href="#">1</a></li>
-                        <li><a class='btn' href="#">2</a></li>
-                        <li><a class='btn' href="#">3</a></li>
-                        <li><a class='btn' href="#">4</a></li>
-                        <li><a class='btn' href="#">5</a></li>
-                        <li>
-                            <a class='btn next' href="#" aria-label="Next">
-                                <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
+
+            {% include "common/_pagination.html" %}
         </div>
     </div>
 </section>
