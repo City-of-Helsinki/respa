@@ -1,0 +1,6 @@
+#!/bin/sh
+set -e
+rootdir=$(dirname "$0")
+cd "$rootdir/respa_admin"
+yarn
+yarn run build
