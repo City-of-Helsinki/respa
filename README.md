@@ -52,6 +52,22 @@ Ready to roll!
     "Module not found" errors or similar, which can be annoying to track down.
 
 
+Installation with Docker
+------------------------
+
+```shell
+# Setup multicontainer environment
+docker-compose up
+
+# Start development server
+docker exec -it respa-api python manage.py runserver 0:8000
+
+# Import database dump
+cat <name_of_the_sanitized_respa_dump>.sql | docker exec -i respa-db psql -U postgres -d respa
+```
+
+Try: http://localhost:8000/ra/resource/
+
 Production considerations
 -------------------------
 

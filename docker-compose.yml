@@ -1,0 +1,30 @@
+version: '3'
+services:
+  db:
+    container_name: respa-db
+    build: ./docker/postgres/
+    restart: always
+    environment:
+        POSTGRES_USER: respa
+        POSTGRES_PASSWORD: respa
+        POSTGRES_DB: respa
+    volumes:
+      - db_data:/var/lib/postgresql
+  api:
+    container_name: respa-api
+    build:
+      context: ./
+      dockerfile: ./docker/dev/Dockerfile
+    command: bash -c 'tail -f /dev/null'
+    volumes:
+      - .:/usr/src/app
+    environment:
+      - DEBUG=1
+      - DATABASE_URL=postgis://respa:respa@db/respa
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+volumes:
+    db_data:
