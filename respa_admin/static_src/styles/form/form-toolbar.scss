@@ -3,6 +3,8 @@
 
     .form-toolbar {
         padding: $padding-large-vertical;
+        display: flex;
+        flex-wrap: nowrap;
     
         .toolbar-label {
             padding-right: $padding-base-horizontal;

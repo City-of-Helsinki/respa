@@ -1,0 +1,78 @@
+<div id="detail-booking">
+    <div class="form-section-header">
+        <h2>Varauksen tiedot</h2>
+        <span class="pull-right">*Pakolliset kentät</span>
+    </div>
+    <div class="input-row">
+        <div class="form-group">
+            <label class="control-label input-label" for="peole-count">Henkilöomäärä</label>
+            <input type="text" class="form-control text-input" id="people-count">
+        </div>
+        <div class="form-group">
+            <label class="control-label input-label" for="surface-area">Tilan pinta-ala</label>
+            <div class="input-unit-wrapper">
+                <input type="text" class="form-control text-input" id="surface-area">
+                <span>m2</span>
+            </div>
+        </div>
+    </div>
+    <div class="input-row dropdown-row">
+        <div class="form-group">
+            <label class="control-label input-label">Lyhyin varausaika*</label>
+            <div class='select-dropdown btn btn-primary'>
+                <select>
+                    <option>30 min</option>
+                    <option>Something longer</option>
+                </select>
+                <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label input-label">Pisin varausaika</label>
+            <div class='select-dropdown btn btn-primary'>
+                <select>
+                    <option>24 h</option>
+                    <option>Something longer</option>
+                </select>
+                <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+            </div>
+        </div>
+    </div>
+    <div class="input-row">
+        <div class="form-group">
+            <label class="control-label input-label" for="advance-reserve">Varattavissa etukäteen</label>
+            <div class="input-unit-wrapper">
+                <input type="text" class="form-control text-input" id="advance-reserve">
+                <span>Päivää</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label input-label" for="booking-time">Varauksen käsittelyaika</label>
+            <div class="input-unit-wrapper">
+                <input type="text" class="form-control text-input" id="booking-time">
+                <span>Päivää</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label input-label" for="max-per-person">Varauksia enintään kpl/hlö</label>
+            <div class="input-unit-wrapper">
+                <input type="text" class="form-control text-input" id="max-per-person">
+                <span>kpl</span>
+            </div>
+        </div>
+    </div>
+    <div class="form-group booking-info">
+        <div class="textarea-wrapper">
+            <h4>Varausinfo</h4>
+            <p>Lisätiedot ennen kalenteria.</p>
+            {% include "form/_textarea_input.html" with id="booking-info" %}
+        </div>
+    </div>
+    <div class="form-group email-notification">
+        <div class="textarea-wrapper">
+            <h4>Sähköposti ilmoitukset</h4>
+            <p>Illmoitukset lähetetään, kun tila varataan.</p>
+            {% include "form/_textarea_input.html" with id="email-notification" %}
+        </div>
+    </div>
+</div>

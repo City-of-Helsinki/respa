@@ -1,0 +1,44 @@
+#general-info {
+    & > * {
+        margin-top: 36px;
+    }
+
+    .usage {
+        .usage-checkbox {
+            padding-top: 24px;
+            padding-right: $padding-large-horizontal;
+
+            & > * {
+                padding: 0;
+
+                .checkbox-custom-label:before {
+                    margin-right: $padding-base-horizontal;
+                }
+
+                label {
+                    font-weight: lighter;
+                    padding-left: 24px;
+                    padding-bottom: 0;
+                }
+            }
+        }
+    }
+
+    .description {
+        h4 {
+            padding-bottom: $padding-large-vertical;
+        }
+    }
+
+    .contact-person {
+        p {
+            padding: 16px 0;
+        }
+        .input-row {
+
+            .form-group {
+                width: 350px;
+            }
+        }
+    }
+}
