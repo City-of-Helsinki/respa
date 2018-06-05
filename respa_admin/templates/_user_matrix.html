@@ -1,0 +1,75 @@
+<div class="grey">
+    <section>
+        <div class="container">
+            <div class="matrix-title">
+                <div class="col-sm-11">
+                    <h4>#toimipisteen# käyttöoikeudet</h4>
+                </div>
+                <div class="col-sm-2 button-wrapper">
+                    <a href="#" class="btn btn-primary inverse small-text align-middle">
+                        <span class='glyphicon glyphicon-plus icon-left' aria-hidden="true"></span> Lisää käyttäjä
+                    </a>
+                </div>
+            </div>
+            <div class="user-matrix">
+                <div class="table-wrapper">
+                    <div class="table-big">
+                        <p class="table-title-user pointer">
+                            Käyttäjä <span class='icon-right glyphicon glyphicon-sort' aria-hidden="true"></span>
+                        </p>
+                    </div>
+                    <div class="table-small">
+                        <p class="table-title">
+                            Voi lisätä käyttäjiä
+                        </p>
+                    </div>
+                    <div class="table-small">
+                        <p class="table-title">
+                            Voi hyväksyä varauksia
+                        </p>
+                    </div>
+                    <div class="table-small">
+                        <p class="table-title">
+                            Voi nähdä pääsykoodin
+                        </p>
+                    </div>
+                    <div class="table-small">
+                        <p class="table-title">
+                            Voi muuttaa käyttöoikeuksia
+                        </p>
+                    </div>
+                    <div class="table-small">
+                        <p class="table-title">
+                            Voi poistaa käyttäjän
+                        </p>
+                    </div>
+                    <div class="table-medium"></div>
+                </div>
+                {% for i in "1234" %}
+                    <div class="table-wrapper">
+                        <div class="table-big">
+                            <p class="table-small-text pad-left">
+                                konsta.kutvonen@helsinki.fi
+                            </p>
+                        </div>
+                        {% for j in "12345" %}
+                            {% with template=i|add:'id'|add:j %}
+                            <div class="table-small">
+                                <div class="custom-checkbox">
+                                  <input class="checkbox-custom" id={{ template }} type="checkbox">
+                                  <label class="checkbox-custom-label" for={{ template }}></label>
+                                </div>
+                            </div>
+                            {% endwith %}
+                        {% endfor %}
+                        <div class="table-medium pointer">
+                            <p class="table-small-text">
+                                <span class='icon-left glyphicon glyphicon-minus' aria-hidden="true"></span> Poista
+                            </p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+</div>
