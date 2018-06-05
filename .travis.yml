@@ -10,11 +10,12 @@ python:
   - '3.5'
   - '3.6'
   - '3.7-dev'
+node_js: 'lts/*'
 
 matrix:
   allow_failures:
   - python: 3.7-dev
-  
+
 cache: pip
 
 # Respa uses int4range (IntegerRangeField) so needs at least Postgres9.2
@@ -32,6 +33,7 @@ install: 'pip install codecov -r requirements.txt'
 
 before_script:
   - psql template1 -c 'create extension hstore;'
+  - ./build-resources
 
 script: pytest --cov . resources respa_exchange caterings
 
