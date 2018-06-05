@@ -2,30 +2,29 @@
 .resources {
     .page-navigation {
         nav {
+            $pager-size: 50px;
             display: flex;
             justify-content: center;
 
-            $pager-size: 50px;
-
             ul li a {
-                @include box-shadow(0 1px 3px rgba(0,0,0,0.3));
-                border: $panel-default-border;
+                @include box-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
                 border-radius: $border-radius-small;
-                margin: 5px;
-                padding: $padding-large-horizontal;
+                border: $panel-default-border;
                 font-size: $font-size-base;
                 font-weight: bold;
-                width: $pager-size;
                 height: $pager-size;
+                margin: 5px;
+                padding: $padding-large-horizontal;
+                width: $pager-size;
             }
 
             a.next, a.previous {
                 transform: scale(0.7);
             }
 
-            a.active {
-                color: $white;
+            .active-page {
                 background: $hel-coat;
+                color: $white;
             }
         }
     }

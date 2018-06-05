@@ -16,7 +16,7 @@
                 {% if page_no > page_obj.number|add:"-3" and page_no < page_obj.number|add:"3" %}
                     <li>
                         <a
-                            class="btn {% if page_no == page_obj.number %}active{% endif %}"
+                            class="btn {% if page_no == page_obj.number %}active-page{% endif %}"
                             href="?page={{ page_no }}"
                         >
                             {{ page_no }}
