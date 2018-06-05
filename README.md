@@ -51,6 +51,18 @@ Ready to roll!
   * Failing to do this while setting `GEOS_LIBRARY_PATH`/`GDAL_LIBRARY_PATH` will result in
     "Module not found" errors or similar, which can be annoying to track down.
 
+Installation with Docker
+------------------------
+
+```shell
+# Setup multicontainer environment
+docker-compose up
+
+# Start development server
+docker exec -it respa_api_1 python manage.py runserver 0:8000
+```
+
+Try: http://localhost:8000/ra/resource/
 
 Production considerations
 -------------------------
