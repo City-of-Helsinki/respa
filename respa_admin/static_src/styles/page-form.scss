@@ -39,7 +39,23 @@
     }
 
     .usage {
+        .usage-checkbox {
+            padding-top: 24px;
+            padding-right: $padding-large-horizontal;
 
+            & > * {
+                padding: 0;
+
+                .checkbox-custom-label:before {
+                    margin-right: $padding-base-horizontal;
+                }
+
+                label {
+                    font-weight: lighter;
+                    padding-left: 24px;
+                }
+            }
+        }
     }
 
     .description {
