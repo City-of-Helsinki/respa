@@ -63,27 +63,8 @@
                 </li>
                 {% endfor %}
             </ul>
-            <div class="page-navigation">
-                <nav aria-label="page-navigation">
-                    <ul class="pagination pagination-lg">
-                        <li>
-                            <a class='btn previous' href="#" aria-label="Previous">
-                                <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-                            </a>
-                        </li>
-                        <li><a class='btn' href="#">1</a></li>
-                        <li><a class='btn' href="#">2</a></li>
-                        <li><a class='btn' href="#">3</a></li>
-                        <li><a class='btn' href="#">4</a></li>
-                        <li><a class='btn' href="#">5</a></li>
-                        <li>
-                            <a class='btn next' href="#" aria-label="Next">
-                                <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
+
+            {% include "common/_pagination.html" %}
         </div>
     </div>
 </section>

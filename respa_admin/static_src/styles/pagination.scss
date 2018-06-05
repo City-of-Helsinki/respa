@@ -1,0 +1,32 @@
+// TODO: Make this pagination reusable by getting rid of the .resources wrapper requirement
+.resources {
+    .page-navigation {
+        nav {
+            display: flex;
+            justify-content: center;
+
+            $pager-size: 50px;
+
+            ul li a {
+                @include box-shadow(0 1px 3px rgba(0,0,0,0.3));
+                border: $panel-default-border;
+                border-radius: $border-radius-small;
+                margin: 5px;
+                padding: $padding-large-horizontal;
+                font-size: $font-size-base;
+                font-weight: bold;
+                width: $pager-size;
+                height: $pager-size;
+            }
+
+            a.next, a.previous {
+                transform: scale(0.7);
+            }
+
+            a.active {
+                color: $white;
+                background: $hel-coat;
+            }
+        }
+    }
+}

@@ -15,5 +15,6 @@ def admin_form(request):
 
 class ResourceListView(ListView):
     model = Resource
+    paginate_by = 10
     context_object_name = 'resources'
     template_name = 'page_resources.html'
