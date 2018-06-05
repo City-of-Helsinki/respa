@@ -55,7 +55,9 @@ if 'reports' in settings.INSTALLED_APPS:
 
 
 if settings.DEBUG:
-    urlpatterns.append(
-        url(r'test/availability$', testing_views.testing_view)
-    )
+    import debug_toolbar
+    urlpatterns = [
+        url(r'test/availability$', testing_views.testing_view),
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+    ] + urlpatterns
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
