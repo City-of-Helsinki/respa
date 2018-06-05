@@ -19,13 +19,10 @@ $icon-font-path: "~bootstrap-sass/assets/fonts/bootstrap/";
 @import "../../node_modules/hel-bootstrap-3/src/sass/theme-custom-styles";
 
 @import "./general";
-@import "./form-utils";
+@import "./form/page-form";
 @import "./navbar";
 @import "./pagination";
 @import "./page-home";
 @import "./page-office";
 @import "./user-matrix";
 @import "./page-resource";
-@import "./navbar-form";
-@import "./form-toolbar";
-@import "./page-form";
