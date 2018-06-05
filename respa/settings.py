@@ -24,7 +24,8 @@ env = environ.Env(
     MEDIA_URL=(str, '/media/'),
     STATIC_URL=(str, '/static/'),
     SENTRY_DSN=(str, ''),
-    COOKIE_PREFIX=(str, 'respa')
+    COOKIE_PREFIX=(str, 'respa'),
+    INTERNAL_IPS=(list, []),
 )
 environ.Env.read_env()
 
@@ -33,6 +34,7 @@ BASE_DIR = root()
 DEBUG = env('DEBUG')
 ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 ADMINS = env('ADMINS')
+INTERNAL_IPS = env('INTERNAL_IPS')
 
 DATABASES = {
     'default': env.db()
@@ -110,9 +112,6 @@ MIDDLEWARE = [
 
 if DEBUG:
     INSTALLED_APPS.append('debug_toolbar')
-    INTERNAL_IPS = [
-        '127.0.0.1',
-    ]
     MIDDLEWARE = [
         'debug_toolbar.middleware.DebugToolbarMiddleware',
     ] + MIDDLEWARE
