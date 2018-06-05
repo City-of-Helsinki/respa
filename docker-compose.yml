@@ -1,0 +1,30 @@
+version: '3'
+services:
+  db:
+    image: skywidesoft/postgis-hstore:9.5
+    restart: always
+    environment:
+       POSTGRES_USER: root
+       POSTGRES_PASSWORD: root
+       POSTGRES_DB: application
+    volumes:
+      - db_data:/var/lib/postgresql
+    expose:
+      - "5432"
+  api:
+    build:
+      context: ./
+      dockerfile: Dockerfile-dev
+    command: bash -c 'tail -f /dev/null'
+    volumes:
+      - .:/usr/src/app
+    environment:
+      - DEBUG=1
+      - DATABASE_URL=postgis://root:root@db/application
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+volumes:
+    db_data:
