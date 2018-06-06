@@ -75,4 +75,24 @@
             padding-left: $padding-base-horizontal;
         }
     }
+
+    .radio-inline + .radio-inline {
+        margin-left: 48px;
+    }
+
+    .rdio {
+        input[type="radio"]:checked + label:after {
+            width: 16px;
+            height: 16px;
+        }
+
+        label {
+            font-size: 18px;
+
+            &:before {
+                width: 24px;
+                height: 24px;
+            }
+        }
+    }
 }

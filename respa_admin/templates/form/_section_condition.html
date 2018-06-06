@@ -3,6 +3,19 @@
         <h2>Tunnistautuminem, ehdot ja hinnat</h2>
         <span class="pull-right">*Pakolliset kentät</span>
     </div>
+    <div class="official-confirmation">
+        <span class="control-label input-label">Varaus tarvitsee virkailijan vahvistuksen</span>
+        <div class="radio-group">
+            <div class="rdio rdio-primary radio-inline">
+                <input name="radio" value="true" id="radio-confirm-true" type="radio" checked>
+                <label for="radio-confirm-true">Kyllä</label>
+            </div>
+            <div class="rdio rdio-primary radio-inline">
+                <input name="radio" value="2" id="radio-confirm-false" type="radio">
+                <label for="radio-confirm-false">Ei</label>
+            </div>
+        </div>    
+    </div>
     <div class="form-group select-with-label">
         <label class="control-label input-label">Tunnistautuminem</label>
         <div class='select-dropdown btn btn-primary'>
@@ -31,6 +44,46 @@
                 <option>Something longer</option>
             </select>
             <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+        </div>
+    </div>
+    <div class="form-group conditions">
+        <div class="textarea-wrapper">
+            <label class="control-label input-label" for="condition">Tilakohtaiset ehdot</label>
+            {% include "form/_textarea_input.html" with id="conditions" %}
+        </div>
+    </div>
+    <div class="pricing">
+        <h4>Hinnoittelu</h4>
+        <div class="price-confirm">
+            <span class="control-label input-label">Tila on maksuton</span>
+            <div class="radio-group">
+                <div class="rdio rdio-primary radio-inline">
+                    <input name="radio" value="true" id="radio-pricing-true" type="radio" checked>
+                    <label for="radio-pricing-true">Kyllä</label>
+                </div>
+                <div class="rdio rdio-primary radio-inline">
+                    <input name="radio" value="2" id="radio-pricing-false" type="radio">
+                    <label for="radio-pricing-false">Ei</label>
+                </div>
+            </div>    
+        </div>
+        <div class="price-range">
+            <div class="input-row">
+                <div class="form-group">
+                    <label class="control-label input-label" for="min-price">Minimituntihinti</label>
+                    <div class="input-unit-wrapper">
+                        <input type="text" class="form-control text-input" id="min-price" placeholder="xx">
+                        <span class="glyphicon glyphicon-euro"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label input-label" for="max-price">Maksimituntihinta</label>
+                    <div class="input-unit-wrapper">
+                        <input type="text" class="form-control text-input" id="max-price" placeholder="xx">
+                        <span class="glyphicon glyphicon-euro"></span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
