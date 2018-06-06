@@ -5,6 +5,7 @@
 @import "./section-condition";
 @import "./section-detail-booking";
 @import "./section-info";
+@import "./section-equipment";
 
 .form-container {
     padding-top: 160px;
@@ -92,6 +93,25 @@
             &:before {
                 width: 24px;
                 height: 24px;
+            }
+        }
+    }
+
+    .checkbox-row {
+        padding-top: 24px;
+        padding-right: $padding-large-horizontal;
+    
+        .custom-checkbox {
+            padding: 0;
+    
+            .checkbox-custom-label:before {
+                margin-right: $padding-base-horizontal;
+            }
+    
+            label {
+                font-weight: lighter;
+                padding-left: 28px;
+                padding-bottom: 0;
             }
         }
     }
