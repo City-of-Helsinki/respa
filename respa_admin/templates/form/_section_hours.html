@@ -31,7 +31,7 @@
                 </div>
             </div>
             <div class="weekday-row input-row">
-                <span class="weekday-tag">Maanantai</span>
+                <span class="row-tag">Maanantai</span>
                 <div class="form-group">
                     <div class="input-row range-input">
                         <input type="time" class="form-control text-input">
@@ -51,7 +51,7 @@
                 </button>
             </div>
             <div class="weekday-row input-row">
-                <span class="weekday-tag">Tiistai</span>
+                <span class="row-tag">Tiistai</span>
                 <div class="form-group">
                     <div class="input-row range-input">
                         <input type="time" class="form-control text-input">
@@ -71,7 +71,7 @@
                 </button>
             </div>
             <div class="weekday-row input-row">
-                <span class="weekday-tag">Keskiviikko</span>
+                <span class="row-tag">Keskiviikko</span>
                 <div class="form-group">
                     <div class="input-row range-input">
                         <input type="time" class="form-control text-input">
@@ -91,7 +91,7 @@
                 </button>
             </div>
             <div class="weekday-row input-row">
-                <span class="weekday-tag">Torstai</span>
+                <span class="row-tag">Torstai</span>
                 <div class="form-group">
                     <div class="input-row range-input">
                         <input type="time" class="form-control text-input">
@@ -111,7 +111,7 @@
                 </button>
             </div>
             <div class="weekday-row input-row">
-                <span class="weekday-tag">Periantai</span>
+                <span class="row-tag">Periantai</span>
                 <div class="form-group">
                     <div class="input-row range-input">
                         <input type="time" class="form-control text-input">
@@ -131,7 +131,7 @@
                 </button>
             </div>
             <div class="weekday-row input-row">
-                <span class="weekday-tag">Lauantai</span>
+                <span class="row-tag">Lauantai</span>
                 <div class="form-group">
                     <div class="input-row range-input">
                         <input type="time" class="form-control text-input">
@@ -151,7 +151,7 @@
                 </button>
             </div>
             <div class="weekday-row input-row">
-                <span class="weekday-tag">Sunnuntai</span>
+                <span class="row-tag">Sunnuntai</span>
                 <div class="form-group">
                     <div class="input-row range-input">
                         <input type="time" class="form-control text-input">
@@ -178,6 +178,32 @@
                 <button class="btn pull-right delete-time" type="button">Poista aikajakso</button>
             </div>
         </div>
+        {% for i in "123" %}
+            <div class="accordion-item">
+                <div class="dropdown-time panel-group input-row" id="accordion{{i}}" role="tablist" aria-multiselectable="true">
+                    <div class="panel-heading" id="heading{{i}}" id="tab">
+                        <!-- things go here -->
+                        <div class="left-group">
+                            <span class="row-tag">Syyskausi 2018</span>
+                            <span class="panel-heading-period">1.9.2018 - 31.12.2018</span>
+                        </div>
+                        <div class="right-group">
+                            <button class="btn" type="button">
+                                <span class="glyphicons glyphicons-more-windows icon-left" aria-hidden="true"></span>Kopioi kausi
+                            </button>
+                            <a class="btn" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse{{i}}" aria-expanded="true" aria-controls="#collapse{{i}}">
+                                <span class="glyphicon glyphicon-edit icon-left"></span>
+                                Muokkaa kautta
+                                <span class="glyphicon glyphicon-chevron-down icon-right"></span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-collapse collapse" role="tabpanel" id="collapse{{i}}" aria-labelledby="heading{{i}}">
+                    something to display here (hopefully)
+                </div>
+            </div>
+        {% endfor %}
     </div>
     <div class="past-hous">
 
