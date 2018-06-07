@@ -6,6 +6,10 @@
             .custom-checkbox {
                 max-width: 25%;
                 min-width: 200px;
+                
+                label {
+                    font-weight: bold;
+                }
             }
         }
     }
