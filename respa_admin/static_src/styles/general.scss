@@ -5,9 +5,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 body {
-    main {
-        margin-top: 120px;
-    }
+
+  main {
+    margin-top: 120px;
+  }
 }
 
 span.glyphicon.icon-left {
@@ -19,59 +20,26 @@ span.glyphicon.icon-right {
 }
 
 @mixin shape($color, $size) {
-    display: inline-block;
-    width: $size;
-    height: $size;
-    border-radius: 50%;
-    background: $color;
+  display: inline-block;
+  width: $size;
+  height: $size;
+  border-radius: 50%;
+  background: $color;
 }
 
 .shape-success {
-    margin-right: 5px;
-    @include shape($theme-success, 10px);
+  margin-right: 5px;
+  @include shape($theme-success, 10px);
 }
 
 .shape-warning {
-    margin-right: 5px;
-    @include shape($theme-warning, 10px);
+  margin-right: 5px;
+  @include shape($theme-warning, 10px);
 }
 
 .shape-danger {
-    margin-right: 5px;
-    @include shape($theme-danger, 10px);
-}
-
-.select-dropdown {
-    padding: 0;
-    padding: $padding-large-vertical $padding-large-horizontal;
-    font-weight: lighter;
-    background-color: $btn-default-bg;
-    position: relative;
-
-    &:hover, &:focus, &:active, &:active:focus, &:active:hover {
-        background-color: inherit;
-        cursor: default;
-    }
-
-    span {
-        color: black;
-        vertical-align: middle;
-        position: absolute;
-        top: $padding-large-horizontal;
-        right: $padding-large-horizontal;
-        pointer-events: none;
-    }
-
-    select {
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-        border: $panel-default-border;
-        text-align: left;
-        color: $black;
-        background-color: $btn-default-bg;
-        padding-right: $padding-small-horizontal + 16px;
-    }
+  margin-right: 5px;
+  @include shape($theme-danger, 10px);
 }
 
 .body {
@@ -80,14 +48,17 @@ span.glyphicon.icon-right {
 
 .rdio {
   position: relative;
+
   input[type="radio"] {
     opacity: 0;
   }
+
   label {
     padding-left: 10px;
     cursor: pointer;
     font-size: $font-size-small;
-    margin-bottom: 7px !important;
+    margin-bottom: 7px;
+
     &:before {
       width: 20px;
       height: 20px;
@@ -103,14 +74,18 @@ span.glyphicon.icon-right {
       background: #fff;
     }
   }
+
   input[type="radio"] {
     margin: 0px;
+
     &:disabled + label {
       color: #999;
+
       &:before {
         background-color: #fbc52d;
       }
     }
+
     &:checked + label::after {
       content: '';
       position: absolute;
@@ -133,9 +108,11 @@ span.glyphicon.icon-right {
 }
 
 .rdio input[type="radio"]:checked + label {
+
   &:before {
     border-color: #00ed95;
   }
+
   &::after {
     background-color: #00ed95;
   }
