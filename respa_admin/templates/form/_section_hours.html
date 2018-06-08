@@ -205,7 +205,35 @@
             </div>
         {% endfor %}
     </div>
-    <div class="past-hous">
-
+    <div class="past-hours">
+        <h4>Menneet aukioloajat</h4>
+        <div class="past-hours-list">
+            {% for i in "45678" %}
+                <div class="accordion-item">
+                    <div class="dropdown-time panel-group input-row" id="accordion{{i}}" role="tablist" aria-multiselectable="true">
+                        <div class="panel-heading" id="heading{{i}}" id="tab">
+                            <!-- things go here -->
+                            <div class="left-group">
+                                <span class="row-tag">Syyskausi 2018</span>
+                                <span class="panel-heading-period">1.9.2018 - 31.12.2018</span>
+                            </div>
+                            <div class="right-group">
+                                <button class="btn" type="button">
+                                    <span class="glyphicons glyphicons-more-windows icon-left" aria-hidden="true"></span>Kopioi kausi
+                                </button>
+                                <a class="btn" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse{{i}}" aria-expanded="true" aria-controls="#collapse{{i}}">
+                                    <span class="glyphicon glyphicon-edit icon-left"></span>
+                                    Muokkaa kautta
+                                    <span class="glyphicon glyphicon-chevron-down icon-right"></span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-collapse collapse" role="tabpanel" id="collapse{{i}}" aria-labelledby="heading{{i}}">
+                        something to display here (hopefully)
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
     </div>
 </div>
