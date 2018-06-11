@@ -1,0 +1,35 @@
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ resource_image_formset.management_form }}
+    {{ period_formset_with_days.management_form }}
+
+    {{ form.as_p }}
+
+    {% if form.errors %}
+        {% for error in form.non_field_errors %}
+            <div class="alert alert-danger">
+                <strong>{{ error }}</strong>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <table class="table">
+        {% for form in resource_image_formset %}
+            {{ form.as_p }}
+        {% endfor %}
+    </table>
+
+    {% for period_form in period_formset_with_days %}
+        {{ period_form.as_p }}
+
+        {% if period_form.days %}
+            {{ period_form.days.management_form }}
+            {% for day in period_form.days %}
+                {{ day.as_p }}
+            {% endfor %}
+        {% endif %}
+    {% endfor %}
+
+
+    <input type="submit" value={{ button_value }} />
+</form>
