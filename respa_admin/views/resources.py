@@ -15,8 +15,24 @@ from respa_admin.forms import (
 )
 
 
-def admin_index(request):
-    return TemplateResponse(request, 'index.html')
+class ResourceListView(ListView):
+    model = Resource
+    paginate_by = 10
+    context_object_name = 'resources'
+    template_name = 'page_resources.html'
+
+    def get_queryset(self):
+        qs = super(ResourceListView, self).get_queryset()
+        query = self.request.GET.get('q')
+        print(bool(query))
+        if query:
+            qs = qs.filter(name__icontains=query)
+        return qs
+
+
+class RespaAdminIndex(ResourceListView):
+    paginate_by = 7
+    template_name = 'index.html'
 
 
 def admin_office(request):
@@ -25,13 +41,6 @@ def admin_office(request):
 
 def admin_form(request):
     return TemplateResponse(request, 'forms/page_form.html')
-
-
-class ResourceListView(ListView):
-    model = Resource
-    paginate_by = 10
-    context_object_name = 'resources'
-    template_name = 'page_resources.html'
 
 
 class SaveResourceView(CreateView):
