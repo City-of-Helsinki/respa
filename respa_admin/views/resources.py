@@ -7,9 +7,10 @@ from django.views.generic import (
 )
 
 from resources.models import Resource
-from respa_admin.views import forms
 
-from respa_admin.views.forms import (
+from respa_admin.forms import (
+    get_period_formset,
+    get_resource_image_formset,
     ResourceForm,
 )
 
@@ -55,13 +56,13 @@ class SaveResourceView(CreateView):
         form_class = self.get_form_class()
         form = self.get_form(form_class)
 
-        period_formset_with_days = forms.get_period_formset(
+        period_formset_with_days = get_period_formset(
             self.request,
             extra=self.extra_formsets,
             instance=self.object
         )
 
-        resource_image_formset = forms.get_resource_image_formset(
+        resource_image_formset = get_resource_image_formset(
             self.request,
             extra=self.extra_formsets,
             instance=self.object
@@ -84,8 +85,8 @@ class SaveResourceView(CreateView):
         form_class = self.get_form_class()
         form = self.get_form(form_class)
 
-        period_formset_with_days = forms.get_period_formset(request=request, instance=self.object)
-        resource_image_formset = forms.get_resource_image_formset(request=request, instance=self.object)
+        period_formset_with_days = get_period_formset(request=request, instance=self.object)
+        resource_image_formset = get_resource_image_formset(request=request, instance=self.object)
 
         if form.is_valid() and period_formset_with_days.is_valid() and resource_image_formset.is_valid():
             return self.forms_valid(form, period_formset_with_days, resource_image_formset)

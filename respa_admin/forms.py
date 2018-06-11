@@ -1,8 +1,14 @@
 from django import forms
 from django.forms import inlineformset_factory
 
-from resources.models import Equipment, Period, Day
-from resources.models import Resource, Purpose, ResourceImage
+from resources.models import (
+    Day,
+    Equipment,
+    Period,
+    Purpose,
+    Resource,
+    ResourceImage,
+)
 
 
 class ResourceForm(forms.ModelForm):
