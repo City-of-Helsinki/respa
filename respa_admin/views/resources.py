@@ -44,13 +44,11 @@ class SaveResourceView(CreateView):
     form_class = ResourceForm
     template_name = 'resources/create_resource.html'
     extra_formsets = 1
-    button_value = 'Create'
 
     def get(self, request, *args, **kwargs):
         if kwargs:
             self.object = Resource.objects.get(pk=kwargs['resource_id'])
             self.extra_formsets = 0
-            self.button_value = 'Update'
         else:
             self.object = None
 
@@ -74,7 +72,6 @@ class SaveResourceView(CreateView):
                 form=form,
                 period_formset_with_days=period_formset_with_days,
                 resource_image_formset=resource_image_formset,
-                button_value=self.button_value,
             )
         )
 
