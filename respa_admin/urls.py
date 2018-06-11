@@ -1,5 +1,6 @@
-from django.conf.urls import include, url
+from django.conf.urls import url as unauthorized_url
 
+from . import views
 from .views.resources import (
     admin_index,
     ResourceListView,
@@ -7,8 +8,10 @@ from .views.resources import (
     admin_office,
     SaveResourceView
 )
+from .auth import admin_url as url
 
 urlpatterns = [
+    unauthorized_url(r'^login/$', views.login, name='respa-admin-login'),
     url(r'^$', admin_index, name='index'),
     url(r'^resources/$', ResourceListView.as_view(), name='resources'),
     url(r'^resource/$', admin_form, name='resource'),
