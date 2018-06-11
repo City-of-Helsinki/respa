@@ -7,7 +7,7 @@ import pytz
 from arrow.parser import ParserError
 
 from django import forms
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from django.urls import reverse
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
@@ -326,7 +326,45 @@ class ResourceFilterSet(django_filters.FilterSet):
         except ParserError:
             raise exceptions.ParseError("'%s' must be a timestamp in ISO 8601 format" % value)
 
-    def _is_resource_open(self, resource, start, end):
+    def filter_available_between(self, queryset, name, value):
+        if len(value) < 2 or len(value) > 3:
+            raise exceptions.ParseError('available_between takes two or three comma-separated values.')
+
+        available_start = self._deserialize_datetime(value[0])
+        available_end = self._deserialize_datetime(value[1])
+
+        if available_start.date() != available_end.date():
+            raise exceptions.ParseError('available_between timestamps must be on the same day.')
+        overlapping_reservations = Reservation.objects.filter(
+            resource__in=queryset, end__gt=available_start, begin__lt=available_end
+        ).current()
+
+        if len(value) == 2:
+            return self._filter_available_between_whole_range(
+                queryset, overlapping_reservations, available_start, available_end
+            )
+        else:
+            try:
+                period = datetime.timedelta(minutes=int(value[2]))
+            except ValueError:
+                raise exceptions.ParseError('available_between period must be an integer.')
+            return self._filter_available_between_with_period(
+                queryset, overlapping_reservations, available_start, available_end, period
+            )
+
+    def _filter_available_between_whole_range(self, queryset, reservations, available_start, available_end):
+        # exclude resources that have reservation(s) overlapping with the available_between range
+        queryset = queryset.exclude(reservations__in=reservations)
+        closed_resource_ids = {
+            resource.id
+            for resource in queryset
+            if not self._is_resource_open(resource, available_start, available_end)
+        }
+
+        return queryset.exclude(id__in=closed_resource_ids)
+
+    @staticmethod
+    def _is_resource_open(resource, start, end):
         opening_hours = resource.get_opening_hours(start, end)
         if len(opening_hours) > 1:
             # range spans over multiple days, assume resources aren't open all night and skip the resource
@@ -343,28 +381,72 @@ class ResourceFilterSet(django_filters.FilterSet):
 
         return True
 
-    def filter_available_between(self, queryset, name, value):
-        if len(value) != 2:
-            raise exceptions.ParseError('available_between takes exactly two comma-separated values.')
+    def _filter_available_between_with_period(self, queryset, reservations, available_start, available_end, period):
+        reservations = reservations.order_by('begin').select_related('resource')
 
-        available_start = self._deserialize_datetime(value[0])
-        available_end = self._deserialize_datetime(value[1])
+        reservations_by_resource = collections.defaultdict(list)
+        for reservation in reservations:
+            reservations_by_resource[reservation.resource_id].append(reservation)
 
-        if available_start.date() != available_end.date():
-            raise exceptions.ParseError('available_between timestamps must be on the same day.')
+        available_resources = set()
 
-        # exclude resources that have reservation(s) overlapping with the available_between range
-        overlapping_reservations = Reservation.objects.filter(
-            resource__in=queryset, end__gt=available_start, begin__lt=available_end
-        ).current()
-        queryset = queryset.exclude(reservations__in=overlapping_reservations)
-        closed_resource_ids = {
-            resource.id
-            for resource in queryset
-            if not self._is_resource_open(resource, available_start, available_end)
-        }
+        hours_qs = ResourceDailyOpeningHours.objects.filter(
+            open_between__overlap=(available_start, available_end, '[)'))
 
-        return queryset.exclude(id__in=closed_resource_ids)
+        # check the resources one by one to determine which ones have open slots
+        for resource in queryset.prefetch_related(None).prefetch_related(
+                Prefetch('opening_hours', queryset=hours_qs, to_attr='prefetched_opening_hours')):
+            reservations = reservations_by_resource[resource.id]
+
+            if self._is_resource_available(resource, available_start, available_end, reservations, period):
+                available_resources.add(resource.id)
+
+        return queryset.filter(id__in=available_resources)
+
+    @staticmethod
+    def _is_resource_available(resource, available_start, available_end, reservations, period):
+        opening_hours = resource.get_opening_hours(available_start, available_end, resource.prefetched_opening_hours)
+        hours = next(iter(opening_hours.values()))[0]  # assume there is only one hours obj per day
+
+        if not (hours['opens'] or hours['closes']):
+            return False
+
+        current = max(available_start, hours['opens']) if hours['opens'] is not None else available_start
+        end = min(available_end, hours['closes']) if hours['closes'] is not None else available_end
+
+        if current >= end:
+            # the resource is already closed
+            return False
+
+        if not reservations:
+            # the resource has no reservations, just check if the period fits in the resource's opening times
+            if end - current >= period:
+                return True
+            return False
+
+        # try to find an open slot between reservations and opening / closing times.
+        # start from period start time or opening time depending on which one is earlier.
+        for reservation in reservations:
+            if reservation.end <= current:
+                # this reservation is in the past
+                continue
+            if reservation.begin - current >= period:
+                # found an open slot before the reservation currently being examined
+                return True
+            if reservation.end > end:
+                # the reservation currently being examined ends after the period or closing time,
+                # so no free slots
+                return False
+            # did not find an open slot before the reservation currently being examined,
+            # proceed to next reservation
+            current = reservation.end
+        else:
+            # all reservations checked and no free slot found, check if there is a free slot after the last
+            # reservation
+            if end - reservation.end >= period:
+                return True
+
+        return False
 
     class Meta:
         model = Resource
@@ -410,6 +492,7 @@ class LocationFilterBackend(filters.BaseFilterBackend):
             q = Q(location__distance_lte=(point, distance)) | Q(unit__location__distance_lte=(point, distance))
             queryset = queryset.filter(q)
         return queryset
+
 
 class ResourceCacheMixin:
     def _preload_opening_hours(self, times):
