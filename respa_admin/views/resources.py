@@ -24,7 +24,7 @@ def admin_office(request):
 
 
 def admin_form(request):
-    return TemplateResponse(request, 'page_form.html')
+    return TemplateResponse(request, 'form/page_form.html')
 
 
 class ResourceListView(ListView):

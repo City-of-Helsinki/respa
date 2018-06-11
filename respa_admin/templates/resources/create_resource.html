@@ -1,35 +1,55 @@
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ resource_image_formset.management_form }}
-    {{ period_formset_with_days.management_form }}
+{% extends "_base.html" %}
 
-    {{ form.as_p }}
+{% block form_nav %}
+    {% include "resources/form/_nav.html" %}
+{% endblock form_nav %}
 
-    {% if form.errors %}
-        {% for error in form.non_field_errors %}
-            <div class="alert alert-danger">
-                <strong>{{ error }}</strong>
-            </div>
-        {% endfor %}
-    {% endif %}
+{% block body %}
+    <div class="container form-container">
+        <form
+            method="post"
+            enctype="multipart/form-data"
+            class="resource-form"
+        >
+            {% csrf_token %}
+            {{ resource_image_formset.management_form }}
+            {{ period_formset_with_days.management_form }}
 
-    <table class="table">
-        {% for form in resource_image_formset %}
+            {% include "resources/form/_general_info.html" %}
+
             {{ form.as_p }}
-        {% endfor %}
-    </table>
 
-    {% for period_form in period_formset_with_days %}
-        {{ period_form.as_p }}
+            {% if form.errors %}
+                {% for error in form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        <strong>{{ error }}</strong>
+                    </div>
+                {% endfor %}
+            {% endif %}
 
-        {% if period_form.days %}
-            {{ period_form.days.management_form }}
-            {% for day in period_form.days %}
-                {{ day.as_p }}
+            <table class="table">
+                {% for form in resource_image_formset %}
+                    {{ form.as_p }}
+                {% endfor %}
+            </table>
+
+            {% for period_form in period_formset_with_days %}
+                {{ period_form.as_p }}
+
+                {% if period_form.days %}
+                    {{ period_form.days.management_form }}
+                    {% for day in period_form.days %}
+                        {{ day.as_p }}
+                    {% endfor %}
+                {% endif %}
             {% endfor %}
-        {% endif %}
-    {% endfor %}
 
 
-    <input type="submit" value="Save" />
-</form>
+            <input type="submit" value="Save" />
+        </form>
+    </div>
+{% endblock body %}
+
+{% block footer %}
+    {% include "resources/form/_toolbar.html" %}
+{% endblock footer %}
