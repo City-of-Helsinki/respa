@@ -20,6 +20,7 @@ from helusers import admin
 from django.views.generic.base import RedirectView
 
 import respa_admin.urls
+import resources.urls
 from resources.api import RespaAPIRouter
 from resources.views.images import ResourceImageView
 from resources.views.ical import ICalFeedView
@@ -43,7 +44,7 @@ urlpatterns = [
     url(r'^resource_image/(?P<pk>\d+)$', ResourceImageView.as_view(), name='resource-image-view'),
     url(r'^v1/', include(router.urls)),
     url(r'^v1/reservation/ical/(?P<ical_token>[-\w\d]+).ics$', ICalFeedView.as_view(), name='ical-feed'),
-    url(r'^$', RedirectView.as_view(url='v1/'))
+    url(r'^$', RedirectView.as_view(url='v1/')),
 ]
 
 if 'reports' in settings.INSTALLED_APPS:

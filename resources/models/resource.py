@@ -27,8 +27,8 @@ from PIL import Image
 from guardian.shortcuts import get_objects_for_user, get_users_with_perms
 from guardian.core import ObjectPermissionChecker
 
-from resources.errors import InvalidImage
-
+from ..errors import InvalidImage
+from ..fields import EquipmentField
 from .base import AutoIdentifiedModel, NameIdentifiedModel, ModifiableModel
 from .utils import create_reservable_before_datetime, get_translated, get_translated_name, humanize_duration
 from .equipment import Equipment
@@ -169,7 +169,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                                       default=datetime.timedelta(minutes=30))
     max_period = models.DurationField(verbose_name=_('Maximum reservation time'), null=True, blank=True)
 
-    equipment = models.ManyToManyField(Equipment, verbose_name=_('Equipment'), through='ResourceEquipment')
+    equipment = EquipmentField(Equipment, through='ResourceEquipment', verbose_name=_('Equipment'))
     max_reservations_per_user = models.IntegerField(verbose_name=_('Maximum number of active reservations per user'),
                                                     null=True, blank=True)
     reservable = models.BooleanField(verbose_name=_('Reservable'), default=False)
