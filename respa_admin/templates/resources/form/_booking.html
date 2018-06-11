@@ -4,17 +4,8 @@
         <span class="pull-right">*Pakolliset kentät</span>
     </div>
     <div class="input-row">
-        <div class="form-group">
-            <label class="control-label input-label" for="peole-count">Henkilöomäärä</label>
-            <input type="text" class="form-control text-input" id="people-count">
-        </div>
-        <div class="form-group">
-            <label class="control-label input-label" for="surface-area">Tilan pinta-ala</label>
-            <div class="input-unit-wrapper">
-                <input type="text" class="form-control text-input" id="surface-area">
-                <span>m2</span>
-            </div>
-        </div>
+        {% include "forms/_input.html" with field=form.people_capacity %}
+        {% include "forms/_input.html" with field=form.area %}
     </div>
     <div class="input-row dropdown-row">
         <div class="form-group">
@@ -39,40 +30,21 @@
         </div>
     </div>
     <div class="input-row">
-        <div class="form-group">
-            <label class="control-label input-label" for="advance-reserve">Varattavissa etukäteen</label>
-            <div class="input-unit-wrapper">
-                <input type="text" class="form-control text-input" id="advance-reserve">
-                <span>Päivää</span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="control-label input-label" for="booking-time">Varauksen käsittelyaika</label>
-            <div class="input-unit-wrapper">
-                <input type="text" class="form-control text-input" id="booking-time">
-                <span>Päivää</span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="control-label input-label" for="max-per-person">Varauksia enintään kpl/hlö</label>
-            <div class="input-unit-wrapper">
-                <input type="text" class="form-control text-input" id="max-per-person">
-                <span>kpl</span>
-            </div>
-        </div>
+        {% include "forms/_input.html" with field=form.reservable_days_in_advance %}
+        {% include "forms/_input.html" with field=form.max_reservations_per_user %}
     </div>
     <div class="form-group booking-info">
         <div class="textarea-wrapper">
             <h4>Varausinfo</h4>
             <p>Lisätiedot ennen kalenteria.</p>
-            {% include "form/_textarea_input.html" with id="booking-info" %}
+            {% include "forms/_textarea_input.html" with field=form.reservation_info %}
         </div>
     </div>
     <div class="form-group email-notification">
         <div class="textarea-wrapper">
             <h4>Sähköposti ilmoitukset</h4>
             <p>Illmoitukset lähetetään, kun tila varataan.</p>
-            {% include "form/_textarea_input.html" with id="email-notification" %}
+            {% include "forms/_textarea_input.html" with field=form.reservation_confirmed_notification_extra %}
         </div>
     </div>
 </div>

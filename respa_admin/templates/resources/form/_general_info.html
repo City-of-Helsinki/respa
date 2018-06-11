@@ -5,22 +5,16 @@
     </div>
     <div class="input-row dropdown-row">
         <div class="form-group">
-            <label class="control-label input-label">Valitset toimipaikka*</label>
-            <div class='select-dropdown btn btn-primary'>
-                <select>
-                    <option>Valitset toimipaikka</option>
-                    <option>Something longer</option>
-                </select>
+            <label class="control-label input-label">Valitse toimipaikka*</label>
+            <div class="select-dropdown btn btn-primary">
+                {{ form.unit }}
                 <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
             </div>
         </div>
         <div class="form-group">
-            <label class="control-label input-label">Valitset tyyppi</label>
-            <div class='select-dropdown btn btn-primary'>
-                <select>
-                    <option>Valitset tyyppi</option>
-                    <option>Something longer</option>
-                </select>
+            <label class="control-label input-label">Valitse tyyppi</label>
+            <div class="select-dropdown btn btn-primary">
+                {{ form.type }}
                 <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
             </div>
         </div>
@@ -28,40 +22,32 @@
     <div class="usage">
         <h4>Käyttötarkoitukset</h4>
         <div class="usage-checkbox checkbox-row">
-            <div class="custom-checkbox checkbox-inline">
-                <input class="checkbox-custom" id="checkbox1" type="checkbox">
-                <label class="checkbox-custom-label input-label" for="checkbox1">Kuvaa tai äänta</label>
-            </div>
-            <div class="custom-checkbox checkbox-inline">
-                <input class="checkbox-custom" id="checkbox2" type="checkbox">
-                <label class="checkbox-custom-label input-label" for="checkbox2">Liikkua tai pelata</label>
-            </div>
-            <div class="custom-checkbox checkbox-inline">
-                <input class="checkbox-custom" id="checkbox3" type="checkbox">
-                <label class="checkbox-custom-label input-label" for="checkbox3">Pitää kokouksen tai työskannellä</label>
-            </div>
-            <div class="custom-checkbox checkbox-inline">
-                <input class="checkbox-custom" id="checkbox4" type="checkbox">
-                <label class="checkbox-custom-label input-label" for="checkbox4">Valmistaa esineitä, askarrella tai korjata</label>
-            </div>
+            {% for value, label in form.purposes.field.choices %}
+                <div class="custom-checkbox checkbox-inline">
+                    <input
+                        class="checkbox-custom"
+                        id="purpose-{{ value }}"
+                        type="checkbox"
+
+                    >
+                    <label
+                        class="checkbox-custom-label input-label"
+                        for="purpose-{{ value }}"
+                    >
+                        {{ label }}
+                    </label>
+                </div>
+            {% endfor %}
         </div>
     </div>
     <div class="description">
         <h4>Nimi ja kuvaus</h4>
-        <div class="form-group">
-            <label class="control-label input-label" for="name">Nimi</label>
-            <input type="text" class="form-control text-input" id="name-description">
-        </div>
-        <div class="form-group detail-description">
-            <div class="textarea-wrapper">
-                <label class="control-label input-label" for="description">Kuvausteksi</label>
-                {% include "form/_textarea_input.html" with id="description" %}
-            </div>
-        </div>
+        {% include "forms/_input.html" with field=form.name %}
+        {% include "forms/_textarea_input.html" with field=form.description %}
     </div>
     <div class="contact-person">
         <h4>Tilan yhteyshenkilö</h4>
-        <p>Ei näyetä varaamon käyttoliittymässä mutta tiedot viedään asiakkaalle lähtevään vahvistus viestiin</p>
+        <p>Ei näytetä varaamon käyttoliittymässä mutta tiedot viedään asiakkaalle lähtevään vahvistus viestiin</p>
         <div class="input-row">
             <div class="form-group">
                 <label class="control-label input-label" for="first-name">Etunimi</label>

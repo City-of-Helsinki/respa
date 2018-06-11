@@ -1,0 +1,17 @@
+<div class="form-group">
+    <label
+        class="control-label input-label"
+        for="{{ field.id_for_label }}"
+    >
+        {{ field.label }}
+    </label>
+    <input
+        type="{{ field.field.widget.input_type }}"
+        name="{{ field.name }}"
+        {% if field.value != None %}
+            value="{{ field.value|stringformat:'s' }}"
+        {% endif %}
+        class="form-control text-input"
+    >
+    <span>{{ field.help_text }}</span>
+</div>

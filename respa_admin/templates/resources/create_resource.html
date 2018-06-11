@@ -16,8 +16,11 @@
             {{ period_formset_with_days.management_form }}
 
             {% include "resources/form/_general_info.html" %}
-
-            {{ form.as_p }}
+            {% include "resources/form/_booking.html" %}
+            {% include "resources/form/_images.html" %}
+            {% include "resources/form/_terms.html" %}
+            {% include "resources/form/_equipment.html" %}
+            {% include "resources/form/_opening_hours.html" %}
 
             {% if form.errors %}
                 {% for error in form.non_field_errors %}
