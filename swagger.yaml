@@ -419,8 +419,7 @@ paths:
           in: query
           required: false
           type: string
-          format: date-time
-          description: Only return resources that are open and free on the given datetime range. Expects two comma-separated datetimes.
+          description: Only return resources that are open and free on the given datetime range. Expects two comma-separated datetimes as start and end time. Accepts also a third comma-separated value (period length in minutes), which can be used to determine a minimum free slot length that must exists in the main time range.
         - name: page
           in: query
           description: Result page number

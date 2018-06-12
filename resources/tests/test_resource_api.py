@@ -527,13 +527,31 @@ def test_resource_available_between_filter_constraints(user_api_client, list_url
         'available_between': '2115-04-08T00:00:00+02:00'
     })
     assert response.status_code == 400
-    assert 'available_between takes exactly two comma-separated values.' in str(response.data)
+    assert 'available_between takes two or three comma-separated values.' in str(response.data)
+
+    response = user_api_client.get(list_url, {
+        'available_between': '2115-04-08T00:00:00+02:00,100,100,100'
+    })
+    assert response.status_code == 400
+    assert 'available_between takes two or three comma-separated values.' in str(response.data)
 
     response = user_api_client.get(list_url, {
         'available_between': '2115-04-08T00:00:00+02:00,2115-04-09T00:00:00+02:00'
     })
     assert response.status_code == 400
     assert 'available_between timestamps must be on the same day.' in str(response.data)
+
+    response = user_api_client.get(list_url, {
+        'available_between': '2115-04-08T00:00:00+02:00,2115-04-09T00:00:00+02:00,60'
+    })
+    assert response.status_code == 400
+    assert 'available_between timestamps must be on the same day.' in str(response.data)
+
+    response = user_api_client.get(list_url, {
+        'available_between': '2115-04-08T00:00:00+02:00,2115-04-08T00:00:00+02:00,xyz'
+    })
+    assert response.status_code == 400
+    assert 'available_between period must be an integer.' in str(response.data)
 
 
 @pytest.mark.django_db
@@ -586,3 +604,66 @@ def test_resource_available_between_considers_inactive_reservations(user_api_cli
     response = user_api_client.get(list_url, params)
     assert response.status_code == 200
     assert_response_objects(response, [resource_in_unit])
+
+
+@pytest.mark.parametrize('start, end, period, expected', (
+    ('00:00', '00:30', 60, []),
+    ('06:00', '06:30', 60, []),
+    ('06:00', '06:30', 30, [1]),
+    ('06:00', '08:30', 60, [1]),
+    ('06:00', '08:30', 30, [0, 1]),
+    ('09:00', '11:00', 60, [0, 1]),
+    ('09:00', '11:00', 120, [1]),
+    ('10:00', '12:00', 60, [0, 1]),
+    ('10:00', '12:00', 120, [1]),
+    ('10:00', '12:00', 180, []),
+    ('10:00', '14:00', 120, [1]),
+    ('10:00', '15:00', 120, [0, 1]),
+    ('12:00', '17:00', 120, [0, 1]),
+    ('12:00', '17:00', 180, [0, 1]),
+    ('15:00', '17:00', 60, [0, 1]),
+    ('15:00', '17:00', 120, [1]),
+    ('17:00', '18:00', 60, [1]),
+    ('17:00', '18:00', 120, []),
+    ('00:00', '23:00', 180, [0, 1]),
+    ('00:00', '23:00', 240, [1]),
+))
+@pytest.mark.django_db
+def test_available_between_with_period(list_url, resource_in_unit, resource_in_unit2, resource_in_unit3, user,
+                                       user_api_client, start, end, period, expected):
+
+    # resource_in_unit is open 8-16, resource_in_unit2 00:00 - 23:59
+    p1 = Period.objects.create(start=datetime.date(2115, 4, 1),
+                               end=datetime.date(2115, 4, 8),
+                               resource=resource_in_unit)
+    p2 = Period.objects.create(start=datetime.date(2115, 4, 1),
+                               end=datetime.date(2115, 4, 8),
+                               resource=resource_in_unit2)
+    for weekday in range(0, 7):
+        Day.objects.create(period=p1, weekday=weekday,
+                           opens=datetime.time(8, 0),
+                           closes=datetime.time(16, 00))
+        Day.objects.create(period=p2, weekday=weekday,
+                           opens=datetime.time(0, 0),
+                           closes=datetime.time(23, 59))
+    resource_in_unit.update_opening_hours()
+    resource_in_unit2.update_opening_hours()
+
+    Reservation.objects.create(
+        resource=resource_in_unit,
+        begin='2115-04-08T10:00:00+02:00',
+        end='2115-04-08T11:00:00+02:00',
+        user=user,
+    ),
+    Reservation.objects.create(
+        resource=resource_in_unit,
+        begin='2115-04-08T12:00:00+02:00',
+        end='2115-04-08T13:00:00+02:00',
+        user=user,
+    )
+
+    params = {'available_between': '2115-04-08T{}:00+02:00,2115-04-08T{}:00+02:00,{}'.format(start, end, period)}
+    expected_resources = [r for i, r in enumerate([resource_in_unit, resource_in_unit2]) if i in expected]
+    response = user_api_client.get(list_url, params)
+    assert response.status_code == 200
+    assert_response_objects(response, expected_resources)
