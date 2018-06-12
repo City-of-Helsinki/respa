@@ -39,10 +39,6 @@ def admin_office(request):
     return TemplateResponse(request, 'page_office.html')
 
 
-def admin_form(request):
-    return TemplateResponse(request, 'forms/page_form.html')
-
-
 class SaveResourceView(CreateView):
     """
     View for saving new resources and updating existing resources.
