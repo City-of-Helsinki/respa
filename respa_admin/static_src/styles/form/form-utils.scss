@@ -1,6 +1,12 @@
-// reuseable styling for specific elements of the form 
+// reuseable styling for specific elements of the form
 
 $input-height-default: 50px;
+
+.form-control {
+    &:focus {
+        border-color: black;
+    }
+}
 
 // styling for select dropdown
 .select-dropdown {
@@ -32,14 +38,16 @@ $input-height-default: 50px;
         border: $panel-default-border;
         text-align: left;
         color: $black;
+        width: 100%;
         background-color: $btn-default-bg;
         padding-right: $padding-small-horizontal + 16px;
     }
 }
 
 // styling for input label
-label.input-label {
+.input-label {
     color: $dark-gray;
+    padding-bottom: $padding-base-vertical;
 }
 
 // styling for a general text input
@@ -49,24 +57,31 @@ label.input-label {
     font-size: 16px;
     height: $input-height-default;
     line-height: $line-height-small;
+    background-color: $white;
 }
 
 // styling for toolbar with a buttons toolbar
 .textarea-with-toolbar {
-    max-width: 600px;
-
     div {
         display: flex;
         border: solid 2px black;
         border-bottom: 0;
 
-        & > * {
-            line-height: 1;
-            padding: $padding-base-vertical $padding-small-horizontal;
+        .toolbar-button-border {
             border: solid 1px $light-gray;
             border-top-color: transparent;
             border-bottom-color: transparent;
             border-left-color: transparent;
+        }
+
+        & > button {
+            line-height: 1;
+            padding: $padding-base-vertical $padding-small-horizontal;
+            @extend .toolbar-button-border;
+
+            &:active, &:hover {
+                @extend .toolbar-button-border;
+            }
 
             span {
                 transform: scale(0.8);
@@ -82,8 +97,8 @@ label.input-label {
 // styling for checkbox
 .custom-checkbox {
     margin: auto;
-  
-    > [type="checkbox"], label {
+
+    [type="checkbox"], label {
         /*margin-bottom:0px !important;*/
         -webkit-touch-callout: none;
         -webkit-user-select: none;
@@ -93,7 +108,8 @@ label.input-label {
         user-select: none;
     }
 
-    > [type="checkbox"] {
+    [type="checkbox"] {
+        background: red;
 
         &:not(:checked), &:checked {
             position: absolute;
@@ -142,7 +158,7 @@ label.input-label {
         &:checked + label {
             color: #00ed95;
         }
-  
+
         &[data-indeterminate] + label:after {
             content: '\2212';
             left: 2px;
@@ -154,7 +170,7 @@ label.input-label {
             background: $white;
             border: black solid 2px;
         }
-  
+
         &:disabled {
 
             &:not(:checked) + label:before {
@@ -188,9 +204,80 @@ label.input-label {
             }
         }
     }
-  
+
     .checkbox-desc {
         font-size: $font-size-small * 0.9;
         margin-left: 8px;
+    }
+}
+
+// styling for radio button
+.rdio {
+    position: relative;
+
+    input[type="radio"] {
+        opacity: 0;
+    }
+
+    label {
+        padding-left: 10px;
+        cursor: pointer;
+        font-size: $font-size-small;
+        margin-bottom: 7px !important;
+
+        &:before {
+            width: 20px;
+            height: 20px;
+            position: absolute;
+            top: 1px;
+            left: 0;
+            content: '';
+            display: inline-block;
+            -moz-border-radius: 50px;
+            -webkit-border-radius: 50px;
+            border-radius: 50px;
+            border: 2px solid black;
+            background: #fff;
+        }
+    }
+
+    input[type="radio"] {
+        margin: 0px;
+
+        &:disabled + label {
+            color: #999;
+
+            &:before {
+                background-color: #fbc52d;
+            }
+        }
+
+        &:checked + label::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 4px;
+            display: inline-block;
+            font-size: 11px;
+            width: 12px;
+            height: 12px;
+            background-color: #00ed95;
+            -moz-border-radius: 50px;
+            -webkit-border-radius: 50px;
+            border-radius: 50px;
+        }
+    }
+}
+
+.rdio input[type="radio"]:checked + label:before {
+    border-color: #003876;
+}
+
+.rdio input[type="radio"]:checked + label {
+    &:before {
+        border-color: #00ed95;
+    }
+    &::after {
+        background-color: #00ed95;
     }
 }

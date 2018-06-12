@@ -3,9 +3,11 @@
 
     .form-toolbar {
         padding: $padding-large-vertical;
+        display: flex;
+        flex-wrap: nowrap;
     
         .toolbar-label {
-            padding-right: $padding-base-horizontal;
+            padding: $padding-large-vertical $padding-base-horizontal $padding-large-vertical 0;
         }
 
         .select-dropdown {

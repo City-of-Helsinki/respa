@@ -1,0 +1,50 @@
+<div id="detail-booking">
+    <div class="form-section-header">
+        <h2>Varauksen tiedot</h2>
+        <span class="pull-right">*Pakolliset kentät</span>
+    </div>
+    <div class="input-row">
+        {% include "forms/_input.html" with field=form.people_capacity %}
+        {% include "forms/_input.html" with field=form.area %}
+    </div>
+    <div class="input-row dropdown-row">
+        <div class="form-group">
+            <label class="control-label input-label">Lyhyin varausaika*</label>
+            <div class='select-dropdown btn btn-primary'>
+                <select>
+                    <option>30 min</option>
+                    <option>Something longer</option>
+                </select>
+                <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label input-label">Pisin varausaika</label>
+            <div class='select-dropdown btn btn-primary'>
+                <select>
+                    <option>24 h</option>
+                    <option>Something longer</option>
+                </select>
+                <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+            </div>
+        </div>
+    </div>
+    <div class="input-row">
+        {% include "forms/_input.html" with field=form.reservable_days_in_advance %}
+        {% include "forms/_input.html" with field=form.max_reservations_per_user %}
+    </div>
+    <div class="form-group booking-info">
+        <div class="textarea-wrapper">
+            <h4>Varausinfo</h4>
+            <p>Lisätiedot ennen kalenteria.</p>
+            {% include "forms/_textarea_input.html" with field=form.reservation_info %}
+        </div>
+    </div>
+    <div class="form-group email-notification">
+        <div class="textarea-wrapper">
+            <h4>Sähköposti ilmoitukset</h4>
+            <p>Illmoitukset lähetetään, kun tila varataan.</p>
+            {% include "forms/_textarea_input.html" with field=form.reservation_confirmed_notification_extra %}
+        </div>
+    </div>
+</div>

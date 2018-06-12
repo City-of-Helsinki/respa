@@ -8,22 +8,24 @@
                     <h1 class="col-sm-6">Kaikki hallitsemani resurssit</h1>
                     <span class="col-sm-6 resources-count">{{ paginator.count }} kpl</span>
                 </div>
-                <a class="btn resource-control" href="#">
+                <a class="btn resource-control" href="{% url 'respa_admin:new-resource' %}">
                     <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
                     Lisää uusi resurssit <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
                 </a>
-                <div class="form-group resources-search center-block">
-                    <div class="input-group">
-                        <span class="input-group-addon">Hae</span> 
-                        <input type="text" class="form-control text-input">
-                        <span class="input-group-btn">
-                            <button class="btn btn-default" type="button">
-                                <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
-                            </button>
-                        </span>
-                    </div>  
-                </div>
-            </div>    
+                <form action="." method="get">
+                    <div class="form-group resources-search center-block">
+                        <div class="input-group">
+                            <span class="input-group-addon">Hae</span>
+                            <input autofocus type="text" class="form-control text-input" name="q" value="{{ request.GET.q }}">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default" type="button">
+                                    <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     </section>
 {% endblock koro_shape %}
