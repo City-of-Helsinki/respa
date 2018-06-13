@@ -13,5 +13,6 @@
         {% endif %}
         class="form-control text-input"
     >
-    <span>{{ field.help_text }}</span>
+    <span class="help-text">{{ field.help_text }}</span>
+    <span class="invalid-feedback">{{ field.error_message }}</span>
 </div>

@@ -116,4 +116,24 @@
             }
         }
     }
+
+    button {
+        &:hover {
+            filter: brightness(0.9);
+        }
+    }
+
+    .form-control {
+        &.is-invalid {
+            border: solid 2px $hel-metro;
+        }
+
+        &:active, &:focus {
+            border: solid 2px $hel-coat;
+        }
+    }
+
+    .invalid-feedback {
+        color: red;
+    }
 }

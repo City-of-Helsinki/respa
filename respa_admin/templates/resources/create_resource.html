@@ -47,12 +47,9 @@
                 {% endif %}
             {% endfor %}
 
-
-            <input type="submit" value="Save" />
+            <div class="navbar-fixed-bottom">
+                {% include "resources/form/_toolbar.html" %}
+            </div>
         </form>
     </div>
 {% endblock body %}
-
-{% block footer %}
-    {% include "resources/form/_toolbar.html" %}
-{% endblock footer %}
