@@ -51,5 +51,14 @@
                 {% include "resources/form/_toolbar.html" %}
             </div>
         </form>
+
+        {% if not form.is_valid %}
+            <div class="container noti panel error">
+                <strong>something wrong</strong>
+                <div class="noti-close pull-right">
+                    Sulje ilmoitus <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                </div>
+            </div>
+        {% endif %}
     </div>
 {% endblock body %}

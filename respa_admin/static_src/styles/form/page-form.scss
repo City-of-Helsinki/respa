@@ -12,6 +12,28 @@
     padding-top: 160px;
     padding-bottom: $input-height-default + $padding-large-vertical * 2;
 
+    .noti {
+        position: fixed;
+        display: flex;
+        top: 260px;
+        color: $white;
+        font-size: $font-size-h5;
+        padding: 16px 24px;
+
+        &.error {
+            background-color: $hel-metro;
+        }
+
+        &.success {
+            background-color: $hel-tram;
+        }
+
+        .noti-close {
+            font-size: $font-size-small;
+            align-self: center;
+        }
+    }
+
     .form-section-header {
         display: flex;
         position: relative;
