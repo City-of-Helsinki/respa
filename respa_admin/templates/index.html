@@ -3,12 +3,7 @@
 {% block koro_shape %}
     <section class="hero-section bg-light">
         <div class="container">
-            <div class='panel panel-default welcome-user'>
-                <h4 class="pull-left">Welcome #user#</h4>
-                <div class="btn remove-click pull-right">
-                    Sulje ilmoistus <span class="glyphicon glyphicon-remove icon-right" aria-hidden="true"></span>
-                </div>
-            </div>
+            {% include "./common/_notification.html" with text="Welcome #user#" %}
             <div>
                 <h2>Toimipaikat</h2>
                 <div class='row cards-list'>

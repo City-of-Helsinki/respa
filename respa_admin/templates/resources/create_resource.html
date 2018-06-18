@@ -52,13 +52,9 @@
             </div>
         </form>
 
-        {% if not form.is_valid %}
-            <div class="container noti panel error">
-                <strong>something wrong</strong>
-                <div class="noti-close pull-right">
-                    Sulje ilmoitus <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-                </div>
-            </div>
+        {% if not form.is_valid and form.errors %}
+            {% include "../common/_notification.html" with text="something wrong happens" type="error"%}
         {% endif %}
+
     </div>
 {% endblock body %}

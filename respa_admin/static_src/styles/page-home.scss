@@ -30,21 +30,6 @@ main {
                 margin: 24px auto 32px;
             }
 
-            div.welcome-user {
-                padding: 24px;
-                border-radius: 2px;
-                height: 72px;
-                border: $panel-default-border;
-                justify-content: center;
-
-                .remove-click {
-                    padding: 0;
-                    border: $panel-default-border;
-                    font-size: $font-size-small;
-                    font-weight: lighter;
-                }
-            }
-
             .cards-list {
                 display: flex;
                 flex-wrap: wrap;
