@@ -10,7 +10,8 @@
             <ul class="nav navbar-nav navbar-right">
                 <li>
                     <a href="#">
-                        <span class="glyphicon glyphicon-user icon-left" aria-hidden="true"></span> firstname lastname
+                        <span class="glyphicon glyphicon-user icon-left" aria-hidden="true"></span>
+                        {{ user.get_full_name|default:user.username }}
                     </a>
                 </li>
             </ul>
