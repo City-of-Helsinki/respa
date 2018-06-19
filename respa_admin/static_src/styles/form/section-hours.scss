@@ -22,7 +22,7 @@
     .dropdown-time {
         background-color: rgba($light-gray, 0.5);
         padding: 10px 32px;
-        margin: 2px 0;
+        margin: 0;
         height: auto;
         
         span {
@@ -76,90 +76,12 @@
     }
 
     .hours-wrapper {
-        padding: 32px;
+        padding: 0 32px 32px;
         background-color: rgba($light-gray, 0.5);
     }
 
-    .present-hours {
+    .present-hours-list {
         padding-top: $padding-large-vertical;
-
-        .range-input {
-            padding: 0;
-            flex-wrap: nowrap;
-
-            span {
-                margin: 0;
-                padding: 16px $padding-large-horizontal;
-                transform: scaleY(0.5);
-            }
-        }
-
-        .text-input {
-            margin: 0;
-            min-width: 120px;
-        }
-
-        .hours-table-header {
-            .schedule {
-                margin-right: 36px;
-            }
-        }
-
-        .weekday-row {
-            border-bottom: solid 1px $dark-gray;
-
-            .weekday-checkbox {
-                margin: auto 0;
-                padding: 0;
-
-                label {
-                    padding-left: 32px;
-                    font-size: $font-size-large;
-                }
-            }
-
-            .add-time {
-                padding-left: 32px;
-                font-weight: lighter;
-                background-color: transparent;
-                display: inline-flex;
-
-                span {
-                    font-size: $font-size-large;
-                }
-            }
-
-            .copy-next {
-                background-color: $hel-copper;
-                margin: 5px 0;
-                color: $white;
-                height: 40px;
-            }
-        }
-
-        .footer-buttons {
-            padding-top: 24px;
-
-            .btn {
-                padding-right: $padding-large-horizontal;
-                padding-left: $padding-large-horizontal;
-            }
-
-            .save-time {
-                background-color: $hel-copper;
-                color: $white;
-            }
-
-            .cancel-time {
-                background-color: transparent;
-                color: $theme-danger;
-            }
-
-            .delete-time {
-                background-color: $theme-danger;
-                color: $white;
-            }
-        }
     }
 
     .past-hours {
