@@ -47,6 +47,15 @@ python manage.py resources_import --all tprek
 python manage.py resources_import --all kirjastot
 ```
 
+### Dev environment configuration
+
+Create a file `respa/.env` to configure the dev environment e.g.:
+
+```
+DEBUG=1
+INTERNAL_IPS='127.0.0.1'
+```
+
 Ready to roll!
 
 ### Setting up PostGIS/GEOS/GDAL on Windows (x64) / Python 3
