@@ -21,7 +21,7 @@
         <h4>Menneet aukioloajat</h4>
         <div class="past-hours-list">
             {% for i in "45678" %}
-                {% include "../../common/_hours_accordion.html" %}
+                {% include "../../common/_hours_accordion.html" with id=i %}
             {% endfor %}
         </div>
     </div>

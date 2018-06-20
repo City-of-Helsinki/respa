@@ -1,4 +1,5 @@
-<div class="accordion-item">
+
+<div class="accordion-item" id="accordion-item-{{id}}">
     <div class="dropdown-time panel-group input-row" id="accordion{{id}}" role="tablist" aria-multiselectable="true">
         <div class="panel-heading" id="heading{{id}}" id="tab">
             <!-- things go here -->
@@ -181,7 +182,7 @@
                     <button class="btn save-time" type="button">Tallenna</button>
                     <button class="btn cancel-time" type="button">Peruuta</button>
                 </div>
-                <button class="btn pull-right delete-time" type="button">Poista aikajakso</button>
+                <button class="btn pull-right delete-time" type="button" id="remove-hour-{{id}}">Poista aikajakso</button>
             </div>
         </div>
     </div>
