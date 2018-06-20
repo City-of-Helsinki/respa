@@ -29,20 +29,8 @@
         </div>
         <div class="price-range">
             <div class="input-row">
-                <div class="form-group">
-                    <label class="control-label input-label" for="min-price">Minimituntihinti</label>
-                    <div class="input-unit-wrapper">
-                        <input type="text" class="form-control text-input" id="min-price" placeholder="xx">
-                        <span class="glyphicon glyphicon-euro"></span>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="control-label input-label" for="max-price">Maksimituntihinta</label>
-                    <div class="input-unit-wrapper">
-                        <input type="text" class="form-control text-input" id="max-price" placeholder="xx">
-                        <span class="glyphicon glyphicon-euro"></span>
-                    </div>
-                </div>
+                {% include "forms/_input.html" with field=form.min_price_per_hour prefix_icon="euro" %}
+                {% include "forms/_input.html" with field=form.max_price_per_hour prefix_icon="euro" %}
             </div>
         </div>
     </div>
