@@ -4,17 +4,8 @@
         <span class="pull-right">*Pakolliset kentät</span>
     </div>
     <div class="official-confirmation">
-        <span class="control-label input-label">Varaus tarvitsee virkailijan vahvistuksen</span>
-        <div class="radio-group">
-            <div class="rdio rdio-primary radio-inline">
-                <input name="radio" value="true" id="radio-confirm-true" type="radio" checked>
-                <label for="radio-confirm-true">Kyllä</label>
-            </div>
-            <div class="rdio rdio-primary radio-inline">
-                <input name="radio" value="2" id="radio-confirm-false" type="radio">
-                <label for="radio-confirm-false">Ei</label>
-            </div>
-        </div>
+        <span class="control-label input-label">{{ form.need_manual_confirmation.label }}</span>
+        {{ form.need_manual_confirmation }}
     </div>
     <div class="form-group select-with-label">
         <label class="control-label input-label">Tunnistautuminem</label>
