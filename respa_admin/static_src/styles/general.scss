@@ -5,9 +5,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 body {
-    main {
-        margin-top: 120px;
-    }
+
+  main {
+    margin-top: 120px;
+  }
 }
 
 span.glyphicon.icon-left {
@@ -19,26 +20,26 @@ span.glyphicon.icon-right {
 }
 
 @mixin shape($color, $size) {
-    display: inline-block;
-    width: $size;
-    height: $size;
-    border-radius: 50%;
-    background: $color;
+  display: inline-block;
+  width: $size;
+  height: $size;
+  border-radius: 50%;
+  background: $color;
 }
 
 .shape-success {
-    margin-right: 5px;
-    @include shape($theme-success, 10px);
+  margin-right: 5px;
+  @include shape($theme-success, 10px);
 }
 
 .shape-warning {
-    margin-right: 5px;
-    @include shape($theme-warning, 10px);
+  margin-right: 5px;
+  @include shape($theme-warning, 10px);
 }
 
 .shape-danger {
-    margin-right: 5px;
-    @include shape($theme-danger, 10px);
+  margin-right: 5px;
+  @include shape($theme-danger, 10px);
 }
 
 .body {
@@ -46,5 +47,5 @@ span.glyphicon.icon-right {
 }
 
 .glyphicon::before {
-    font-weight: lighter;
+  font-weight: lighter;
 }
