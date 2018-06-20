@@ -11,6 +11,17 @@
 .form-container {
   padding-top: 160px;
   padding-bottom: $input-height-default + $padding-large-vertical * 2;
+    
+  .error, .success {
+    width: 100%;
+  }
+
+  .noti {
+    position: fixed;
+    top: 260px;
+    color: $white;
+    width: inherit;
+  }
 
   .form-section-header {
     display: flex;
@@ -118,5 +129,27 @@
         padding-bottom: 0;
       }
     }
+  }
+
+  button {
+
+    &:hover {
+      filter: brightness(0.9);
+    }
+  }
+
+  .form-control {
+
+    &.is-invalid {
+      border: solid 2px $hel-metro;
+    }
+
+    &:active, &:focus {
+      border: solid 2px $hel-coat;
+    }
+  }
+
+  .invalid-feedback {
+    color: red;
   }
 }

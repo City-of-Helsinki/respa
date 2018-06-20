@@ -283,6 +283,7 @@ $input-height-default: 50px;
 }
 
 .rdio input[type="radio"]:checked + label {
+  color: #00ed95;
 
   &:before {
     border-color: #00ed95;

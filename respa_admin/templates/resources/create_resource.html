@@ -47,12 +47,14 @@
                 {% endif %}
             {% endfor %}
 
-
-            <input type="submit" value="Save" />
+            <div class="navbar-fixed-bottom">
+                {% include "resources/form/_toolbar.html" %}
+            </div>
         </form>
+
+        {% if not form.is_valid and form.errors %}
+            {% include "../common/_notification.html" with text="something wrong happens" type="error"%}
+        {% endif %}
+
     </div>
 {% endblock body %}
-
-{% block footer %}
-    {% include "resources/form/_toolbar.html" %}
-{% endblock footer %}
