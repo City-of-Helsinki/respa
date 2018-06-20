@@ -1,23 +1,27 @@
 #general-info {
-    & > * {
-        margin-top: 36px;
-    }
+
+  & > * {
+    margin-top: 36px;
+  }
     
-    .description {
-        h4 {
-            padding-bottom: $padding-large-vertical;
-        }
+  .description {
+
+    h4 {
+      padding-bottom: $padding-large-vertical;
+    }
+  }
+
+  .contact-person {
+
+    p {
+      padding: 16px 0;
     }
 
-    .contact-person {
-        p {
-            padding: 16px 0;
-        }
-        .input-row {
+    .input-row {
 
-            .form-group {
-                width: 350px;
-            }
-        }
+      .form-group {
+        width: 350px;
+      }
     }
+  }
 }

@@ -1,0 +1,27 @@
+{
+    "extend": "stylelint-config-standard",
+    "plugins": [
+        "stylelint-scss"
+    ],
+    "rules": {
+        "at-rule-no-unknown": [
+            true,
+            {
+                "ignoreAtRules": ["mixin", "include", "for"]
+            }
+        ],
+        "indentation": 2,
+        "scss/double-slash-comment-empty-line-before": "always",
+        "scss/double-slash-comment-whitespace-inside": "always",
+        "block-opening-brace-space-before": "always",
+        "selector-list-comma-space-after": "always",
+        "block-no-empty": true,
+        "no-duplicate-at-import-rules": true,
+        "string-no-newline": true,
+        "unit-no-unknown": true,
+        "declaration-block-no-duplicate-properties": true,
+        "declaration-block-no-shorthand-property-overrides": true,
+        "declaration-no-important": true,
+        "rule-empty-line-before": "always"
+    }
+}
