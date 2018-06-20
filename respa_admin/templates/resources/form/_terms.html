@@ -4,54 +4,14 @@
         <span class="pull-right">*Pakolliset kentät</span>
     </div>
     <div class="official-confirmation">
-        <span class="control-label input-label">Varaus tarvitsee virkailijan vahvistuksen</span>
-        <div class="radio-group">
-            <div class="rdio rdio-primary radio-inline">
-                <input name="radio" value="true" id="radio-confirm-true" type="radio" checked>
-                <label for="radio-confirm-true">Kyllä</label>
-            </div>
-            <div class="rdio rdio-primary radio-inline">
-                <input name="radio" value="2" id="radio-confirm-false" type="radio">
-                <label for="radio-confirm-false">Ei</label>
-            </div>
-        </div>
+        <span class="control-label input-label">{{ form.need_manual_confirmation.label }}</span>
+        {{ form.need_manual_confirmation }}
     </div>
-    <div class="form-group select-with-label">
-        <label class="control-label input-label">Tunnistautuminem</label>
-        <div class='select-dropdown btn btn-primary'>
-            <select>
-                <option>Ei mitään</option>
-                <option>Something longer</option>
-            </select>
-            <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
-        </div>
-    </div>
-    <div class="form-group select-with-label">
-        <label class="control-label input-label">Yleiset ehdot</label>
-        <div class='select-dropdown btn btn-primary'>
-            <select>
-                <option>--------</option>
-                <option>Something longer</option>
-            </select>
-            <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
-        </div>
-    </div>
-    <div class="form-group select-with-label">
-        <label class="control-label input-label">Pääsykoodintyyppi</label>
-        <div class='select-dropdown btn btn-primary'>
-            <select>
-                <option>24 h</option>
-                <option>Something longer</option>
-            </select>
-            <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
-        </div>
-    </div>
-    <div class="form-group conditions">
-        <div class="textarea-wrapper">
-            <label class="control-label input-label" for="condition">Tilakohtaiset ehdot</label>
-            {% include "forms/_textarea_input.html" with id="conditions" %}
-        </div>
-    </div>
+    {% include "forms/_select.html" with field=form.authentication %}
+    {% include "forms/_select.html" with field=form.generic_terms %}
+    {% include "forms/_select.html" with field=form.access_code_type %}
+
+    {% include "forms/_textarea_input.html" with field=form.specific_terms %}
     <div class="pricing">
         <h4>Hinnoittelu</h4>
         <div class="price-confirm">
@@ -69,20 +29,8 @@
         </div>
         <div class="price-range">
             <div class="input-row">
-                <div class="form-group">
-                    <label class="control-label input-label" for="min-price">Minimituntihinti</label>
-                    <div class="input-unit-wrapper">
-                        <input type="text" class="form-control text-input" id="min-price" placeholder="xx">
-                        <span class="glyphicon glyphicon-euro"></span>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="control-label input-label" for="max-price">Maksimituntihinta</label>
-                    <div class="input-unit-wrapper">
-                        <input type="text" class="form-control text-input" id="max-price" placeholder="xx">
-                        <span class="glyphicon glyphicon-euro"></span>
-                    </div>
-                </div>
+                {% include "forms/_input.html" with field=form.min_price_per_hour prefix_icon="euro" %}
+                {% include "forms/_input.html" with field=form.max_price_per_hour prefix_icon="euro" %}
             </div>
         </div>
     </div>

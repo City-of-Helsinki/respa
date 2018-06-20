@@ -10,6 +10,8 @@ from resources.models import (
     ResourceImage,
 )
 
+from .widgets import RespaRadioSelect
+
 
 class ResourceForm(forms.ModelForm):
     purposes = forms.ModelMultipleChoiceField(
@@ -51,6 +53,11 @@ class ResourceForm(forms.ModelForm):
             'specific_terms',
             'reservation_confirmed_notification_extra',
         ]
+        widgets = {
+            'need_manual_confirmation': RespaRadioSelect(
+                choices=((True, 'Kyllä'), (False, 'Ei'))
+            ),
+        }
 
 
 class PeriodFormset(forms.BaseInlineFormSet):

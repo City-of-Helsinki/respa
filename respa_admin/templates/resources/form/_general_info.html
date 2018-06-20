@@ -4,20 +4,8 @@
         <span class="pull-right">*Pakolliset kentät</span>
     </div>
     <div class="input-row dropdown-row">
-        <div class="form-group">
-            <label class="control-label input-label">Valitse toimipaikka*</label>
-            <div class="select-dropdown btn btn-primary">
-                {{ form.unit }}
-                <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="control-label input-label">Valitse tyyppi</label>
-            <div class="select-dropdown btn btn-primary">
-                {{ form.type }}
-                <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
-            </div>
-        </div>
+        {% include "forms/_select.html" with field=form.unit inline=True %}
+        {% include "forms/_select.html" with field=form.type inline=True %}
     </div>
     <div class="usage">
         <h4>Käyttötarkoitukset</h4>
