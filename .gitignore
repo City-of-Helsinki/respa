@@ -17,3 +17,4 @@ perf*csv
 /build
 /dist
 /src
+.env
