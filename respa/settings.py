@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'modeltranslation',
     'parler',
     'grappelli',
+    'django.forms',
     'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.auth',
