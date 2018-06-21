@@ -13,6 +13,9 @@
         </div>
     </div>
     <div class="present-hours-list">
+        <div style="display: none">
+            {% include "../../common/_hours_accordion.html" with id=new %}
+        </div>
         {% for i in "123" %}
             {% include "../../common/_hours_accordion.html" with id=i %}
         {% endfor %}
