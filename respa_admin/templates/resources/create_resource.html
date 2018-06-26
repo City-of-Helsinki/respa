@@ -23,7 +23,6 @@
                 {% endfor %}
             {% endif %}
 
-
             {% include "resources/form/_general_info.html" %}
             {% include "resources/form/_booking.html" %}
             {% include "resources/form/_images.html" %}
@@ -46,10 +45,5 @@
                 {% include "resources/form/_toolbar.html" %}
             </div>
         </form>
-
-        {% if not form.is_valid and form.errors %}
-            {% include "../common/_notification.html" with text="something wrong happens" type="error"%}
-        {% endif %}
-
     </div>
 {% endblock body %}
