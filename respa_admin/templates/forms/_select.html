@@ -1,6 +1,6 @@
 <div class="form-group {% if not inline %}select-with-label{% endif %}">
     <label class="control-label input-label">
-        {{ field.label }}{% if field.is_required %}*{% endif %}
+        {{ field.label }}{% if field.field.required %}*{% endif %}
     </label>
     <div class="select-dropdown btn btn-primary">
         {{ field }}
