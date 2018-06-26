@@ -3,10 +3,12 @@
         <div class="container-fluid row form-header">
             <div class='form-title col-sm-6'>
                 <h2>
-                    <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>Luo uusi resurssit
+                    <a href="{% url 'respa_admin:new-resource' %}">
+                        <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>Luo uusi resurssit
+                    </a>
                 </h2>
             </div>
-            <div class="language-switcher col-sm-6"> 
+            <div class="language-switcher col-sm-6">
                 <div class='language-item btn'>
                     Englanti <span class="badge">6</span>
                 </div>
