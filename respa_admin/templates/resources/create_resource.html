@@ -15,20 +15,21 @@
             {{ resource_image_formset.management_form }}
             {{ period_formset_with_days.management_form }}
 
-            {% include "resources/form/_general_info.html" %}
-            {% include "resources/form/_booking.html" %}
-            {% include "resources/form/_images.html" %}
-            {% include "resources/form/_terms.html" %}
-            {% include "resources/form/_equipment.html" %}
-            {% include "resources/form/_opening_hours.html" %}
-
-            {% if form.errors %}
+            {% if form.non_field_errors %}
                 {% for error in form.non_field_errors %}
                     <div class="alert alert-danger">
                         <strong>{{ error }}</strong>
                     </div>
                 {% endfor %}
             {% endif %}
+
+
+            {% include "resources/form/_general_info.html" %}
+            {% include "resources/form/_booking.html" %}
+            {% include "resources/form/_images.html" %}
+            {% include "resources/form/_terms.html" %}
+            {% include "resources/form/_equipment.html" %}
+            {% include "resources/form/_opening_hours.html" %}
 
             {% for period_form in period_formset_with_days %}
                 {{ period_form.as_p }}
