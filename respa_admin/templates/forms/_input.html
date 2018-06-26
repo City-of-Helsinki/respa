@@ -5,7 +5,7 @@
     >
         {{ field.label }}{% if field.field.required %}*{% endif %}
     </label>
-    {% if prefix_icon %}
+    {% if prefix_icon or prefix_text %}
         <div class="input-unit-wrapper">
     {% endif %}
 
@@ -18,6 +18,9 @@
         class="form-control text-input"
         {% include "django/forms/widgets/attrs.html" %}
     >
+    {% if prefix_text %}
+        <span class="">{{ prefix_text }}</span>
+    {% endif %}
     {% if prefix_icon %}
         <span class="glyphicon glyphicon-{{ prefix_icon }}"></span>
     {% endif %}
@@ -25,7 +28,7 @@
 
     {% include "forms/_errors.html" with field=field %}
 
-    {% if prefix_icon %}
+    {% if prefix_icon or prefix_text %}
         </div>
     {% endif %}
 </div>

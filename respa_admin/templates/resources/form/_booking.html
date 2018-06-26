@@ -5,15 +5,15 @@
     </div>
     <div class="input-row">
         {% include "forms/_input.html" with field=form.people_capacity %}
-        {% include "forms/_input.html" with field=form.area %}
+        {% include "forms/_input.html" with field=form.area prefix_text="m2" %}
     </div>
     <div class="input-row dropdown-row">
         {% include "forms/_select.html" with field=form.min_period inline=True %}
         {% include "forms/_select.html" with field=form.max_period inline=True %}
     </div>
     <div class="input-row">
-        {% include "forms/_input.html" with field=form.reservable_days_in_advance %}
-        {% include "forms/_input.html" with field=form.max_reservations_per_user %}
+        {% include "forms/_input.html" with field=form.reservable_days_in_advance prefix_text="päivää" %}
+        {% include "forms/_input.html" with field=form.max_reservations_per_user prefix_text="kpl" %}
     </div>
     <div class="form-group booking-info">
         <div class="textarea-wrapper">
