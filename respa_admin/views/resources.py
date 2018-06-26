@@ -1,5 +1,7 @@
+from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
+from django.urls import reverse_lazy
 
 from django.views.generic import (
     CreateView,
@@ -45,11 +47,16 @@ class SaveResourceView(CreateView):
     """
 
     http_method_names = ['get', 'post']
-    success_url = 'success'  # This is just for testing purposes.
     model = Resource
     form_class = ResourceForm
     template_name = 'resources/create_resource.html'
     extra_formsets = 1
+
+    def get_success_url(self, **kwargs):
+        messages.success(request, 'Resurssi tallennettu')
+        return reverse_lazy('respa_admin:edit-resource', kwargs={
+            'resource_id': self.object.id,
+        })
 
     def get(self, request, *args, **kwargs):
         if kwargs:
@@ -96,6 +103,7 @@ class SaveResourceView(CreateView):
         if form.is_valid() and period_formset_with_days.is_valid() and resource_image_formset.is_valid():
             return self.forms_valid(form, period_formset_with_days, resource_image_formset)
         else:
+            messages.error(request, 'Tallennus epäonnistui. Tarkista lomakkeen virheet.')
             return self.forms_invalid(form, period_formset_with_days, resource_image_formset)
 
     def forms_valid(self, form, period_formset_with_days, resource_image_formset):
