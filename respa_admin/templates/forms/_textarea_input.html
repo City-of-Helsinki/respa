@@ -2,35 +2,15 @@
     <div class="textarea-wrapper">
         <label class="control-label input-label" for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
         <div class="textarea-with-toolbar">
-            <div>
-                <button type="button" class="btn btn-default" aria-label="Bold">
-                    <span class="glyphicon glyphicon-bold" aria-hidden="true"></span>
-                </button>
-                <button type="button" class="btn btn-default" aria-label="Italic">
-                    <span class="glyphicon glyphicon-italic" aria-hidden="true"></span>
-                </button>
-                <button type="button" class="btn btn-default" aria-label="Italic">
-                    <span class="glyphicon glyphicon-text-underline" aria-hidden="true"></span>
-                </button>
-                <button type="button" class="btn btn-default" aria-label="Italic">
-                    <span class="glyphicon glyphicon-list-numbered" aria-hidden="true"></span>
-                </button>
-                <button type="button" class="btn btn-default" aria-label="Italic">
-                    <span class="glyphicon glyphicon-list" aria-hidden="true"></span>
-                </button>
-                <button type="button" class="btn btn-default" aria-label="Italic">
-                    <span class="glyphicon glyphicon-paperclip" aria-hidden="true"></span>
-                </button>
-            </div>
             <textarea
                 class="form-control"
                 rows="5"
-                name="{{ widget.name }}"
+                name="{{ field.name }}"
             >
-                {% if widget.value %}{{ widget.value }}{% endif %}
+                {% if field.value %}{{ field.value }}{% endif %}
             </textarea>
-            <span class="help-text">{{ form.descriprion.help_text }}</span>
-            <span class="invalid-feedback">{{ form.descriprion.error_message }}</span>
+            <span class="help-text">{{ field.help_text }}</span>
+            {% include "forms/_errors.html" with field=field %}
         </div>
     </div>
 </div>
