@@ -52,6 +52,7 @@ class ResourceForm(forms.ModelForm):
             'generic_terms',
             'specific_terms',
             'reservation_confirmed_notification_extra',
+            'public',
         ]
         widgets = {
             'min_period': forms.Select(
@@ -70,6 +71,12 @@ class ResourceForm(forms.ModelForm):
             ),
             'need_manual_confirmation': RespaRadioSelect(
                 choices=((True, 'Kyllä'), (False, 'Ei'))
+            ),
+            'public': forms.Select(
+                choices=((False, 'Piilotettu'), (True, 'Julkaistu'))
+            ),
+            'reservable': forms.Select(
+                choices=((False, 'Ei varattavissa'), (True, 'Varattavissa'))
             ),
         }
 
