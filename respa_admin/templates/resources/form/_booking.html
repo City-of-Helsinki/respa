@@ -8,26 +8,8 @@
         {% include "forms/_input.html" with field=form.area %}
     </div>
     <div class="input-row dropdown-row">
-        <div class="form-group">
-            <label class="control-label input-label">Lyhyin varausaika*</label>
-            <div class='select-dropdown btn btn-primary'>
-                <select>
-                    <option>30 min</option>
-                    <option>Something longer</option>
-                </select>
-                <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="control-label input-label">Pisin varausaika</label>
-            <div class='select-dropdown btn btn-primary'>
-                <select>
-                    <option>24 h</option>
-                    <option>Something longer</option>
-                </select>
-                <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
-            </div>
-        </div>
+        {% include "forms/_select.html" with field=form.min_period inline=True %}
+        {% include "forms/_select.html" with field=form.max_period inline=True %}
     </div>
     <div class="input-row">
         {% include "forms/_input.html" with field=form.reservable_days_in_advance %}
