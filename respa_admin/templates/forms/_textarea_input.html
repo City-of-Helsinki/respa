@@ -1,6 +1,11 @@
 <div class="form-group">
     <div class="textarea-wrapper">
-        <label class="control-label input-label" for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+        <label
+            class="control-label input-label"
+            for="{{ field.id_for_label }}"
+        >
+            {{ field.label }}{% if field.field.required %}*{% endif %}
+        </label>
         <div class="textarea-with-toolbar">
             <textarea
                 class="form-control"

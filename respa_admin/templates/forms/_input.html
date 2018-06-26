@@ -3,7 +3,7 @@
         class="control-label input-label"
         for="{{ field.id_for_label }}"
     >
-        {{ field.label }}
+        {{ field.label }}{% if field.field.required %}*{% endif %}
     </label>
     {% if prefix_icon %}
         <div class="input-unit-wrapper">
