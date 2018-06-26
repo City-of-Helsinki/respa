@@ -2,10 +2,10 @@ from django import forms
 
 
 class RespaRadioSelect(forms.RadioSelect):
-    template_name = 'forms/_radio.html'
-    option_template_name = 'forms/_radio_option.html'
+    template_name = 'forms/widgets/_radio.html'
+    option_template_name = 'forms/widgets/_radio_option.html'
 
 
 class RespaCheckboxSelect(forms.CheckboxSelectMultiple):
-    template_name = 'forms/_checkbox_select.html'
-    option_template_name = 'forms/_checkbox_select_option.html'
+    template_name = 'forms/widgets/_checkbox_select.html'
+    option_template_name = 'forms/widgets/_checkbox_select_option.html'
