@@ -30,12 +30,6 @@
                 {% endfor %}
             {% endif %}
 
-            <table class="table">
-                {% for form in resource_image_formset %}
-                    {{ form.as_p }}
-                {% endfor %}
-            </table>
-
             {% for period_form in period_formset_with_days %}
                 {{ period_form.as_p }}
 
