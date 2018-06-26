@@ -10,19 +10,19 @@ from resources.models import (
     ResourceImage,
 )
 
-from .widgets import RespaRadioSelect
+from .widgets import RespaRadioSelect, RespaCheckboxSelect
 
 
 class ResourceForm(forms.ModelForm):
     purposes = forms.ModelMultipleChoiceField(
-        widget=forms.CheckboxSelectMultiple,
+        widget=RespaCheckboxSelect,
         queryset=Purpose.objects.all(),
         required=True,
     )
 
     equipment = forms.ModelMultipleChoiceField(
         required=False,
-        widget=forms.CheckboxSelectMultiple,
+        widget=RespaCheckboxSelect,
         queryset=Equipment.objects.all(),
     )
 

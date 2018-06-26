@@ -9,24 +9,7 @@
     </div>
     <div class="usage">
         <h4>Käyttötarkoitukset</h4>
-        <div class="usage-checkbox checkbox-row">
-            {% for value, label in form.purposes.field.choices %}
-                <div class="custom-checkbox checkbox-inline">
-                    <input
-                        class="checkbox-custom"
-                        id="purpose-{{ value }}"
-                        type="checkbox"
-
-                    >
-                    <label
-                        class="checkbox-custom-label input-label"
-                        for="purpose-{{ value }}"
-                    >
-                        {{ label }}
-                    </label>
-                </div>
-            {% endfor %}
-        </div>
+        {{ form.purposes }}
     </div>
     <div class="description">
         <h4>Nimi ja kuvaus</h4>
