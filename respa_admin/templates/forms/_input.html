@@ -22,7 +22,8 @@
         <span class="glyphicon glyphicon-{{ prefix_icon }}"></span>
     {% endif %}
     <span class="help-text">{{ field.help_text }}</span>
-    <span class="invalid-feedback">{{ field.error_message }}</span>
+
+    {% include "forms/_errors.html" with field=field %}
 
     {% if prefix_icon %}
         </div>
