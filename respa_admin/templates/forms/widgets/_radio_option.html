@@ -1,9 +1,9 @@
 <div class="rdio rdio-primary radio-inline">
     <input
-        name="radio"
+        name="{{ widget.name }}"
         value="{{ widget.value }}"
-        id="radio-confirm-true"
         type="radio"
+        {% include "django/forms/widgets/attrs.html" %}
     >
-    <label for="{{ widget.name }}-{{ widget.index }}">{{ widget.label }}</label>
+    <label for="{{ widget.attrs.id }}">{{ widget.label }}</label>
 </div>
