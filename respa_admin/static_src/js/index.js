@@ -1,16 +1,19 @@
 import '../styles/base.scss';
 
+import * as FormModule from './form.js';
+
 function start() {
-    enableNotificationHandling();
+    const  {
+        enableAddingNewHour,
+        enableRemovingHour,
+        enableNotificationHandler
+    } = FormModule;
+
+    enableNotificationHandler();
+    enableAddingNewHour();
+    enableRemovingHour();
 }
 
 function exit() {}
-
-function enableNotificationHandling() {
-    let notifications = document.getElementsByClassName('noti');
-    Array.prototype.forEach.call(notifications, (noti) => {
-        noti.getElementsByTagName('button')[0].addEventListener('click', () => noti.remove(), false);
-    });
-}
 
 window.addEventListener('load', start, false);

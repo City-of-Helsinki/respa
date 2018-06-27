@@ -53,7 +53,7 @@ class SaveResourceView(CreateView):
     extra_formsets = 1
 
     def get_success_url(self, **kwargs):
-        messages.success(request, 'Resurssi tallennettu')
+        messages.success(self.request, 'Resurssi tallennettu')
         return reverse_lazy('respa_admin:edit-resource', kwargs={
             'resource_id': self.object.id,
         })
