@@ -15,8 +15,7 @@ from resources.models import (
 
 class ImageForm(forms.ModelForm):
     image = RespaImageSelectField(required=False)
-    caption = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control text-input'}))
-
+    
     class Meta:
         fields = ['image', 'caption', 'type']
 
