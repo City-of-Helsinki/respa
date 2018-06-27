@@ -1,6 +1,6 @@
 import * as shortID from 'shortid';
 
-// bind the event handler for closing notification to the elements (buttons) 
+// bind the event handler for closing notification to the elements (buttons)
 // since we cant do it directly in the html because of the scope
 export function enableNotificationHandler() {
     let notifications = document.getElementsByClassName('noti');
