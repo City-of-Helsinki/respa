@@ -35,7 +35,7 @@ before_script:
   - psql template1 -c 'create extension hstore;'
   - ./build-resources
 
-script: pytest --cov . resources respa_exchange caterings
+script: pytest --cov .
 
 after_success:
   - codecov
