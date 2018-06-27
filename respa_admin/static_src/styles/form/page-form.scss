@@ -11,16 +11,9 @@
 .form-container {
   padding-top: 160px;
   padding-bottom: $input-height-default + $padding-large-vertical * 2;
-    
+
   .error, .success {
     width: 100%;
-  }
-
-  .noti {
-    position: fixed;
-    top: 260px;
-    color: $white;
-    width: inherit;
   }
 
   .form-section-header {
@@ -115,14 +108,14 @@
   .checkbox-row {
     padding-top: 24px;
     padding-right: $padding-large-horizontal;
-    
+
     .custom-checkbox {
       padding: 0;
-    
+
       .checkbox-custom-label:before {
         margin-right: $padding-base-horizontal;
       }
-    
+
       label {
         font-weight: lighter;
         padding-left: 28px;

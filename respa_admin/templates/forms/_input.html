@@ -3,9 +3,9 @@
         class="control-label input-label"
         for="{{ field.id_for_label }}"
     >
-        {{ field.label }}
+        {{ field.label }}{% if field.field.required %}*{% endif %}
     </label>
-    {% if prefix_icon %}
+    {% if prefix_icon or prefix_text %}
         <div class="input-unit-wrapper">
     {% endif %}
 
@@ -18,13 +18,17 @@
         class="form-control text-input"
         {% include "django/forms/widgets/attrs.html" %}
     >
+    {% if prefix_text %}
+        <span class="">{{ prefix_text }}</span>
+    {% endif %}
     {% if prefix_icon %}
         <span class="glyphicon glyphicon-{{ prefix_icon }}"></span>
     {% endif %}
     <span class="help-text">{{ field.help_text }}</span>
-    <span class="invalid-feedback">{{ field.error_message }}</span>
 
-    {% if prefix_icon %}
+    {% include "forms/_errors.html" with field=field %}
+
+    {% if prefix_icon or prefix_text %}
         </div>
     {% endif %}
 </div>

@@ -1,9 +1,11 @@
 .noti {
-  padding: 24px;
   border-radius: 2px;
-  height: 72px;
   border: $panel-default-border;
+  color: $white;
+  height: 72px;
   justify-content: center;
+  margin-bottom: 0;
+  padding: 24px;
 
   .remove-click {
     padding: 0;
@@ -17,9 +19,14 @@
     background-color: $hel-metro;
   }
 
+  &.warning {
+    background-color: $hel-summer;
+  }
+
   &.success {
     background-color: $hel-tram;
   }
+
 }
 
 .accordion-item {

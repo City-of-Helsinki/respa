@@ -9,23 +9,28 @@
     <meta name="author" content=""/>
     <link rel="author" href="humans.txt"/>
     {% load staticfiles %}
-    <link rel="stylesheet" type="text/css" href="{% static 'dist/main.css' %}">    
+    <link rel="stylesheet" type="text/css" href="{% static 'dist/main.css' %}">
 
 </head>
 
 <body>
     <div class='header navbar-fixed-top'>
         {% include "_nav.html" %}
-        
+
+        {% if messages %}
+            {% include "common/_notification.html" %}
+        {% endif %}
+
         {% block form_nav %}
 
         {% endblock form_nav %}
     </div>
-    
+
     <main class='content'>
         {% block koro_shape %}
 
         {% endblock koro_shape %}
+
 
         {% block body %}
 

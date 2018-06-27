@@ -52,10 +52,31 @@ class ResourceForm(forms.ModelForm):
             'generic_terms',
             'specific_terms',
             'reservation_confirmed_notification_extra',
+            'public',
         ]
         widgets = {
+            'min_period': forms.Select(
+                choices=(
+                    ('00:30:00', '30 min'),
+                    ('00:45:00', '45 min'),
+                    ('01:00:00', '60 min'),
+                )
+            ),
+            'max_period': forms.Select(
+                choices=(
+                    ('00:30:00', '30 min'),
+                    ('00:45:00', '45 min'),
+                    ('01:00:00', '60 min'),
+                )
+            ),
             'need_manual_confirmation': RespaRadioSelect(
                 choices=((True, 'Kyllä'), (False, 'Ei'))
+            ),
+            'public': forms.Select(
+                choices=((False, 'Piilotettu'), (True, 'Julkaistu'))
+            ),
+            'reservable': forms.Select(
+                choices=((False, 'Ei varattavissa'), (True, 'Varattavissa'))
             ),
         }
 
