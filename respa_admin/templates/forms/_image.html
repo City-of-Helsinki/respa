@@ -1,0 +1,30 @@
+<button id="image-picker" type="button" class="add-picture-button" onclick="openFilePicker()">
+    Lisää kuva
+</button>
+
+<input id="image-input" type="file" onchange="picturePreview()" style="display: none;" />
+
+<div>
+    <img src="" height="200" style="display: none;"/>
+</div>
+
+<script>
+    function openFilePicker() {
+        document.getElementById("image-input").click();
+    }
+
+    function picturePreview() {
+        let preview = document.querySelector('img');
+        let file    = document.querySelector('input[type=file]').files[0];
+        let reader  = new FileReader();
+
+        reader.addEventListener("load", function () {
+            preview.src = reader.result;
+            preview.style.display = "block";
+        }, false);
+
+        if (file) {
+            reader.readAsDataURL(file);
+        }
+    }
+</script>

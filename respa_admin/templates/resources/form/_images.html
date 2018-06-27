@@ -1,10 +1,20 @@
-<div id="add-picture">
-    <div class="form-section-header">
-        <h2>Kuvat</h2>
-        <span class="pull-right">*Pakolliset kentät</span>
+{% for form in resource_image_formset %}
+    <div id="add-picture">
+        <div class="form-section-header">
+            <h2>Kuvat</h2>
+            <span class="pull-right">*Pakolliset kentät</span>
+        </div>
+
+        <p>Voit valita vain yhden pääkuvan.</p>
+
+
+        <div class="input-row form-group">
+            {{ form.image }}
+        </div>
+
+        <div class="input-row dropdown-row">
+            {% include "forms/_select.html" with field=form.type inline=True %}
+            {% include "forms/_input.html" with field=form.caption inline=True %}
+        </div>
     </div>
-    <p>Voit valita vain yhden pääkuvan. Kuvien koko täytyy olla xxxxx</p>
-    <button class="btn add-picture-button" type="button">
-        <span>Lisää kuva</span>
-    </button>
-</div>
+{% endfor %}

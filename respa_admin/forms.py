@@ -1,6 +1,8 @@
 from django import forms
 from django.forms import inlineformset_factory
 
+from .widgets import RespaRadioSelect, RespaImageSelectField, RespaCheckboxSelect
+
 from resources.models import (
     Day,
     Equipment,
@@ -10,7 +12,13 @@ from resources.models import (
     ResourceImage,
 )
 
-from .widgets import RespaRadioSelect, RespaCheckboxSelect
+
+class ImageForm(forms.ModelForm):
+    image = RespaImageSelectField(required=False)
+    caption = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control text-input'}))
+
+    class Meta:
+        fields = ['image', 'caption', 'type']
 
 
 class ResourceForm(forms.ModelForm):
@@ -163,7 +171,7 @@ def get_resource_image_formset(request, extra=1, instance=None):
     resource_image_formset = inlineformset_factory(
         Resource,
         ResourceImage,
-        fields=['image', 'caption', 'type'],
+        form=ImageForm,
         can_delete=False,
         extra=extra,
     )
