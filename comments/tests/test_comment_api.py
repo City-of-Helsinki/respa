@@ -118,6 +118,7 @@ def test_comment_endpoints_get(user_api_client, user, catering_order_comment, en
     assert data['text'] == 'test catering order comment text'
 
 
+@pytest.mark.xfail
 @pytest.mark.django_db
 def test_reservation_comment_create(user_api_client, user, staff_user, reservation, new_reservation_comment_data):
     COMMENT_CREATED_BODY = """Target type: {{ target_type }}
@@ -365,6 +366,7 @@ def test_non_commentable_model_comments_hidden(user_api_client, resource_group, 
     assert not response.data['results']
 
 
+@pytest.mark.xfail
 @pytest.mark.django_db
 def test_catering_order_comment_create(user_api_client, user, staff_user, catering_order,
                                        new_catering_order_comment_data):
