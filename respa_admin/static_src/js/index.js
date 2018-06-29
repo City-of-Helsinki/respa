@@ -6,12 +6,18 @@ function start() {
     const  {
         enableAddingNewHour,
         enableRemovingHour,
-        enableNotificationHandler
+        enableNotificationHandler,
+        updatePeriodsTotalForms,
+        enableAddNewDay,
+        enableRemoveDay,
     } = FormModule;
 
+    enableAddNewDay();
     enableNotificationHandler();
     enableAddingNewHour();
     enableRemovingHour();
+    updatePeriodsTotalForms();
+    enableRemoveDay();
 }
 
 function exit() {}

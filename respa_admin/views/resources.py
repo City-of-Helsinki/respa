@@ -100,11 +100,18 @@ class SaveResourceView(CreateView):
         period_formset_with_days = get_period_formset(request=request, instance=self.object)
         resource_image_formset = get_resource_image_formset(request=request, instance=self.object)
 
-        if form.is_valid() and period_formset_with_days.is_valid() and resource_image_formset.is_valid():
+        if self._validate_forms(form, period_formset_with_days, resource_image_formset):
             return self.forms_valid(form, period_formset_with_days, resource_image_formset)
         else:
             messages.error(request, 'Tallennus epäonnistui. Tarkista lomakkeen virheet.')
             return self.forms_invalid(form, period_formset_with_days, resource_image_formset)
+
+    def _validate_forms(self, form, period_formset, image_formset):
+        valid_form = form.is_valid()
+        valid_period_form = period_formset.is_valid()
+        valid_image_formset = image_formset.is_valid()
+
+        return valid_form and valid_period_form and valid_image_formset
 
     def forms_valid(self, form, period_formset_with_days, resource_image_formset):
         self.object = form.save()
