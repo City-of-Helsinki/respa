@@ -140,6 +140,6 @@ class SaveResourceView(CreateView):
             self.get_context_data(
                 form=form,
                 period_formset_with_days=period_formset_with_days,
-                resource_image_formset=resource_image_formset
+                resource_image_formset=resource_image_formset,
             )
         )
