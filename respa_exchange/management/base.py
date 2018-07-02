@@ -29,7 +29,7 @@ def get_active_download_resources(exchange_configs):
     return resources
 
 
-def configure_logging(logger="respa_exchange", level=logging.INFO, handler=None):
+def configure_logging(logger="respa_exchange", level=logging.ERROR, handler=None):
     logger = logging.getLogger(logger)
     logger.setLevel(level)
     if not handler:
