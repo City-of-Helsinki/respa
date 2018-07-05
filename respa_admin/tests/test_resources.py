@@ -1,131 +1,106 @@
-import pytest
 
-from resources.tests.conftest import (
-    equipment, equipment_category, purpose, resource_in_unit, space_resource_type, terms_of_use, test_unit
+import pytest
+from django.test import RequestFactory
+from django.urls import reverse
+
+from resources.models import Resource
+from ..forms import get_period_formset
+
+from .conftest import (
+    empty_resource_form_data,
+    valid_resource_form_data,
 )
 
-create_new_resource_url = '/ra/resource/new/'
-edit_resource_url = '/ra/resource/edit/'
+
+NEW_RESOURCE_URL = reverse('respa_admin:new-resource')
 
 
 @pytest.mark.django_db
-def test_create_invalid_resource(admin_client):
-    data = get_unpopulated_data()
-    response = admin_client.post(create_new_resource_url, data=data)
-    assert response.context['form'].errors != {}
+def test_period_formset_with_minimal_valid_data(valid_resource_form_data):
+    request = RequestFactory().post(NEW_RESOURCE_URL, data=valid_resource_form_data)
+    period_formset_with_days = get_period_formset(request)
+    assert period_formset_with_days.is_valid()
 
 
 @pytest.mark.django_db
-def test_create_valid_resource(admin_client):
-    data = get_populated_data()
-    response = admin_client.post(create_new_resource_url, data=data)
-
-    assert response.context['form'].errors == {}
+def test_period_formset_with_invalid_period_data(valid_resource_form_data):
+    data = valid_resource_form_data
+    data.pop('periods-0-start')
+    request = RequestFactory().post(NEW_RESOURCE_URL, data=data)
+    period_formset_with_days = get_period_formset(request)
+    assert period_formset_with_days.is_valid() is False
+    assert period_formset_with_days.errors == [{
+        '__all__': ["You must set 'start' and 'end' fields."],
+        'start': ['Tämä kenttä vaaditaan.'],
+    }]
 
 
 @pytest.mark.django_db
-def test_edit_resource(admin_client):
-    resource = get_new_resource()
-    data = get_populated_data()
-
-    data['name'] = 'New name'
-    data['access_code_type'] = 'pin6'
-    data['authentication'] = 'strong'
-
-    response = admin_client.post(
-        create_new_resource_url, data=data, kwargs=resource.pk)
-
-    assert response.context['form'].errors == {}
-
-
-def get_populated_data():
-    data = _get_data()
-
-    name = 'Test'
-    access_code_type = 'pin6'
-    authentication = 'weak'
-    min_period = '00:30:00'
-    max_period = '01:00:00'
-
-    data['name'] = name
-    data['access_code_type'] = access_code_type
-    data['authentication'] = authentication
-    data['min_period'] = min_period
-    data['max_period'] = max_period
-
-    data['unit'] = test_unit().pk
-    data['type'] = space_resource_type().pk
-    data['equipment'] = equipment(equipment_category()).pk
-    data['generic_terms'] = terms_of_use().pk
-    data['purposes'] = purpose().pk
-
-    return data
+def test_period_formset_with_invalid_days_data(valid_resource_form_data):
+    data = valid_resource_form_data
+    data.pop('days-periods-0-0-weekday')
+    request = RequestFactory().post(NEW_RESOURCE_URL, data=data)
+    period_formset_with_days = get_period_formset(request)
+    assert period_formset_with_days.is_valid() is False
+    assert period_formset_with_days.errors == [
+        {'__all__': ['Tarkista aukioloajat.']},
+    ]
+    assert period_formset_with_days.forms[0].days.errors == [
+        {'weekday': ['Tämä kenttä vaaditaan.']},
+    ]
 
 
-def get_unpopulated_data():
-    return _get_data()
-
-
-def get_new_resource():
-    return resource_in_unit(space_resource_type(), test_unit(), terms_of_use())
-
-
-def _get_data():
-    return {
-        'images-TOTAL_FORMS': ['1'],
-        'images-INITIAL_FORMS': ['0'],
-        'images-MIN_NUM_FORMS': ['0'],
-        'images-MAX_NUM_FORMS': ['1000'],
-
-        'periods-TOTAL_FORMS': ['1'],
-        'periods-INITIAL_FORMS': ['0'],
-        'periods-MIN_NUM_FORMS': ['0'],
-        'periods-MAX_NUM_FORMS': ['1000'],
-
-        'unit': [''],
-        'type': [''],
-        'name': [''],
-        'description': [''],
-        'purposes': [''],
-        'equipment': [''],
-        'responsible_contact_info': [''],
-        'people_capacity': [''],
-        'area': [''],
-        'min_period': [''],
-        'max_period': [''],
-        'reservable_days_in_advance': [''],
-        'max_reservations_per_user': [''],
-        'reservable': [''],
-        'reservation_info': [''],
-        'need_manual_confirmation': [''],
-        'authentication': [''],
-        'access_code_type': [''],
-        'max_price_per_hour': [''],
-        'min_price_per_hour': [''],
-        'generic_terms': [''],
-        'specific_terms': [''],
-        'reservation_confirmed_notification_extra': [''],
-
-        'images-0-caption': [''],
-        'images-0-type': [''],
-        'images-0-id': [''],
-        'images-0-resource': [''],
-
-        'periods-0-name': [''],
-        'periods-0-start': [''],
-        'periods-0-end': [''],
-        'periods-0-id': [''],
-        'periods-0-resource': [''],
-
-        'days-periods-0-TOTAL_FORMS': ['1'],
-        'days-periods-0-INITIAL_FORMS': ['0'],
-        'days-periods-0-MIN_NUM_FORMS': ['0'],
-        'days-periods-0-MAX_NUM_FORMS': ['7'],
-
-        'days-periods-0-0-weekday': [''],
-        'days-periods-0-0-opens': [''],
-        'days-periods-0-0-closes': [''],
-        'days-periods-0-0-closed': [''],
-        'days-periods-0-0-id': [''],
-        'days-periods-0-0-period': ['']
+@pytest.mark.django_db
+def test_create_resource_with_invalid_data_returns_errors(admin_client, empty_resource_form_data):
+    response = admin_client.post(NEW_RESOURCE_URL, data=empty_resource_form_data)
+    assert response.context['form'].errors == {
+        'access_code_type': ['Tämä kenttä vaaditaan.'],
+        'authentication': ['Tämä kenttä vaaditaan.'],
+        'equipment': ['Valitse oikea vaihtoehto.  ei ole vaihtoehtojen joukossa.'],
+        'min_period': ['Tämä kenttä vaaditaan.'],
+        'name': ['Tämä kenttä vaaditaan.'],
+        'purposes': ['Valitse oikea vaihtoehto.  ei ole vaihtoehtojen joukossa.'],
+        'type': ['Tämä kenttä vaaditaan.'],
     }
+    assert response.context['period_formset_with_days'].errors == [
+        {'__all__': ['Tarkista aukioloajat.']},
+    ]
+
+
+@pytest.mark.django_db
+def test_resource_creation_with_valid_data(admin_client, valid_resource_form_data):
+    assert Resource.objects.count() == 0  # No resources in the db
+    response = admin_client.post(NEW_RESOURCE_URL, data=valid_resource_form_data, follow=True)
+    assert response.status_code == 200
+    assert response.context['form'].errors == {}
+    assert Resource.objects.count() == 1  # One new resource in db
+    new_resource = Resource.objects.first()
+    assert new_resource.periods.count() == 1
+    assert new_resource.periods.first().days.count() == 1
+    assert new_resource.periods.first().days.first().weekday == 1
+
+
+@pytest.mark.django_db
+def test_editing_resource_via_form_view(admin_client, valid_resource_form_data):
+    assert Resource.objects.all().exists() is False
+    # Create a resource via the form view
+    response = admin_client.post(NEW_RESOURCE_URL, data=valid_resource_form_data, follow=True)
+    assert response.status_code == 200
+    resource = Resource.objects.first()
+
+    # Edit the resource
+    valid_resource_form_data.update({
+        'name': 'Edited name',
+    })
+    response = admin_client.post(
+        reverse('respa_admin:edit-resource', kwargs={'resource_id': resource.id}),
+        data=valid_resource_form_data,
+        follow=True
+    )
+    assert response.status_code == 200
+    assert Resource.objects.count() == 1  # Still only 1 resource in db
+
+    # Validate that the changes did happen
+    edited_resource = Resource.objects.first()
+    assert edited_resource.name == 'Edited name'
+    assert resource.name != edited_resource.name
