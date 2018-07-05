@@ -10,7 +10,11 @@ from django.utils.translation import ugettext_lazy as _
 from psycopg2.extras import DateRange, NumericRange
 
 
-STATE_BOOLS = {False: _('open'), True: _('closed')}
+STATE_BOOLS = {
+    False: _('open'),
+    True: _('closed'),
+    None: _('-'),
+}
 
 
 def combine_datetime(date, time, tz):
