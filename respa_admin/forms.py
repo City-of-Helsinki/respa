@@ -119,15 +119,19 @@ class PeriodFormset(forms.BaseInlineFormSet):
         form.days = self._get_days_formset(form, extra_days)
 
     def is_valid(self):
-        valid_form = False
+        valid_form = super(PeriodFormset, self).is_valid()
+        if not valid_form:
+            return valid_form
 
-        if self.is_bound:
-            for form in self.forms:
-                valid_form = form.is_valid()
-                if hasattr(form, 'days'):
-                    valid_form = valid_form and form.days.is_valid()
+        # Do additional checks on top of the built in checks to
+        # validate that nested days are also valid
+        valid_days = []
+        for form in self.forms:
+            valid_days.append(form.days.is_valid())
+            if not form.days.is_valid():
+                form.add_error(None, 'Tarkista aukioloajat.')
 
-        return valid_form
+        return valid_form and all(valid_days)
 
     def save(self, commit=True):
         saved_form = super(PeriodFormset, self).save(commit=commit)
