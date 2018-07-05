@@ -15,7 +15,7 @@ from resources.models import (
 
 class ImageForm(forms.ModelForm):
     image = RespaImageSelectField(required=False)
-    
+
     class Meta:
         fields = ['image', 'caption', 'type']
 
@@ -89,15 +89,6 @@ class ResourceForm(forms.ModelForm):
 
 
 class PeriodFormset(forms.BaseInlineFormSet):
-    DaysFormset = inlineformset_factory(
-        Period,
-        Day,
-        fields=['weekday', 'opens', 'closes', 'closed', ],
-        can_delete=False,
-        extra=0,
-        max_num=7,
-        validate_max=True
-    )
 
     def _get_days_formset(self, form, extra_days):
         days_formset = inlineformset_factory(
