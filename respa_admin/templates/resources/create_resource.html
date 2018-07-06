@@ -27,13 +27,8 @@
             {% include "resources/form/_periods.html" with formset=period_formset_with_days %}
 
             {% for period_form in period_formset_with_days %}
-                {{ period_form.as_p }}
-
                 {% if period_form.days %}
                     {{ period_form.days.management_form }}
-                    {% for day in period_form.days %}
-                        {{ day.as_p }}
-                    {% endfor %}
                 {% endif %}
             {% endfor %}
 
