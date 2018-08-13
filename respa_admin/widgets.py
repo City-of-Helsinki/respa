@@ -11,6 +11,10 @@ class RespaCheckboxSelect(forms.CheckboxSelectMultiple):
     option_template_name = 'forms/widgets/_checkbox_select_option.html'
 
 
+class RespaCheckboxInput(forms.CheckboxInput):
+    template_name = 'forms/widgets/_checkbox.html'
+
+
 class RespaImageSelectWidget(forms.ClearableFileInput):
     template_name = 'forms/_image.html'
 

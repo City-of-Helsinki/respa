@@ -23,9 +23,18 @@ class DaysForm(forms.ModelForm):
 
 
 class PeriodForm(forms.ModelForm):
-    name = forms.CharField(widget=forms.TextInput(attrs={'class': 'text-input form-control'}))
-    start = forms.DateField(widget=forms.DateInput(attrs={'class': 'text-input form-control', 'type': 'date'}))
-    end = forms.DateField(widget=forms.DateInput(attrs={'class': 'text-input form-control', 'type': 'date'}))
+    name = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'text-input form-control'})
+    )
+    start = forms.DateField(
+        required=True,
+        widget=forms.DateInput(attrs={'class': 'text-input form-control', 'type': 'date'})
+    )
+    end = forms.DateField(
+        required=True,
+        widget=forms.DateInput(attrs={'class': 'text-input form-control', 'type': 'date'})
+    )
 
     class Meta:
         model = Period

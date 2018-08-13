@@ -89,8 +89,11 @@ def valid_resource_form_data(equipment, terms_of_use, purpose, space_resource_ty
         'purposes': purpose.pk,
         'type': space_resource_type.pk,
         'unit': test_unit.pk,
+        'periods-0-name': 'Kesäkausi',
         'periods-0-start': '2018-06-06',
         'periods-0-end': '2018-08-01',
+        'days-periods-0-0-opens': '08:00',
+        'days-periods-0-0-closes': '12:00',
         'days-periods-0-0-weekday': '1',
     })
     return data
