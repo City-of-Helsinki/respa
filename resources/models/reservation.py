@@ -239,6 +239,8 @@ class Reservation(ModifiableModel):
                 self.send_reservation_confirmed_mail()
             elif self.resource.is_access_code_enabled():
                 self.send_reservation_created_with_access_code_mail()
+            else:
+                self.send_reservation_created_mail()
         elif new_state == Reservation.DENIED:
             self.send_reservation_denied_mail()
         elif new_state == Reservation.CANCELLED:
@@ -392,6 +394,9 @@ class Reservation(ModifiableModel):
 
     def send_reservation_cancelled_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_CANCELLED)
+
+    def send_reservation_created_mail(self):
+        self.send_reservation_mail(NotificationType.RESERVATION_CREATED)
 
     def send_reservation_created_with_access_code_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_CREATED_WITH_ACCESS_CODE)

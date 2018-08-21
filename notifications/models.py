@@ -22,6 +22,7 @@ class NotificationType:
     RESERVATION_CANCELLED = 'reservation_cancelled'
     RESERVATION_CONFIRMED = 'reservation_confirmed'
     RESERVATION_DENIED = 'reservation_denied'
+    RESERVATION_CREATED = 'reservation_created'
     RESERVATION_CREATED_WITH_ACCESS_CODE = 'reservation_created_with_access_code'
     CATERING_ORDER_CREATED = 'catering_order_created'
     CATERING_ORDER_MODIFIED = 'catering_order_modified'
@@ -41,6 +42,7 @@ class NotificationTemplate(TranslatableModel):
         (NotificationType.RESERVATION_REQUESTED_OFFICIAL, _('Reservation requested official')),
         (NotificationType.RESERVATION_CANCELLED, _('Reservation cancelled')),
         (NotificationType.RESERVATION_CONFIRMED, _('Reservation confirmed')),
+        (NotificationType.RESERVATION_CREATED, _('Reservation created')),
         (NotificationType.RESERVATION_DENIED, _('Reservation denied')),
         (NotificationType.RESERVATION_CREATED_WITH_ACCESS_CODE, _('Reservation created with access code')),
         (NotificationType.CATERING_ORDER_CREATED, _('Catering order created')),
