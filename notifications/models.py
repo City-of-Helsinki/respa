@@ -76,6 +76,31 @@ class NotificationTemplate(TranslatableModel):
                 return str(t[1])
         return 'N/A'
 
+    def render(self, context, language_code=DEFAULT_LANG):
+        """
+        Render this notification template with given context and language
+
+        Returns a dict containing all content fields of the template. Example:
+
+        {'short_message': 'foo', 'subject': 'bar', 'body': 'baz'}
+
+        """
+
+        env = SandboxedEnvironment(trim_blocks=True, lstrip_blocks=True, undefined=StrictUndefined)
+        env.filters['reservation_time'] = reservation_time
+        env.filters['format_datetime'] = format_datetime
+        env.filters['format_datetime_tz'] = format_datetime_tz
+
+        logger.debug('Rendering template for notification %s' % self.type)
+        with switch_language(self, language_code):
+            try:
+                return {
+                    attr: env.from_string(getattr(self, attr)).render(context)
+                    for attr in ('short_message', 'subject', 'body')
+                }
+            except TemplateError as e:
+                raise NotificationTemplateException(e) from e
+
 
 def reservation_time(res):
     if isinstance(res, dict):
@@ -101,30 +126,9 @@ def format_datetime_tz(dt, tz):
 
 
 def render_notification_template(notification_type, context, language_code=DEFAULT_LANG):
-    """
-    Render a notification template with given context
-
-    Returns a dict containing all content fields of the template. Example:
-
-    {'short_message': 'foo', 'subject': 'bar', 'body': 'baz'}
-
-    """
     try:
         template = NotificationTemplate.objects.get(type=notification_type)
     except NotificationTemplate.DoesNotExist as e:
         raise NotificationTemplateException(e) from e
 
-    env = SandboxedEnvironment(trim_blocks=True, lstrip_blocks=True, undefined=StrictUndefined)
-    env.filters['reservation_time'] = reservation_time
-    env.filters['format_datetime'] = format_datetime
-    env.filters['format_datetime_tz'] = format_datetime_tz
-
-    logger.info('Rendering template for notification %s' % notification_type)
-    with switch_language(template, language_code):
-        try:
-            return {
-                attr: env.from_string(getattr(template, attr)).render(context)
-                for attr in ('short_message', 'subject', 'body')
-            }
-        except TemplateError as e:
-            raise NotificationTemplateException(e) from e
+    return template.render(context, language_code)

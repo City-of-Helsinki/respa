@@ -13,9 +13,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 from psycopg2.extras import DateTimeTZRange
 
-from notifications.models import (
-    NotificationTemplateException, NotificationType, render_notification_template
-)
+from notifications.models import NotificationTemplate, NotificationTemplateException, NotificationType
 from resources.signals import (
     reservation_modified, reservation_confirmed, reservation_cancelled
 )
@@ -357,6 +355,11 @@ class Reservation(ModifiableModel):
 
         If user isn't given use self.user.
         """
+        try:
+            notification_template = NotificationTemplate.objects.get(type=notification_type)
+        except NotificationTemplate.DoesNotExist:
+            return
+
         if user:
             email_address = user.email
         else:
@@ -369,7 +372,7 @@ class Reservation(ModifiableModel):
         context = self.get_notification_context(language)
 
         try:
-            rendered_notification = render_notification_template(notification_type, context, language)
+            rendered_notification = notification_template.render(context, language)
         except NotificationTemplateException as e:
             logger.error(e, exc_info=True, extra={'user': user.uuid})
             return

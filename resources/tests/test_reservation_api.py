@@ -1248,6 +1248,15 @@ def test_reservation_created_mail(user_api_client, list_url, reservation_data, u
     )
 
 
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
+def test_reservation_mail_can_be_disabled(user_api_client, list_url, reservation_data):
+    response = user_api_client.post(list_url, data=reservation_data, format='json')
+    assert response.status_code == 201
+
+    assert len(mail.outbox) == 0
+
+
 @pytest.mark.parametrize('perm_type', ['unit', 'resource_group'])
 @pytest.mark.django_db
 def test_can_approve_filter(staff_api_client, staff_user, list_url, reservation,
