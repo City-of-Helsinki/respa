@@ -25,6 +25,8 @@ class Migration(migrations.Migration):
                      'Reservation cancelled'),
                     ('reservation_confirmed',
                      'Reservation confirmed'),
+                    ('reservation_created',
+                     'Reservation created'),
                     ('reservation_denied',
                      'Reservation denied'),
                     ('reservation_created_with_access_code',
