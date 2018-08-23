@@ -1,7 +1,11 @@
 from django import forms
 from django.forms import inlineformset_factory
 
-from .widgets import RespaRadioSelect, RespaImageSelectField, RespaCheckboxSelect
+from .widgets import (
+    RespaRadioSelect,
+    RespaImageSelectField,
+    RespaCheckboxSelect
+)
 
 from resources.models import (
     Day,
@@ -14,8 +18,19 @@ from resources.models import (
 
 
 class DaysForm(forms.ModelForm):
-    opens = forms.TimeField(widget=forms.TimeInput(format='%H:%M', attrs={'class': 'text-input form-control', 'type': 'time'}))
-    closes = forms.TimeField(widget=forms.TimeInput(format='%H:%M', attrs={'class': 'text-input form-control', 'type': 'time'}))
+    opens = forms.TimeField(
+        widget=forms.TimeInput(
+            format='%H:%M',
+            attrs={'class': 'text-input form-control', 'type': 'time'}
+        )
+    )
+
+    closes = forms.TimeField(
+        widget=forms.TimeInput(
+            format='%H:%M',
+            attrs={'class': 'text-input form-control', 'type': 'time'}
+        )
+    )
 
     class Meta:
         model = Day
