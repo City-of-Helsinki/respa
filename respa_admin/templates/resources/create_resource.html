@@ -19,18 +19,11 @@
 
             {% include "resources/form/_general_info.html" %}
             {% include "resources/form/_booking.html" %}
-            {%
-                include "resources/form/_images.html" with formset=resource_image_formset %}
+            {% include "resources/form/_images.html" with formset=resource_image_formset %}
             {% include "resources/form/_terms.html" %}
             {% include "resources/form/_equipment.html" %}
 {#            {% include "resources/form/_opening_hours.html" %}#}
             {% include "resources/form/_periods.html" with formset=period_formset_with_days %}
-
-            {% for period_form in period_formset_with_days %}
-                {% if period_form.days %}
-                    {{ period_form.days.management_form }}
-                {% endif %}
-            {% endfor %}
 
             <div class="navbar-fixed-bottom">
                 {% include "resources/form/_toolbar.html" %}

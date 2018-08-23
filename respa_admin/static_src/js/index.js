@@ -4,20 +4,18 @@ import * as FormModule from './form.js';
 
 function start() {
     const  {
-        enableAddingNewHour,
-        enableRemovingHour,
-        enableNotificationHandler,
-        updatePeriodsTotalForms,
-        enableAddNewDay,
-        enableRemoveDay,
+      enableAddDaysByDate,
+      enableAddNewPeriod,
+      enableNotificationHandler,
+      copyInitialDay,
+      enableRemovePeriod,
     } = FormModule;
-
-    enableAddNewDay();
+    enableAddDaysByDate();
+    enableAddNewPeriod();
     enableNotificationHandler();
-    enableAddingNewHour();
-    enableRemovingHour();
-    updatePeriodsTotalForms();
-    enableRemoveDay();
+    copyInitialDay();
+    enableRemovePeriod();
+
 }
 
 function exit() {}

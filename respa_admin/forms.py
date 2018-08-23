@@ -14,8 +14,8 @@ from resources.models import (
 
 
 class DaysForm(forms.ModelForm):
-    opens = forms.TimeField(widget=forms.TimeInput(attrs={'class': 'text-input form-control', 'type': 'time'}))
-    closes = forms.TimeField(widget=forms.TimeInput(attrs={'class': 'text-input form-control', 'type': 'time'}))
+    opens = forms.TimeField(widget=forms.TimeInput(format='%H:%M', attrs={'class': 'text-input form-control', 'type': 'time'}))
+    closes = forms.TimeField(widget=forms.TimeInput(format='%H:%M', attrs={'class': 'text-input form-control', 'type': 'time'}))
 
     class Meta:
         model = Day
@@ -164,7 +164,7 @@ class PeriodFormset(forms.BaseInlineFormSet):
     def save(self, commit=True):
         saved_form = super(PeriodFormset, self).save(commit=commit)
 
-        if saved_form:
+        if saved_form or self.forms:
             for form in self.forms:
                 form.save(commit=commit)
                 if hasattr(form, 'days'):
