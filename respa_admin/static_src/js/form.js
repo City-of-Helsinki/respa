@@ -310,29 +310,33 @@ export function enableNotificationHandler() {
 }
 
 /*
-* Copy the initially served day value and store it in a variable
-* for later cloning purposes.
+* Copy the first day value into a variable and keep it for cloning purposes.
 * */
 export function copyInitialDay() {
   //Get the first day from the list.
   let $firstCollapseItem = $('#collapse0');
   let $firstDayItem = $firstCollapseItem.find('#period-days-list :first');
+  let firstDayDbIds = $firstCollapseItem.find('#day-db-ids').children();
 
-  //Get the assigned ids from, if these exist we don't remove anything.
-  let firstItemDbIds = $firstDayItem.find('#day-db-ids').children();
+  let weekday = $('#id_days-periods-0-0-weekday').val();
+  let opens = $('#id_days-periods-0-0-opens').val();
+  let closes = $('#id_days-periods-0-0-closes').val();
 
   //Clone the served day item into a variable.
   emptyDayItem = $firstDayItem.clone();
 
-  //If none of the ids are present, it is safe to remove the item from the DOM.
-  //Otherwise we are copying an existing object and its input fields need to be removed.
-  if (!firstItemDbIds[0].value && !firstItemDbIds[1].value) {
-    $firstDayItem.remove();
-  } else {
-    resetDayInputs(emptyDayItem);
+
+  //If none of the following inputs are present, remove the first item
+  //because it is an empty initial item served by Django. If some of the
+  //inputs are present, it is either an "in progress" day or an item
+  //served from the Database.
+  if (!firstDayDbIds[0].value && !firstDayDbIds[1].value) {
+    if (!weekday && !opens && !closes) {
+      $firstDayItem.remove();
+    }
   }
 
-  //Update days total forms.
+  resetDayInputs(emptyDayItem);
   updateTotalDays(0);
 }
 
