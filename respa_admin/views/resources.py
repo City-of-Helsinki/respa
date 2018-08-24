@@ -8,7 +8,7 @@ from django.views.generic import (
     ListView,
 )
 
-from resources.models import Resource
+from resources.models import Resource, Period, Day
 
 from respa_admin.forms import (
     get_period_formset,
@@ -116,6 +116,7 @@ class SaveResourceView(CreateView):
     def forms_valid(self, form, period_formset_with_days, resource_image_formset):
         self.object = form.save()
 
+        self._delete_extra_periods_days(period_formset_with_days)
         period_formset_with_days.instance = self.object
         period_formset_with_days.save()
         image_count = 0
@@ -135,6 +136,31 @@ class SaveResourceView(CreateView):
 
         return HttpResponseRedirect(self.get_success_url())
 
+    def _delete_extra_periods_days(self, period_formset_with_days):
+        data = period_formset_with_days.data
+
+        period_ids = get_formset_ids('periods', data)
+
+        if period_ids is None:
+            return
+
+        Period.objects.filter(resource=self.object).exclude(pk__in=period_ids).delete()
+
+        period_count = to_int(data.get('periods-TOTAL_FORMS'))
+
+        if not period_count:
+            return
+
+        for i in range(period_count):
+            period_id = to_int(data.get('periods-{}-id'.format(i)))
+
+            if period_id is None:
+                continue
+
+            day_ids = get_formset_ids('days-periods-{}'.format(i), data)
+            if day_ids is not None:
+                Day.objects.filter(period=period_id).exclude(pk__in=day_ids).delete()
+
     def forms_invalid(self, form, period_formset_with_days, resource_image_formset):
         return self.render_to_response(
             self.get_context_data(
@@ -143,3 +169,22 @@ class SaveResourceView(CreateView):
                 resource_image_formset=resource_image_formset,
             )
         )
+
+
+def get_formset_ids(formset_name, data):
+    count = to_int(data.get('{}-TOTAL_FORMS'.format(formset_name)))
+    if count is None:
+        return None
+
+    ids_or_nones = (
+        to_int(data.get('{}-{}-{}'.format(formset_name, i, 'id')))
+        for i in range(count)
+    )
+
+    return {x for x in ids_or_nones if x is not None}
+
+
+def to_int(string):
+    if not string or not string.isdigit():
+        return None
+    return int(string)
