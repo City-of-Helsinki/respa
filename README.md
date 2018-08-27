@@ -39,6 +39,11 @@ python manage.py resources_import --all tprek
 python manage.py resources_import --all kirjastot
 ```
 
+### Settings
+- `RESPA_IMAGE_BASE_URL`: Base URL used when building image URLs in email notifications. Example value: `'https://api.hel.fi/respa/'`.
+
+- *TODO* document rest of relevant settings.
+
 Ready to roll!
 
 ### Setting up PostGIS/GEOS/GDAL on Windows (x64) / Python 3

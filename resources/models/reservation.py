@@ -347,6 +347,22 @@ class Reservation(ModifiableModel):
                 context['access_code'] = self.access_code
             if self.resource.reservation_confirmed_notification_extra:
                 context['extra_content'] = self.resource.reservation_confirmed_notification_extra
+
+            # Get last main and ground plan images. Normally there shouldn't be more than one of each
+            # of those images.
+            images = self.resource.images.filter(type__in=('main', 'ground_plan')).order_by('-sort_order')
+            main_image = next((i for i in images if i.type == 'main'), None)
+            ground_plan_image = next((i for i in images if i.type == 'ground_plan'), None)
+
+            if main_image:
+                main_image_url = main_image.get_full_url()
+                if main_image_url:
+                    context['resource_main_image_url'] = main_image_url
+            if ground_plan_image:
+                ground_plan_image_url = ground_plan_image.get_full_url()
+                if ground_plan_image_url:
+                    context['resource_ground_plan_image_url'] = ground_plan_image_url
+
         return context
 
     def send_reservation_mail(self, notification_type, user=None):
