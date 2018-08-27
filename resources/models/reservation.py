@@ -377,7 +377,12 @@ class Reservation(ModifiableModel):
             logger.error(e, exc_info=True, extra={'user': user.uuid})
             return
 
-        send_respa_mail(email_address, rendered_notification['subject'], rendered_notification['body'])
+        send_respa_mail(
+            email_address,
+            rendered_notification['subject'],
+            rendered_notification['body'],
+            rendered_notification['html_body']
+        )
 
     def send_reservation_requested_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_REQUESTED)

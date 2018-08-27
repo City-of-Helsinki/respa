@@ -8,6 +8,8 @@ from django.test.utils import override_settings
 from django.utils import dateparse, timezone, translation
 from guardian.shortcuts import assign_perm, remove_perm
 from freezegun import freeze_time
+from parler.utils.context import switch_language
+
 from caterings.models import CateringOrder, CateringProvider
 
 from resources.models import (Period, Day, Reservation, Resource, ResourceGroup, ReservationMetadataField,
@@ -1246,6 +1248,70 @@ def test_reservation_created_mail(user_api_client, list_url, reservation_data, u
         user.email,
         'Normal reservation created body.',
     )
+
+
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
+def test_reservation_html_mail(user_api_client, list_url, reservation_data, user, reservation_created_notification):
+    with switch_language(reservation_created_notification, 'en'):
+        reservation_created_notification.html_body = '<b>HTML</b> body'
+        reservation_created_notification.save()
+
+    response = user_api_client.post(list_url, data=reservation_data, format='json')
+    assert response.status_code == 201
+
+    assert len(mail.outbox) == 1
+    check_received_mail_exists(
+        'Normal reservation created subject.',
+        user.email,
+        'Normal reservation created body.',
+        html_body='<b>HTML</b> body',
+    )
+
+
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
+def test_reservation_mail_empty_text_body_should_become_html_body_without_tags(user_api_client, list_url,
+                                                                               reservation_data, user,
+                                                                               reservation_created_notification):
+    with switch_language(reservation_created_notification, 'en'):
+        reservation_created_notification.body = ''
+        reservation_created_notification.html_body = '<b>HTML</b> body'
+        reservation_created_notification.save()
+
+    response = user_api_client.post(list_url, data=reservation_data, format='json')
+    assert response.status_code == 201
+
+    assert len(mail.outbox) == 1
+    check_received_mail_exists(
+        'Normal reservation created subject.',
+        user.email,
+        'HTML body',
+        html_body='<b>HTML</b> body',
+    )
+
+
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
+def test_reservation_mail_can_have_subject_only(user_api_client, list_url, reservation_data, user,
+                                                reservation_created_notification):
+    with switch_language(reservation_created_notification, 'en'):
+        reservation_created_notification.body = ''
+        reservation_created_notification.html_body = ''
+        reservation_created_notification.save()
+
+    response = user_api_client.post(list_url, data=reservation_data, format='json')
+    assert response.status_code == 201
+
+    assert len(mail.outbox) == 1
+    check_received_mail_exists(
+        'Normal reservation created subject.',
+        user.email,
+        '',
+        html_body='',
+        clear_outbox=False,
+    )
+    assert mail.outbox[0].body == ''
 
 
 @override_settings(RESPA_MAILS_ENABLED=True)
