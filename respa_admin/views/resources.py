@@ -70,14 +70,13 @@ class SaveResourceView(CreateView):
 
         period_formset_with_days = get_period_formset(
             self.request,
-            extra=self.extra_formsets,
-            instance=self.object
+            instance=self.object,
         )
 
         resource_image_formset = get_resource_image_formset(
             self.request,
             extra=self.extra_formsets,
-            instance=self.object
+            instance=self.object,
         )
 
         return self.render_to_response(

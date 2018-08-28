@@ -134,7 +134,7 @@ class ResourceForm(forms.ModelForm):
 
 class PeriodFormset(forms.BaseInlineFormSet):
 
-    def _get_days_formset(self, form, extra_days):
+    def _get_days_formset(self, form, extra_days=1):
         days_formset = inlineformset_factory(
             Period,
             Day,
@@ -154,12 +154,12 @@ class PeriodFormset(forms.BaseInlineFormSet):
 
     def add_fields(self, form, index):
         super(PeriodFormset, self).add_fields(form, index)
-        extra_days = 0
+        # extra_days = 0
+        #
+        # if form['resource'].value() == '':
+        #     extra_days = 1
 
-        if form['resource'].value() == '':
-            extra_days = 1
-
-        form.days = self._get_days_formset(form, extra_days)
+        form.days = self._get_days_formset(form=form)
 
     def is_valid(self):
         valid_form = super(PeriodFormset, self).is_valid()

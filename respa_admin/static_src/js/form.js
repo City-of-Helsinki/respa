@@ -1,4 +1,5 @@
 let emptyDayItem = null;
+let emptyPeriodItem = null;
 
 /*
 * Update the indices of the inputs in the period
@@ -211,17 +212,6 @@ function addDay(periodIdNum, weekday) {
 }
 
 /*
-* Strip all of the input values in a day.
-* */
-function resetDayInputs(dayItem) {
-  let $inputs = dayItem.find(':input');
-
-  for (let i = 0; i < $inputs.length; i++) {
-    $inputs[i].value = '';
-  }
-}
-
-/*
 * Strips a period of its input values and days.
 * */
 function removePeriodInputValues(periodItem, idNum) {
@@ -250,11 +240,8 @@ function addNewPeriod() {
   // Get the list or periods.
   let $periodList = $('#current-periods-list');
 
-  // Get the first item.
-  let $firstAccordionItem = $('#accordion-item-0');
-
-  if ($firstAccordionItem) {
-    let newItem = $firstAccordionItem.clone();
+  if (emptyPeriodItem) {
+    let newItem = emptyPeriodItem.clone();
     let idNum = $periodList[0].childElementCount;
     const newIdNum = $periodList[0].childElementCount;
 
@@ -310,34 +297,35 @@ export function enableNotificationHandler() {
 }
 
 /*
-* Copy the first day value into a variable and keep it for cloning purposes.
+* Copy the empty served period and day served from server
+* for later cloning purposes.
 * */
-export function copyInitialDay() {
-  //Get the first day from the list.
-  let $firstCollapseItem = $('#collapse0');
-  let $firstDayItem = $firstCollapseItem.find('#period-days-list :first');
-  let firstDayDbIds = $firstCollapseItem.find('#day-db-ids').children();
+export function copyInitialPeriodAndDay() {
+  //Get the last period in the list.
+  let $periodList = $('#current-periods-list')[0].children;
+  let lastPeriodItem = $($periodList[$periodList.length-1]);
 
-  let weekday = $('#id_days-periods-0-0-weekday').val();
-  let opens = $('#id_days-periods-0-0-opens').val();
-  let closes = $('#id_days-periods-0-0-closes').val();
+  //Get the last day from the period.
+  let $daysList = lastPeriodItem.find('#period-days-list')[0].children;
+  let lastDayItem = $daysList[$daysList.length-1];
 
-  //Clone the served day item into a variable.
-  emptyDayItem = $firstDayItem.clone();
+  emptyDayItem = $(lastDayItem).clone();
+  emptyPeriodItem = $(lastPeriodItem).clone();
 
+  lastDayItem.remove();
+  lastPeriodItem.remove();
 
-  //If none of the following inputs are present, remove the first item
-  //because it is an empty initial item served by Django. If some of the
-  //inputs are present, it is either an "in progress" day or an item
-  //served from the Database.
-  if (!firstDayDbIds[0].value && !firstDayDbIds[1].value) {
-    if (!weekday && !opens && !closes) {
-      $firstDayItem.remove();
+  //Iterate the existing days in all periods and remove the last one
+  //which has been added from the backend.
+  if ($periodList.length > 0) {
+    for (let i = 0; i < $periodList.length; i++) {
+      let $days = $($periodList[i]).find('#period-days-list');
+      $days.children().last().remove();
+      updateDaysIndices(i);
     }
   }
 
-  resetDayInputs(emptyDayItem);
-  updateTotalDays(0);
+  updatePeriodsTotalForms();
 }
 
 /*
