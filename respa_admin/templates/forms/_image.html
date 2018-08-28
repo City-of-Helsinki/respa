@@ -1,16 +1,26 @@
-<button id="image-picker" type="button" class="add-picture-button" onclick="openFilePicker()">
-    Lisää kuva
+<button type="button" onclick="openFilePicker()" class="choose-picture-button">
+    Valitse kuva
 </button>
 
-<input id="id_{{ widget.name }}" type="file" name="{{ widget.name }}" onchange="picturePreview()" style="display: none;" />
+<input type="file" id="{{ field.id_for_label }}" name="{{ field.html_name }}" onchange="picturePreview()">
 
-<div>
-    <img src="" height="200" style="display: none;"/>
-</div>
+<button id="remove-image-{{ id }}"
+        type="button"
+        class="remove-picture-button">
+    Poista kuva
+</button>
+
+{% if image %}
+    <img src="{{ image }}" class="preview-image"/>
+{% else %}
+    <img src="" class="preview-image" style="display: none;"/>
+{% endif %}
+
+{% include "forms/_errors.html" with field=field %}
 
 <script>
     function openFilePicker() {
-        document.getElementById("id_{{ widget.name }}").click();
+        document.getElementById("{{ field.id_for_label }}").click();
     }
 
     function picturePreview() {

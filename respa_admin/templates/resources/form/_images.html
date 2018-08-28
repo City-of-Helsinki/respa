@@ -1,20 +1,33 @@
-{% for form in resource_image_formset %}
-    <div id="add-picture">
-        <div class="form-section-header">
-            <h2>Kuvat</h2>
-            <span class="pull-right">*Pakolliset kentät</span>
-        </div>
+<div id="add-picture">
+    <div class="form-section-header">
+        <h2>Kuvat</h2>
+        <span class="pull-right">*Pakolliset kentät</span>
+    </div>
 
-        <p>Voit valita vain yhden pääkuvan.</p>
+    <p>Voit valita vain yhden pääkuvan.</p>
 
+    <button id="image-picker" type="button" class="add-picture-button">
+        Lisää kuva
+    </button>
 
-        <div class="input-row form-group">
-            {{ form.image }}
-        </div>
+    <div id="images-list">
+        {% for form in resource_image_formset %}
+            {% with forloop.counter0 as id %}
+                <div class="input-row dropdown-row" id="image-{{ id }}">
 
-        <div class="input-row dropdown-row">
-            {% include "forms/_select.html" with field=form.type inline=True %}
-            {% include "forms/_input.html" with field=form.caption inline=True %}
+                {{ form.id }}
+                {{ form.resource }}
+
+                {% include "forms/_select.html" with field=form.type inline=True %}
+                {% include "forms/_input.html" with field=form.caption inline=True %}
+
+                {% if form.instance.image %}
+                    {% include "forms/_image.html" with field=form.image image=form.instance.image.url %}
+                {% else %}
+                    {% include "forms/_image.html" with field=form.image image=None %}
+                {% endif %}
+            {% endwith %}
+        {% endfor %}
         </div>
     </div>
-{% endfor %}
+</div>

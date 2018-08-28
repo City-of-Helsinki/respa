@@ -57,7 +57,7 @@ class PeriodForm(forms.ModelForm):
 
 
 class ImageForm(forms.ModelForm):
-    image = RespaImageSelectField(required=False)
+    #image = RespaImageSelectField(required=False)
 
     class Meta:
         model = ResourceImage
@@ -202,7 +202,7 @@ def get_period_formset(request=None, extra=1, instance=None):
     if request.method == 'GET':
         return period_formset_with_days(instance=instance)
     else:
-        return period_formset_with_days(request.POST, instance=instance)
+        return period_formset_with_days(data=request.POST, instance=instance)
 
 
 def get_resource_image_formset(request, extra=1, instance=None):
@@ -217,4 +217,4 @@ def get_resource_image_formset(request, extra=1, instance=None):
     if request.method == 'GET':
         return resource_image_formset(instance=instance)
     else:
-        return resource_image_formset(request.POST, request.FILES, instance=instance)
+        return resource_image_formset(data=request.POST, files=request.FILES, instance=instance)

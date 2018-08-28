@@ -8,7 +8,7 @@ from django.views.generic import (
     ListView,
 )
 
-from resources.models import Resource, Period, Day
+from resources.models import Resource, Period, Day, ResourceImage
 
 from respa_admin.forms import (
     get_period_formset,
@@ -70,6 +70,7 @@ class SaveResourceView(CreateView):
 
         period_formset_with_days = get_period_formset(
             self.request,
+            extra=self.extra_formsets,
             instance=self.object,
         )
 
