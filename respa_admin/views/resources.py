@@ -119,22 +119,29 @@ class SaveResourceView(CreateView):
         self._delete_extra_periods_days(period_formset_with_days)
         period_formset_with_days.instance = self.object
         period_formset_with_days.save()
-        image_count = 0
 
+        self._save_resource_purposes()
+        self._save_resource_images(resource_image_formset)
+
+        return HttpResponseRedirect(self.get_success_url())
+
+    def _save_resource_purposes(self):
         checked_purposes = self.request.POST.getlist('purposes')
 
         for purpose in checked_purposes:
             self.object.purposes.add(purpose)
 
-        if self.request.FILES:
-            for form in resource_image_formset:
-                resource_image = form.save(commit=False)
-                resource_image.resource = self.object
-                resource_image.image = self.request.FILES['images-' + str(image_count) + '-image']
-                image_count += 1
-                resource_image.save()
+    def _save_resource_images(self, resource_image_formset):
+        count = len(resource_image_formset)
 
-        return HttpResponseRedirect(self.get_success_url())
+        for i in range(count):
+            resource_image = resource_image_formset.forms[i].save(commit=False)
+            resource_image.resource = self.object
+
+            if self.request.FILES:
+                resource_image.image = self.request.FILES['images-' + str(i) + '-image']
+
+            resource_image.save()
 
     def _delete_extra_periods_days(self, period_formset_with_days):
         data = period_formset_with_days.data
