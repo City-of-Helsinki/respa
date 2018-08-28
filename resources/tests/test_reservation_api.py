@@ -5,13 +5,14 @@ from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.core import mail
 from django.test.utils import override_settings
-from django.utils import dateparse, timezone
+from django.utils import dateparse, timezone, translation
 from guardian.shortcuts import assign_perm, remove_perm
 from freezegun import freeze_time
 from caterings.models import CateringOrder, CateringProvider
 
 from resources.models import (Period, Day, Reservation, Resource, ResourceGroup, ReservationMetadataField,
                               ReservationMetadataSet)
+from notifications.models import NotificationTemplate, NotificationType
 from notifications.tests.utils import check_received_mail_exists
 from .utils import check_disallowed_methods, assert_non_field_errors_contain, assert_response_objects
 
@@ -148,6 +149,17 @@ def reservations_in_all_states(resource_in_unit, user):
             state=state
         )
     return reservations
+
+
+@pytest.fixture
+def reservation_created_notification():
+    with translation.override('en'):
+        return NotificationTemplate.objects.create(
+            type=NotificationType.RESERVATION_CREATED,
+            short_message='Normal reservation created short message.',
+            subject='Normal reservation created subject.',
+            body='Normal reservation created body.',
+        )
 
 
 @pytest.mark.django_db
@@ -1220,6 +1232,29 @@ def test_reservation_mails_in_finnish(staff_api_client, staff_user, user_api_cli
         reservation_data_extra['reserver_email_address'],
         'Varauksesi on peruttu.'
     )
+
+
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
+def test_reservation_created_mail(user_api_client, list_url, reservation_data, user, reservation_created_notification):
+    response = user_api_client.post(list_url, data=reservation_data, format='json')
+    assert response.status_code == 201
+
+    assert len(mail.outbox) == 1
+    check_received_mail_exists(
+        'Normal reservation created subject.',
+        user.email,
+        'Normal reservation created body.',
+    )
+
+
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
+def test_reservation_mail_can_be_disabled(user_api_client, list_url, reservation_data):
+    response = user_api_client.post(list_url, data=reservation_data, format='json')
+    assert response.status_code == 201
+
+    assert len(mail.outbox) == 0
 
 
 @pytest.mark.parametrize('perm_type', ['unit', 'resource_group'])

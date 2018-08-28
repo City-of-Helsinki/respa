@@ -13,9 +13,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 from psycopg2.extras import DateTimeTZRange
 
-from notifications.models import (
-    NotificationTemplateException, NotificationType, render_notification_template
-)
+from notifications.models import NotificationTemplate, NotificationTemplateException, NotificationType
 from resources.signals import (
     reservation_modified, reservation_confirmed, reservation_cancelled
 )
@@ -239,6 +237,8 @@ class Reservation(ModifiableModel):
                 self.send_reservation_confirmed_mail()
             elif self.resource.is_access_code_enabled():
                 self.send_reservation_created_with_access_code_mail()
+            else:
+                self.send_reservation_created_mail()
         elif new_state == Reservation.DENIED:
             self.send_reservation_denied_mail()
         elif new_state == Reservation.CANCELLED:
@@ -355,6 +355,11 @@ class Reservation(ModifiableModel):
 
         If user isn't given use self.user.
         """
+        try:
+            notification_template = NotificationTemplate.objects.get(type=notification_type)
+        except NotificationTemplate.DoesNotExist:
+            return
+
         if user:
             email_address = user.email
         else:
@@ -367,7 +372,7 @@ class Reservation(ModifiableModel):
         context = self.get_notification_context(language)
 
         try:
-            rendered_notification = render_notification_template(notification_type, context, language)
+            rendered_notification = notification_template.render(context, language)
         except NotificationTemplateException as e:
             logger.error(e, exc_info=True, extra={'user': user.uuid})
             return
@@ -392,6 +397,9 @@ class Reservation(ModifiableModel):
 
     def send_reservation_cancelled_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_CANCELLED)
+
+    def send_reservation_created_mail(self):
+        self.send_reservation_mail(NotificationType.RESERVATION_CREATED)
 
     def send_reservation_created_with_access_code_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_CREATED_WITH_ACCESS_CODE)
