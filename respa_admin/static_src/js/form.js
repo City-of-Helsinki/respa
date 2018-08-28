@@ -322,6 +322,7 @@ export function copyInitialPeriodAndDay() {
       let $days = $($periodList[i]).find('#period-days-list');
       $days.children().last().remove();
       updateDaysIndices(i);
+      updateTotalDays(i);
     }
   }
 
