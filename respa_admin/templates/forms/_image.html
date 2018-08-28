@@ -2,7 +2,7 @@
     Lisää kuva
 </button>
 
-<input id="image-input" type="file" onchange="picturePreview()" style="display: none;" />
+<input id="id_{{ widget.name }}" type="file" name="{{ widget.name }}" onchange="picturePreview()" style="display: none;" />
 
 <div>
     <img src="" height="200" style="display: none;"/>
@@ -10,7 +10,7 @@
 
 <script>
     function openFilePicker() {
-        document.getElementById("image-input").click();
+        document.getElementById("id_{{ widget.name }}").click();
     }
 
     function picturePreview() {

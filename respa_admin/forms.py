@@ -1,7 +1,11 @@
 from django import forms
 from django.forms import inlineformset_factory
 
-from .widgets import RespaRadioSelect, RespaImageSelectField, RespaCheckboxSelect
+from .widgets import (
+    RespaRadioSelect,
+    RespaImageSelectField,
+    RespaCheckboxSelect
+)
 
 from resources.models import (
     Day,
@@ -13,10 +17,50 @@ from resources.models import (
 )
 
 
+class DaysForm(forms.ModelForm):
+    opens = forms.TimeField(
+        widget=forms.TimeInput(
+            format='%H:%M',
+            attrs={'class': 'text-input form-control', 'type': 'time'}
+        )
+    )
+
+    closes = forms.TimeField(
+        widget=forms.TimeInput(
+            format='%H:%M',
+            attrs={'class': 'text-input form-control', 'type': 'time'}
+        )
+    )
+
+    class Meta:
+        model = Day
+        fields = ['weekday', 'opens', 'closes', 'closed']
+
+
+class PeriodForm(forms.ModelForm):
+    name = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'text-input form-control'})
+    )
+    start = forms.DateField(
+        required=True,
+        widget=forms.DateInput(attrs={'class': 'text-input form-control', 'type': 'date'})
+    )
+    end = forms.DateField(
+        required=True,
+        widget=forms.DateInput(attrs={'class': 'text-input form-control', 'type': 'date'})
+    )
+
+    class Meta:
+        model = Period
+        fields = ['name', 'start', 'end']
+
+
 class ImageForm(forms.ModelForm):
     image = RespaImageSelectField(required=False)
 
     class Meta:
+        model = ResourceImage
         fields = ['image', 'caption', 'type']
 
 
@@ -94,10 +138,9 @@ class PeriodFormset(forms.BaseInlineFormSet):
         days_formset = inlineformset_factory(
             Period,
             Day,
-            fields=['weekday', 'opens', 'closes', 'closed', ],
+            form=DaysForm,
             can_delete=False,
             extra=extra_days,
-            max_num=7,
             validate_max=True
         )
 
@@ -136,10 +179,11 @@ class PeriodFormset(forms.BaseInlineFormSet):
     def save(self, commit=True):
         saved_form = super(PeriodFormset, self).save(commit=commit)
 
-        for form in self.forms:
-            form.save(commit=commit)
-            if hasattr(form, 'days'):
-                form.days.save(commit=commit)
+        if saved_form or self.forms:
+            for form in self.forms:
+                form.save(commit=commit)
+                if hasattr(form, 'days'):
+                    form.days.save(commit=commit)
 
         return saved_form
 
@@ -149,7 +193,7 @@ def get_period_formset(request=None, extra=1, instance=None):
         Resource,
         Period,
         fk_name='resource',
-        fields=['name', 'start', 'end', ],
+        form=PeriodForm,
         formset=PeriodFormset,
         can_delete=False,
         extra=extra,
@@ -169,6 +213,7 @@ def get_resource_image_formset(request, extra=1, instance=None):
         can_delete=False,
         extra=extra,
     )
+
     if request.method == 'GET':
         return resource_image_formset(instance=instance)
     else:

@@ -9,6 +9,7 @@
     </div>
     <div class="usage">
         <h4>Käyttötarkoitukset</h4>
+        {% include "forms/_errors.html" with field=form.purposes %}
         {{ form.purposes }}
     </div>
     <div class="description">
