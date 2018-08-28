@@ -179,6 +179,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     generic_terms = models.ForeignKey(TermsOfUse, verbose_name=_('Generic terms'), null=True, blank=True,
                                       on_delete=models.SET_NULL)
     specific_terms = models.TextField(verbose_name=_('Specific terms'), blank=True)
+    reservation_requested_notification_extra = models.TextField(verbose_name=_('Extra content to reservation requested '
+                                                                               'notification'), blank=True)
     reservation_confirmed_notification_extra = models.TextField(verbose_name=_('Extra content to reservation confirmed '
                                                                                'notification'), blank=True)
     min_price_per_hour = models.DecimalField(verbose_name=_('Min price per hour'), max_digits=8, decimal_places=2,
