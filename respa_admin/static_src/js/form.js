@@ -292,19 +292,25 @@ function addNewPeriod() {
 
     $periodList.append(newItem);
 
-    //Attach event handler for removing a period (these are not cloned by default).
-    newItem.find('button.delete-time').attr('id', `remove-hour-${newIdNum}`);
-    newItem.find('button.delete-time').click(() => removePeriod(newIdNum));
-
     updatePeriodDaysMgmtFormIndices(newIdNum);
     updateAllPeriodIndices();
     removePeriodInputValues(newItem, newIdNum);
     updatePeriodsTotalForms();
-
-    //Attach the event handler for the date pickers.
-    let $dates = newItem.find('#date-inputs-' + newIdNum);
-    $dates.change(() => modifyDays($dates[0]));
+    attachPeriodEventHandlers(newItem, newIdNum);
   }
+}
+
+/*
+* Attach the event handlers to a period objects' buttons.
+* */
+function attachPeriodEventHandlers(periodItem, periodIdNum) {
+  //Attach event handler for removing a period (these are not cloned by default).
+  periodItem.find('button.delete-time').attr('id', `remove-hour-${periodIdNum}`);
+  periodItem.find('button.delete-time').click(() => removePeriod(periodIdNum));
+
+  //Attach the event handler for the date pickers.
+  let $dates = periodItem.find('#date-inputs-' + periodIdNum);
+  $dates.change(() => modifyDays($dates[0]));
 }
 
 /*
@@ -326,7 +332,7 @@ function updatePeriodsTotalForms() {
 }
 
 /*************************************
- * Export functions go here.
+ * Export functions.
  **************************************/
 
 /*
