@@ -155,9 +155,19 @@ class Comment(models.Model):
             return
 
         if email:
-            send_respa_mail(email, rendered_notification['subject'], rendered_notification['body'])
+            send_respa_mail(
+                email,
+                rendered_notification['subject'],
+                rendered_notification['body'],
+                rendered_notification['html_body']
+            )
         if self.created_by != reserver and reserver.email:
-            send_respa_mail(reserver.email, rendered_notification['subject'], rendered_notification['body'])
+            send_respa_mail(
+                reserver.email,
+                rendered_notification['subject'],
+                rendered_notification['body'],
+                rendered_notification['html_body']
+            )
 
     def send_created_notification(self, request=None):
         self._send_notification(request)
