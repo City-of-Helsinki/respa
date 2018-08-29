@@ -2,10 +2,9 @@ let emptyDayItem = null;
 let emptyPeriodItem = null;
 
 /*
-* Update the indices of the inputs in the period
-* input boxes.
+* Iterate all periods and update their input indices.
 * */
-function updatePeriodIndices() {
+function updateAllPeriodIndices() {
   let $periods = $('#current-periods-list').children();
 
   $periods.each(function (rowId, row) {
@@ -14,6 +13,8 @@ function updatePeriodIndices() {
     let dateInputs = periodInput.find('[id*="date-inputs-"]');
     let idPeriod = row.children[0]; //This is the hidden ID for each period item.
     let idResourcePeriod = row.children[1]; //This is the hidden ID for each period item.
+
+    updatePeriodChildren($(row), rowId);
 
     //Update the hidden period ID to its corresponding row value.
     $(idPeriod).attr('id', $(idPeriod).attr('id').replace(/-(\d+)-/, "-" + rowId + "-"));
@@ -40,46 +41,96 @@ function updatePeriodIndices() {
 }
 
 /*
+* Update accordion-item, accordion and collapse ids.
+* */
+function updatePeriodChildren(periodItem, idNum) {
+  periodItem.attr('id', `accordion-item-${idNum}`);
+
+  periodItem.find('.dropdown-time').attr('id', `accordion${idNum}`);
+
+  periodItem.find('.panel-heading').attr({
+    id: `heading${idNum}`
+  });
+
+  periodItem.find('.panel-heading a').attr({
+    href: `#collapse${idNum}`,
+    "aria-controls": `#collapse${idNum}`
+  });
+
+  periodItem.find('.panel-collapse').attr({
+    "aria-labelledby": `heading${idNum}`,
+    id: `collapse${idNum}`
+  });
+}
+
+/*
 * Updates the indices of the various input boxes
 * in the each day under a specific period.
 *
 * param: periodIdNmber (ex the integer from a collapse div or accordion div).
 * */
-function updateDaysIndices(periodIdNumber) {
-  let daysList = $('#collapse' + periodIdNumber).find('#period-days-list');
+function updatePeriodDaysIndices(periodIdNum) {
+  let daysList = $('#collapse' + periodIdNum).find('#period-days-list');
 
   daysList.children().each(function (dayIndex, day) {
-    $(day).attr('id', $(day).attr('id').replace(/-(\d+)-(\d+)/, '-' + periodIdNumber + '-' + dayIndex));
+    $(day).attr('id', $(day).attr('id').replace(/-(\d+)-(\d+)/, '-' + periodIdNum + '-' + dayIndex));
 
     $(day).each(function (inputIndex, inputRow) {
       let $inputCells = $(inputRow).find('input');
       let $selectCells = $(inputRow).find('select');
 
       $inputCells.each(function (cellIndex, cellInput) {
-        $(cellInput).attr('id', $(cellInput).attr('id').replace(/-(\d+)-(\d+)-/, '-' + periodIdNumber + '-' + dayIndex + '-'));
-        $(cellInput).attr('name', $(cellInput).attr('name').replace(/-(\d+)-(\d+)-/, '-' + periodIdNumber + '-' + dayIndex + '-'));
+        $(cellInput).attr('id', $(cellInput).attr('id').replace(/-(\d+)-(\d+)-/, '-' + periodIdNum + '-' + dayIndex + '-'));
+        $(cellInput).attr('name', $(cellInput).attr('name').replace(/-(\d+)-(\d+)-/, '-' + periodIdNum + '-' + dayIndex + '-'));
       });
 
       $selectCells.each(function (cellIndex, cellInput) {
-        $(cellInput).attr('id', $(cellInput).attr('id').replace(/-(\d+)-(\d+)-/, '-' + periodIdNumber + '-' + dayIndex + '-'));
-        $(cellInput).attr('name', $(cellInput).attr('name').replace(/-(\d+)-(\d+)-/, '-' + periodIdNumber + '-' + dayIndex + '-'));
+        $(cellInput).attr('id', $(cellInput).attr('id').replace(/-(\d+)-(\d+)-/, '-' + periodIdNum + '-' + dayIndex + '-'));
+        $(cellInput).attr('name', $(cellInput).attr('name').replace(/-(\d+)-(\d+)-/, '-' + periodIdNum + '-' + dayIndex + '-'));
       });
     })
   });
 }
 
 /*
+* Update all ids for the days input boxes in each period.
+* */
+function updateAllPeriodDaysIndices() {
+  for (let i = 0; i < getPeriodCount(); i++) {
+    updatePeriodDaysIndices(i);
+  }
+}
+
+/*
 * Update the indices in the management form of the days
 * to match the current period.
 * */
-function updateDaysMgmtFormIndices(periodId) {
-  let $collapseItem = $('#collapse' + periodId);
+function updatePeriodDaysMgmtFormIndices(periodIdNum) {
+  let $collapseItem = $('#collapse' + periodIdNum);
   let $managementFormInputs = $($collapseItem).find('#days-management-form').find('input');
 
   $managementFormInputs.each(function (id, input) {
-    $(input).attr('id', $(input).attr('id').replace(/id_days-periods-(\d+)-/, 'id_days-periods-' + periodId + '-'));
-    $(input).attr('name', $(input).attr('name').replace(/days-periods-(\d+)-/, 'days-periods-' + periodId + '-'));
+    $(input).attr('id', $(input).attr('id').replace(/id_days-periods-(\d+)-/, 'id_days-periods-' + periodIdNum + '-'));
+    $(input).attr('name', $(input).attr('name').replace(/days-periods-(\d+)-/, 'days-periods-' + periodIdNum + '-'));
   });
+}
+
+/*
+* Get the amount of periods in the form.
+* */
+function getPeriodCount() {
+  return $('#current-periods-list')[0].children.length;
+}
+
+/*
+* Update all indices in the management form of the current periods.
+* */
+function updateAllDaysMgmtFormIndices() {
+  let periodCount = getPeriodCount();
+
+  for (let i = 0; i < periodCount; i++) {
+    updatePeriodDaysMgmtFormIndices(i);
+  }
 }
 
 /*
@@ -153,7 +204,7 @@ function getDateInterval(startDate, endDate) {
 * Handle either removing or adding new days based
 * on the date input fields.
 * */
-function modifyCurrentDays(dates) {
+function modifyDays(dates) {
   let periodIdNum = dates.id.match(/[0-9]+/)[0];
   let $daysList = $('#collapse' + periodIdNum).find('#period-days-list');
   let dateInputs = dates.getElementsByTagName('input');
@@ -186,7 +237,7 @@ function modifyCurrentDays(dates) {
     }
   }
 
-  updateDaysIndices(periodIdNum);
+  updatePeriodDaysIndices(periodIdNum);
   updateTotalDays(periodIdNum);
 }
 
@@ -215,11 +266,6 @@ function addDay(periodIdNum, weekday) {
 * Strips a period of its input values and days.
 * */
 function removePeriodInputValues(periodItem, idNum) {
-  //Get the inputs to remove (user inputs only).
-  $('#id_periods-' + idNum + '-name').val('');
-  $('#id_periods-' + idNum + '-start').val('');
-  $('#id_periods-' + idNum + '-end').val('');
-
   //If there's an id_periods value, reset that one as well (used in the edit view).
   $('#id_periods-' + idNum + '-id').removeAttr('value');
 
@@ -242,48 +288,46 @@ function addNewPeriod() {
 
   if (emptyPeriodItem) {
     let newItem = emptyPeriodItem.clone();
-    let idNum = $periodList[0].childElementCount;
-    const newIdNum = $periodList[0].childElementCount;
+    const newIdNum = getPeriodCount();
 
     $periodList.append(newItem);
 
-    newItem.attr('id', `accordion-item-${newIdNum}`);
-    newItem.find('.dropdown-time').attr('id', `accordion${newIdNum}`);
-    newItem.find('.panel-heading').attr({
-      id: `heading${newIdNum}`
-    });
-    newItem.find('.panel-heading a').attr({
-      href: `#collapse${newIdNum}`,
-      "aria-controls": `#collapse${newIdNum}`
-    });
-    newItem.find('.panel-collapse').attr({
-      "aria-labelledby": `heading${newIdNum}`,
-      id: `collapse${newIdNum}`
-    });
-
     //Attach event handler for removing a period (these are not cloned by default).
     newItem.find('button.delete-time').attr('id', `remove-hour-${newIdNum}`);
-    newItem.find('button.delete-time').click(() => removeHourHandler(newIdNum));
+    newItem.find('button.delete-time').click(() => removePeriod(newIdNum));
 
-    updateDaysMgmtFormIndices(newIdNum);
-    updatePeriodIndices();
-    removePeriodInputValues(newItem, idNum);
+    updatePeriodDaysMgmtFormIndices(newIdNum);
+    updateAllPeriodIndices();
+    removePeriodInputValues(newItem, newIdNum);
     updatePeriodsTotalForms();
 
     //Attach the event handler for the date pickers.
-    let $dates = newItem.find('#date-inputs-' + idNum);
-    $dates.change(() => modifyCurrentDays($dates[0]));
+    let $dates = newItem.find('#date-inputs-' + newIdNum);
+    $dates.change(() => modifyDays($dates[0]));
   }
 }
 
+/*
+* Event handler to remove an hour accordion item
+* take the Id of that arcordion-item as argument.
+**/
+function removePeriod(id) {
+  let hourItem = document.getElementById(`accordion-item-${id}`);
+  hourItem.remove();
+
+  updateAllPeriodIndices();
+  updateAllDaysMgmtFormIndices();
+  updatePeriodsTotalForms();
+  updateAllPeriodDaysIndices();
+}
+
 function updatePeriodsTotalForms() {
-  document.getElementById('id_periods-TOTAL_FORMS').value =
-    document.getElementById('current-periods-list').childElementCount;
+  document.getElementById('id_periods-TOTAL_FORMS').value = getPeriodCount();
 }
 
 /*************************************
-* Export functions go here.
-**************************************/
+ * Export functions go here.
+ **************************************/
 
 /*
 * Bind the event handler for closing notification to the elements (buttons)
@@ -321,7 +365,7 @@ export function copyInitialPeriodAndDay() {
     for (let i = 0; i < $periodList.length; i++) {
       let $days = $($periodList[i]).find('#period-days-list');
       $days.children().last().remove();
-      updateDaysIndices(i);
+      updatePeriodDaysIndices(i);
       updateTotalDays(i);
     }
   }
@@ -344,19 +388,8 @@ export function enableRemovePeriod() {
   let buttons = document.getElementsByClassName('delete-time');
   Array.prototype.forEach.call(buttons, (button) => {
     let periodIdNum = button.id.match(/[0-9]+/)[0];
-    button.addEventListener('click', () => removeHourHandler(periodIdNum), false);
+    button.addEventListener('click', () => removePeriod(periodIdNum), false);
   });
-}
-
-/*
-* Event handler to remove an hour accordion item
-* take the Id of that arcordion-item as argument.
-**/
-export function removeHourHandler(id) {
-  let hourItem = document.getElementById(`accordion-item-${id}`);
-  hourItem.remove();
-  updatePeriodIndices();
-  updatePeriodsTotalForms();
 }
 
 /*
@@ -367,6 +400,6 @@ export function enableAddDaysByDate() {
 
   for (let i = 0; i < periods.length; i++) {
     let inputDates = document.getElementById('date-inputs-' + i);
-    inputDates.addEventListener('change', () => modifyCurrentDays(inputDates), false);
+    inputDates.addEventListener('change', () => modifyDays(inputDates), false);
   }
 }
