@@ -7,15 +7,14 @@ function start() {
       enableAddDaysByDate,
       enableAddNewPeriod,
       enableNotificationHandler,
-      copyInitialDay,
       enableRemovePeriod,
+      copyInitialPeriodAndDay
     } = FormModule;
     enableAddDaysByDate();
     enableAddNewPeriod();
     enableNotificationHandler();
-    copyInitialDay();
     enableRemovePeriod();
-
+    copyInitialPeriodAndDay();
 }
 
 function exit() {}

@@ -11,8 +11,6 @@
             <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
         </span>
 
-{#        {{ day.instance.get_weekday_display }}#}
-
         <div class="form-group">
             <div class="input-row range-input">
                 {{ day.opens }}
@@ -22,14 +20,5 @@
         </div>
 
         {{ day.closed }}
-
-{#        <button class="btn copy-next" type="button">#}
-{#            <span class="glyphicons glyphicons-more-windows icon-left" aria-hidden="true"></span>#}
-{#            Kopioi seuravaan#}
-{#        </button>#}
-{##}
-{#        <button class="btn add-time left-group" type="button" id="btn-add-new-day">#}
-{#            <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>Lisää toinen aika#}
-{#        </button>#}
     </div>
 {% endwith %}
