@@ -48,6 +48,8 @@ function updatePeriodChildren(periodItem, idNum) {
 
   periodItem.find('.dropdown-time').attr('id', `accordion${idNum}`);
 
+  periodItem.find('button.delete-time').attr('id', `remove-button-${idNum}`);
+
   periodItem.find('.panel-heading').attr({
     id: `heading${idNum}`
   });
@@ -292,10 +294,10 @@ function addNewPeriod() {
 
     $periodList.append(newItem);
 
-    updatePeriodDaysMgmtFormIndices(newIdNum);
     updateAllPeriodIndices();
-    removePeriodInputValues(newItem, newIdNum);
     updatePeriodsTotalForms();
+    updatePeriodDaysMgmtFormIndices(newIdNum);
+    removePeriodInputValues(newItem, newIdNum);
     attachPeriodEventHandlers(newItem, newIdNum);
   }
 }
@@ -305,8 +307,8 @@ function addNewPeriod() {
 * */
 function attachPeriodEventHandlers(periodItem, periodIdNum) {
   //Attach event handler for removing a period (these are not cloned by default).
-  periodItem.find('button.delete-time').attr('id', `remove-hour-${periodIdNum}`);
-  periodItem.find('button.delete-time').click(() => removePeriod(periodIdNum));
+  let removeButton = periodItem.find('#remove-button-' + periodIdNum);
+  removeButton.click(() => removePeriod(periodIdNum));
 
   //Attach the event handler for the date pickers.
   let $dates = periodItem.find('#date-inputs-' + periodIdNum);
@@ -315,16 +317,28 @@ function attachPeriodEventHandlers(periodItem, periodIdNum) {
 
 /*
 * Event handler to remove an hour accordion item
-* take the Id of that arcordion-item as argument.
+* take the Id of that accordion-item as argument.
 **/
-function removePeriod(id) {
-  let hourItem = document.getElementById(`accordion-item-${id}`);
-  hourItem.remove();
+function removePeriod(periodIdNum) {
+  let $periodItem = $('#accordion-item-' + periodIdNum);
 
-  updateAllPeriodIndices();
-  updateAllDaysMgmtFormIndices();
-  updatePeriodsTotalForms();
-  updateAllPeriodDaysIndices();
+  if ($periodItem) {
+    $periodItem.remove();
+
+    updateAllPeriodIndices();
+    updatePeriodsTotalForms();
+    updateAllDaysMgmtFormIndices();
+    updateAllPeriodDaysIndices();
+
+    //Re-attach event handler for removing periods, in case the parameter does not
+    //correspond with the new id. This bug might occur when removing a period
+    //from the middle of the list.
+    for (let i = 0; i < getPeriodCount(); i++) {
+      let $periodButton = $('#accordion-item-' + i).find('#remove-button-' + i)[0];
+      $periodButton.removeEventListener('click', () => removePeriod(periodIdNum));
+      $periodButton.addEventListener('click', () => removePeriod(i));
+    }
+  }
 }
 
 function updatePeriodsTotalForms() {
@@ -391,11 +405,12 @@ export function enableAddNewPeriod() {
 * Bind event for removing a period to its corresponding button.
 * */
 export function enableRemovePeriod() {
-  let buttons = document.getElementsByClassName('delete-time');
-  Array.prototype.forEach.call(buttons, (button) => {
-    let periodIdNum = button.id.match(/[0-9]+/)[0];
-    button.addEventListener('click', () => removePeriod(periodIdNum), false);
-  });
+  let periods = document.getElementById('current-periods-list').children;
+
+  for (let i = 0; i < periods.length; i++) {
+    let removeButton = document.getElementById('remove-button-' + i);
+    removeButton.addEventListener('click', () => removePeriod(i), false);
+  }
 }
 
 /*
