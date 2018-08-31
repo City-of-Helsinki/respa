@@ -22,6 +22,7 @@ django-allauth==0.34.0
 django-anymail==1.2
 django-appconf==1.0.1     # via django-image-cropping
 django-cors-headers==2.1.0
+django-enumfields==0.10.1
 django-environ==0.4.4
 django-filter==1.1.0
 django-grappelli==2.10.1
