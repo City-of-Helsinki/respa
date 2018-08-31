@@ -154,11 +154,6 @@ class PeriodFormset(forms.BaseInlineFormSet):
 
     def add_fields(self, form, index):
         super(PeriodFormset, self).add_fields(form, index)
-        # extra_days = 0
-        #
-        # if form['resource'].value() == '':
-        #     extra_days = 1
-
         form.days = self._get_days_formset(form=form)
 
     def is_valid(self):

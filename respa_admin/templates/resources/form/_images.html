@@ -22,9 +22,9 @@
                 {% include "forms/_input.html" with field=form.caption inline=True %}
 
                 {% if form.instance.image %}
-                    {% include "forms/_image.html" with field=form.image image=form.instance.image.url %}
+                    {% include "forms/_image.html" with field=form.image image=form.instance.image.url id=id %}
                 {% else %}
-                    {% include "forms/_image.html" with field=form.image image=None %}
+                    {% include "forms/_image.html" with field=form.image image=None id=id %}
                 {% endif %}
             {% endwith %}
         {% endfor %}

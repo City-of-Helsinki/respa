@@ -50,7 +50,6 @@ class SaveResourceView(CreateView):
     model = Resource
     form_class = ResourceForm
     template_name = 'resources/create_resource.html'
-    extra_formsets = 1
 
     def get_success_url(self, **kwargs):
         messages.success(self.request, 'Resurssi tallennettu')
@@ -61,7 +60,6 @@ class SaveResourceView(CreateView):
     def get(self, request, *args, **kwargs):
         if kwargs:
             self.object = Resource.objects.get(pk=kwargs['resource_id'])
-            self.extra_formsets = 0
         else:
             self.object = None
 
@@ -70,13 +68,11 @@ class SaveResourceView(CreateView):
 
         period_formset_with_days = get_period_formset(
             self.request,
-            extra=self.extra_formsets,
             instance=self.object,
         )
 
         resource_image_formset = get_resource_image_formset(
             self.request,
-            extra=self.extra_formsets,
             instance=self.object,
         )
 

@@ -1,22 +1,26 @@
 import '../styles/base.scss';
 
-import * as FormModule from './form.js';
+import { initializeEventHandlers }  from './form';
 
-function start() {
-    const  {
-      enableAddDaysByDate,
-      enableAddNewPeriod,
-      enableNotificationHandler,
-      enableRemovePeriod,
-      copyInitialPeriodAndDay
-    } = FormModule;
-    enableAddDaysByDate();
-    enableAddNewPeriod();
-    enableNotificationHandler();
-    enableRemovePeriod();
-    copyInitialPeriodAndDay();
-}
+// function start() {
+//     const  {
+//       // enableAddDaysByDate,
+//       // enableAddNewPeriod,
+//       // enableNotificationHandler,
+//       // enableRemovePeriod,
+//       // enableAddNewImage,
+//       // // enableRemoveImage,
+//       // copyInitialItems,
+//     } = FormModule;
+//     // enableAddDaysByDate();
+//     // enableAddNewPeriod();
+//     // enableNotificationHandler();
+//     // enableRemovePeriod();
+//     // enableAddNewImage();
+//     // // enableRemoveImage();
+//     // copyInitialItems();
+// }
 
 function exit() {}
 
-window.addEventListener('load', start, false);
+window.addEventListener('load', initializeEventHandlers, false);
