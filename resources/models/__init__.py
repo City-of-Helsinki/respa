@@ -6,6 +6,7 @@ from .resource import (
 )
 from .equipment import Equipment, EquipmentAlias, EquipmentCategory
 from .unit import Unit, UnitIdentifier
+from .unit_group import UnitGroup, UnitGroupAuthorization
 
 __all__ = [
     'Day',
@@ -26,6 +27,8 @@ __all__ = [
     'ResourceType',
     'TermsOfUse',
     'Unit',
+    'UnitGroup',
+    'UnitGroupAuthorization',
     'UnitIdentifier',
     'get_opening_hours',
 ]

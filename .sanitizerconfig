@@ -499,6 +499,25 @@ strategy:
     www_url_en: null
     www_url_fi: null
     www_url_sv: null
+  resources_unitgroup:
+    created_at: null
+    created_by_id: null
+    id: null
+    modified_at: null
+    modified_by_id: null
+    name: null
+    name_en: null
+    name_fi: null
+    name_sv: null
+  resources_unitgroup_members:
+    id: null
+    unit_id: null
+    unitgroup_id: null
+  resources_unitgroupauthorization:
+    authorized_id: null
+    id: null
+    level: null
+    subject_id: null
   resources_unitidentifier:
     id: null
     namespace: null
