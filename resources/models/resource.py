@@ -36,7 +36,7 @@ from .utils import create_reservable_before_datetime, get_translated, get_transl
 from .equipment import Equipment
 from .unit import Unit
 from .availability import get_opening_hours
-from .permissions import RESOURCE_PERMISSIONS
+from .permissions import RESOURCE_GROUP_PERMISSIONS
 
 
 def generate_access_code(access_code_type):
@@ -675,10 +675,6 @@ class ResourceEquipment(ModifiableModel):
         return "%s / %s" % (self.equipment, self.resource)
 
 
-def _generate_resource_group_permissions():
-    return [('group:%s' % p, t) for p, t in RESOURCE_PERMISSIONS]
-
-
 class ResourceGroup(ModifiableModel):
     identifier = models.CharField(verbose_name=_('Identifier'), max_length=100)
     name = models.CharField(verbose_name=_('Name'), max_length=200)
@@ -687,7 +683,7 @@ class ResourceGroup(ModifiableModel):
     class Meta:
         verbose_name = _('Resource group')
         verbose_name_plural = _('Resource groups')
-        permissions = _generate_resource_group_permissions()
+        permissions = RESOURCE_GROUP_PERMISSIONS
         ordering = ('name',)
 
     def __str__(self):

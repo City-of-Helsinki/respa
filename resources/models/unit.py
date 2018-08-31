@@ -9,7 +9,7 @@ from ..enums import UnitAuthorizationLevel
 from .base import AutoIdentifiedModel, ModifiableModel
 from .utils import create_reservable_before_datetime, get_translated, get_translated_name
 from .availability import get_opening_hours
-from .permissions import RESOURCE_PERMISSIONS
+from .permissions import UNIT_PERMISSIONS
 
 from munigeo.models import Municipality
 
@@ -20,10 +20,6 @@ def _get_default_timezone():
 
 def _get_timezone_choices():
     return [(x, x) for x in pytz.all_timezones]
-
-
-def _generate_unit_permissions():
-    return [('unit:%s' % p, t) for p, t in RESOURCE_PERMISSIONS]
 
 
 class Unit(ModifiableModel, AutoIdentifiedModel):
@@ -58,7 +54,7 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
     class Meta:
         verbose_name = _("unit")
         verbose_name_plural = _("units")
-        permissions = _generate_unit_permissions()
+        permissions = UNIT_PERMISSIONS
         ordering = ('name',)
 
     def __init__(self, *args, **kwargs):
