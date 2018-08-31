@@ -93,4 +93,33 @@ class Migration(migrations.Migration):
             name='unitgroupauthorization',
             unique_together=set([('authorized', 'subject', 'level')]),
         ),
+        migrations.CreateModel(
+            name='UnitAuthorization',
+            fields=[
+                ('id',
+                 models.AutoField(
+                     auto_created=True,
+                     primary_key=True,
+                     serialize=False,
+                     verbose_name='ID')),
+                ('level',
+                 enumfields.fields.EnumField(
+                     enum=resources.enums.UnitAuthorizationLevel,
+                     max_length=50)),
+                ('authorized',
+                 models.ForeignKey(
+                     on_delete=django.db.models.deletion.CASCADE,
+                     related_name='unit_authorizations',
+                     to=settings.AUTH_USER_MODEL)),
+                ('subject',
+                 models.ForeignKey(
+                     on_delete=django.db.models.deletion.CASCADE,
+                     related_name='authorizations',
+                     to='resources.Unit')),
+            ],
+        ),
+        migrations.AlterUniqueTogether(
+            name='unitauthorization',
+            unique_together=set([('authorized', 'subject', 'level')]),
+        ),
     ]

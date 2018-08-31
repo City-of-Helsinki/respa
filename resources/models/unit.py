@@ -3,7 +3,9 @@ from django.conf import settings
 from django.contrib.gis.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from enumfields import EnumField
 
+from ..enums import UnitAuthorizationLevel
 from .base import AutoIdentifiedModel, ModifiableModel
 from .utils import create_reservable_before_datetime, get_translated, get_translated_name
 from .availability import get_opening_hours
@@ -90,6 +92,18 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
         # Currently all staff members are allowed to administrate
         # all units. Might be more finegrained in the future.
         return user.is_staff
+
+
+class UnitAuthorization(models.Model):
+    authorized = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='unit_authorizations')
+    subject = models.ForeignKey(
+        Unit, on_delete=models.CASCADE, related_name='authorizations')
+    level = EnumField(UnitAuthorizationLevel, max_length=50)
+
+    class Meta:
+        unique_together = [('authorized', 'subject', 'level')]
 
 
 class UnitIdentifier(models.Model):

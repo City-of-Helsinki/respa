@@ -499,6 +499,11 @@ strategy:
     www_url_en: null
     www_url_fi: null
     www_url_sv: null
+  resources_unitauthorization:
+    authorized_id: null
+    id: null
+    level: null
+    subject_id: null
   resources_unitgroup:
     created_at: null
     created_by_id: null
