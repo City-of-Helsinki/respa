@@ -16,9 +16,22 @@ export function updateImagesIndices() {
     $(image).attr('id', $(image).attr('id').replace(/-(\d+)/,'-' + i));
 
     let $inputs = $(image).find('input');
+    let $buttons = $(image).find('button');
+    let $dropDowns = $(image).find('select');
 
-    //Update all input ids as well.
-    $inputs.each(function (j, input) {
+    //Update select drop down ids.
+    $dropDowns.each(function (ddIndex, dropDown) {
+      $(dropDown).attr('id', $(dropDown).attr('id').replace(/-(\d+)-/,'-' + i + '-'));
+      $(dropDown).attr('name', $(dropDown).attr('name').replace(/-(\d+)-/,'-' + i + '-'));
+    });
+
+    //Update button ids.
+    $buttons.each(function (buttonIndex, button) {
+      $(button).attr('id', $(button).attr('id').replace(/(\d+)/, i));
+    });
+
+    //Update input ids (hidden included).
+    $inputs.each(function (inputIndex, input) {
       $(input).attr('id', $(input).attr('id').replace(/-(\d+)-/,'-' + i + '-'));
       $(input).attr('name', $(input).attr('name').replace(/-(\d+)-/,'-' + i + '-'));
     });
@@ -51,6 +64,9 @@ export function removeImage(imageItem) {
 }
 
 function attachImageEventHandlers(imageItem) {
-  let removeButton = imageItem.find('#remove-image')[0];
+  let imageIdNum = imageItem[0].id.match(/(\d+)/)[0];
+
+  //Add remove image event.
+  let removeButton = imageItem.find('#remove-image-' + imageIdNum)[0];
   removeButton.addEventListener('click', () => removeImage(imageItem), false);
 }
