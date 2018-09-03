@@ -133,9 +133,10 @@ class SaveResourceView(CreateView):
         for i in range(count):
             resource_image = resource_image_formset.forms[i].save(commit=False)
             resource_image.resource = self.object
+            image_key = 'images-' + str(i) + '-image'
 
-            if self.request.FILES:
-                resource_image.image = self.request.FILES['images-' + str(i) + '-image']
+            if image_key in self.request.FILES:
+                resource_image.image = self.request.FILES[image_key]
 
             resource_image.save()
 

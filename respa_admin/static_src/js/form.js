@@ -1,10 +1,9 @@
 import { addNewImage, removeImage, updateImagesTotalForms } from './images';
-import { addNewPeriod, updateTotalDays, updatePeriodsTotalForms, removePeriod } from './periods';
+import { addNewPeriod, updateTotalDays, updatePeriodsTotalForms, removePeriod, modifyDays } from './periods';
 
-//TODO: this might have to be sorted out. Global variables are not so good :/ Write getters instead.
-export let emptyImageItem = null;
-export let emptyPeriodItem = null;
-export let emptyDayItem = null;
+let emptyImageItem = null;
+let emptyPeriodItem = null;
+let emptyDayItem = null;
 
 /*
 * Attach all the event handlers to their objects upon load.
@@ -16,10 +15,24 @@ export function initializeEventHandlers() {
   enableAddDaysByDate();
   enableAddNewImage();
   enableRemoveImage();
-
-  copyInitialItems();
 }
 
+export function setClonableItems() {
+  setPeriodAndDayItems();
+  setImageItem();
+}
+
+export function getEmptyImage() {
+  return emptyImageItem;
+}
+
+export function getEmptyPeriodItem() {
+  return emptyPeriodItem;
+}
+
+export function getEmptyDayItem() {
+  return emptyDayItem;
+}
 
 /*
 * Bind the event handler for closing notification to the elements (buttons)
@@ -33,12 +46,9 @@ function enableNotificationHandler() {
 }
 
 /*
-* Copy the empty served period, day and image served from server
-* for later cloning purposes.
+* Set empty day and period variables.
 * */
-
-//TODO: break this out into smaller chunks.
-function copyInitialItems() {
+function setPeriodAndDayItems() {
   //Get the last period in the list.
   let $periodList = $('#current-periods-list')[0].children;
   let $servedPeriodItem = $($periodList[$periodList.length-1]);
@@ -47,17 +57,11 @@ function copyInitialItems() {
   let $daysList = $servedPeriodItem.find('#period-days-list')[0].children;
   let $servedDayItem = $daysList[$daysList.length-1];
 
-  //Get the last image.
-  let $imageList = $('#images-list')[0].children;
-  let $servedImageItem = $imageList[$imageList.length-1];
-
   emptyDayItem = $($servedDayItem).clone();
   emptyPeriodItem = $($servedPeriodItem).clone();
-  emptyImageItem = $($servedImageItem).clone();
 
   $servedDayItem.remove();
   $servedPeriodItem.remove();
-  $servedImageItem.remove();
 
   //Iterate the existing days in all periods and remove the last one
   //which has been added from the backend.
@@ -70,8 +74,29 @@ function copyInitialItems() {
     }
   }
 
-  updateImagesTotalForms();
   updatePeriodsTotalForms();
+}
+
+/*
+* Setter for the empty image item which is may
+* be used for creating new image items in the DOM.
+* */
+function setImageItem() {
+  //Get the last image.
+  let $imageList = $('#images-list')[0].children;
+  let $servedImageItem = $imageList[$imageList.length-1];
+
+  //Clone it.
+  emptyImageItem = $($servedImageItem).clone();
+
+  //Remove it from the DOM.
+  $servedImageItem.remove();
+
+  //The image list is hidden by default in order to avoid
+  //Image flashing when loading the page. Remove the hidden attribute.
+  $('#images-list')[0].classList.remove('hidden');
+
+  updateImagesTotalForms();
 }
 
 /*
@@ -117,11 +142,12 @@ function enableAddNewImage() {
 /*
 * Bind events for removing an image.
 * */
-export function enableRemoveImage() {
-  let images = document.getElementById('images-list');
+function enableRemoveImage() {
+  let images = document.getElementById('images-list').children;
 
   for (let i = 0; i < images.length; i++) {
     let removeButton = document.getElementById('remove-image-' + i);
-    removeButton.addEventListener('click', () => removeImage(i), false);
+    let imageItem = $('#image-' + i);
+    removeButton.addEventListener('click', () => removeImage(imageItem), false);
   }
 }

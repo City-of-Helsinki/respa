@@ -1,5 +1,10 @@
 import '../styles/base.scss';
 
-import { initializeEventHandlers }  from './form';
+import { initializeEventHandlers, setClonableItems }  from './form';
 
-window.addEventListener('load', initializeEventHandlers, false);
+function start() {
+  initializeEventHandlers();
+  setClonableItems();
+}
+
+window.addEventListener('load', start, false);

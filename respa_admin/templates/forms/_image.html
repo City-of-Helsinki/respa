@@ -1,8 +1,14 @@
-<button type="button" id="file-picker-{{ id }}" onclick="openFilePicker(this)" class="choose-picture-button">
+<button type="button"
+        id="file-picker-{{ id }}"
+        onclick="openFilePicker(this)"
+        class="choose-picture-button">
     Valitse kuva
 </button>
 
-<input type="file" id="id_images-{{ id }}-image" name="images-{{ id }}-image " onchange="picturePreview(this)">
+<input type="file"
+       id="id_images-{{ id }}-image"
+       name="images-{{ id }}-image "
+       onchange="picturePreview(this)">
 
 <button id="remove-image-{{ id }}"
         type="button"
@@ -26,13 +32,13 @@
 
     function picturePreview(image) {
         let imageItem = image.parentNode;
-        let preview = $(imageItem).find('.preview-image');
+        let preview = $(imageItem).find('.preview-image')[0];
         let file = image.files[0];
         let reader = new FileReader();
 
         reader.addEventListener("load", function () {
-            preview[0].src = reader.result;
-            preview[0].style.display = "block";
+            preview.src = reader.result;
+            preview.style.display = "block";
         }, false);
 
         if (file) {

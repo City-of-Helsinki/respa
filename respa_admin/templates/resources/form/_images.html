@@ -10,24 +10,25 @@
         Lisää kuva
     </button>
 
-    <div id="images-list">
+    <div id="images-list" class="hidden">
         {% for form in resource_image_formset %}
             {% with forloop.counter0 as id %}
                 <div class="input-row dropdown-row" id="image-{{ id }}">
 
-                {{ form.id }}
-                {{ form.resource }}
+                    {{ form.id }}
+                    {{ form.resource }}
 
-                {% include "forms/_select.html" with field=form.type inline=True %}
-                {% include "forms/_input.html" with field=form.caption inline=True %}
+                    {% include "forms/_select.html" with field=form.type inline=True %}
+                    {% include "forms/_input.html" with field=form.caption inline=True %}
 
-                {% if form.instance.image %}
-                    {% include "forms/_image.html" with field=form.image image=form.instance.image.url id=id %}
-                {% else %}
-                    {% include "forms/_image.html" with field=form.image image=None id=id %}
-                {% endif %}
+                    {% if form.instance.image %}
+                        {% include "forms/_image.html" with field=form.image image=form.instance.image.url id=id %}
+                    {% else %}
+                        {% include "forms/_image.html" with field=form.image image=None id=id %}
+                    {% endif %}
+
+                </div>
             {% endwith %}
         {% endfor %}
-        </div>
     </div>
 </div>

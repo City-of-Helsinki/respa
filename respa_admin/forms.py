@@ -205,7 +205,6 @@ def get_resource_image_formset(request, extra=1, instance=None):
         Resource,
         ResourceImage,
         form=ImageForm,
-        can_delete=False,
         extra=extra,
     )
 

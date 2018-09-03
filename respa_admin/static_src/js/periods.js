@@ -1,4 +1,4 @@
-import { emptyDayItem, emptyPeriodItem } from "./form";
+import { getEmptyDayItem, getEmptyPeriodItem } from "./form";
 
 /*
 * Iterate all periods and update their input indices.
@@ -205,7 +205,7 @@ function getDateInterval(startDate, endDate) {
 * Handle either removing or adding new days based
 * on the date input fields.
 * */
-function modifyDays(dates) {
+export function modifyDays(dates) {
   let periodIdNum = dates.id.match(/[0-9]+/)[0];
   let $daysList = $('#collapse' + periodIdNum).find('#period-days-list');
   let dateInputs = dates.getElementsByTagName('input');
@@ -257,10 +257,14 @@ function removeDay(periodId, index) {
 function addDay(periodIdNum, weekday) {
   let $collapseItem = $('#collapse' + periodIdNum);
   let $daysList = $collapseItem.find('#period-days-list');
-  let newDayItem = emptyDayItem.clone();
+  let emptyDayItem = getEmptyDayItem();
 
-  newDayItem.find("[id*='-weekday']").val(weekday);
-  $daysList.append(newDayItem);
+  if (emptyDayItem) {
+    let newDayItem = emptyDayItem.clone();
+
+    newDayItem.find("[id*='-weekday']").val(weekday);
+    $daysList.append(newDayItem);
+  }
 }
 
 /*
@@ -286,6 +290,7 @@ function removePeriodInputValues(periodItem, idNum) {
 export function addNewPeriod() {
   // Get the list or periods.
   let $periodList = $('#current-periods-list');
+  let emptyPeriodItem = getEmptyPeriodItem();
 
   if (emptyPeriodItem) {
     let newItem = emptyPeriodItem.clone();

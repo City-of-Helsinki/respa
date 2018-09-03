@@ -1,4 +1,4 @@
-import { emptyImageItem } from './form';
+import { getEmptyImage } from './form';
 
 export function updateImagesTotalForms() {
   $('#id_images-TOTAL_FORMS').val(getImageCount());
@@ -38,22 +38,22 @@ export function updateImagesIndices() {
   });
 }
 
-function getImageCount() {
-  return $('#images-list')[0].children.length;
-}
-
 /*
 * Add new images to the image formset and update increment images total forms.
 * */
 export function addNewImage() {
   let $imagesList = $('#images-list');
-  let newImage = emptyImageItem.clone();
+  let emptyImageItem = getEmptyImage();
 
-  $imagesList.append(newImage);
+  if (emptyImageItem) {
+    let newImage = emptyImageItem.clone();
 
-  attachImageEventHandlers(newImage);
-  updateImagesTotalForms();
-  updateImagesIndices();
+    $imagesList.append(newImage);
+
+    attachImageEventHandlers(newImage);
+    updateImagesTotalForms();
+    updateImagesIndices();
+  }
 }
 
 export function removeImage(imageItem) {
@@ -61,6 +61,10 @@ export function removeImage(imageItem) {
 
   updateImagesTotalForms();
   updateImagesIndices();
+}
+
+function getImageCount() {
+  return $('#images-list')[0].children.length;
 }
 
 function attachImageEventHandlers(imageItem) {
