@@ -99,15 +99,7 @@ class SaveResourceView(CreateView):
         if self._validate_forms(form, period_formset_with_days, resource_image_formset):
             return self.forms_valid(form, period_formset_with_days, resource_image_formset)
         else:
-            messages.error(request, 'Tallennus epäonnistui. Tarkista lomakkeen virheet.')
             return self.forms_invalid(form, period_formset_with_days, resource_image_formset)
-
-    def _validate_forms(self, form, period_formset, image_formset):
-        valid_form = form.is_valid()
-        valid_period_form = period_formset.is_valid()
-        valid_image_formset = image_formset.is_valid()
-
-        return valid_form and valid_period_form and valid_image_formset
 
     def forms_valid(self, form, period_formset_with_days, resource_image_formset):
         self.object = form.save()
@@ -121,6 +113,38 @@ class SaveResourceView(CreateView):
         self._save_resource_images(resource_image_formset)
 
         return HttpResponseRedirect(self.get_success_url())
+
+    def forms_invalid(self, form, period_formset_with_days, resource_image_formset):
+        messages.error(self.request, 'Tallennus epäonnistui. Tarkista lomakkeen virheet.')
+
+        # Extra forms are not added upon post so they
+        # need to be added manually below. This is because
+        # the front-end uses the empty 'extra' forms for cloning.
+        temp_image_formset = get_resource_image_formset()
+        temp_period_formset = get_period_formset()
+        temp_day_form = temp_period_formset.forms[0].days.forms[0]
+
+        resource_image_formset.forms.append(temp_image_formset.forms[0])
+        period_formset_with_days.forms.append(temp_period_formset.forms[0])
+
+        # Add a nested empty day to each period as well.
+        for period in period_formset_with_days:
+            period.days.forms.append(temp_day_form)
+
+        return self.render_to_response(
+            self.get_context_data(
+                form=form,
+                period_formset_with_days=period_formset_with_days,
+                resource_image_formset=resource_image_formset,
+            )
+        )
+
+    def _validate_forms(self, form, period_formset, image_formset):
+        valid_form = form.is_valid()
+        valid_period_form = period_formset.is_valid()
+        valid_image_formset = image_formset.is_valid()
+
+        return valid_form and valid_period_form and valid_image_formset
 
     def _save_resource_purposes(self):
         checked_purposes = self.request.POST.getlist('purposes')
@@ -172,15 +196,6 @@ class SaveResourceView(CreateView):
             day_ids = get_formset_ids('days-periods-{}'.format(i), data)
             if day_ids is not None:
                 Day.objects.filter(period=period_id).exclude(pk__in=day_ids).delete()
-
-    def forms_invalid(self, form, period_formset_with_days, resource_image_formset):
-        return self.render_to_response(
-            self.get_context_data(
-                form=form,
-                period_formset_with_days=period_formset_with_days,
-                resource_image_formset=resource_image_formset,
-            )
-        )
 
 
 def get_formset_ids(formset_name, data):

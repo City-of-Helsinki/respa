@@ -3,7 +3,6 @@ from django.forms import inlineformset_factory
 
 from .widgets import (
     RespaRadioSelect,
-    RespaImageSelectField,
     RespaCheckboxSelect
 )
 
@@ -57,7 +56,6 @@ class PeriodForm(forms.ModelForm):
 
 
 class ImageForm(forms.ModelForm):
-    #image = RespaImageSelectField(required=False)
 
     class Meta:
         model = ResourceImage
@@ -139,7 +137,6 @@ class PeriodFormset(forms.BaseInlineFormSet):
             Period,
             Day,
             form=DaysForm,
-            can_delete=False,
             extra=extra_days,
             validate_max=True
         )
@@ -190,17 +187,18 @@ def get_period_formset(request=None, extra=1, instance=None):
         fk_name='resource',
         form=PeriodForm,
         formset=PeriodFormset,
-        can_delete=False,
         extra=extra,
     )
 
+    if not request:
+        return period_formset_with_days(instance=instance)
     if request.method == 'GET':
         return period_formset_with_days(instance=instance)
     else:
         return period_formset_with_days(data=request.POST, instance=instance)
 
 
-def get_resource_image_formset(request, extra=1, instance=None):
+def get_resource_image_formset(request=None, extra=1, instance=None):
     resource_image_formset = inlineformset_factory(
         Resource,
         ResourceImage,
@@ -208,6 +206,8 @@ def get_resource_image_formset(request, extra=1, instance=None):
         extra=extra,
     )
 
+    if not request:
+        return resource_image_formset(instance=instance)
     if request.method == 'GET':
         return resource_image_formset(instance=instance)
     else:
