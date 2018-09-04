@@ -8,7 +8,7 @@ from django.views.generic import (
     ListView,
 )
 
-from resources.models import Resource, Period, Day
+from resources.models import Resource, Period, Day, ResourceImage
 
 from respa_admin.forms import (
     get_period_formset,
@@ -50,7 +50,6 @@ class SaveResourceView(CreateView):
     model = Resource
     form_class = ResourceForm
     template_name = 'resources/create_resource.html'
-    extra_formsets = 1
 
     def get_success_url(self, **kwargs):
         messages.success(self.request, 'Resurssi tallennettu')
@@ -61,7 +60,6 @@ class SaveResourceView(CreateView):
     def get(self, request, *args, **kwargs):
         if kwargs:
             self.object = Resource.objects.get(pk=kwargs['resource_id'])
-            self.extra_formsets = 0
         else:
             self.object = None
 
@@ -75,7 +73,6 @@ class SaveResourceView(CreateView):
 
         resource_image_formset = get_resource_image_formset(
             self.request,
-            extra=self.extra_formsets,
             instance=self.object,
         )
 
@@ -102,8 +99,45 @@ class SaveResourceView(CreateView):
         if self._validate_forms(form, period_formset_with_days, resource_image_formset):
             return self.forms_valid(form, period_formset_with_days, resource_image_formset)
         else:
-            messages.error(request, 'Tallennus epäonnistui. Tarkista lomakkeen virheet.')
             return self.forms_invalid(form, period_formset_with_days, resource_image_formset)
+
+    def forms_valid(self, form, period_formset_with_days, resource_image_formset):
+        self.object = form.save()
+
+        self._delete_extra_periods_days(period_formset_with_days)
+        period_formset_with_days.instance = self.object
+        period_formset_with_days.save()
+
+        self._save_resource_purposes()
+        self._delete_extra_images(resource_image_formset)
+        self._save_resource_images(resource_image_formset)
+
+        return HttpResponseRedirect(self.get_success_url())
+
+    def forms_invalid(self, form, period_formset_with_days, resource_image_formset):
+        messages.error(self.request, 'Tallennus epäonnistui. Tarkista lomakkeen virheet.')
+
+        # Extra forms are not added upon post so they
+        # need to be added manually below. This is because
+        # the front-end uses the empty 'extra' forms for cloning.
+        temp_image_formset = get_resource_image_formset()
+        temp_period_formset = get_period_formset()
+        temp_day_form = temp_period_formset.forms[0].days.forms[0]
+
+        resource_image_formset.forms.append(temp_image_formset.forms[0])
+        period_formset_with_days.forms.append(temp_period_formset.forms[0])
+
+        # Add a nested empty day to each period as well.
+        for period in period_formset_with_days:
+            period.days.forms.append(temp_day_form)
+
+        return self.render_to_response(
+            self.get_context_data(
+                form=form,
+                period_formset_with_days=period_formset_with_days,
+                resource_image_formset=resource_image_formset,
+            )
+        )
 
     def _validate_forms(self, form, period_formset, image_formset):
         valid_form = form.is_valid()
@@ -112,39 +146,42 @@ class SaveResourceView(CreateView):
 
         return valid_form and valid_period_form and valid_image_formset
 
-    def forms_valid(self, form, period_formset_with_days, resource_image_formset):
-        self.object = form.save()
-
-        self._delete_extra_periods_days(period_formset_with_days)
-        period_formset_with_days.instance = self.object
-        period_formset_with_days.save()
-        image_count = 0
-
+    def _save_resource_purposes(self):
         checked_purposes = self.request.POST.getlist('purposes')
 
         for purpose in checked_purposes:
             self.object.purposes.add(purpose)
 
-        if self.request.FILES:
-            for form in resource_image_formset:
-                resource_image = form.save(commit=False)
-                resource_image.resource = self.object
-                resource_image.image = self.request.FILES['images-' + str(image_count) + '-image']
-                image_count += 1
-                resource_image.save()
+    def _save_resource_images(self, resource_image_formset):
+        count = len(resource_image_formset)
 
-        return HttpResponseRedirect(self.get_success_url())
+        for i in range(count):
+            resource_image = resource_image_formset.forms[i].save(commit=False)
+            resource_image.resource = self.object
+            image_key = 'images-' + str(i) + '-image'
+
+            if image_key in self.request.FILES:
+                resource_image.image = self.request.FILES[image_key]
+
+            resource_image.save()
+
+    def _delete_extra_images(self, resource_images_formset):
+        data = resource_images_formset.data
+        image_ids = get_formset_ids('images', data)
+
+        if image_ids is None:
+            return
+
+        ResourceImage.objects.filter(resource=self.object).exclude(pk__in=image_ids).delete()
 
     def _delete_extra_periods_days(self, period_formset_with_days):
         data = period_formset_with_days.data
-
         period_ids = get_formset_ids('periods', data)
 
         if period_ids is None:
             return
 
         Period.objects.filter(resource=self.object).exclude(pk__in=period_ids).delete()
-
         period_count = to_int(data.get('periods-TOTAL_FORMS'))
 
         if not period_count:
@@ -159,15 +196,6 @@ class SaveResourceView(CreateView):
             day_ids = get_formset_ids('days-periods-{}'.format(i), data)
             if day_ids is not None:
                 Day.objects.filter(period=period_id).exclude(pk__in=day_ids).delete()
-
-    def forms_invalid(self, form, period_formset_with_days, resource_image_formset):
-        return self.render_to_response(
-            self.get_context_data(
-                form=form,
-                period_formset_with_days=period_formset_with_days,
-                resource_image_formset=resource_image_formset,
-            )
-        )
 
 
 def get_formset_ids(formset_name, data):

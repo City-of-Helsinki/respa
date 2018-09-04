@@ -3,7 +3,6 @@ from django.forms import inlineformset_factory
 
 from .widgets import (
     RespaRadioSelect,
-    RespaImageSelectField,
     RespaCheckboxSelect
 )
 
@@ -57,7 +56,6 @@ class PeriodForm(forms.ModelForm):
 
 
 class ImageForm(forms.ModelForm):
-    image = RespaImageSelectField(required=False)
 
     class Meta:
         model = ResourceImage
@@ -139,7 +137,6 @@ class PeriodFormset(forms.BaseInlineFormSet):
             Period,
             Day,
             form=DaysForm,
-            can_delete=False,
             extra=extra_days,
             validate_max=True
         )
@@ -154,11 +151,6 @@ class PeriodFormset(forms.BaseInlineFormSet):
 
     def add_fields(self, form, index):
         super(PeriodFormset, self).add_fields(form, index)
-        # extra_days = 0
-        #
-        # if form['resource'].value() == '':
-        #     extra_days = 1
-
         form.days = self._get_days_formset(form=form)
 
     def is_valid(self):
@@ -195,26 +187,28 @@ def get_period_formset(request=None, extra=1, instance=None):
         fk_name='resource',
         form=PeriodForm,
         formset=PeriodFormset,
-        can_delete=False,
         extra=extra,
     )
 
+    if not request:
+        return period_formset_with_days(instance=instance)
     if request.method == 'GET':
         return period_formset_with_days(instance=instance)
     else:
-        return period_formset_with_days(request.POST, instance=instance)
+        return period_formset_with_days(data=request.POST, instance=instance)
 
 
-def get_resource_image_formset(request, extra=1, instance=None):
+def get_resource_image_formset(request=None, extra=1, instance=None):
     resource_image_formset = inlineformset_factory(
         Resource,
         ResourceImage,
         form=ImageForm,
-        can_delete=False,
         extra=extra,
     )
 
+    if not request:
+        return resource_image_formset(instance=instance)
     if request.method == 'GET':
         return resource_image_formset(instance=instance)
     else:
-        return resource_image_formset(request.POST, request.FILES, instance=instance)
+        return resource_image_formset(data=request.POST, files=request.FILES, instance=instance)

@@ -1,22 +1,40 @@
-<button id="image-picker" type="button" class="add-picture-button" onclick="openFilePicker()">
-    Lisää kuva
+<button type="button"
+        id="file-picker-{{ id }}"
+        onclick="openFilePicker(this)"
+        class="choose-picture-button">
+    Valitse kuva
 </button>
 
-<input id="id_{{ widget.name }}" type="file" name="{{ widget.name }}" onchange="picturePreview()" style="display: none;" />
+<input type="file"
+       id="id_images-{{ id }}-image"
+       name="images-{{ id }}-image "
+       onchange="picturePreview(this)">
 
-<div>
-    <img src="" height="200" style="display: none;"/>
-</div>
+<button id="remove-image-{{ id }}"
+        type="button"
+        class="remove-picture-button">
+    Poista kuva
+</button>
+
+{% if image %}
+    <img src="{{ image }}" class="preview-image" style="display: block;"/>
+{% else %}
+    <img src="" class="preview-image" style="display: none;"/>
+{% endif %}
+
+{% include "forms/_errors.html" with field=field %}
 
 <script>
-    function openFilePicker() {
-        document.getElementById("id_{{ widget.name }}").click();
+    function openFilePicker(imagePicker) {
+        let imageIdNum = imagePicker.parentNode.id.match(/(\d+)/)[0];
+        document.getElementById("id_images-" + imageIdNum + "-image").click();
     }
 
-    function picturePreview() {
-        let preview = document.querySelector('img');
-        let file    = document.querySelector('input[type=file]').files[0];
-        let reader  = new FileReader();
+    function picturePreview(image) {
+        let imageItem = image.parentNode;
+        let preview = $(imageItem).find('.preview-image')[0];
+        let file = image.files[0];
+        let reader = new FileReader();
 
         reader.addEventListener("load", function () {
             preview.src = reader.result;

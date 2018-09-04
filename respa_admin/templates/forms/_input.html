@@ -10,8 +10,9 @@
     {% endif %}
 
     <input
+        id="{{ field.id_for_label }}"
         type="{{ field.field.widget.input_type }}"
-        name="{{ field.name }}"
+        name="{{ field.html_name }}"
         {% if field.value != None %}
             value="{{ field.value|stringformat:'s' }}"
         {% endif %}

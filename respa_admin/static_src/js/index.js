@@ -1,22 +1,10 @@
 import '../styles/base.scss';
 
-import * as FormModule from './form.js';
+import { initializeEventHandlers, setClonableItems }  from './form';
 
 function start() {
-    const  {
-      enableAddDaysByDate,
-      enableAddNewPeriod,
-      enableNotificationHandler,
-      enableRemovePeriod,
-      copyInitialPeriodAndDay
-    } = FormModule;
-    enableAddDaysByDate();
-    enableAddNewPeriod();
-    enableNotificationHandler();
-    enableRemovePeriod();
-    copyInitialPeriodAndDay();
+  initializeEventHandlers();
+  setClonableItems();
 }
-
-function exit() {}
 
 window.addEventListener('load', start, false);
