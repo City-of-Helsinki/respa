@@ -1,6 +1,8 @@
 [![Stories in Ready](https://badge.waffle.io/City-of-Helsinki/respa.png?label=ready&title=Ready)](https://waffle.io/City-of-Helsinki/respa)
 [![Build Status](https://api.travis-ci.org/City-of-Helsinki/respa.svg?branch=master)](https://travis-ci.org/City-of-Helsinki/respa)
 [![codecov](https://codecov.io/gh/City-of-Helsinki/respa/branch/master/graph/badge.svg)](https://codecov.io/gh/City-of-Helsinki/respa)
+[![Code Quality: Python](https://img.shields.io/lgtm/grade/python/g/City-of-Helsinki/respa.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/City-of-Helsinki/respa/context:python)
+[![Total Alerts](https://img.shields.io/lgtm/alerts/g/City-of-Helsinki/respa.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/City-of-Helsinki/respa/alerts)
 
 respa – Resource reservation and management service
 ===================
