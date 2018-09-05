@@ -40,7 +40,7 @@ python manage.py resources_import --all kirjastot
 ```
 
 ### Settings
-- `RESPA_IMAGE_BASE_URL`: Base URL used when building image URLs in email notifications. Example value: `'https://api.hel.fi/respa/'`.
+- `RESPA_IMAGE_BASE_URL`: Base URL used when building image URLs in email notifications. Example value: `'https://api.hel.fi'`.
 
 - *TODO* document rest of relevant settings.
 
