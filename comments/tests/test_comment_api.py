@@ -369,8 +369,9 @@ def test_non_commentable_model_comments_hidden(user_api_client, resource_group, 
 
 @override_settings(RESPA_MAILS_ENABLED=True)
 @pytest.mark.django_db
-def test_catering_order_comment_create(user_api_client, user, staff_user, catering_order,
-                                       new_catering_order_comment_data):
+def test_catering_order_comment_create2(
+        user_api_client, user, staff_user, catering_order,
+        new_catering_order_comment_data):
     COMMENT_CREATED_BODY = """Target type: {{ target_type }}
 Created by: {{ created_by.display_name }}
 Created at: {{ created_at|format_datetime }}
