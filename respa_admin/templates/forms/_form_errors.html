@@ -1,6 +1,8 @@
+{% load i18n %}
+
 {% if form.errors or resource_image_formset.errors or period_formset_with_days.errors %}
     <div class="alert alert-danger">
-        <strong>Tarkista seuraavat virheet:</strong>
+        <strong>{% trans "Tarkista seuraavat virheet" %}:</strong>
         <ul>
             {% for error in form.errors %}
                 <li>

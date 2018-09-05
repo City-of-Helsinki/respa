@@ -1,14 +1,16 @@
+{% load i18n %}
+
 <div id="general-info">
     <div class="form-section-header">
-        <h2>Yleiset tiedot</h2>
-        <span class="pull-right">*Pakolliset kentät</span>
+        <h2>{% trans "General information"  %}</h2>
+        <span class="pull-right">{% trans "*Mandatory Fields" %}</span>
     </div>
     <div class="input-row dropdown-row">
         {% include "forms/_select.html" with field=form.unit inline=True %}
         {% include "forms/_select.html" with field=form.type inline=True %}
     </div>
     <div class="usage">
-        <h4>Käyttötarkoitukset</h4>
+        <h4>{% trans "Purposes" %}</h4>
         {% include "forms/_errors.html" with field=form.purposes %}
         {{ form.purposes }}
     </div>
@@ -18,25 +20,25 @@
         {% include "forms/_textarea_input.html" with field=form.description %}
     </div>
     <div class="contact-person">
-        <h4>Tilan yhteyshenkilö</h4>
-        <p>Ei näytetä varaamon käyttoliittymässä mutta tiedot viedään asiakkaalle lähtevään vahvistus viestiin</p>
+        <h4>{% trans "Contact person" %}</h4>
+        <p>{% trans "Not used in the user interface of 'varaamo' but the information is added to the confirmation e-mail sent to the customer." %}</p>
         <div class="input-row">
             <div class="form-group">
-                <label class="control-label input-label" for="first-name">Etunimi</label>
+                <label class="control-label input-label" for="first-name">{% trans "First name" %}</label>
                 <input type="text" class="form-control text-input" id="first-name">
             </div>
             <div class="form-group">
-                <label class="control-label input-label" for="last-name">Sukunimi</label>
+                <label class="control-label input-label" for="last-name">{% trans "Surname" %}</label>
                 <input type="text" class="form-control text-input" id="last-name">
             </div>
         </div>
         <div class="input-row">
             <div class="form-group">
-                <label class="control-label input-label" for="email">Sähkopösti</label>
+                <label class="control-label input-label" for="email">{% trans "E-mail" %}</label>
                 <input type="email" class="form-control text-input" id="email">
             </div>
             <div class="form-group">
-                <label class="control-label input-label" for="phone-number">Puhelinnumero</label>
+                <label class="control-label input-label" for="phone-number">{% trans "Phone number" %}</label>
                 <input type="tel" class="form-control text-input" id="phone-number">
             </div>
         </div>

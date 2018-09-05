@@ -89,7 +89,7 @@ class ResourceForm(forms.ModelForm):
             'description',
             'purposes',
             'equipment',
-            'responsible_contact_info',  # These fields ought to be atomic.
+            'responsible_contact_info',  # TODO: these fields lack backend support.
             'people_capacity',
             'area',
             'min_period',

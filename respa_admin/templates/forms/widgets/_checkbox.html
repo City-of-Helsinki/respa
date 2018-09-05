@@ -1,3 +1,5 @@
+{% load i18n %}
+
 <div class="checkbox-row ">
     <div class="custom-checkbox checkbox-inline">
         <input
@@ -9,6 +11,6 @@
             {% include "django/forms/widgets/attrs.html" %}
         >
 
-        <label for="{{ widget.attrs.id }}" class="checkbox-custom-label input-label">Suljettu</label>
+        <label for="{{ widget.attrs.id }}" class="checkbox-custom-label input-label">{% trans "Suljettu" %}</label>
     </div>
 </div>

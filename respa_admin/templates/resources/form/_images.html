@@ -1,13 +1,15 @@
+{% load i18n %}
+
 <div id="add-picture">
     <div class="form-section-header">
-        <h2>Kuvat</h2>
-        <span class="pull-right">*Pakolliset kentät</span>
+        <h2>{% trans "Images" %}</h2>
+        <span class="pull-right">{% trans "*Mandatory fields" %}</span>
     </div>
 
-    <p>Voit valita vain yhden pääkuvan.</p>
+    <p>{% trans "You can only choose one main image." %}</p>
 
     <button id="image-picker" type="button" class="add-picture-button">
-        Lisää kuva
+        {% trans "Add image" %}
     </button>
 
     <div id="images-list" class="hidden">

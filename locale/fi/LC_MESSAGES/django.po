@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-08-22 11:26+0300\n"
+"POT-Creation-Date: 2018-09-05 14:10+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -34,12 +34,13 @@ msgid "time of modification"
 msgstr "Muokkausaika"
 
 #: caterings/models.py:28 caterings/models.py:59
-#: resources/models/availability.py:114 resources/models/equipment.py:12
+#: resources/models/availability.py:118 resources/models/equipment.py:12
 #: resources/models/equipment.py:24 resources/models/equipment.py:39
 #: resources/models/reservation.py:431 resources/models/resource.py:83
 #: resources/models/resource.py:98 resources/models/resource.py:112
 #: resources/models/resource.py:157 resources/models/resource.py:668
 #: resources/models/unit.py:29
+#: respa_admin/templates/common/_periods_accordion.html:29
 msgid "Name"
 msgstr "Nimi"
 
@@ -76,7 +77,7 @@ msgctxt "catering"
 msgid "Category"
 msgstr "Kategoria"
 
-#: caterings/models.py:64 resources/models/availability.py:115
+#: caterings/models.py:64 resources/models/availability.py:119
 #: resources/models/resource.py:158 resources/models/unit.py:30
 msgid "Description"
 msgstr "Kuvaus"
@@ -89,7 +90,7 @@ msgstr "Tuote"
 msgid "Catering products"
 msgstr "Tuotteet"
 
-#: caterings/models.py:92 payments/models.py:10
+#: caterings/models.py:92
 msgid "Reservation"
 msgstr "Varaus"
 
@@ -141,7 +142,7 @@ msgstr "Kielletty tyyppi."
 msgid "You cannot comment this object."
 msgstr "Et voi kommentoida tätä objektia."
 
-#: comments/models.py:59 payments/models.py:8 resources/models/base.py:48
+#: comments/models.py:59 resources/models/base.py:48
 msgid "Time of creation"
 msgstr "Lisäysaika"
 
@@ -362,109 +363,117 @@ msgstr "varaus"
 msgid "Resource app"
 msgstr "Resurssisovellus"
 
-#: resources/models/availability.py:13
+#: resources/models/availability.py:14
 msgid "open"
 msgstr "auki"
 
-#: resources/models/availability.py:13
+#: resources/models/availability.py:15
 msgid "closed"
 msgstr "kiinni"
 
-#: resources/models/availability.py:106 resources/models/reservation.py:95
+#: resources/models/availability.py:16
+msgid "-"
+msgstr ""
+
+#: resources/models/availability.py:110 resources/models/reservation.py:95
 #: resources/models/resource.py:562
 msgid "Resource"
 msgstr "Resurssi"
 
-#: resources/models/availability.py:108 resources/models/resource.py:152
-#: resources/models/unit.py:96
+#: resources/models/availability.py:112 resources/models/resource.py:152
+#: resources/models/unit.py:57 resources/models/unit.py:96
 msgid "Unit"
 msgstr "Toimipiste"
 
-#: resources/models/availability.py:111
+#: resources/models/availability.py:115
 msgid "Start date"
 msgstr "Alkupäivä"
 
-#: resources/models/availability.py:112
+#: resources/models/availability.py:116
 msgid "End date"
 msgstr "Loppupäivä"
 
-#: resources/models/availability.py:117 resources/models/availability.py:189
+#: resources/models/availability.py:121 resources/models/availability.py:196
 msgid "Closed"
 msgstr "Kiinni"
 
-#: resources/models/availability.py:120
+#: resources/models/availability.py:124
 msgid "period"
 msgstr "aikaväli"
 
-#: resources/models/availability.py:121
+#: resources/models/availability.py:125
 msgid "periods"
 msgstr "aikavälit"
 
-#: resources/models/availability.py:129
+#: resources/models/availability.py:133
 msgid "You must set 'resource' or 'unit'"
 msgstr "Aseta 'resource' tai 'unit'"
 
-#: resources/models/availability.py:132
+#: resources/models/availability.py:136
 msgid "You must set either 'resource' or 'unit', but not both"
 msgstr "Aseta 'resource' tai 'unit', älä molempia"
 
-#: resources/models/availability.py:172
+#: resources/models/availability.py:150
+msgid "You must set 'start' and 'end' fields."
+msgstr "Aseta 'resource' tai 'unit'"
+
+#: resources/models/availability.py:179
 msgid "Monday"
 msgstr "maanantai"
 
-#: resources/models/availability.py:173
+#: resources/models/availability.py:180
 msgid "Tuesday"
 msgstr "tiistai"
 
-#: resources/models/availability.py:174
+#: resources/models/availability.py:181
 msgid "Wednesday"
 msgstr "keskiviikko"
 
-#: resources/models/availability.py:175
+#: resources/models/availability.py:182
 msgid "Thursday"
 msgstr "torstai"
 
-#: resources/models/availability.py:176
+#: resources/models/availability.py:183
 msgid "Friday"
 msgstr "perjantai"
 
-#: resources/models/availability.py:177
+#: resources/models/availability.py:184
 msgid "Saturday"
 msgstr "lauantai"
 
-#: resources/models/availability.py:178
+#: resources/models/availability.py:185
 msgid "Sunday"
 msgstr "sunnuntai"
 
-#: resources/models/availability.py:181
+#: resources/models/availability.py:188
 msgid "Period"
 msgstr "Aikaväli"
 
-#: resources/models/availability.py:183
+#: resources/models/availability.py:190
 msgid "Weekday"
 msgstr "Viikonpäivä"
 
-#: resources/models/availability.py:184
+#: resources/models/availability.py:191
 msgid "Time when opens"
 msgstr "Aukeamisaika"
 
-#: resources/models/availability.py:185
+#: resources/models/availability.py:192
 msgid "Time when closes"
 msgstr "Sulkemisaika"
 
-#: resources/models/availability.py:186
+#: resources/models/availability.py:193
 msgid "Range between opens and closes"
 msgstr "Aukioloajan pituus"
 
-#: resources/models/availability.py:190
+#: resources/models/availability.py:197
 msgid "description"
 msgstr "kuvaus"
 
-#: resources/models/availability.py:193
+#: resources/models/availability.py:200
 msgid "day"
 msgstr "päivä"
 
-#: resources/models/availability.py:194
+#: resources/models/availability.py:201
 msgid "days"
 msgstr "päivät"
 
@@ -778,6 +787,7 @@ msgid "Resource type"
 msgstr "Resurssityyppi"
 
 #: resources/models/resource.py:156
+#: respa_admin/templates/resources/form/_general_info.html:13
 msgid "Purposes"
 msgstr "Käyttötarkoitukset"
 
@@ -810,8 +820,10 @@ msgid "Maximum reservation time"
 msgstr "Pisin varausaika"
 
 #: resources/models/resource.py:172
+#: respa_admin/templates/resources/form/_equipment.html:5
+#: respa_admin/templates/resources/form/_nav.html:35
 msgid "Equipment"
-msgstr "Varuste"
+msgstr "Varustelut"
 
 #: resources/models/resource.py:173
 msgid "Maximum number of active reservations per user"
@@ -965,6 +977,7 @@ msgid "Postal code"
 msgstr "Postinumero"
 
 #: resources/models/unit.py:40
+#: respa_admin/templates/resources/form/_general_info.html:41
 msgid "Phone number"
 msgstr "Puhelinnumero"
 
@@ -991,10 +1004,6 @@ msgstr "Valokuvan osoite"
 #: resources/models/unit.py:50
 msgid "Picture caption"
 msgstr "Valokuvan kuvateksti"
-
-#: resources/models/unit.py:57
-msgid "unit"
-msgstr "toimipiste"
 
 #: resources/models/unit.py:58
 msgid "units"
@@ -1038,17 +1047,161 @@ msgstr "Lisää toinen"
 msgid "Delete Item"
 msgstr "Poista"
 
-#: respa/settings.py:151
+#: respa/settings.py:161
 msgid "Finnish"
 msgstr "suomi"
 
-#: respa/settings.py:152
+#: respa/settings.py:162
 msgid "English"
 msgstr "englanti"
 
-#: respa/settings.py:153
+#: respa/settings.py:163
 msgid "Swedish"
 msgstr "ruotsi"
+
+#: respa_admin/templates/common/_periods_accordion.html:13
+msgid "Copy time period"
+msgstr "Kopioi aikajakso"
+
+#: respa_admin/templates/common/_periods_accordion.html:17
+msgid "Edit time period"
+msgstr "Muokkaa ajanjaksoa"
+
+#: respa_admin/templates/common/_periods_accordion.html:33
+msgid "Time interval"
+msgstr "Aikaväli"
+
+#: respa_admin/templates/common/_periods_accordion.html:55
+msgid "Remove time period"
+msgstr "Poista ajanjakso"
+
+#: respa_admin/templates/forms/_form_errors.html:5
+msgid "Tarkista seuraavat virheet"
+msgstr "Check the following errors"
+
+#: respa_admin/templates/forms/widgets/_checkbox.html:14
+msgid "Suljettu"
+msgstr "Closed"
+
+#: respa_admin/templates/resources/form/_booking.html:5
+#: respa_admin/templates/resources/form/_booking.html:22
+#: respa_admin/templates/resources/form/_nav.html:32
+msgid "Booking information"
+msgstr "Varauksen tiedot"
+
+#: respa_admin/templates/resources/form/_booking.html:6
+#: respa_admin/templates/resources/form/_equipment.html:6
+#: respa_admin/templates/resources/form/_images.html:6
+#: respa_admin/templates/resources/form/_terms.html:6
+msgid "*Mandatory fields"
+msgstr "*Pakolliset kentät"
+
+#: respa_admin/templates/resources/form/_booking.html:23
+msgid "Additional information before calendar."
+msgstr "Lisätiedot ennen kalenteria."
+
+#: respa_admin/templates/resources/form/_booking.html:29
+msgid "E-mail notifications"
+msgstr "Sähköposti ilmoitukset"
+
+#: respa_admin/templates/resources/form/_booking.html:30
+msgid "A notification will be sent when a space is booked."
+msgstr "Ilmoitus lähetetään, kun tilaa varataan."
+
+#: respa_admin/templates/resources/form/_equipment.html:8
+msgid "Choose from the list below"
+msgstr "Valitse allaolevasta listasta"
+
+#: respa_admin/templates/resources/form/_equipment.html:14
+msgid "Additional information"
+msgstr "Lisätideot"
+
+#: respa_admin/templates/resources/form/_general_info.html:5
+#: respa_admin/templates/resources/form/_nav.html:31
+msgid "General information"
+msgstr "Yleiset tiedot"
+
+#: respa_admin/templates/resources/form/_general_info.html:6
+msgid "*Mandatory Fields"
+msgstr "*Pakolliset kentät"
+
+#: respa_admin/templates/resources/form/_general_info.html:23
+msgid "Contact person"
+msgstr "Yhteyshenkilö"
+
+#: respa_admin/templates/resources/form/_general_info.html:24
+msgid ""
+"Not used in the user interface of 'varaamo' but the information is added to "
+"the confirmation e-mail sent to the customer."
+msgstr ""
+
+#: respa_admin/templates/resources/form/_general_info.html:27
+msgid "First name"
+msgstr "Etunimi"
+
+#: respa_admin/templates/resources/form/_general_info.html:31
+msgid "Surname"
+msgstr "Sukunimi"
+
+#: respa_admin/templates/resources/form/_general_info.html:37
+msgid "E-mail"
+msgstr "Sähköpostiosoite"
+
+#: respa_admin/templates/resources/form/_images.html:5
+#: respa_admin/templates/resources/form/_nav.html:36
+msgid "Images"
+msgstr "Kuva"
+
+#: respa_admin/templates/resources/form/_images.html:9
+msgid "You can only choose one main image."
+msgstr "Voit valita vain yhden pääkuvan."
+
+#: respa_admin/templates/resources/form/_images.html:12
+msgid "Add image"
+msgstr "Lisää kuva"
+
+#: respa_admin/templates/resources/form/_nav.html:9
+#: respa_admin/templates/resources/form/_nav.html:23
+msgid "Create new resource"
+msgstr "Luo uusi resurssi"
+
+#: respa_admin/templates/resources/form/_nav.html:33
+#: respa_admin/templates/resources/form/_periods.html:5
+msgid "Opening hours"
+msgstr "Aukioloajat"
+
+#: respa_admin/templates/resources/form/_nav.html:34
+#: respa_admin/templates/resources/form/_terms.html:5
+msgid "Authentication, terms and price"
+msgstr "Tunnistautuminen, ehdot ja hinta"
+
+#: respa_admin/templates/resources/form/_periods.html:9
+msgid "Add new time period"
+msgstr "Lisää uusi aikajakso"
+
+#: respa_admin/templates/resources/form/_periods.html:12
+msgid "Add general time period"
+msgstr "Lisää yleinen kausi"
+
+#: respa_admin/templates/resources/form/_terms.html:18
+msgid "Pricing"
+msgstr "Hinnoittelu"
+
+#: respa_admin/templates/resources/form/_terms.html:20
+msgid "The space is free of charge"
+msgstr "Tila on ilmainen"
+
+#: respa_admin/templates/resources/form/_terms.html:24
+msgid "Yes"
+msgstr "Kyllä"
+
+#: respa_admin/templates/resources/form/_toolbar.html:5
+msgid "Functions"
+msgstr "Toiminnot"
+
+#: respa_admin/templates/resources/form/_toolbar.html:14
+msgid "Save"
+msgstr "Tallenna"
 
 #: respa_exchange/models.py:23
 msgid "name"
@@ -1070,7 +1223,7 @@ msgstr ""
 
 #: respa_exchange/models.py:33
 msgid "username"
-msgstr ""
+msgstr "käyttäjätunnus"
 
 #: respa_exchange/models.py:35
 msgid "the service user to authenticate as, in domain\\username format"
@@ -1078,7 +1231,7 @@ msgstr ""
 
 #: respa_exchange/models.py:38
 msgid "password"
-msgstr ""
+msgstr "salasana"
 
 #: respa_exchange/models.py:40
 msgid "the user's password (stored as plain-text)"
@@ -1148,3 +1301,9 @@ msgstr ""
 #: users/models.py:16
 msgid "Favorite resources"
 msgstr "Suosikkiresurssit"
+
+#~ msgid "Varauksen tiedot"
+#~ msgstr "Booking information"
+
+#~ msgid "General Information"
+#~ msgstr "Yleiset tiedot"

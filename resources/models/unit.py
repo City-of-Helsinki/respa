@@ -54,7 +54,7 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
                                                                   null=True, blank=True)
 
     class Meta:
-        verbose_name = _("unit")
+        verbose_name = _("Unit")
         verbose_name_plural = _("units")
         permissions = _generate_unit_permissions()
         ordering = ('name',)

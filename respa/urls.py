@@ -38,6 +38,7 @@ router = RespaAPIRouter()
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^i18n/', include('django.conf.urls.i18n')),
     url(r'^ra/', include(respa_admin.urls, namespace='respa_admin')),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^grappelli/', include('grappelli.urls')),
