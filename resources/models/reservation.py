@@ -331,6 +331,9 @@ class Reservation(ModifiableModel):
                 reserver_name = self.user.get_display_name()
             context = {
                 'resource': self.resource.name,
+                'municipality_id': self.resource.unit.municipality.id if (
+                    self.resource.unit and
+                    self.resource.unit.municipality) else None,
                 'begin': localize_datetime(self.begin),
                 'end': localize_datetime(self.end),
                 'begin_dt': self.begin,

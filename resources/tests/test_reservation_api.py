@@ -8,6 +8,7 @@ from django.test.utils import override_settings
 from django.utils import dateparse, timezone, translation
 from guardian.shortcuts import assign_perm, remove_perm
 from freezegun import freeze_time
+from munigeo.models import Municipality
 from parler.utils.context import switch_language
 
 from caterings.models import CateringOrder, CateringProvider
@@ -1247,6 +1248,45 @@ def test_reservation_created_mail(user_api_client, list_url, reservation_data, u
         'Normal reservation created subject.',
         user.email,
         'Normal reservation created body.',
+    )
+
+
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
+@pytest.mark.parametrize('has_municipality', [True, False])
+def test_reservation_created_mail_with_municipality(
+        user_api_client,
+        list_url,
+        reservation_data,
+        user,
+        reservation_created_notification,
+        has_municipality,
+):
+    resource = Resource.objects.get(pk=reservation_data['resource'])
+    unit = resource.unit
+    helsinki = Municipality.objects.get_or_create(
+        id='helsinki', defaults={'name': 'Helsinki'})[0]
+    unit.municipality = helsinki if has_municipality else None
+    unit.save()
+
+    with switch_language(reservation_created_notification, 'en'):
+        reservation_created_notification.body = (
+            '{% if municipality_id == "helsinki" %}'
+            'Unit is in Helsinki.'
+            '{% else %}'
+            'Unit is elsewhere.'
+            '{% endif %}')
+        reservation_created_notification.save()
+
+    response = user_api_client.post(
+        list_url, data=reservation_data, format='json')
+    assert response.status_code == 201
+
+    assert len(mail.outbox) == 1
+    check_received_mail_exists(
+        'Normal reservation created subject.',
+        user.email,
+        ('Unit is in Helsinki.' if has_municipality else 'Unit is elsewhere.'),
     )
 
 
