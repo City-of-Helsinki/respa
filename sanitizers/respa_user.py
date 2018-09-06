@@ -5,7 +5,7 @@ def sanitize_username(value):
     """
     Sanitize Respa username.
 
-    None, empty sting and AnonymousUser will be returned as is.
+    None, empty string and AnonymousUser will be returned as is.
     Otherwise a sanitized value is generated.
 
     >>> sanitize_username('')
