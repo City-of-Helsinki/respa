@@ -52,7 +52,13 @@ def remove_secrets(data):
             fields['session_data'] = "!"
             model['pk'] = fake.md5()
 
-data = json.load(sys.stdin)
-anonymize_users(data)
-remove_secrets(data)
-json.dump(data, sys.stdout, indent=4)
+
+def main():
+    data = json.load(sys.stdin)
+    anonymize_users(data)
+    remove_secrets(data)
+    json.dump(data, sys.stdout, indent=4)
+
+
+if __name__ == '__main__':
+    main()
