@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-05 22:36+0300\n"
+"POT-Creation-Date: 2018-09-06 09:41+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1060,6 +1060,34 @@ msgstr ""
 msgid "Swedish"
 msgstr ""
 
+#: respa_admin/forms.py:128 respa_admin/templates/resources/form/_terms.html:24
+msgid "Yes"
+msgstr "Ja"
+
+#: respa_admin/forms.py:128
+msgid "No"
+msgstr "Ingen"
+
+#: respa_admin/forms.py:131
+msgid "Hidden"
+msgstr "Dold"
+
+#: respa_admin/forms.py:131
+msgid "Published"
+msgstr "Offentlig"
+
+#: respa_admin/forms.py:134
+msgid "Can not be reserved"
+msgstr "Kan inte reserveras"
+
+#: respa_admin/forms.py:134
+msgid "Bookable"
+msgstr "Kan reserveras"
+
+#: respa_admin/forms.py:173
+msgid "Please check the opening hours."
+msgstr "Kontrollera öppethållningstider"
+
 #: respa_admin/templates/common/_periods_accordion.html:13
 msgid "Copy time period"
 msgstr "Kopiera tidsperiod"
@@ -1079,6 +1107,14 @@ msgstr "Ta bort tidsperiod"
 #: respa_admin/templates/forms/_form_errors.html:5
 msgid "Tarkista seuraavat virheet"
 msgstr "Kontrollera följande fel"
+
+#: respa_admin/templates/forms/_image.html:7
+msgid "Choose image"
+msgstr "Välj bild"
+
+#: respa_admin/templates/forms/_image.html:18
+msgid "Remove image"
+msgstr "Radera bild"
 
 #: respa_admin/templates/forms/widgets/_checkbox.html:14
 msgid "Suljettu"
@@ -1197,10 +1233,6 @@ msgstr "Pris"
 #: respa_admin/templates/resources/form/_terms.html:20
 msgid "The space is free of charge"
 msgstr "Detta utrymme är gratis"
-
-#: respa_admin/templates/resources/form/_terms.html:24
-msgid "Yes"
-msgstr "Ja"
 
 #: respa_admin/templates/resources/form/_toolbar.html:5
 msgid "Functions"

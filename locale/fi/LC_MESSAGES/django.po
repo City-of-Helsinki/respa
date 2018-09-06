@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-05 22:36+0300\n"
+"POT-Creation-Date: 2018-09-06 09:41+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1059,6 +1059,34 @@ msgstr "englanti"
 msgid "Swedish"
 msgstr "ruotsi"
 
+#: respa_admin/forms.py:128 respa_admin/templates/resources/form/_terms.html:24
+msgid "Yes"
+msgstr "Kyllä"
+
+#: respa_admin/forms.py:128
+msgid "No"
+msgstr "Ei"
+
+#: respa_admin/forms.py:131
+msgid "Hidden"
+msgstr "Piilotettu"
+
+#: respa_admin/forms.py:131
+msgid "Published"
+msgstr "Julkaistu"
+
+#: respa_admin/forms.py:134
+msgid "Can not be reserved"
+msgstr "Ei varattavissa"
+
+#: respa_admin/forms.py:134
+msgid "Bookable"
+msgstr "Varattavissa"
+
+#: respa_admin/forms.py:173
+msgid "Please check the opening hours."
+msgstr "Tarkista aukioloajat."
+
 #: respa_admin/templates/common/_periods_accordion.html:13
 msgid "Copy time period"
 msgstr "Kopioi aikajakso"
@@ -1078,6 +1106,14 @@ msgstr "Poista ajanjakso"
 #: respa_admin/templates/forms/_form_errors.html:5
 msgid "Tarkista seuraavat virheet"
 msgstr "Check the following errors"
+
+#: respa_admin/templates/forms/_image.html:7
+msgid "Choose image"
+msgstr "Valitse kuva"
+
+#: respa_admin/templates/forms/_image.html:18
+msgid "Remove image"
+msgstr "Poista kuva"
 
 #: respa_admin/templates/forms/widgets/_checkbox.html:14
 msgid "Suljettu"
@@ -1126,8 +1162,6 @@ msgid "*Mandatory Fields"
 msgstr "*Pakolliset kentät"
 
 #: respa_admin/templates/resources/form/_general_info.html:18
-#, fuzzy
-#| msgid "Event description"
 msgid "Name and description"
 msgstr "Nimi ja kuvaus"
 
@@ -1196,10 +1230,6 @@ msgstr "Hinnoittelu"
 #: respa_admin/templates/resources/form/_terms.html:20
 msgid "The space is free of charge"
 msgstr "Tila on ilmainen"
-
-#: respa_admin/templates/resources/form/_terms.html:24
-msgid "Yes"
-msgstr "Kyllä"
 
 #: respa_admin/templates/resources/form/_toolbar.html:5
 msgid "Functions"
