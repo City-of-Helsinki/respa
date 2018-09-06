@@ -41,3 +41,5 @@ six
 django-reversion
 daemonize
 django-environ
+django-sanitized-dump>=0.2.0
+database-sanitizer>=0.4.0

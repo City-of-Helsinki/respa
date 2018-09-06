@@ -82,6 +82,16 @@ cd $HOME/respa
 ./manage.py respa_exchange_listen_notifications --log-file=$HOME/logs/exchange_sync.log --pid-file=$HOME/exchange_sync.pid --daemonize
 ```
 
+Creating sanitized database dump
+--------------------------------
+
+This project uses Django Sanitized Dump for database sanitation.  Issue
+the following management command on the server to create a sanitized
+database dump:
+
+    ./manage.py create_sanitized_dump > sanitized_db.sql
+
+
 Running tests
 -------------
 
