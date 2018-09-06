@@ -1,4 +1,6 @@
 {% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_available_languages as LANGUAGES %}
 
 <div class="panel panel-default form-nav-wrapper">
     <div class='container form-header-wrapper'>
@@ -10,18 +12,20 @@
                     </a>
                 </h2>
             </div>
-            <div class="language-switcher col-sm-6">
-                <div class='language-item btn'>
-                    Englanti <span class="badge">6</span>
+
+        <div class="col-sm-6" style="margin-top: 16px;">
+            <form action="{% url 'set_language' %}" method="post">
+                {% csrf_token %}
+                <div class="language-switcher col-sm-6">
+                    <input name="next" type="hidden" value="{{ redirect_to }}" />
+                    {% for lang in LANGUAGES %}
+                        <button name="language" type="submit" value="{{ lang.0 }}" class='language-item btn'>
+                            {{ lang.1 }} <span class="badge">-</span>
+                        </button>
+                    {% endfor %}
                 </div>
-                <div class='language-item btn'>
-                    Ruotsi <span class="badge">6</span>
-                </div>
-                <div class='language-item btn'>
-                    Suomi <span class="badge">6</span>
-                </div>
-                <span class='translation-label'>{% trans "Create new resource" %}</span>
-            </div>
+            </form>
+        </div>
         </div>
     </div>
     <nav class="navbar navbar-default">

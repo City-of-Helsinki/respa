@@ -14,13 +14,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
 from django.conf.urls import include, url
+from django.conf.urls.i18n import i18n_patterns
 from django.conf import settings
 from django.conf.urls.static import static
 from helusers import admin
 from django.views.generic.base import RedirectView
 
 import respa_admin.urls
-import resources.urls
 from resources.api import RespaAPIRouter
 from resources.views.images import ResourceImageView
 from resources.views.ical import ICalFeedView
@@ -39,7 +39,6 @@ router = RespaAPIRouter()
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^i18n/', include('django.conf.urls.i18n')),
-    url(r'^ra/', include(respa_admin.urls, namespace='respa_admin')),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^grappelli/', include('grappelli.urls')),
     url(r'^resource_image/(?P<pk>\d+)$', ResourceImageView.as_view(), name='resource-image-view'),
@@ -47,6 +46,10 @@ urlpatterns = [
     url(r'^v1/reservation/ical/(?P<ical_token>[-\w\d]+).ics$', ICalFeedView.as_view(), name='ical-feed'),
     url(r'^$', RedirectView.as_view(url='v1/')),
 ]
+
+urlpatterns += i18n_patterns(
+    url(r'^ra/', include(respa_admin.urls, namespace='respa_admin')),
+)
 
 if 'reports' in settings.INSTALLED_APPS:
     from reports.api import DailyReservationsReport, ReservationDetailsReport
