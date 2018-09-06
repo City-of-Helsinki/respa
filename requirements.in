@@ -24,7 +24,7 @@ django-hstore
 XlsxWriter
 icalendar
 pip-tools
-fake-factory
+Faker
 django-guardian
 Jinja2
 django-jinja
