@@ -79,6 +79,11 @@ function updatePeriodDaysIndices(periodIdNum) {
     $(day).each(function (inputIndex, inputRow) {
       let $inputCells = $(inputRow).find('input');
       let $selectCells = $(inputRow).find('select');
+      let $inputLabels = $(inputRow).find('label');
+
+      $inputLabels.each(function (cellIndex, cellInput) {
+        $(cellInput).attr('for', $(cellInput).attr('for').replace(/-(\d+)-(\d+)-/, '-' + periodIdNum + '-' + dayIndex + '-'));
+      });
 
       $inputCells.each(function (cellIndex, cellInput) {
         $(cellInput).attr('id', $(cellInput).attr('id').replace(/-(\d+)-(\d+)-/, '-' + periodIdNum + '-' + dayIndex + '-'));
@@ -168,8 +173,7 @@ function getDayValuesInterval(dateArray) {
     let day = dateArray[i].getDay();
 
     //The Javascript getDays() function's output does not correspond
-    //to the Django models weekday choices. Therefore this little hack
-    //was introduced.
+    //to the Django models weekday choices.
     if (day === 0) {
       day = 6;
     } else {

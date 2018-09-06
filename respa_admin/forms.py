@@ -3,7 +3,8 @@ from django.forms import inlineformset_factory
 
 from .widgets import (
     RespaRadioSelect,
-    RespaCheckboxSelect
+    RespaCheckboxSelect,
+    RespaCheckboxInput,
 )
 
 from resources.models import (
@@ -29,6 +30,10 @@ class DaysForm(forms.ModelForm):
             format='%H:%M',
             attrs={'class': 'text-input form-control', 'type': 'time'}
         )
+    )
+
+    closed = forms.NullBooleanField(
+        widget=RespaCheckboxInput,
     )
 
     class Meta:
