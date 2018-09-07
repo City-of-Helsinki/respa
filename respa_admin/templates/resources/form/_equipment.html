@@ -1,16 +1,17 @@
+{% load i18n %}
+
 <div id="equipment">
     <div class="form-section-header">
-        <h2>Tunnistautuminem, ehdot ja hinnat</h2>
-        <span class="pull-right">*Pakolliset kentät</span>
+        <h2>{% trans "Equipment" %}</h2>
+        <span class="pull-right">{% trans "*Mandatory fields" %}</span>
     </div>
-    <p>Valitse alla olevasta listasta...</p>
+    <p>{% trans "Choose from the list below" %}</p>
     <div class="technical">
-        <h4>Tekniikka</h4>
         {{ form.equipment }}
     </div>
     <div class="form-group equipment-info">
         <div class="textarea-wrapper">
-            <label class="control-label input-label" for="equipment-info">Varustelun lisätiedot</label>
+            <label class="control-label input-label" for="equipment-info">{% trans "Additional information" %}</label>
             {% include "forms/_textarea_input.html" with id="equipment-info" %}
         </div>
     </div>

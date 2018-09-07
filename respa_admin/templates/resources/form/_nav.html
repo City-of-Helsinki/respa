@@ -1,37 +1,43 @@
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_available_languages as LANGUAGES %}
+
 <div class="panel panel-default form-nav-wrapper">
     <div class='container form-header-wrapper'>
         <div class="container-fluid row form-header">
             <div class='form-title col-sm-6'>
                 <h2>
                     <a href="{% url 'respa_admin:new-resource' %}">
-                        <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>Luo uusi resurssi
+                        <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>{% trans "Create new resource" %}
                     </a>
                 </h2>
             </div>
-            <div class="language-switcher col-sm-6">
-                <div class='language-item btn'>
-                    Englanti <span class="badge">6</span>
+
+        <div class="col-sm-6" style="margin-top: 16px;">
+            <form action="{% url 'set_language' %}" method="post">
+                {% csrf_token %}
+                <div class="language-switcher col-sm-6">
+                    <input name="next" type="hidden" value="{{ redirect_to }}" />
+                    {% for lang in LANGUAGES %}
+                        <button name="language" type="submit" value="{{ lang.0 }}" class='language-item btn'>
+                            {{ lang.1 }} <span class="badge">-</span>
+                        </button>
+                    {% endfor %}
                 </div>
-                <div class='language-item btn'>
-                    Ruotsi <span class="badge">6</span>
-                </div>
-                <div class='language-item btn'>
-                    Suomi <span class="badge">6</span>
-                </div>
-                <span class='translation-label'>Käännokset</span>
-            </div>
+            </form>
+        </div>
         </div>
     </div>
     <nav class="navbar navbar-default">
         <div class="container">
             <div class="form-nav collapse navbar-collapse">
                 <ul class="nav navbar-nav">
-                    <li><a href="#general-info">Yleiset tiedot</a></li>
-                    <li><a href="#detail-booking">Varauksen tiedot</a></li>
-                    <li><a href="#opening-hours">Aukioloajat</a></li>
-                    <li><a href="#term-condition">Tunnistautuminem, ehdot ja hinta</a></li>
-                    <li><a href="#equipment">Varusteet</a></li>
-                    <li><a href="#add-picture">Kuvien lisäys</a></li>
+                    <li><a href="#general-info">{% trans "General information" %}</a></li>
+                    <li><a href="#detail-booking">{% trans "Booking information" %}</a></li>
+                    <li><a href="#opening-hours">{% trans "Opening hours" %}</a></li>
+                    <li><a href="#term-condition">{% trans "Authentication, terms and price" %}</a></li>
+                    <li><a href="#equipment">{% trans "Equipment" %}</a></li>
+                    <li><a href="#add-picture">{% trans "Images" %}</a></li>
                 </ul>
             </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->

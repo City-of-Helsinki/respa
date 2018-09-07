@@ -1,3 +1,4 @@
+from django.utils.translation import ugettext_lazy as _
 from django import forms
 from django.forms import inlineformset_factory
 
@@ -89,7 +90,7 @@ class ResourceForm(forms.ModelForm):
             'description',
             'purposes',
             'equipment',
-            'responsible_contact_info',  # These fields ought to be atomic.
+            'responsible_contact_info',  # TODO: these fields lack backend support.
             'people_capacity',
             'area',
             'min_period',
@@ -124,13 +125,13 @@ class ResourceForm(forms.ModelForm):
                 )
             ),
             'need_manual_confirmation': RespaRadioSelect(
-                choices=((True, 'Kyllä'), (False, 'Ei'))
+                choices=((True, _('Yes')), (False, _('No')))
             ),
             'public': forms.Select(
-                choices=((False, 'Piilotettu'), (True, 'Julkaistu'))
+                choices=((False, _('Hidden')), (True, _('Published')))
             ),
             'reservable': forms.Select(
-                choices=((False, 'Ei varattavissa'), (True, 'Varattavissa'))
+                choices=((False, _('Can not be reserved')), (True, _('Bookable')))
             ),
         }
 
@@ -169,7 +170,7 @@ class PeriodFormset(forms.BaseInlineFormSet):
         for form in self.forms:
             valid_days.append(form.days.is_valid())
             if not form.days.is_valid():
-                form.add_error(None, 'Tarkista aukioloajat.')
+                form.add_error(None, _('Please check the opening hours.'))
 
         return valid_form and all(valid_days)
 

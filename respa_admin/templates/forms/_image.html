@@ -1,8 +1,10 @@
+{% load i18n %}
+
 <button type="button"
         id="file-picker-{{ id }}"
         onclick="openFilePicker(this)"
         class="choose-picture-button">
-    Valitse kuva
+    {% trans "Choose image" %}
 </button>
 
 <input type="file"
@@ -13,7 +15,7 @@
 <button id="remove-image-{{ id }}"
         type="button"
         class="remove-picture-button">
-    Poista kuva
+    {% trans "Remove image" %}
 </button>
 
 {% if image %}

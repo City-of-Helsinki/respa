@@ -1,7 +1,9 @@
+{% load i18n %}
+
 <div id="term-condition">
     <div class="form-section-header">
-        <h2>Tunnistautuminem, ehdot ja hinnat</h2>
-        <span class="pull-right">*Pakolliset kentät</span>
+        <h2>{% trans "Authentication, terms and price" %}</h2>
+        <span class="pull-right">{% trans "*Mandatory fields" %}</span>
     </div>
     <div class="official-confirmation">
         <span class="control-label input-label">{{ form.need_manual_confirmation.label }}</span>
@@ -13,13 +15,13 @@
 
     {% include "forms/_textarea_input.html" with field=form.specific_terms %}
     <div class="pricing">
-        <h4>Hinnoittelu</h4>
+        <h4>{% trans "Pricing" %}</h4>
         <div class="price-confirm">
-            <span class="control-label input-label">Tila on maksuton</span>
+            <span class="control-label input-label">{% trans "The space is free of charge" %}</span>
             <div class="radio-group">
                 <div class="rdio rdio-primary radio-inline">
                     <input name="radio" value="true" id="radio-pricing-true" type="radio" checked>
-                    <label for="radio-pricing-true">Kyllä</label>
+                    <label for="radio-pricing-true">{% trans "Yes" %}</label>
                 </div>
                 <div class="rdio rdio-primary radio-inline">
                     <input name="radio" value="2" id="radio-pricing-false" type="radio">

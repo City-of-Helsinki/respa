@@ -1,6 +1,8 @@
+{% load i18n %}
+
 <div class="panel panel-default form-toolbar-wrapper">
     <div class='container form-toolbar'>
-        <span class="toolbar-label">Toiminnot:</span>
+        <span class="toolbar-label">{% trans "Functions" %}:</span>
         <div class='select-dropdown btn btn-primary'>
             {{ form.public }}
             <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
@@ -9,6 +11,6 @@
             {{ form.reservable }}
             <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
         </div>
-        <button class='btn btn-primary toolbar-save' type="submit">Tallenna</button>
+        <button class='btn btn-primary toolbar-save' type="submit">{% trans "Save" %}</button>
     </div>
 </div>
