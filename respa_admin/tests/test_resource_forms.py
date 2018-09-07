@@ -1,5 +1,4 @@
 import pytest
-from django.utils.translation import ugettext_lazy as _
 from django.test import RequestFactory
 from django.urls import reverse
 
