@@ -14,6 +14,7 @@ from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.validators import MinValueValidator
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.six import BytesIO
@@ -178,6 +179,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     generic_terms = models.ForeignKey(TermsOfUse, verbose_name=_('Generic terms'), null=True, blank=True,
                                       on_delete=models.SET_NULL)
     specific_terms = models.TextField(verbose_name=_('Specific terms'), blank=True)
+    reservation_requested_notification_extra = models.TextField(verbose_name=_('Extra content to reservation requested '
+                                                                               'notification'), blank=True)
     reservation_confirmed_notification_extra = models.TextField(verbose_name=_('Extra content to reservation confirmed '
                                                                                'notification'), blank=True)
     min_price_per_hour = models.DecimalField(verbose_name=_('Min price per hour'), max_digits=8, decimal_places=2,
@@ -629,7 +632,11 @@ class ResourceImage(ModifiableModel):
         else:  # All good -- keep the file as-is.
             self.image_format = img.format
 
-    # def get_upload_filename(image, filename): -- used to live here, but was dead code
+    def get_full_url(self):
+        base_url = getattr(settings, 'RESPA_IMAGE_BASE_URL', None)
+        if not base_url:
+            return None
+        return base_url.rstrip('/') + reverse('resource-image-view', args=[str(self.id)])
 
     def __str__(self):
         return "%s image for %s" % (self.get_type_display(), str(self.resource))

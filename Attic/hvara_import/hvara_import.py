@@ -221,34 +221,46 @@ def set_resource_mapping(resources):
 
         res['object'] = obj
 
-resources = import_resources()
-set_resource_mapping(resources)
-#determine_resource_mapping(resources)
-#exit()
-users = import_users()
-reservations = import_reservations(resources, users)
 
-#res_list = sorted([x for x in reservations.values()], key=lambda x: x['AlkuAika'])
-#for res in res_list:
-#    print("%s: %s -> %s: %s" % (res['resource']['Nimi'], res['AlkuAika'], res['LoppuAika'], res['user']['Mail']))
+def main():
+    resources = import_resources()
+    set_resource_mapping(resources)
+    #determine_resource_mapping(resources)
+    #exit()
+    users = import_users()
+    reservations = import_reservations(resources, users)
 
-import_attendees(reservations)
-import_catering(reservations)
-import_equipment(reservations)
+    #res_list = sorted([x for x in reservations.values()], key=lambda x: x['AlkuAika'])
+    #for res in res_list:
+    #    print("%s: %s -> %s: %s" % (res['resource']['Nimi'], res['AlkuAika'], res['LoppuAika'], res['user']['Mail']))
 
-user_objects_by_email = {}
+    import_attendees(reservations)
+    import_catering(reservations)
+    import_equipment(reservations)
+
+    user_objects_by_email = {}
+
+    catering_provider = CateringProvider.objects.first()
+    hvara_reservations = {x.origin_id: x for x in Reservation.objects.filter(origin_id__startswith='hvara:')}
+    missing_users = {}
+
+    save_reservations_and_print_stats(
+        reservations, resources, users, missing_users,
+        hvara_reservations, user_objects_by_email,
+        catering_provider)
+
 
 PAYER_FIELDS = [
     'MaksajaNimi', 'MaksajaOsoite', 'MaksajaPostiTmp', 'MaksajaPuhelin', 'MaksajaMomentti',
     'MaksajaSelite'
 ]
 
-catering_provider = CateringProvider.objects.first()
-hvara_reservations = {x.origin_id: x for x in Reservation.objects.filter(origin_id__startswith='hvara:')}
-missing_users = {}
 
-
-def save_reservation(data):
+def save_reservation(
+        data, hvara_reservations,
+        user_objects_by_email, missing_users,
+        catering_provider,
+):
     if not data['resource']['object']:
         return
 
@@ -313,7 +325,6 @@ def save_reservation(data):
         res.reserver_phone_number = ''
         res.user = None
 
-
     res._skip_notifications = True
     print(res)
     res.save()
@@ -332,9 +343,16 @@ def save_reservation(data):
 
 
 @transaction.atomic
-def save_reservations(reservations):
+def save_reservations(
+        reservations, hvara_reservations,
+        user_objects_by_email, missing_users,
+        catering_provider,
+):
     for res in reservations.values():
-        save_reservation(res)
+        save_reservation(
+            res, hvara_reservations,
+            user_objects_by_email, missing_users,
+            catering_provider)
         continue
 
         r2 = res.copy()
@@ -354,28 +372,41 @@ def save_reservations(reservations):
         #pprint(r2)
 
 
-save_reservations(reservations)
-print("Missing users")
-for email, count in missing_users.items():
-    print('%d\t%s' % (count, email))
-exit()
+def save_reservations_and_print_stats(
+        reservations, resources, users, missing_users,
+        hvara_reservations, user_objects_by_email,
+        catering_provider,
+):
+    save_reservations(
+        reservations, hvara_reservations,
+        user_objects_by_email, missing_users,
+        catering_provider,
+    )
+    print("Missing users")
+    for email, count in missing_users.items():
+        print('%d\t%s' % (count, email))
+    exit()
 
-resource_counts = []
-for res in resources.values():
-    if not res['reservation_count']:
-        continue
-    #print("%s: %s" % (user['Mail'], user['count']))
-    resource_counts.append((res['Nimi'], res['reservation_count']))
+    resource_counts = []
+    for res in resources.values():
+        if not res['reservation_count']:
+            continue
+        #print("%s: %s" % (user['Mail'], user['count']))
+        resource_counts.append((res['Nimi'], res['reservation_count']))
 
-for m, c in sorted(resource_counts, key=lambda x: x[1], reverse=True):
-    print("%s\t%s" % (c, m))
+    for m, c in sorted(resource_counts, key=lambda x: x[1], reverse=True):
+        print("%s\t%s" % (c, m))
 
-users_and_counts = []
-for user in users.values():
-    if not user['count']:
-        continue
-    #print("%s: %s" % (user['Mail'], user['count']))
-    users_and_counts.append((user['Mail'], user['count']))
+    users_and_counts = []
+    for user in users.values():
+        if not user['count']:
+            continue
+        #print("%s: %s" % (user['Mail'], user['count']))
+        users_and_counts.append((user['Mail'], user['count']))
 
-for m, c in sorted(users_and_counts, key=lambda x: x[1], reverse=True):
-    print("%s\t%s" % (m, c))
+    for m, c in sorted(users_and_counts, key=lambda x: x[1], reverse=True):
+        print("%s\t%s" % (m, c))
+
+
+if __name__ == '__main__':
+    main()

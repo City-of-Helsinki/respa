@@ -35,7 +35,7 @@ before_script:
   - psql template1 -c 'create extension hstore;'
   - ./build-resources
 
-script: pytest --cov .
+script: pytest --cov . --doctest-modules
 
 after_success:
   - codecov

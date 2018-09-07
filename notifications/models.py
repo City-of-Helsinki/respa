@@ -3,6 +3,7 @@ import logging
 from django.conf import settings
 from django.db import models
 from django.utils import translation
+from django.utils.html import strip_tags
 from django.utils.translation import ugettext_lazy as _
 from django.utils.formats import date_format
 from jinja2 import StrictUndefined
@@ -63,7 +64,10 @@ class NotificationTemplate(TranslatableModel):
         subject=models.CharField(
             verbose_name=_('Subject'), max_length=200, help_text=_('Subject for email notifications')
         ),
-        body=models.TextField(verbose_name=_('body'), help_text=_('Text body for email notifications'))
+        body=models.TextField(verbose_name=_('Body'), help_text=_('Text body for email notifications'), blank=True),
+        html_body=models.TextField(
+            verbose_name=_('HTML body'), help_text=_('HTML body for email notifications'), blank=True,
+        )
     )
 
     class Meta:
@@ -82,7 +86,7 @@ class NotificationTemplate(TranslatableModel):
 
         Returns a dict containing all content fields of the template. Example:
 
-        {'short_message': 'foo', 'subject': 'bar', 'body': 'baz'}
+        {'short_message': 'foo', 'subject': 'bar', 'body': 'baz', 'html_body': '<b>foobar</b>'}
 
         """
 
@@ -94,10 +98,16 @@ class NotificationTemplate(TranslatableModel):
         logger.debug('Rendering template for notification %s' % self.type)
         with switch_language(self, language_code):
             try:
-                return {
+                rendered_notification = {
                     attr: env.from_string(getattr(self, attr)).render(context)
-                    for attr in ('short_message', 'subject', 'body')
+                    for attr in ('short_message', 'subject', 'html_body')
                 }
+                if self.body:
+                    rendered_notification['body'] = env.from_string(self.body).render(context)
+                else:
+                    # if text body is empty use html body without tags as text body
+                    rendered_notification['body'] = strip_tags(rendered_notification['html_body'])
+                return rendered_notification
             except TemplateError as e:
                 raise NotificationTemplateException(e) from e
 

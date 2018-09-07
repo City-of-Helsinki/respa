@@ -2,6 +2,7 @@ import pytest
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.core import mail
+from django.test.utils import override_settings
 from guardian.shortcuts import assign_perm
 
 from caterings.models import CateringOrder
@@ -118,7 +119,7 @@ def test_comment_endpoints_get(user_api_client, user, catering_order_comment, en
     assert data['text'] == 'test catering order comment text'
 
 
-@pytest.mark.xfail
+@override_settings(RESPA_MAILS_ENABLED=True)
 @pytest.mark.django_db
 def test_reservation_comment_create(user_api_client, user, staff_user, reservation, new_reservation_comment_data):
     COMMENT_CREATED_BODY = """Target type: {{ target_type }}
@@ -366,10 +367,11 @@ def test_non_commentable_model_comments_hidden(user_api_client, resource_group, 
     assert not response.data['results']
 
 
-@pytest.mark.xfail
+@override_settings(RESPA_MAILS_ENABLED=True)
 @pytest.mark.django_db
-def test_catering_order_comment_create(user_api_client, user, staff_user, catering_order,
-                                       new_catering_order_comment_data):
+def test_catering_order_comment_create2(
+        user_api_client, user, staff_user, catering_order,
+        new_catering_order_comment_data):
     COMMENT_CREATED_BODY = """Target type: {{ target_type }}
 Created by: {{ created_by.display_name }}
 Created at: {{ created_at|format_datetime }}

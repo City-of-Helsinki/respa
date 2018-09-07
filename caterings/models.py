@@ -145,7 +145,12 @@ class CateringOrder(TimeStampedModel):
             logger.error(e, exc_info=True, extra={'request': request})
             return
 
-        send_respa_mail(email, rendered_notification['subject'], rendered_notification['body'])
+        send_respa_mail(
+            email,
+            rendered_notification['subject'],
+            rendered_notification['body'],
+            rendered_notification['html_body']
+        )
 
     def send_created_notification(self, request=None):
         self._send_notification(NotificationType.CATERING_ORDER_CREATED, request)
