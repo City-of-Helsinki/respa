@@ -7,14 +7,12 @@
                 <div class='select-dropdown btn btn-primary'>
                     <select>
                         <option>Tyyppi</option>
-                        <option>Something long</option>
                     </select>
                     <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
                 </div>
                 <div class='select-dropdown btn btn-primary'>
                     <select>
                         <option>Toimipaikka</option>
-                        <option>Something long</option>
                     </select>
                     <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
                 </div>
@@ -37,7 +35,15 @@
                 {% for resource in resources %}
                 <li class="list-group-item">
                     <div class='panel panel-default'>
-                        <img class="img-rounded pull-left" src="https://picsum.photos/400/300/?random" alt="random image">
+                        <img
+                            class="img-rounded pull-left"
+                            alt=""
+                            src={% if resource.main_image %}
+                                    "{{ resource.main_image.url }}"
+                                {% else %}
+                                    ""
+                                {% endif %}
+                        >
                         <div class="panel-body">
                             <div class="col-2">
                                 <a href="{% url 'respa_admin:edit-resource' resource_id=resource.id %}">

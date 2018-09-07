@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.db import models
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
@@ -25,10 +26,13 @@ class ResourceListView(ListView):
 
     def get_queryset(self):
         qs = super(ResourceListView, self).get_queryset()
+
         query = self.request.GET.get('q')
-        print(bool(query))
         if query:
             qs = qs.filter(name__icontains=query)
+
+        qs = qs.prefetch_related('images', 'unit')
+
         return qs
 
 
