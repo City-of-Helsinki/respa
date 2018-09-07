@@ -87,6 +87,8 @@ INSTALLED_APPS = [
 
     'respa_exchange',
     'respa_admin',
+
+    'sanitized_dump',
 ]
 
 if env('SENTRY_DSN'):

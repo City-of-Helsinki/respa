@@ -8,6 +8,8 @@ from django.test.utils import override_settings
 from django.utils import dateparse, timezone, translation
 from guardian.shortcuts import assign_perm, remove_perm
 from freezegun import freeze_time
+from parler.utils.context import switch_language
+
 from caterings.models import CateringOrder, CateringProvider
 
 from resources.models import (Period, Day, Reservation, Resource, ResourceGroup, ReservationMetadataField,
@@ -1250,11 +1252,102 @@ def test_reservation_created_mail(user_api_client, list_url, reservation_data, u
 
 @override_settings(RESPA_MAILS_ENABLED=True)
 @pytest.mark.django_db
+def test_reservation_html_mail(user_api_client, list_url, reservation_data, user, reservation_created_notification):
+    with switch_language(reservation_created_notification, 'en'):
+        reservation_created_notification.html_body = '<b>HTML</b> body'
+        reservation_created_notification.save()
+
+    response = user_api_client.post(list_url, data=reservation_data, format='json')
+    assert response.status_code == 201
+
+    assert len(mail.outbox) == 1
+    check_received_mail_exists(
+        'Normal reservation created subject.',
+        user.email,
+        'Normal reservation created body.',
+        html_body='<b>HTML</b> body',
+    )
+
+
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
+def test_reservation_mail_empty_text_body_should_become_html_body_without_tags(user_api_client, list_url,
+                                                                               reservation_data, user,
+                                                                               reservation_created_notification):
+    with switch_language(reservation_created_notification, 'en'):
+        reservation_created_notification.body = ''
+        reservation_created_notification.html_body = '<b>HTML</b> body'
+        reservation_created_notification.save()
+
+    response = user_api_client.post(list_url, data=reservation_data, format='json')
+    assert response.status_code == 201
+
+    assert len(mail.outbox) == 1
+    check_received_mail_exists(
+        'Normal reservation created subject.',
+        user.email,
+        'HTML body',
+        html_body='<b>HTML</b> body',
+    )
+
+
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
+def test_reservation_mail_can_have_subject_only(user_api_client, list_url, reservation_data, user,
+                                                reservation_created_notification):
+    with switch_language(reservation_created_notification, 'en'):
+        reservation_created_notification.body = ''
+        reservation_created_notification.html_body = ''
+        reservation_created_notification.save()
+
+    response = user_api_client.post(list_url, data=reservation_data, format='json')
+    assert response.status_code == 201
+
+    assert len(mail.outbox) == 1
+    check_received_mail_exists(
+        'Normal reservation created subject.',
+        user.email,
+        '',
+        html_body='',
+        clear_outbox=False,
+    )
+    assert mail.outbox[0].body == ''
+
+
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
 def test_reservation_mail_can_be_disabled(user_api_client, list_url, reservation_data):
     response = user_api_client.post(list_url, data=reservation_data, format='json')
     assert response.status_code == 201
 
     assert len(mail.outbox) == 0
+
+
+@override_settings(RESPA_MAILS_ENABLED=True, RESPA_IMAGE_BASE_URL='https://foo.bar/baz/')
+@pytest.mark.django_db
+def test_reservation_mail_images(user_api_client, user, list_url, reservation_data, resource_in_unit,
+                                 reservation_created_notification):
+    from resources.models.resource import ResourceImage
+
+    with switch_language(reservation_created_notification, 'en'):
+        reservation_created_notification.body = 'image url: {{ resource_main_image_url }}'
+        reservation_created_notification.html_body = 'image: <img src="{{ resource_ground_plan_image_url }}">'
+        reservation_created_notification.save()
+
+    main_image = ResourceImage.objects.create(resource=resource_in_unit, type='main')
+    ResourceImage.objects.create(resource=resource_in_unit, type='ground_plan')
+    last_ground_plan_image = ResourceImage.objects.create(resource=resource_in_unit, type='ground_plan')
+
+    response = user_api_client.post(list_url, data=reservation_data, format='json')
+    assert response.status_code == 201
+
+    assert len(mail.outbox) == 1
+    check_received_mail_exists(
+        'Normal reservation created subject.',
+        user.email,
+        'image url: https://foo.bar/baz/resource_image/{}'.format(main_image.id),
+        html_body='image: <img src="https://foo.bar/baz/resource_image/{}">'.format(last_ground_plan_image.id),
+    )
 
 
 @pytest.mark.parametrize('perm_type', ['unit', 'resource_group'])

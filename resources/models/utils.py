@@ -99,7 +99,7 @@ def humanize_duration(duration):
 notification_logger = logging.getLogger('respa.notifications')
 
 
-def send_respa_mail(email_address, subject, body):
+def send_respa_mail(email_address, subject, body, html_body=None):
     if not getattr(settings, 'RESPA_MAILS_ENABLED', False):
         return
 
@@ -107,7 +107,7 @@ def send_respa_mail(email_address, subject, body):
                     'noreply@%s' % Site.objects.get_current().domain)
 
     notification_logger.info('Sending notification email to %s: "%s"' % (email_address, subject))
-    send_mail(subject, body, from_address, [email_address])
+    send_mail(subject, body, from_address, [email_address], html_message=html_body)
 
 
 def generate_reservation_xlsx(reservations):

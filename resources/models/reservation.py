@@ -322,7 +322,7 @@ class Reservation(ModifiableModel):
         if self.access_code:
             validate_access_code(self.access_code, self.resource.access_code_type)
 
-    def get_notification_context(self, language_code, user=None):
+    def get_notification_context(self, language_code, user=None, notification_type=None):
         if not user:
             user = self.user
         with translation.override(language_code):
@@ -345,8 +345,29 @@ class Reservation(ModifiableModel):
                 context['unit'] = self.resource.unit.name
             if self.can_view_access_code(user) and self.access_code:
                 context['access_code'] = self.access_code
-            if self.resource.reservation_confirmed_notification_extra:
-                context['extra_content'] = self.resource.reservation_confirmed_notification_extra
+
+            if notification_type == NotificationType.RESERVATION_CONFIRMED:
+                if self.resource.reservation_confirmed_notification_extra:
+                    context['extra_content'] = self.resource.reservation_confirmed_notification_extra
+            elif notification_type == NotificationType.RESERVATION_REQUESTED:
+                if self.resource.reservation_requested_notification_extra:
+                    context['extra_content'] = self.resource.reservation_requested_notification_extra
+
+            # Get last main and ground plan images. Normally there shouldn't be more than one of each
+            # of those images.
+            images = self.resource.images.filter(type__in=('main', 'ground_plan')).order_by('-sort_order')
+            main_image = next((i for i in images if i.type == 'main'), None)
+            ground_plan_image = next((i for i in images if i.type == 'ground_plan'), None)
+
+            if main_image:
+                main_image_url = main_image.get_full_url()
+                if main_image_url:
+                    context['resource_main_image_url'] = main_image_url
+            if ground_plan_image:
+                ground_plan_image_url = ground_plan_image.get_full_url()
+                if ground_plan_image_url:
+                    context['resource_ground_plan_image_url'] = ground_plan_image_url
+
         return context
 
     def send_reservation_mail(self, notification_type, user=None):
@@ -369,7 +390,7 @@ class Reservation(ModifiableModel):
             user = self.user
 
         language = user.get_preferred_language() if user else DEFAULT_LANG
-        context = self.get_notification_context(language)
+        context = self.get_notification_context(language, notification_type=notification_type)
 
         try:
             rendered_notification = notification_template.render(context, language)
@@ -377,7 +398,12 @@ class Reservation(ModifiableModel):
             logger.error(e, exc_info=True, extra={'user': user.uuid})
             return
 
-        send_respa_mail(email_address, rendered_notification['subject'], rendered_notification['body'])
+        send_respa_mail(
+            email_address,
+            rendered_notification['subject'],
+            rendered_notification['body'],
+            rendered_notification['html_body']
+        )
 
     def send_reservation_requested_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_REQUESTED)
