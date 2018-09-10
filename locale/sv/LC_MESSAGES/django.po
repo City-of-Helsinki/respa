@@ -244,16 +244,12 @@ msgid "Text body for email notifications"
 msgstr "Text för e-post notifikationer"
 
 #: notifications/models.py:69
-#, fuzzy
-#| msgid "body"
 msgid "HTML body"
-msgstr "text"
+msgstr "HTML text"
 
 #: notifications/models.py:69
-#, fuzzy
-#| msgid "Text body for email notifications"
 msgid "HTML body for email notifications"
-msgstr "Text för e-post notifikationer"
+msgstr "HTML text för e-post notifikationer"
 
 #: notifications/models.py:74
 msgid "Notification template"
@@ -863,10 +859,8 @@ msgid "Specific terms"
 msgstr "Specifika villkor"
 
 #: resources/models/resource.py:182
-#, fuzzy
-#| msgid "Extra content to reservation confirmed notification"
 msgid "Extra content to reservation requested notification"
-msgstr "Extra innehåll till reservation bekräftad anmälan"
+msgstr "Extra innehåll till reservation begärd anmälan"
 
 #: resources/models/resource.py:184
 msgid "Extra content to reservation confirmed notification"
