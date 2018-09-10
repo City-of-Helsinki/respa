@@ -1,5 +1,4 @@
 from django.contrib import messages
-from django.db import models
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
@@ -9,7 +8,14 @@ from django.views.generic import (
     ListView,
 )
 
-from resources.models import Resource, Period, Day, ResourceImage
+from resources.models import (
+    Resource,
+    Period,
+    Day,
+    ResourceImage,
+    ResourceType,
+    Unit,
+)
 
 from respa_admin.forms import (
     get_period_formset,
@@ -24,12 +30,27 @@ class ResourceListView(ListView):
     context_object_name = 'resources'
     template_name = 'page_resources.html'
 
+    def get_context_data(self, **kwargs):
+        context = super(ResourceListView, self).get_context_data()
+        context['types'] = ResourceType.objects.all()
+        context['units'] = Unit.objects.filter()
+        return context
+
     def get_queryset(self):
         qs = super(ResourceListView, self).get_queryset()
 
-        query = self.request.GET.get('q')
-        if query:
-            qs = qs.filter(name__icontains=query)
+        search_query = self.request.GET.get('search_query')
+        resource_type = self.request.GET.get('resource_type')
+        resource_unit = self.request.GET.get('resource_unit')
+
+        print(self.request.GET)
+
+        if search_query:
+            qs = qs.filter(name__icontains=search_query)
+        if resource_type:
+            qs = qs.filter(type=resource_type)
+        if resource_unit:
+            qs = qs.filter(unit=resource_unit)
 
         qs = qs.prefetch_related('images', 'unit')
 
