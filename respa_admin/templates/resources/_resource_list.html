@@ -4,9 +4,9 @@
     <div class='container'>
 
         <div class='filter-bar container-fluid'>
-            <h2 class="pull-left">Kaikki Resurssit</h2>
+            <h2 class="pull-left">{% trans 'All resources' %}</h2>
             <div class='filter pull-right'>
-                <span class="dropdowns-label">Suodata:</span>
+                <span class="dropdowns-label">{% trans 'Filter' %}:</span>
 
                 <div class='select-dropdown btn btn-primary'>
                     <form name="type-dropdown" action="." method="get">
@@ -40,13 +40,13 @@
                 <li class="list-group-item sort-bar">
                     <div class='pull-left empty-holder col-1'></div>
                     <button class="col-2 btn">
-                        Nimi <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
+                        {% trans 'Name' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
                     </button>
                     <button class="col-3 btn">
-                        Varaustilanne <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
+                        {% trans 'Availability' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
                     </button>
                     <button class="col-4 btn">
-                        Tilan näkyvyys <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
+                        {% trans 'Visibility' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
                     </button>
                 </li>
                 {% for resource in resources %}
@@ -69,7 +69,7 @@
                                     </a>
                                 </div>
                                 <div class="col-3">
-                                    <h6> <div class='shape-success'></div> Varatavissa</h6>
+                                    <h6> <div class='shape-success'></div> {% trans 'Bookable' %}</h6>
                                 </div>
                                 <div class="col-4">
                                     <h6>
@@ -80,7 +80,7 @@
                                 <div class="col-5">
                                     <h6>
                                         <span class='glyphicon glyphicon-pencil icon-left' aria-hidden="true"></span>
-                                        <a href="{% url 'respa_admin:edit-resource' resource_id=resource.id %}">Muokkaa</a>
+                                        <a href="{% url 'respa_admin:edit-resource' resource_id=resource.id %}">{% trans 'Edit' %}</a>
                                     </h6>
                                 </div>
                             </div>
