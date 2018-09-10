@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-06 09:41+0300\n"
+"POT-Creation-Date: 2018-09-10 09:24+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -78,7 +78,7 @@ msgid "Category"
 msgstr "Kategoria"
 
 #: caterings/models.py:64 resources/models/availability.py:119
-#: resources/models/resource.py:158 resources/models/unit.py:30
+#: resources/models/resource.py:159 resources/models/unit.py:30
 msgid "Description"
 msgstr "Kuvaus"
 
@@ -384,11 +384,11 @@ msgid "-"
 msgstr ""
 
 #: resources/models/availability.py:110 resources/models/reservation.py:95
-#: resources/models/resource.py:562
+#: resources/models/resource.py:565
 msgid "Resource"
 msgstr "Resurssi"
 
-#: resources/models/availability.py:112 resources/models/resource.py:152
+#: resources/models/availability.py:112 resources/models/resource.py:153
 #: resources/models/unit.py:57 resources/models/unit.py:96
 msgid "Unit"
 msgstr "Toimipiste"
@@ -794,7 +794,7 @@ msgstr "6-numeroinen pin-koodi"
 msgid "Resource type"
 msgstr "Resurssityyppi"
 
-#: resources/models/resource.py:156
+#: resources/models/resource.py:157
 #: respa_admin/templates/resources/form/_general_info.html:13
 msgid "Purposes"
 msgstr "Käyttötarkoitukset"
@@ -827,9 +827,9 @@ msgstr "Lyhin varausaika"
 msgid "Maximum reservation time"
 msgstr "Pisin varausaika"
 
-#: resources/models/resource.py:172
+#: resources/models/resource.py:173
 #: respa_admin/templates/resources/form/_equipment.html:5
-#: respa_admin/templates/resources/form/_nav.html:35
+#: respa_admin/templates/resources/form/_nav.html:39
 msgid "Equipment"
 msgstr "Varustelut"
 
@@ -1059,15 +1059,15 @@ msgstr "Lisää toinen"
 msgid "Delete Item"
 msgstr "Poista"
 
-#: respa/settings.py:161
+#: respa/settings.py:163
 msgid "Finnish"
 msgstr "suomi"
 
-#: respa/settings.py:162
+#: respa/settings.py:164
 msgid "English"
 msgstr "englanti"
 
-#: respa/settings.py:163
+#: respa/settings.py:165
 msgid "Swedish"
 msgstr "ruotsi"
 
@@ -1133,7 +1133,7 @@ msgstr "Closed"
 
 #: respa_admin/templates/resources/form/_booking.html:5
 #: respa_admin/templates/resources/form/_booking.html:22
-#: respa_admin/templates/resources/form/_nav.html:32
+#: respa_admin/templates/resources/form/_nav.html:36
 msgid "Booking information"
 msgstr "Varauksen tiedot"
 
@@ -1165,7 +1165,7 @@ msgid "Additional information"
 msgstr "Lisätideot"
 
 #: respa_admin/templates/resources/form/_general_info.html:5
-#: respa_admin/templates/resources/form/_nav.html:31
+#: respa_admin/templates/resources/form/_nav.html:35
 msgid "General information"
 msgstr "Yleiset tiedot"
 
@@ -1200,7 +1200,7 @@ msgid "E-mail"
 msgstr "Sähköpostiosoite"
 
 #: respa_admin/templates/resources/form/_images.html:5
-#: respa_admin/templates/resources/form/_nav.html:36
+#: respa_admin/templates/resources/form/_nav.html:40
 msgid "Images"
 msgstr "Kuva"
 
@@ -1212,17 +1212,16 @@ msgstr "Voit valita vain yhden pääkuvan."
 msgid "Add image"
 msgstr "Lisää kuva"
 
-#: respa_admin/templates/resources/form/_nav.html:9
-#: respa_admin/templates/resources/form/_nav.html:23
+#: respa_admin/templates/resources/form/_nav.html:11
 msgid "Create new resource"
 msgstr "Luo uusi resurssi"
 
-#: respa_admin/templates/resources/form/_nav.html:33
+#: respa_admin/templates/resources/form/_nav.html:37
 #: respa_admin/templates/resources/form/_periods.html:5
 msgid "Opening hours"
 msgstr "Aukioloajat"
 
-#: respa_admin/templates/resources/form/_nav.html:34
+#: respa_admin/templates/resources/form/_nav.html:38
 #: respa_admin/templates/resources/form/_terms.html:5
 msgid "Authentication, terms and price"
 msgstr "Tunnistautuminen, ehdot ja hinta"
