@@ -96,6 +96,39 @@ def test_permissions(permission_func, scope, role_allowances):
                     exp=allowed, actl=result))
 
 
+@pytest.mark.django_db
+def test_can_modify_resource_matches_queryset():
+    res_x = get_resource('X')
+    res_y = get_resource('Y')
+    res_z = get_resource('Z')
+
+    user_su = get_user('SU')
+    user_ga = get_user('GA')
+    user_um_x = get_user('UM', res_x.unit)
+    user_um_x_y = get_user('UM', res_x.unit, res_y.unit)
+    user_um_z = get_user('UM', res_z.unit)
+    user_norm = get_user('N')
+    user_anon = get_user('A')
+
+    access_matrix = [
+        (user_su, [res_x, res_y, res_z]),
+        (user_ga, [res_x, res_y, res_z]),
+        (user_um_x, [res_x]),
+        (user_um_x_y, [res_x, res_y]),
+        (user_um_z, [res_z]),
+        (user_norm, []),
+        (user_anon, []),
+    ]
+
+    for (user, resources) in access_matrix:
+        modifiable_by = Resource.objects.modifiable_by(user)
+        for resource in modifiable_by:
+            assert perm.can_modify_resource(user, resource)
+        for resource in Resource.objects.exclude(pk__in=modifiable_by):
+            assert not perm.can_modify_resource(user, resource)
+        assert {x.pk for x in modifiable_by} == {x.pk for x in resources}
+
+
 def get_resource(name):
     resource_type = ResourceType.objects.get_or_create(
         main_type='space', name='space')[0]
@@ -109,11 +142,13 @@ def get_resource(name):
     return resource
 
 
-def get_user(role, unit):
-    username = '{}-{}'.format(role.lower(), unit.name.lower())
+def get_user(role, *units):
+    units_str = '_'.join(unit.name.lower() for unit in units)
+    username = '{}-{}'.format(role.lower(), units_str)
     user = User.objects.create_user(
         username=username, password='password',
-        first_name=role, last_name=unit.name)
+        first_name=role, last_name=units_str)
+
     if role == 'SU':
         user.is_superuser = True
         user.save()
@@ -123,22 +158,25 @@ def get_user(role, unit):
         user.save()
     elif role == 'UGA':
         user.is_staff = True
-        user.unit_group_authorizations.create(
-            subject=unit.unit_groups.first(),
-            level=UnitGroupAuthorizationLevel.admin,
-            authorized=user)
+        for unit in units:
+            user.unit_group_authorizations.create(
+                subject=unit.unit_groups.first(),
+                level=UnitGroupAuthorizationLevel.admin,
+                authorized=user)
     elif role == 'UA':
         user.is_staff = True
-        user.unit_authorizations.create(
-            subject=unit,
-            level=UnitAuthorizationLevel.admin,
-            authorized=user)
+        for unit in units:
+            user.unit_authorizations.create(
+                subject=unit,
+                level=UnitAuthorizationLevel.admin,
+                authorized=user)
     elif role == 'UM':
         user.is_staff = True
-        user.unit_authorizations.create(
-            subject=unit,
-            level=UnitAuthorizationLevel.manager,
-            authorized=user)
+        for unit in units:
+            user.unit_authorizations.create(
+                subject=unit,
+                level=UnitAuthorizationLevel.manager,
+                authorized=user)
     elif role == 'N':
         pass
     elif role == 'A':
