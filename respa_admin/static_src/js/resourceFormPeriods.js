@@ -1,4 +1,4 @@
-import { getEmptyDayItem, getEmptyPeriodItem } from "./form";
+import { getEmptyDayItem, getEmptyPeriodItem } from "./resourceForm";
 
 /*
 * Iterate all periods and update their input indices.

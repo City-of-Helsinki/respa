@@ -1,5 +1,5 @@
-import { addNewImage, removeImage, updateImagesTotalForms } from './images';
-import { addNewPeriod, updateTotalDays, updatePeriodsTotalForms, removePeriod, modifyDays } from './periods';
+import { addNewImage, removeImage, updateImagesTotalForms } from './resourceFormImages';
+import { addNewPeriod, updateTotalDays, updatePeriodsTotalForms, removePeriod, modifyDays } from './resourceFormPeriods';
 
 let emptyImageItem = null;
 let emptyPeriodItem = null;

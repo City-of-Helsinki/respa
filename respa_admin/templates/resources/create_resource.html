@@ -1,4 +1,5 @@
 {% extends "_base.html" %}
+{% load staticfiles %}
 
 {% block form_nav %}
     {% include "resources/form/_nav.html" %}
@@ -29,4 +30,6 @@
             </div>
         </form>
     </div>
+
+    <script type="text/javascript" src="{% static 'dist/resourceForm-bundle.js' %}"></script>
 {% endblock body %}
