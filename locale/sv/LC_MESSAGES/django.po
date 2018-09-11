@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-10 16:02+0300\n"
+"POT-Creation-Date: 2018-09-11 12:56+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -245,16 +245,12 @@ msgid "Text body for email notifications"
 msgstr "Text för e-post notifikationer"
 
 #: notifications/models.py:69
-#, fuzzy
-#| msgid "body"
 msgid "HTML body"
-msgstr "text"
+msgstr "HTML text"
 
 #: notifications/models.py:69
-#, fuzzy
-#| msgid "Text body for email notifications"
 msgid "HTML body for email notifications"
-msgstr "Text för e-post notifikationer"
+msgstr "HTML text för e-post notifikationer"
 
 #: notifications/models.py:74
 msgid "Notification template"
@@ -863,15 +859,13 @@ msgstr "Allmänna villkor"
 msgid "Specific terms"
 msgstr "Specifika villkor"
 
-#: resources/models/resource.py:183
-#, fuzzy
-#| msgid "Extra content to reservation confirmed notification"
-msgid "Extra content to reservation requested notification"
-msgstr "Extra innehåll till reservation bekräftad anmälan"
+#: resources/models/resource.py:184
+msgid "Extra content to \"reservation requested\" notification"
+msgstr "Extra innehåll till \"reservation begärd\" anmälan"
 
-#: resources/models/resource.py:185
-msgid "Extra content to reservation confirmed notification"
-msgstr "Extra innehåll till reservation bekräftad anmälan"
+#: resources/models/resource.py:186
+msgid "Extra content to \"reservation confirmed\" notification"
+msgstr "Extra innehåll till \"reservation godkänd\" anmälan"
 
 #: resources/models/resource.py:187
 msgid "Min price per hour"

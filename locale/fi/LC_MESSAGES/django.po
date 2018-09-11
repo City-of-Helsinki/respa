@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-10 16:02+0300\n"
+"POT-Creation-Date: 2018-09-11 12:56+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -858,13 +858,13 @@ msgstr "Yleiset ehdot"
 msgid "Specific terms"
 msgstr "Resurssikohtaiset ehdot"
 
-#: resources/models/resource.py:183
-msgid "Extra content to reservation requested notification"
-msgstr "Lisäsisältö alustava varaus -ilmoitukseen"
+#: resources/models/resource.py:184
+msgid "Extra content to \"reservation requested\" notification"
+msgstr "Lisäsisältö \"alustava varaus\"-ilmoitukseen"
 
-#: resources/models/resource.py:185
-msgid "Extra content to reservation confirmed notification"
-msgstr "Lisäsisältö varaus hyväksytty -ilmoitukseen"
+#: resources/models/resource.py:186
+msgid "Extra content to \"reservation confirmed\" notification"
+msgstr "Lisäsisältö \"varaus vahvistettu\"-ilmoitukseen"
 
 #: resources/models/resource.py:187
 msgid "Min price per hour"
