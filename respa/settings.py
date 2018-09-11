@@ -31,11 +31,14 @@ environ.Env.read_env()
 
 BASE_DIR = root()
 
+DEBUG_TOOLBAR_CONFIG = {
+    'RESULTS_CACHE_SIZE': 100,
+}
 DEBUG = env('DEBUG')
 ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 ADMINS = env('ADMINS')
-INTERNAL_IPS = env('INTERNAL_IPS')
-
+INTERNAL_IPS = env.list('INTERNAL_IPS',
+                        default=(['127.0.0.1'] if DEBUG else []))
 DATABASES = {
     'default': env.db()
 }
