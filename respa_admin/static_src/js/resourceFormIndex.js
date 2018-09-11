@@ -1,4 +1,3 @@
-import '../styles/base.scss';
 import { initializeEventHandlers, setClonableItems }  from './resourceForm';
 
 function start() {
