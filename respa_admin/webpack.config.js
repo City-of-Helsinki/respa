@@ -8,9 +8,11 @@ const CssRule = {
 };
 
 module.exports = {
-  entry: './static_src/js/index.js',
+  entry: {
+    resourceForm: './static_src/js/resourceFormIndex.js',
+  },
   output: {
-    filename: 'bundle.js',
+    filename: '[name]-bundle.js',
     path: path.resolve(__dirname, './static/dist/'),
   },
   module: {

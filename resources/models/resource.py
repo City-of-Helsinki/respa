@@ -17,6 +17,7 @@ from django.core.validators import MinValueValidator
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+from django.utils.functional import cached_property
 from django.utils.six import BytesIO
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import pgettext_lazy
@@ -203,6 +204,14 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
     def __str__(self):
         return "%s (%s)/%s" % (get_translated(self, 'name'), self.id, self.unit)
+
+    @cached_property
+    def main_image(self):
+        resource_image = next(
+            (image for image in self.images.all() if image.type == 'main'),
+            None)
+
+        return resource_image.image if resource_image else None
 
     def validate_reservation_period(self, reservation, user, data=None):
         """

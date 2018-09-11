@@ -1,4 +1,4 @@
-import { getEmptyImage } from './form';
+import { getEmptyImage } from './resourceForm';
 
 export function updateImagesTotalForms() {
   $('#id_images-TOTAL_FORMS').val(getImageCount());
