@@ -47,13 +47,27 @@ class PeriodForm(forms.ModelForm):
         required=True,
         widget=forms.TextInput(attrs={'class': 'text-input form-control'})
     )
+
     start = forms.DateField(
         required=True,
-        widget=forms.DateInput(attrs={'class': 'text-input form-control', 'type': 'date'})
+        widget=forms.DateInput(
+            attrs={
+                'class': 'text-input form-control',
+                'data-provide': 'datepicker',
+                'data-date-format': _("yyyy-mm-dd"),
+            }
+        )
     )
+
     end = forms.DateField(
         required=True,
-        widget=forms.DateInput(attrs={'class': 'text-input form-control', 'type': 'date'})
+        widget=forms.DateInput(
+            attrs={
+                'class': 'text-input form-control',
+                'data-provide': 'datepicker',
+                'data-date-format': _("yyyy-mm-dd"),
+            }
+        )
     )
 
     class Meta:
