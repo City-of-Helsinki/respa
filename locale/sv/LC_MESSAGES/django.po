@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-11 12:56+0300\n"
+"POT-Creation-Date: 2018-09-12 14:10+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -831,7 +831,7 @@ msgstr "Längsta bokningstid"
 
 #: resources/models/resource.py:174
 #: respa_admin/templates/resources/form/_equipment.html:5
-#: respa_admin/templates/resources/form/_nav.html:39
+#: respa_admin/templates/resources/form/_nav.html:38
 msgid "Equipment"
 msgstr "Utrustning"
 
@@ -1061,44 +1061,48 @@ msgstr ""
 msgid "Delete Item"
 msgstr ""
 
-#: respa/settings.py:166
+#: respa/settings.py:166 respa_admin/templates/resources/form/_nav.html:20
 msgid "Finnish"
 msgstr ""
 
-#: respa/settings.py:167
+#: respa/settings.py:167 respa_admin/templates/resources/form/_nav.html:24
 msgid "English"
 msgstr ""
 
-#: respa/settings.py:168
+#: respa/settings.py:168 respa_admin/templates/resources/form/_nav.html:16
 msgid "Swedish"
 msgstr ""
 
-#: respa_admin/forms.py:128 respa_admin/templates/resources/form/_terms.html:24
+#: respa_admin/forms.py:57 respa_admin/forms.py:68
+msgid "yyyy-mm-dd"
+msgstr "dd.mm.yyyy"
+
+#: respa_admin/forms.py:142 respa_admin/templates/resources/form/_terms.html:24
 msgid "Yes"
 msgstr "Ja"
 
-#: respa_admin/forms.py:128
+#: respa_admin/forms.py:142
 msgid "No"
 msgstr "Ingen"
 
-#: respa_admin/forms.py:131
+#: respa_admin/forms.py:145
 msgid "Hidden"
 msgstr "Dold"
 
-#: respa_admin/forms.py:131
+#: respa_admin/forms.py:145
 msgid "Published"
 msgstr "Offentlig"
 
-#: respa_admin/forms.py:134
+#: respa_admin/forms.py:148
 msgid "Can not be reserved"
 msgstr "Kan inte reserveras"
 
-#: respa_admin/forms.py:134
+#: respa_admin/forms.py:148
 #: respa_admin/templates/resources/_resource_list.html:72
 msgid "Bookable"
 msgstr "Kan reserveras"
 
-#: respa_admin/forms.py:173
+#: respa_admin/forms.py:187
 msgid "Please check the opening hours."
 msgstr "Kontrollera öppethållningstider"
 
@@ -1176,7 +1180,7 @@ msgstr "Redigera"
 
 #: respa_admin/templates/resources/form/_booking.html:5
 #: respa_admin/templates/resources/form/_booking.html:22
-#: respa_admin/templates/resources/form/_nav.html:36
+#: respa_admin/templates/resources/form/_nav.html:35
 msgid "Booking information"
 msgstr "Bokningsinformation"
 
@@ -1208,7 +1212,7 @@ msgid "Additional information"
 msgstr "Ytterligare information"
 
 #: respa_admin/templates/resources/form/_general_info.html:5
-#: respa_admin/templates/resources/form/_nav.html:35
+#: respa_admin/templates/resources/form/_nav.html:34
 msgid "General information"
 msgstr "Allmän information"
 
@@ -1245,7 +1249,7 @@ msgid "E-mail"
 msgstr "E-post"
 
 #: respa_admin/templates/resources/form/_images.html:5
-#: respa_admin/templates/resources/form/_nav.html:40
+#: respa_admin/templates/resources/form/_nav.html:39
 msgid "Images"
 msgstr "Bilder"
 
@@ -1257,16 +1261,16 @@ msgstr "Du kan endast välja en huvudbild."
 msgid "Add image"
 msgstr "Lägg till bild"
 
-#: respa_admin/templates/resources/form/_nav.html:11
+#: respa_admin/templates/resources/form/_nav.html:9
 msgid "Create new resource"
 msgstr "Skapa ny resurs"
 
-#: respa_admin/templates/resources/form/_nav.html:37
+#: respa_admin/templates/resources/form/_nav.html:36
 #: respa_admin/templates/resources/form/_periods.html:5
 msgid "Opening hours"
 msgstr "Öppettider"
 
-#: respa_admin/templates/resources/form/_nav.html:38
+#: respa_admin/templates/resources/form/_nav.html:37
 #: respa_admin/templates/resources/form/_terms.html:5
 msgid "Authentication, terms and price"
 msgstr "Autentisering, villkor och pris"

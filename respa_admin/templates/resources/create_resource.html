@@ -30,6 +30,8 @@
             </div>
         </form>
     </div>
-
-    <script type="text/javascript" src="{% static 'respa_admin/resourceForm-bundle.js' %}"></script>
 {% endblock body %}
+
+{% block js_extra %}
+    <script type="text/javascript" src="{% static 'respa_admin/resourceForm-bundle.js' %}"></script>
+{% endblock js_extra %}

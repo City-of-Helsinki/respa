@@ -38,6 +38,7 @@ router = RespaAPIRouter()
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^ra/', include(respa_admin.urls, namespace='respa_admin')),
     url(r'^i18n/', include('django.conf.urls.i18n')),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^grappelli/', include('grappelli.urls')),
@@ -46,10 +47,6 @@ urlpatterns = [
     url(r'^v1/reservation/ical/(?P<ical_token>[-\w\d]+).ics$', ICalFeedView.as_view(), name='ical-feed'),
     url(r'^$', RedirectView.as_view(url='v1/')),
 ]
-
-urlpatterns += i18n_patterns(
-    url(r'^ra/', include(respa_admin.urls, namespace='respa_admin')),
-)
 
 if 'reports' in settings.INSTALLED_APPS:
     from reports.api import DailyReservationsReport, ReservationDetailsReport

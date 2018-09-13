@@ -34,7 +34,7 @@ function updateAllPeriodIndices() {
       $inputCells.each(function (cellIndex, cell) {
         $(cell).attr('id', $(cell).attr('id').replace(/-(\d+)-/, "-" + rowId + "-"));
         $(cell).attr('name', $(cell).attr('name').replace(/-(\d+)-/, "-" + rowId + "-"));
-      })
+      });
     });
   });
 }
@@ -214,8 +214,8 @@ export function modifyDays(dates) {
   let $daysList = $('#collapse' + periodIdNum).find('#period-days-list');
   let dateInputs = dates.getElementsByTagName('input');
   let $currentWeekdayObjects = $daysList.children().find("[id*='-weekday']");
-  let startDate = new Date(dateInputs[0].value);
-  let endDate = new Date(dateInputs[1].value);
+  let startDate = new Date(convertDateFormat(dateInputs[0].value));
+  let endDate = new Date(convertDateFormat(dateInputs[1].value));
   let currentDays = [];
 
   if ((!startDate || !endDate) || (startDate > endDate)) {
@@ -245,6 +245,23 @@ export function modifyDays(dates) {
   updatePeriodDaysIndices(periodIdNum);
   updateTotalDays(periodIdNum);
 }
+
+/*
+* Takes a date in string format dd.mm.yyy and converts it
+* to yyyy-mm-dd
+* */
+function convertDateFormat(dateString) {
+  let strMatch = '[0-9]{2}.[0-9]{2}.[0-9]{4}';
+
+  if (dateString.match(strMatch)) {
+    let parts = dateString.split('.');
+    dateString = parts[2] + '-' + parts[1] + '-' + parts[0];
+  }
+
+  return dateString;
+}
+
+
 
 /*
 * Helper function for modifyDays(). Removes a day

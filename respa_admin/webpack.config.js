@@ -10,6 +10,7 @@ const CssRule = {
 module.exports = {
   entry: {
     main: './static_src/styles/base.scss',
+    styles: './static_src/js/styles.js',
     resourceForm: './static_src/js/resourceFormIndex.js',
   },
   output: {
