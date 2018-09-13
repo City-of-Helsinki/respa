@@ -126,8 +126,8 @@ function enableAddDaysByDate() {
   let periods = document.getElementById('current-periods-list').children;
 
   for (let i = 0; i < periods.length; i++) {
-    let inputDates = document.getElementById('date-inputs-' + i);
-    inputDates.addEventListener('change', () => modifyDays(inputDates), false);
+    let $dates = $('#date-inputs-' + i);
+    $dates.change(() => modifyDays($dates[0]));
   }
 }
 
