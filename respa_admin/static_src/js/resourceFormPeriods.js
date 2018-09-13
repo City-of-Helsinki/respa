@@ -34,7 +34,7 @@ function updateAllPeriodIndices() {
       $inputCells.each(function (cellIndex, cell) {
         $(cell).attr('id', $(cell).attr('id').replace(/-(\d+)-/, "-" + rowId + "-"));
         $(cell).attr('name', $(cell).attr('name').replace(/-(\d+)-/, "-" + rowId + "-"));
-      })
+      });
     });
   });
 }
