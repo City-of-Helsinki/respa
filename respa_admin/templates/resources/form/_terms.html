@@ -13,7 +13,9 @@
     {% include "forms/_select.html" with field=form.generic_terms %}
     {% include "forms/_select.html" with field=form.access_code_type %}
 
-    {% include "forms/_textarea_input.html" with field=form.specific_terms %}
+    {% include "forms/_textarea_input.html" with field=form.specific_terms_fi %}
+    {% include "forms/_textarea_input.html" with field=form.specific_terms_en %}
+    {% include "forms/_textarea_input.html" with field=form.specific_terms_sv %}
     <div class="pricing">
         <h4>{% trans "Pricing" %}</h4>
         <div class="price-confirm">

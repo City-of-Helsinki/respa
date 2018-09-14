@@ -16,8 +16,13 @@
     </div>
     <div class="description">
         <h4>{% trans "Name and description" %}</h4>
-        {% include "forms/_input.html" with field=form.name %}
-        {% include "forms/_textarea_input.html" with field=form.description %}
+        {% include "forms/_input.html" with field=form.name_fi %}
+        {% include "forms/_input.html" with field=form.name_en %}
+        {% include "forms/_input.html" with field=form.name_sv %}
+
+        {% include "forms/_textarea_input.html" with field=form.description_fi %}
+        {% include "forms/_textarea_input.html" with field=form.description_en %}
+        {% include "forms/_textarea_input.html" with field=form.description_sv %}
     </div>
     <div class="contact-person">
         <h4>{% trans "Contact person" %}</h4>
