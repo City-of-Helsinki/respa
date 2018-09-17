@@ -106,7 +106,6 @@ class SaveResourceView(CreateView):
                 form=form,
                 period_formset_with_days=period_formset_with_days,
                 resource_image_formset=resource_image_formset,
-                language=request.LANGUAGE_CODE,
             )
         )
 

@@ -1,8 +1,11 @@
 {% load staticfiles %}
+{% load i18n %}
+{% get_available_languages as LANGUAGES %}
+{% get_current_language as LANGUAGE_CODE %}
 
 <!DOCTYPE html>
 
-<html lang="{{ language }}">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -15,6 +18,12 @@
 </head>
 
 <body>
+    <div class="hidden" id="all-languages">
+        {% for key, value in LANGUAGES %}
+            <input value="{{ key }}" />
+        {% endfor %}
+    </div>
+
     <div class='header navbar-fixed-top'>
         {% include "_nav.html" %}
 
