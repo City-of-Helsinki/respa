@@ -619,6 +619,7 @@ strategy:
     ical_token: string.random
     id: null
     is_active: null
+    is_general_admin: null
     is_staff: null
     is_superuser: null
     last_login: constant.null

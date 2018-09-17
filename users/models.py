@@ -16,6 +16,9 @@ class User(AbstractUser):
     favorite_resources = models.ManyToManyField(Resource, blank=True, verbose_name=_('Favorite resources'),
                                                 related_name='favorited_by')
 
+    is_general_admin = models.BooleanField(
+        default=False, verbose_name=_("general administrator status"))
+
     class Meta:
         ordering = ('id',)
 
