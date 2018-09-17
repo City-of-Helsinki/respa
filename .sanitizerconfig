@@ -226,6 +226,7 @@ strategy:
     type: null
   notifications_notificationtemplate_translation:
     body: null
+    html_body: null
     id: null
     language_code: null
     master_id: null
@@ -379,6 +380,7 @@ strategy:
     reservation_info_fi: null
     reservation_info_sv: null
     reservation_metadata_set_id: null
+    reservation_requested_notification_extra: null
     responsible_contact_info: null
     responsible_contact_info_en: null
     responsible_contact_info_fi: null
