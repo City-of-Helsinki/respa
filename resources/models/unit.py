@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from enumfields import EnumField
 
+from ..auth import is_general_admin
 from ..enums import UnitAuthorizationLevel
 from .base import AutoIdentifiedModel, ModifiableModel
 from .utils import create_reservable_before_datetime, get_translated, get_translated_name
@@ -85,9 +86,9 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
         return create_reservable_before_datetime(self.reservable_days_in_advance)
 
     def is_admin(self, user):
-        # Currently all staff members are allowed to administrate
+        # Currently General Administrators are allowed to administrate
         # all units. Might be more finegrained in the future.
-        return user.is_staff
+        return is_general_admin(user)
 
 
 class UnitAuthorization(models.Model):

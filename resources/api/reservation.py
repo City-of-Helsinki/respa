@@ -24,6 +24,7 @@ from resources.models.reservation import RESERVATION_EXTRA_FIELDS
 from resources.pagination import ReservationPagination
 from resources.models.utils import generate_reservation_xlsx, get_object_or_none
 
+from ..auth import is_general_admin
 from .base import (
     NullableDateTimeField, TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
 )
@@ -537,8 +538,8 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         queryset = super().get_queryset()
         user = self.request.user
 
-        # staff members can see all reservations
-        if user.is_staff:
+        # General Administrators can see all reservations
+        if is_general_admin(user):
             return queryset
 
         # normal users can see only their own reservations and reservations that are confirmed or requested

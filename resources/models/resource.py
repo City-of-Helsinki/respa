@@ -29,6 +29,7 @@ from PIL import Image
 from guardian.shortcuts import get_objects_for_user, get_users_with_perms
 from guardian.core import ObjectPermissionChecker
 
+from ..auth import is_authenticated_user, is_general_admin
 from ..errors import InvalidImage
 from ..fields import EquipmentField
 from .base import AutoIdentifiedModel, NameIdentifiedModel, ModifiableModel
@@ -124,7 +125,7 @@ class TermsOfUse(ModifiableModel, AutoIdentifiedModel):
 
 class ResourceQuerySet(models.QuerySet):
     def visible_for(self, user):
-        if user.is_staff:
+        if is_general_admin(user):
             return self
         else:
             return self.filter(public=True)
@@ -471,15 +472,15 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             ResourceDailyOpeningHours.objects.bulk_create(add_objs)
 
     def is_admin(self, user):
-        # Currently all staff members are allowed to administrate
+        # Currently General Administrators are allowed to administrate
         # all resources. Will be more finegrained in the future.
         #
         # UserFilterBackend and ReservationFilterSet in resources.api.reservation assume the same behaviour,
         # so if this is changed those need to be changed as well.
-        return user.is_staff
+        return is_general_admin(user)
 
     def _has_perm(self, user, perm, allow_admin=True):
-        if not (user and user.is_authenticated):
+        if not is_authenticated_user(user):
             return False
         # Admins are almighty.
         if self.is_admin(user) and allow_admin:
