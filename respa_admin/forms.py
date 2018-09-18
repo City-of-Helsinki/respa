@@ -116,6 +116,9 @@ class ResourceForm(forms.ModelForm):
             'reservation_confirmed_notification_extra_fi',
             'reservation_confirmed_notification_extra_en',
             'reservation_confirmed_notification_extra_sv',
+            'responsible_contact_info_fi',
+            'responsible_contact_info_en',
+            'responsible_contact_info_sv',
         ]
 
         fields = [
@@ -123,7 +126,6 @@ class ResourceForm(forms.ModelForm):
             'type',
             'purposes',
             'equipment',
-            'responsible_contact_info',  # TODO: these fields lack backend support.
             'people_capacity',
             'area',
             'min_period',

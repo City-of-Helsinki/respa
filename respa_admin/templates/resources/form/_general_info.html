@@ -27,25 +27,8 @@
     <div class="contact-person">
         <h4>{% trans "Contact person" %}</h4>
         <p>{% trans "Not used in the user interface of 'varaamo' but the information is added to the confirmation e-mail sent to the customer." %}</p>
-        <div class="input-row">
-            <div class="form-group">
-                <label class="control-label input-label" for="first-name">{% trans "First name" %}</label>
-                <input type="text" class="form-control text-input" id="first-name">
-            </div>
-            <div class="form-group">
-                <label class="control-label input-label" for="last-name">{% trans "Surname" %}</label>
-                <input type="text" class="form-control text-input" id="last-name">
-            </div>
-        </div>
-        <div class="input-row">
-            <div class="form-group">
-                <label class="control-label input-label" for="email">{% trans "E-mail" %}</label>
-                <input type="email" class="form-control text-input" id="email">
-            </div>
-            <div class="form-group">
-                <label class="control-label input-label" for="phone-number">{% trans "Phone number" %}</label>
-                <input type="tel" class="form-control text-input" id="phone-number">
-            </div>
-        </div>
+        {% include "forms/_textarea_input.html" with field=form.responsible_contact_info_fi %}
+        {% include "forms/_textarea_input.html" with field=form.responsible_contact_info_en %}
+        {% include "forms/_textarea_input.html" with field=form.responsible_contact_info_sv %}
     </div>
 </div>
