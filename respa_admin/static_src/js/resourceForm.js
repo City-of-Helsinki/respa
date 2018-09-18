@@ -1,6 +1,6 @@
 import { addNewImage, removeImage, updateImagesTotalForms } from './resourceFormImages';
 import { addNewPeriod, updateTotalDays, updatePeriodsTotalForms, removePeriod, modifyDays } from './resourceFormPeriods';
-import { toggleLanguage } from './resourceLanguageSwitcher';
+import { toggleLanguage } from './resourceFormLanguage';
 
 let emptyImageItem = null;
 let emptyPeriodItem = null;

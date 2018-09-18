@@ -1,5 +1,5 @@
 import { getEmptyImage } from './resourceForm';
-import { toggleLanguage } from './resourceLanguageSwitcher';
+import { toggleLanguage } from './resourceFormLanguage';
 
 export function updateImagesTotalForms() {
   $('#id_images-TOTAL_FORMS').val(getImageCount());
