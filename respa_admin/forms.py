@@ -97,6 +97,11 @@ class ResourceForm(forms.ModelForm):
         queryset=Equipment.objects.all(),
     )
 
+    name_fi = forms.CharField(
+        required=True,
+        label='Nimi [fi]',
+    )
+
     class Meta:
         model = Resource
 
