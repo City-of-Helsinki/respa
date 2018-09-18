@@ -3,6 +3,10 @@
 * @param {String} language  Language provided by the DOM value.
 * */
 export function toggleLanguage(language) {
+  if (language === null || language === undefined || language === '') {
+    language = getCurrentLanguage();
+  }
+
   let $languageInputs = $('[name$="_' + language + '"]');
   let $languageLabels = $('[for$="_' + language + '"]');
   $languageInputs.each((i, input) => input.classList.remove('hidden'));
@@ -19,13 +23,8 @@ export function toggleLanguage(language) {
 * If the language is not recognized it will fall back to Finnish.
 * */
 export function toggleStartupLanguage() {
-  let languages = getAllLanguages();
   let currentLanguage = getCurrentLanguage();
   let languagesToHide = getLanguagesToHide(currentLanguage);
-
-  if (!languages.includes(currentLanguage)) {
-    currentLanguage = 'fi'; //Finnish is the fallback language.
-  }
 
   languagesToHide.forEach(language => hideLanguage(language));
 }
@@ -50,7 +49,14 @@ function hideLanguage(language) {
 * Ex; 'fi', 'sv' or 'en' etc.
 * */
 function getCurrentLanguage() {
-  return document.documentElement.lang;
+  let languages = getAllLanguages();
+  let currentLanguage = document.documentElement.lang;
+
+  if (!languages.includes(currentLanguage)) {
+    currentLanguage = 'fi'; //Finnish is the fallback language.
+  }
+
+  return currentLanguage;
 }
 
 /*
