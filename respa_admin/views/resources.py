@@ -16,6 +16,7 @@ from resources.models import (
     ResourceType,
     Unit,
 )
+from respa_admin import forms
 
 from respa_admin.forms import (
     get_period_formset,
@@ -43,8 +44,6 @@ class ResourceListView(ListView):
         resource_type = self.request.GET.get('resource_type')
         resource_unit = self.request.GET.get('resource_unit')
 
-        print(self.request.GET)
-
         if search_query:
             qs = qs.filter(name__icontains=search_query)
         if resource_type:
@@ -70,7 +69,6 @@ class SaveResourceView(CreateView):
     """
     View for saving new resources and updating existing resources.
     """
-
     http_method_names = ['get', 'post']
     model = Resource
     form_class = ResourceForm
@@ -101,11 +99,14 @@ class SaveResourceView(CreateView):
             instance=self.object,
         )
 
+        trans_fields = forms.get_translated_field_count()
+
         return self.render_to_response(
             self.get_context_data(
                 form=form,
                 period_formset_with_days=period_formset_with_days,
                 resource_image_formset=resource_image_formset,
+                trans_fields=trans_fields,
             )
         )
 
@@ -156,11 +157,14 @@ class SaveResourceView(CreateView):
         for period in period_formset_with_days:
             period.days.forms.append(temp_day_form)
 
+        trans_fields = forms.get_translated_field_count()
+
         return self.render_to_response(
             self.get_context_data(
                 form=form,
                 period_formset_with_days=period_formset_with_days,
                 resource_image_formset=resource_image_formset,
+                trans_fields=trans_fields,
             )
         )
 
