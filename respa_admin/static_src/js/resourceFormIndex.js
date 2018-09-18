@@ -1,10 +1,10 @@
 import { initializeEventHandlers, setClonableItems }  from './resourceForm';
-import { toggleStartupLanguage }  from './resourceFormLanguage';
+import { toggleCurrentLanguage }  from './resourceFormLanguage';
 
 function start() {
   initializeEventHandlers();
   setClonableItems();
-  toggleStartupLanguage();
+  toggleCurrentLanguage();
 }
 
 window.addEventListener('load', start, false);

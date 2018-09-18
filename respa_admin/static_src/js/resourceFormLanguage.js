@@ -1,32 +1,38 @@
 /*
-* Toggle language based on the entered parameter.
+* Toggle language based on entered language for all fields in the
+* whole form.
+*
 * @param {String} language  Language provided by the DOM value.
 * */
 export function toggleLanguage(language) {
-  if (language === null || language === undefined || language === '') {
-    language = getCurrentLanguage();
-  }
+  if (language === getCurrentLanguage()) { return; }
 
   let $languageInputs = $('[name$="_' + language + '"]');
   let $languageLabels = $('[for$="_' + language + '"]');
-  $languageInputs.each((i, input) => input.classList.remove('hidden'));
-  $languageLabels.each((i, input) => input.classList.remove('hidden'));
 
-  let languagesToHide = getLanguagesToHide(language);
-  languagesToHide.forEach(language => hideLanguage(language));
+  $languageInputs.each(
+    (i, input) =>
+      (input.classList.contains('hidden')) ? input.classList.remove('hidden') : input.classList.add('hidden')
+  );
+
+  $languageLabels.each(
+    (i, input) =>
+      (input.classList.contains('hidden')) ? input.classList.remove('hidden') : input.classList.add('hidden')
+  );
 }
 
 /*
 * Hides the other languages from the user when loading the page,
 * leaving the correct language visible based on the user's language setting.
 *
-* If the language is not recognized it will fall back to Finnish.
+* @param language {String}    If not provided => current language will be chosen.
+* @param input {DOM Object}   If provided, all other than current language will be hidden
+*                             from the DOM in input DOM element of choice.
 * */
-export function toggleStartupLanguage() {
-  let currentLanguage = getCurrentLanguage();
-  let languagesToHide = getLanguagesToHide(currentLanguage);
-
-  languagesToHide.forEach(language => hideLanguage(language));
+export function toggleCurrentLanguage(language = undefined, input = null) {
+  if (language === undefined) { language = getCurrentLanguage(); }
+  let languagesToHide = getLanguagesToHide(language);
+  languagesToHide.forEach(language => hideLanguage(language, input));
 }
 
 /*
@@ -35,9 +41,20 @@ export function toggleStartupLanguage() {
 *
 * Hides the labels for these inputs as well.
 * */
-function hideLanguage(language) {
-  let $languageInputs = $('[name$="_' + language + '"]');
-  let $languageLabels = $('[for$="_' + language + '"]');
+function hideLanguage(language, input = null) {
+  if (language === getCurrentLanguage()) { return; }
+
+  let $languageInputs = null;
+  let $languageLabels = null;
+
+  if (input) {
+    $languageInputs = $(input).find('[name$="_' + language + '"]');
+    $languageLabels = $(input).find('[for$="_' + language + '"]');
+  } else {
+    $languageInputs = $('[name$="_' + language + '"]');
+    $languageLabels = $('[for$="_' + language + '"]');
+  }
+
   $languageInputs.each((i, input) => input.classList.add('hidden'));
   $languageLabels.each((i, input) => input.classList.add('hidden'));
 }
@@ -61,7 +78,7 @@ function getCurrentLanguage() {
 
 /*
 * Helper function for getting languages to hide
-* based on the the current languages list.
+* based on the the current language.
 * */
 function getLanguagesToHide(currentLanguage) {
   let languages = getAllLanguages();
