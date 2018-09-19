@@ -22,6 +22,7 @@ from respa.settings import LANGUAGES
 
 class DaysForm(forms.ModelForm):
     opens = forms.TimeField(
+        required=False,
         widget=forms.TimeInput(
             format='%H:%M',
             attrs={'class': 'text-input form-control', 'type': 'time'}
@@ -29,6 +30,7 @@ class DaysForm(forms.ModelForm):
     )
 
     closes = forms.TimeField(
+        required=False,
         widget=forms.TimeInput(
             format='%H:%M',
             attrs={'class': 'text-input form-control', 'type': 'time'}
