@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from enumfields import EnumField
 
-from ..auth import is_general_admin
+from ..auth import is_authenticated_user, is_general_admin
 from ..enums import UnitAuthorizationLevel
 from .base import AutoIdentifiedModel, ModifiableModel
 from .utils import create_reservable_before_datetime, get_translated, get_translated_name
@@ -86,9 +86,35 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
         return create_reservable_before_datetime(self.reservable_days_in_advance)
 
     def is_admin(self, user):
-        # Currently General Administrators are allowed to administrate
-        # all units. Might be more finegrained in the future.
-        return is_general_admin(user)
+        return is_authenticated_user(user) and (
+            is_general_admin(user) or
+            user.unit_authorizations.to_unit(self).admin_level().exists() or
+            (user.unit_group_authorizations
+             .to_unit(self).admin_level().exists()))
+
+    def is_manager(self, user):
+        return self.is_admin(user) or (is_authenticated_user(user) and (
+            user.unit_authorizations.to_unit(self).manager_level().exists()))
+
+
+class UnitAuthorizationQuerySet(models.QuerySet):
+    def for_user(self, user):
+        return self.filter(authorized=user)
+
+    def to_unit(self, unit):
+        return self.filter(subject=unit)
+
+    def admin_level(self):
+        return self.filter(level=UnitAuthorizationLevel.admin)
+
+    def manager_level(self):
+        return self.filter(level=UnitAuthorizationLevel.manager)
+
+    def at_least_manager_level(self):
+        return self.filter(level__in={
+            UnitAuthorizationLevel.admin,
+            UnitAuthorizationLevel.manager,
+        })
 
 
 class UnitAuthorization(models.Model):
@@ -101,6 +127,8 @@ class UnitAuthorization(models.Model):
 
     class Meta:
         unique_together = [('authorized', 'subject', 'level')]
+
+    objects = UnitAuthorizationQuerySet.as_manager()
 
 
 class UnitIdentifier(models.Model):
