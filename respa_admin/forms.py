@@ -17,6 +17,8 @@ from resources.models import (
     ResourceImage,
 )
 
+from respa.settings import LANGUAGES
+
 
 class DaysForm(forms.ModelForm):
     opens = forms.TimeField(
@@ -76,10 +78,10 @@ class PeriodForm(forms.ModelForm):
 
 
 class ImageForm(forms.ModelForm):
-
     class Meta:
         model = ResourceImage
-        fields = ['image', 'caption', 'type']
+        translated_fields = ['caption_fi', 'caption_en', 'caption_sv']
+        fields = ['image', 'type'] + translated_fields
 
 
 class ResourceForm(forms.ModelForm):
@@ -95,16 +97,40 @@ class ResourceForm(forms.ModelForm):
         queryset=Equipment.objects.all(),
     )
 
+    name_fi = forms.CharField(
+        required=True,
+        label='Nimi [fi]',
+    )
+
     class Meta:
         model = Resource
+
+        translated_fields = [
+            'name_fi',
+            'name_en',
+            'name_sv',
+            'description_fi',
+            'description_en',
+            'description_sv',
+            'reservation_info_fi',
+            'reservation_info_en',
+            'reservation_info_sv',
+            'specific_terms_fi',
+            'specific_terms_en',
+            'specific_terms_sv',
+            'reservation_confirmed_notification_extra_fi',
+            'reservation_confirmed_notification_extra_en',
+            'reservation_confirmed_notification_extra_sv',
+            'responsible_contact_info_fi',
+            'responsible_contact_info_en',
+            'responsible_contact_info_sv',
+        ]
+
         fields = [
             'unit',
             'type',
-            'name',
-            'description',
             'purposes',
             'equipment',
-            'responsible_contact_info',  # TODO: these fields lack backend support.
             'people_capacity',
             'area',
             'min_period',
@@ -112,17 +138,15 @@ class ResourceForm(forms.ModelForm):
             'reservable_days_in_advance',
             'max_reservations_per_user',
             'reservable',
-            'reservation_info',
             'need_manual_confirmation',
             'authentication',
             'access_code_type',
             'max_price_per_hour',
             'min_price_per_hour',
             'generic_terms',
-            'specific_terms',
-            'reservation_confirmed_notification_extra',
             'public',
-        ]
+        ] + translated_fields
+
         widgets = {
             'min_period': forms.Select(
                 choices=(
@@ -232,3 +256,16 @@ def get_resource_image_formset(request=None, extra=1, instance=None):
         return resource_image_formset(instance=instance)
     else:
         return resource_image_formset(data=request.POST, files=request.FILES, instance=instance)
+
+
+def get_translated_field_count():
+    lang_num = {}
+    resource_form_data = ResourceForm.Meta.translated_fields
+    image_form_data = ImageForm.Meta.translated_fields
+    translated_fields = resource_form_data + image_form_data
+
+    if translated_fields:
+        for key, value in LANGUAGES:
+            lang_num[key] = sum(x.endswith('_' + key) for x in translated_fields)
+
+    return lang_num

@@ -21,14 +21,18 @@
         <div class="textarea-wrapper">
             <h4>{% trans "Booking information" %}</h4>
             <p>{% trans "Additional information before calendar." %}</p>
-            {% include "forms/_textarea_input.html" with field=form.reservation_info %}
+            {% include "forms/_textarea_input.html" with field=form.reservation_info_fi %}
+            {% include "forms/_textarea_input.html" with field=form.reservation_info_en %}
+            {% include "forms/_textarea_input.html" with field=form.reservation_info_sv %}
         </div>
     </div>
     <div class="form-group email-notification">
         <div class="textarea-wrapper">
             <h4>{% trans "E-mail notifications" %}</h4>
             <p>{% trans "A notification will be sent when a space is booked." %}</p>
-            {% include "forms/_textarea_input.html" with field=form.reservation_confirmed_notification_extra %}
+            {% include "forms/_textarea_input.html" with field=form.reservation_confirmed_notification_extra_fi %}
+            {% include "forms/_textarea_input.html" with field=form.reservation_confirmed_notification_extra_en %}
+            {% include "forms/_textarea_input.html" with field=form.reservation_confirmed_notification_extra_sv %}
         </div>
     </div>
 </div>

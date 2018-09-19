@@ -61,7 +61,7 @@ def test_create_resource_with_invalid_data_returns_errors(admin_client, empty_re
         'authentication': ['Tämä kenttä vaaditaan.'],
         'equipment': ['Valitse oikea vaihtoehto.  ei ole vaihtoehtojen joukossa.'],
         'min_period': ['Tämä kenttä vaaditaan.'],
-        'name': ['Tämä kenttä vaaditaan.'],
+        'name_fi': ['Tämä kenttä vaaditaan.'],
         'purposes': ['Valitse oikea vaihtoehto.  ei ole vaihtoehtojen joukossa.'],
         'type': ['Tämä kenttä vaaditaan.'],
     }
@@ -93,7 +93,7 @@ def test_editing_resource_via_form_view(admin_client, valid_resource_form_data):
 
     # Edit the resource
     valid_resource_form_data.update({
-        'name': 'Edited name',
+        'name_fi': 'Edited name',
     })
     response = admin_client.post(
         reverse('respa_admin:edit-resource', kwargs={'resource_id': resource.id}),
@@ -105,5 +105,5 @@ def test_editing_resource_via_form_view(admin_client, valid_resource_form_data):
 
     # Validate that the changes did happen
     edited_resource = Resource.objects.first()
-    assert edited_resource.name == 'Edited name'
-    assert resource.name != edited_resource.name
+    assert edited_resource.name_fi == 'Edited name'
+    assert resource.name_fi != edited_resource.name

@@ -85,7 +85,7 @@ def valid_resource_form_data(equipment, terms_of_use, purpose, space_resource_ty
         'generic_terms': terms_of_use.pk,
         'max_period': '01:00:00',
         'min_period': '00:30:00',
-        'name': 'Test resource',
+        'name_fi': 'Test resource',
         'purposes': purpose.pk,
         'type': space_resource_type.pk,
         'unit': test_unit.pk,

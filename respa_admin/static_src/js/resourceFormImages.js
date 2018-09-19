@@ -1,4 +1,5 @@
 import { getEmptyImage } from './resourceForm';
+import { toggleCurrentLanguage } from './resourceFormLanguage';
 
 export function updateImagesTotalForms() {
   $('#id_images-TOTAL_FORMS').val(getImageCount());
@@ -51,6 +52,7 @@ export function addNewImage() {
     $imagesList.append(newImage);
 
     attachImageEventHandlers(newImage);
+    toggleCurrentLanguage(document.documentElement.lang, newImage);
     updateImagesTotalForms();
     updateImagesIndices();
   }

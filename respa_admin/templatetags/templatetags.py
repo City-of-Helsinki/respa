@@ -27,3 +27,12 @@ def instances_and_widgets(bound_field):
         widget.choice_label = ''
         instance_widgets.append((instance, widget))
     return instance_widgets
+
+
+@register.filter
+def get_value_from_dict(dict_data, key):
+    """
+    Usage example {{ your_dict|get_value_from_dict:your_key }}.
+    """
+    if key:
+        return dict_data.get(key)

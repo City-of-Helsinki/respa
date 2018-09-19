@@ -21,7 +21,10 @@
                     {{ form.resource }}
 
                     {% include "forms/_select.html" with field=form.type inline=True %}
-                    {% include "forms/_input.html" with field=form.caption inline=True %}
+
+                    {% include "forms/_input.html" with field=form.caption_fi inline=True %}
+                    {% include "forms/_input.html" with field=form.caption_en inline=True %}
+                    {% include "forms/_input.html" with field=form.caption_sv inline=True %}
 
                     {% if form.instance.image %}
                         {% include "forms/_image.html" with field=form.image image=form.instance.image.url id=id %}

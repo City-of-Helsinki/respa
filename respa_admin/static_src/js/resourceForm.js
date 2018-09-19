@@ -1,5 +1,6 @@
 import { addNewImage, removeImage, updateImagesTotalForms } from './resourceFormImages';
 import { addNewPeriod, updateTotalDays, updatePeriodsTotalForms, removePeriod, modifyDays } from './resourceFormPeriods';
+import { toggleLanguage } from './resourceFormLanguage';
 
 let emptyImageItem = null;
 let emptyPeriodItem = null;
@@ -13,6 +14,7 @@ export function initializeEventHandlers() {
   enableAddNewPeriod();
   enableRemovePeriod();
   enableAddDaysByDate();
+  enableLanguageButtons();
   enableAddNewImage();
   enableRemoveImage();
 }
@@ -149,5 +151,19 @@ function enableRemoveImage() {
     let removeButton = document.getElementById('remove-image-' + i);
     let imageItem = $('#image-' + i);
     removeButton.addEventListener('click', () => removeImage(imageItem), false);
+  }
+}
+
+/*
+* Bind event for hiding/showing translated fields in form.
+* */
+function enableLanguageButtons() {
+  let languageSwitcher = document.getElementsByClassName('language-switcher');
+  let languagesAmount = languageSwitcher[0].children.length;
+
+  for (let i = 0; i < languagesAmount; i++) {
+    let languageButton = languageSwitcher[0].children[i];
+    let language = languageButton.value;
+    languageButton.addEventListener('click', () => toggleLanguage(language), false);
   }
 }
