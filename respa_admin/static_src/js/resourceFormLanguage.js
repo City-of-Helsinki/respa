@@ -5,8 +5,6 @@
 * @param {String} language  Language provided by the DOM value.
 * */
 export function toggleLanguage(language) {
-  if (language === getCurrentLanguage()) { return; }
-
   let $languageInputs = $('[name$="_' + language + '"]');
   let $languageLabels = $('[for$="_' + language + '"]');
 
@@ -42,8 +40,6 @@ export function toggleCurrentLanguage(language = undefined, input = null) {
 * Hides the labels for these inputs as well.
 * */
 function hideLanguage(language, input = null) {
-  if (language === getCurrentLanguage()) { return; }
-
   let $languageInputs = null;
   let $languageLabels = null;
 
@@ -81,8 +77,8 @@ function getCurrentLanguage() {
 * based on the the current language.
 * */
 function getLanguagesToHide(currentLanguage) {
-  let languages = getAllLanguages();
-  return languages.filter(language => {return currentLanguage !== language});
+  const languages = getAllLanguages();
+  return languages.filter((language) => (language !== currentLanguage));
 }
 
 /*
@@ -91,8 +87,7 @@ function getLanguagesToHide(currentLanguage) {
 function getAllLanguages() {
   let allLanguages = $('#all-languages').children();
   let languages = [];
-
-  allLanguages.each((i, input) => languages.push(input.value));
+  allLanguages.each((i, domLanguage) => languages.push(domLanguage.value));
 
   return languages;
 }
