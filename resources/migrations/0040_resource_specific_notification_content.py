@@ -15,21 +15,36 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='resource',
             name='reservation_confirmed_notification_extra',
-            field=models.TextField(blank=True, verbose_name='Extra content to reservation confirmed notification'),
+            field=models.TextField(
+                blank=True,
+                verbose_name=(
+                    'Extra content to "reservation confirmed" notification')),
         ),
         migrations.AddField(
             model_name='resource',
             name='reservation_confirmed_notification_extra_en',
-            field=models.TextField(blank=True, null=True, verbose_name='Extra content to reservation confirmed notification'),
+            field=models.TextField(
+                blank=True,
+                null=True,
+                verbose_name=(
+                    'Extra content to "reservation confirmed" notification')),
         ),
         migrations.AddField(
             model_name='resource',
             name='reservation_confirmed_notification_extra_fi',
-            field=models.TextField(blank=True, null=True, verbose_name='Extra content to reservation confirmed notification'),
+            field=models.TextField(
+                blank=True,
+                null=True,
+                verbose_name=(
+                    'Extra content to "reservation confirmed" notification')),
         ),
         migrations.AddField(
             model_name='resource',
             name='reservation_confirmed_notification_extra_sv',
-            field=models.TextField(blank=True, null=True, verbose_name='Extra content to reservation confirmed notification'),
+            field=models.TextField(
+                blank=True,
+                null=True,
+                verbose_name=(
+                    'Extra content to "reservation confirmed" notification')),
         ),
     ]
