@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-12 14:10+0300\n"
+"POT-Creation-Date: 2018-09-19 13:31+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -390,7 +390,7 @@ msgid "Resource"
 msgstr "Resurssi"
 
 #: resources/models/availability.py:112 resources/models/resource.py:154
-#: resources/models/unit.py:57 resources/models/unit.py:96
+#: resources/models/unit.py:96
 msgid "Unit"
 msgstr "Toimipiste"
 
@@ -1017,6 +1017,10 @@ msgstr "Valokuvan osoite"
 #: resources/models/unit.py:50
 msgid "Picture caption"
 msgstr "Valokuvan kuvateksti"
+
+#: resources/models/unit.py:57
+msgid "unit"
+msgstr "toimipiste"
 
 #: resources/models/unit.py:58
 msgid "units"

@@ -15,6 +15,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='resource',
             name='reservation_requested_notification_extra',
-            field=models.TextField(blank=True, verbose_name='Extra content to reservation requested notification'),
+            field=models.TextField(
+                blank=True,
+                verbose_name=(
+                    'Extra content to "reservation requested" notification')),
         ),
     ]
