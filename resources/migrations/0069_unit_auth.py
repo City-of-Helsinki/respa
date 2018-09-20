@@ -62,6 +62,8 @@ class Migration(migrations.Migration):
             ],
             options={
                 'abstract': False,
+                'verbose_name': 'unit group',
+                'verbose_name_plural': 'unit groups'
             },
         ),
         migrations.CreateModel(
@@ -76,18 +78,25 @@ class Migration(migrations.Migration):
                 ('level',
                  enumfields.fields.EnumField(
                      enum=resources.enums.UnitGroupAuthorizationLevel,
-                     max_length=50)),
+                     max_length=50,
+                     verbose_name='authorization level')),
                 ('authorized',
                  models.ForeignKey(
                      on_delete=django.db.models.deletion.CASCADE,
                      related_name='unit_group_authorizations',
-                     to=settings.AUTH_USER_MODEL)),
+                     to=settings.AUTH_USER_MODEL,
+                     verbose_name='authorized user')),
                 ('subject',
                  models.ForeignKey(
                      on_delete=django.db.models.deletion.CASCADE,
                      related_name='authorizations',
-                     to='resources.UnitGroup')),
+                     to='resources.UnitGroup',
+                     verbose_name='subject of the authorization')),
             ],
+            options={
+                'verbose_name': 'unit group authorization',
+                'verbose_name_plural': 'unit group authorizations'
+            },
         ),
         migrations.AlterUniqueTogether(
             name='unitgroupauthorization',
@@ -105,18 +114,26 @@ class Migration(migrations.Migration):
                 ('level',
                  enumfields.fields.EnumField(
                      enum=resources.enums.UnitAuthorizationLevel,
-                     max_length=50)),
+                     max_length=50,
+                     verbose_name='authorization level')),
                 ('authorized',
                  models.ForeignKey(
                      on_delete=django.db.models.deletion.CASCADE,
                      related_name='unit_authorizations',
-                     to=settings.AUTH_USER_MODEL)),
+                     to=settings.AUTH_USER_MODEL,
+                     verbose_name='authorized user')),
                 ('subject',
                  models.ForeignKey(
                      on_delete=django.db.models.deletion.CASCADE,
                      related_name='authorizations',
-                     to='resources.Unit')),
+                     to='resources.Unit',
+                     verbose_name='subject of the authorization')),
             ],
+            options={
+                'verbose_name': 'unit authorization',
+                'verbose_name_plural': 'unit authorizations'
+            },
+
         ),
         migrations.AlterUniqueTogether(
             name='unitauthorization',

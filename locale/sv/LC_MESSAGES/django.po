@@ -279,6 +279,15 @@ msgstr "reservation"
 msgid "Resource app"
 msgstr "Resurs app"
 
+msgid "unit group administrator"
+msgstr ""
+
+msgid "unit administrator"
+msgstr ""
+
+msgid "unit manager"
+msgstr ""
+
 msgid "open"
 msgstr "öppen"
 
@@ -767,6 +776,21 @@ msgstr "enhet"
 msgid "units"
 msgstr "enheter"
 
+msgid "subject of the authorization"
+msgstr ""
+
+msgid "authorization level"
+msgstr ""
+
+msgid "authorized user"
+msgstr ""
+
+msgid "unit authorization"
+msgstr ""
+
+msgid "unit authorizations"
+msgstr ""
+
 msgid "Namespace"
 msgstr ""
 
@@ -778,6 +802,18 @@ msgstr "identifierare av enhet"
 
 msgid "unit identifiers"
 msgstr "identifierare av enhet"
+
+msgid "unit group"
+msgstr "enhetgrupp"
+
+msgid "unit groups"
+msgstr "enhetgrupper"
+
+msgid "unit group authorization"
+msgstr ""
+
+msgid "unit group authorizations"
+msgstr ""
 
 #, python-format
 msgid "%(count)d hour"

@@ -278,6 +278,15 @@ msgstr "varaus"
 msgid "Resource app"
 msgstr "Resurssisovellus"
 
+msgid "unit group administrator"
+msgstr "toimipisteryhmän ylläpitäjä"
+
+msgid "unit administrator"
+msgstr "toimipisteen ylläpitäjä"
+
+msgid "unit manager"
+msgstr "toimipisteen hoitaja"
+
 msgid "open"
 msgstr "auki"
 
@@ -766,6 +775,21 @@ msgstr "toimipiste"
 msgid "units"
 msgstr "toimipisteet"
 
+msgid "subject of the authorization"
+msgstr "valtuutuksen kohde"
+
+msgid "authorization level"
+msgstr "valtuutustaso"
+
+msgid "authorized user"
+msgstr "valtuutettu käyttäjä"
+
+msgid "unit authorization"
+msgstr "toimipisteen valtuutus"
+
+msgid "unit authorizations"
+msgstr "toimipisteiden valtuutukset"
+
 msgid "Namespace"
 msgstr "Tunnisteavaruus"
 
@@ -777,6 +801,18 @@ msgstr "toimipisteen tunniste"
 
 msgid "unit identifiers"
 msgstr "toimipisteen tunnisteet"
+
+msgid "unit group"
+msgstr "toimipisteryhmä"
+
+msgid "unit groups"
+msgstr "toimipisteryhmät"
+
+msgid "unit group authorization"
+msgstr "toimipisteryhmän valtuutus"
+
+msgid "unit group authorizations"
+msgstr "toimipisteryhmien valtuutukset"
 
 #, python-format
 msgid "%(count)d hour"

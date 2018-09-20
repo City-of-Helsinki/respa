@@ -118,17 +118,27 @@ class UnitAuthorizationQuerySet(models.QuerySet):
 
 
 class UnitAuthorization(models.Model):
+    subject = models.ForeignKey(
+        Unit, on_delete=models.CASCADE, related_name='authorizations',
+        verbose_name=_("subject of the authorization"))
+    level = EnumField(
+        UnitAuthorizationLevel, max_length=50,
+        verbose_name=_("authorization level"))
     authorized = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-        related_name='unit_authorizations')
-    subject = models.ForeignKey(
-        Unit, on_delete=models.CASCADE, related_name='authorizations')
-    level = EnumField(UnitAuthorizationLevel, max_length=50)
+        related_name='unit_authorizations',
+        verbose_name=_("authorized user"))
 
     class Meta:
         unique_together = [('authorized', 'subject', 'level')]
+        verbose_name = _("unit authorization")
+        verbose_name_plural = _("unit authorizations")
 
     objects = UnitAuthorizationQuerySet.as_manager()
+
+    def __str__(self):
+        return '{unit} / {level}: {user}'.format(
+            unit=self.subject, level=self.level, user=self.authorized)
 
 
 class UnitIdentifier(models.Model):
