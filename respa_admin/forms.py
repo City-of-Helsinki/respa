@@ -25,7 +25,7 @@ class DaysForm(forms.ModelForm):
         required=False,
         widget=forms.TimeInput(
             format='%H:%M',
-            attrs={'class': 'text-input form-control', 'type': 'time'}
+            attrs={'class': 'text-input form-control'}
         )
     )
 
@@ -33,7 +33,7 @@ class DaysForm(forms.ModelForm):
         required=False,
         widget=forms.TimeInput(
             format='%H:%M',
-            attrs={'class': 'text-input form-control', 'type': 'time'}
+            attrs={'class': 'text-input form-control'}
         )
     )
 
