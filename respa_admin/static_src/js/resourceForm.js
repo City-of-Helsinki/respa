@@ -1,6 +1,21 @@
-import { addNewImage, removeImage, updateImagesTotalForms } from './resourceFormImages';
-import { addNewPeriod, updateTotalDays, updatePeriodsTotalForms, removePeriod, modifyDays } from './resourceFormPeriods';
-import { toggleLanguage } from './resourceFormLanguage';
+import {
+  addNewImage,
+  removeImage,
+  updateImagesTotalForms,
+} from './resourceFormImages';
+
+import {
+  addNewPeriod,
+  updateTotalDays,
+  updatePeriodsTotalForms,
+  removePeriod,
+  modifyDays,
+  copyTimePeriod,
+} from './resourceFormPeriods';
+
+import {
+  toggleLanguage,
+} from './resourceFormLanguage';
 
 let emptyImageItem = null;
 let emptyPeriodItem = null;
@@ -11,6 +26,7 @@ let emptyDayItem = null;
 * */
 export function initializeEventHandlers() {
   enableNotificationHandler();
+  enableCopyTimePeriod();
   enableAddNewPeriod();
   enableRemovePeriod();
   enableAddDaysByDate();
@@ -71,7 +87,6 @@ function setPeriodAndDayItems() {
     for (let i = 0; i < $periodList.length; i++) {
       let $days = $($periodList[i]).find('#period-days-list');
       $days.children().last().remove();
-      // updatePeriodDaysIndices(i); //TODO: might not be necessary to call this here since it's the last day.
       updateTotalDays(i);
     }
   }
@@ -117,7 +132,7 @@ function enableRemovePeriod() {
 
   for (let i = 0; i < periods.length; i++) {
     let removeButton = document.getElementById('remove-button-' + i);
-    removeButton.addEventListener('click', () => removePeriod(i), false);
+    removeButton.addEventListener('click', () => removePeriod(periods[i]), false);
   }
 }
 
@@ -165,5 +180,17 @@ function enableLanguageButtons() {
     let languageButton = languageSwitcher[0].children[i];
     let language = languageButton.value;
     languageButton.addEventListener('click', () => toggleLanguage(language), false);
+  }
+}
+
+/*
+* Bind event for copying time periods.
+* */
+function enableCopyTimePeriod() {
+  let periods = document.getElementById('current-periods-list').children;
+
+  for (let i = 0; i < periods.length; i++) {
+    let copyButton = document.getElementById('copy-time-period-' + i);
+    copyButton.addEventListener('click', () => copyTimePeriod(periods[i]), false);
   }
 }

@@ -111,13 +111,16 @@ function updateAllPeriodDaysIndices() {
 * Update the indices in the management form of the days
 * to match the current period.
 * */
-function updatePeriodDaysMgmtFormIndices(periodIdNum) {
-  let $collapseItem = $('#collapse' + periodIdNum);
-  let $managementFormInputs = $($collapseItem).find('#days-management-form').find('input');
+function updatePeriodDaysMgmtFormIndices(periodItem, index = null) {
+  let $managementFormInputs = $(periodItem).find('#days-management-form').find('input');
+
+  if (index === null) {
+    index = getPeriodCount() - 1;
+  }
 
   $managementFormInputs.each(function (id, input) {
-    $(input).attr('id', $(input).attr('id').replace(/id_days-periods-(\d+)-/, 'id_days-periods-' + periodIdNum + '-'));
-    $(input).attr('name', $(input).attr('name').replace(/days-periods-(\d+)-/, 'days-periods-' + periodIdNum + '-'));
+    $(input).attr('id', $(input).attr('id').replace(/id_days-periods-(\d+)-/, 'id_days-periods-' + index + '-'));
+    $(input).attr('name', $(input).attr('name').replace(/days-periods-(\d+)-/, 'days-periods-' + index + '-'));
   });
 }
 
@@ -132,10 +135,9 @@ function getPeriodCount() {
 * Update all indices in the management form of the current periods.
 * */
 function updateAllDaysMgmtFormIndices() {
-  let periodCount = getPeriodCount();
-
-  for (let i = 0; i < periodCount; i++) {
-    updatePeriodDaysMgmtFormIndices(i);
+  let periodList = $('#current-periods-list').children();
+  for (let i = 0; i < getPeriodCount(); i++) {
+    updatePeriodDaysMgmtFormIndices(periodList[i], i);
   }
 }
 
@@ -143,11 +145,9 @@ function updateAllDaysMgmtFormIndices() {
 * General function for restoring the values in the
 * management form for the days in a period.
 * */
-function restoreDaysMgmtFormValues(periodId) {
-  $("#id_days-periods-" + periodId + "-TOTAL_FORMS").val("0");
-  $("#id_days-periods-" + periodId + "-INITIAL_FORMS").val("0");
-  $("#id_days-periods-" + periodId + "-MAX_NUM_FORMS").val("1000");
-  $("#id_days-periods-" + periodId + "-MIN_NUM_FORMS").val("0");
+function restoreDaysMgmtFormValues(periodItem) {
+  periodItem.find('#days-management-form').find('[id$="-TOTAL_FORMS"]').val('0');
+  periodItem.find('#days-management-form').find('[id$="-INITIAL_FORMS"]').val('0');
 }
 
 /*
@@ -261,8 +261,6 @@ function convertDateFormat(dateString) {
   return dateString;
 }
 
-
-
 /*
 * Helper function for modifyDays(). Removes a day
 * by creating the exact ID of a day.
@@ -289,20 +287,15 @@ function addDay(periodIdNum, weekday) {
 }
 
 /*
-* Strips a period of its input values and days.
+* Removes all days from a period.
 * */
-function removePeriodInputValues(periodItem, idNum) {
-  //If there's an id_periods value, reset that one as well (used in the edit view).
-  $('#id_periods-' + idNum + '-id').removeAttr('value');
-
-  //Remove all days.
+function removePeriodExtraDays(periodItem) {
   let periodItemDays = periodItem.find('#period-days-list').children();
   for (let i = 0; i < periodItemDays.length; i++) {
     periodItemDays[i].remove();
   }
 
-  //Restore the values in the days management form in this period.
-  restoreDaysMgmtFormValues(idNum);
+  restoreDaysMgmtFormValues(periodItem);
 }
 
 /*
@@ -315,28 +308,31 @@ export function addNewPeriod() {
 
   if (emptyPeriodItem) {
     let newItem = emptyPeriodItem.clone();
-    const newIdNum = getPeriodCount();
-
     $periodList.append(newItem);
 
     updateAllPeriodIndices();
     updatePeriodsTotalForms();
-    updatePeriodDaysMgmtFormIndices(newIdNum);
-    removePeriodInputValues(newItem, newIdNum);
-    attachPeriodEventHandlers(newItem, newIdNum);
+    attachPeriodEventHandlers(newItem);
+
+    updatePeriodDaysMgmtFormIndices(newItem);
+    removePeriodExtraDays(newItem);
   }
 }
 
 /*
 * Attach the event handlers to a period objects' buttons.
 * */
-function attachPeriodEventHandlers(periodItem, periodIdNum) {
+function attachPeriodEventHandlers(periodItem) {
   //Attach event handler for removing a period (these are not cloned by default).
-  let removeButton = periodItem.find('#remove-button-' + periodIdNum);
-  removeButton.click(() => removePeriod(periodIdNum));
+  let removeButton = periodItem.find("[id^='remove-button']");
+  removeButton.click(() => removePeriod(periodItem));
+
+  //Attach event handler for copying time periods.
+  let copyButton = periodItem.find("[id^='copy-time-period']");
+  copyButton.click(() => copyTimePeriod(periodItem));
 
   //Attach the event handler for the date pickers.
-  let $dates = periodItem.find('#date-inputs-' + periodIdNum);
+  let $dates = periodItem.find("[id^='date-inputs']");
   $dates.change(() => modifyDays($dates[0]));
 }
 
@@ -344,28 +340,53 @@ function attachPeriodEventHandlers(periodItem, periodIdNum) {
 * Event handler to remove an hour accordion item
 * take the Id of that accordion-item as argument.
 **/
-export function removePeriod(periodIdNum) {
-  let $periodItem = $('#accordion-item-' + periodIdNum);
-
-  if ($periodItem) {
-    $periodItem.remove();
+export function removePeriod(periodItem) {
+  if (periodItem) {
+    periodItem.remove();
 
     updateAllPeriodIndices();
     updatePeriodsTotalForms();
-    updateAllDaysMgmtFormIndices();
     updateAllPeriodDaysIndices();
+    updateAllDaysMgmtFormIndices();
 
     //Re-attach event handler for removing periods, in case the parameter does not
     //correspond with the new id. This bug might occur when removing a period
     //from the middle of the list.
     for (let i = 0; i < getPeriodCount(); i++) {
-      let $periodButton = $('#accordion-item-' + i).find('#remove-button-' + i)[0];
-      $periodButton.removeEventListener('click', () => removePeriod(periodIdNum));
-      $periodButton.addEventListener('click', () => removePeriod(i));
+      let accordionItem = $('#accordion-item-' + i);
+      attachPeriodEventHandlers(accordionItem);
     }
   }
 }
 
 export function updatePeriodsTotalForms() {
   document.getElementById('id_periods-TOTAL_FORMS').value = getPeriodCount();
+}
+
+/*
+* Appends a copy of the given period element.
+* */
+export function copyTimePeriod(periodItem) {
+  let $periodsList = $('#current-periods-list');
+  let newItem = $(periodItem).clone();
+  $periodsList.append(newItem);
+
+  updateAllPeriodIndices();
+  updatePeriodsTotalForms();
+  attachPeriodEventHandlers(newItem);
+
+  updateAllPeriodDaysIndices();
+  updateAllDaysMgmtFormIndices();
+
+  //Remove the copied ID from the previous ID
+  //which ties the DOM object to a Database object.
+  newItem.find("[id$='-id']").removeAttr('value');
+
+  //Remove the days ids as well.
+  newItem.find('#day-db-ids').children().each(function(i, input) {
+    $(input).removeAttr('value');
+  });
+
+  //Reset initial forms in case there are some days present in the previous period.
+  newItem.find('#days-management-form').find('[id$="-INITIAL_FORMS"]').val('0');
 }
