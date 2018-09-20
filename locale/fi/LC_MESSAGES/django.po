@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-19 13:31+0300\n"
+"POT-Creation-Date: 2018-09-22 17:25+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -403,8 +403,9 @@ msgid "End date"
 msgstr "Loppupäivä"
 
 #: resources/models/availability.py:121 resources/models/availability.py:196
+#: respa_admin/templates/forms/widgets/_checkbox.html:14
 msgid "Closed"
-msgstr "Kiinni"
+msgstr "Suljettu"
 
 #: resources/models/availability.py:124
 msgid "period"
@@ -830,7 +831,7 @@ msgstr "Pisin varausaika"
 
 #: resources/models/resource.py:174
 #: respa_admin/templates/resources/form/_equipment.html:5
-#: respa_admin/templates/resources/form/_nav.html:38
+#: respa_admin/templates/resources/form/_nav.html:33
 msgid "Equipment"
 msgstr "Varustelut"
 
@@ -990,7 +991,6 @@ msgid "Postal code"
 msgstr "Postinumero"
 
 #: resources/models/unit.py:40
-#: respa_admin/templates/resources/form/_general_info.html:41
 msgid "Phone number"
 msgstr "Puhelinnumero"
 
@@ -1064,48 +1064,48 @@ msgstr "Lisää toinen"
 msgid "Delete Item"
 msgstr "Poista"
 
-#: respa/settings.py:166 respa_admin/templates/resources/form/_nav.html:20
+#: respa/settings.py:166
 msgid "Finnish"
 msgstr "Suomi"
 
-#: respa/settings.py:167 respa_admin/templates/resources/form/_nav.html:24
+#: respa/settings.py:167
 msgid "English"
 msgstr "Englanti"
 
-#: respa/settings.py:168 respa_admin/templates/resources/form/_nav.html:16
+#: respa/settings.py:168
 msgid "Swedish"
 msgstr "Ruotsi"
 
-#: respa_admin/forms.py:57 respa_admin/forms.py:68
+#: respa_admin/forms.py:61 respa_admin/forms.py:72
 msgid "yyyy-mm-dd"
 msgstr "dd.mm.yyyy"
 
-#: respa_admin/forms.py:142 respa_admin/templates/resources/form/_terms.html:24
+#: respa_admin/forms.py:168 respa_admin/templates/resources/form/_terms.html:26
 msgid "Yes"
 msgstr "Kyllä"
 
-#: respa_admin/forms.py:142
+#: respa_admin/forms.py:168
 msgid "No"
 msgstr "Ei"
 
-#: respa_admin/forms.py:145
+#: respa_admin/forms.py:171
 msgid "Hidden"
 msgstr "Piilotettu"
 
-#: respa_admin/forms.py:145
+#: respa_admin/forms.py:171
 msgid "Published"
 msgstr "Julkaistu"
 
-#: respa_admin/forms.py:148
+#: respa_admin/forms.py:174
 msgid "Can not be reserved"
 msgstr "Ei varattavissa"
 
-#: respa_admin/forms.py:148
+#: respa_admin/forms.py:174
 #: respa_admin/templates/resources/_resource_list.html:72
 msgid "Bookable"
 msgstr "Varattavissa"
 
-#: respa_admin/forms.py:187
+#: respa_admin/forms.py:213
 msgid "Please check the opening hours."
 msgstr "Tarkista aukioloajat."
 
@@ -1136,10 +1136,6 @@ msgstr "Valitse kuva"
 #: respa_admin/templates/forms/_image.html:18
 msgid "Remove image"
 msgstr "Poista kuva"
-
-#: respa_admin/templates/forms/widgets/_checkbox.html:14
-msgid "Suljettu"
-msgstr "Closed"
 
 #: respa_admin/templates/page_resources.html:10
 msgid "All resources I manage"
@@ -1183,7 +1179,7 @@ msgstr "Muokkaa"
 
 #: respa_admin/templates/resources/form/_booking.html:5
 #: respa_admin/templates/resources/form/_booking.html:22
-#: respa_admin/templates/resources/form/_nav.html:35
+#: respa_admin/templates/resources/form/_nav.html:30
 msgid "Booking information"
 msgstr "Varauksen tiedot"
 
@@ -1198,11 +1194,11 @@ msgstr "*Pakolliset kentät"
 msgid "Additional information before calendar."
 msgstr "Lisätiedot ennen kalenteria."
 
-#: respa_admin/templates/resources/form/_booking.html:29
+#: respa_admin/templates/resources/form/_booking.html:31
 msgid "E-mail notifications"
 msgstr "Sähköposti ilmoitukset"
 
-#: respa_admin/templates/resources/form/_booking.html:30
+#: respa_admin/templates/resources/form/_booking.html:32
 msgid "A notification will be sent when a space is booked."
 msgstr "Ilmoitus lähetetään, kun tilaa varataan."
 
@@ -1215,7 +1211,7 @@ msgid "Additional information"
 msgstr "Lisätideot"
 
 #: respa_admin/templates/resources/form/_general_info.html:5
-#: respa_admin/templates/resources/form/_nav.html:34
+#: respa_admin/templates/resources/form/_nav.html:29
 msgid "General information"
 msgstr "Yleiset tiedot"
 
@@ -1227,30 +1223,18 @@ msgstr "*Pakolliset kentät"
 msgid "Name and description"
 msgstr "Nimi ja kuvaus"
 
-#: respa_admin/templates/resources/form/_general_info.html:23
+#: respa_admin/templates/resources/form/_general_info.html:28
 msgid "Contact person"
 msgstr "Yhteyshenkilö"
 
-#: respa_admin/templates/resources/form/_general_info.html:24
+#: respa_admin/templates/resources/form/_general_info.html:29
 msgid ""
 "Not used in the user interface of 'varaamo' but the information is added to "
 "the confirmation e-mail sent to the customer."
 msgstr ""
 
-#: respa_admin/templates/resources/form/_general_info.html:27
-msgid "First name"
-msgstr "Etunimi"
-
-#: respa_admin/templates/resources/form/_general_info.html:31
-msgid "Surname"
-msgstr "Sukunimi"
-
-#: respa_admin/templates/resources/form/_general_info.html:37
-msgid "E-mail"
-msgstr "Sähköpostiosoite"
-
 #: respa_admin/templates/resources/form/_images.html:5
-#: respa_admin/templates/resources/form/_nav.html:39
+#: respa_admin/templates/resources/form/_nav.html:34
 msgid "Images"
 msgstr "Kuva"
 
@@ -1262,16 +1246,16 @@ msgstr "Voit valita vain yhden pääkuvan."
 msgid "Add image"
 msgstr "Lisää kuva"
 
-#: respa_admin/templates/resources/form/_nav.html:9
+#: respa_admin/templates/resources/form/_nav.html:10
 msgid "Create new resource"
 msgstr "Luo uusi resurssi"
 
-#: respa_admin/templates/resources/form/_nav.html:36
+#: respa_admin/templates/resources/form/_nav.html:31
 #: respa_admin/templates/resources/form/_periods.html:5
 msgid "Opening hours"
 msgstr "Aukioloajat"
 
-#: respa_admin/templates/resources/form/_nav.html:37
+#: respa_admin/templates/resources/form/_nav.html:32
 #: respa_admin/templates/resources/form/_terms.html:5
 msgid "Authentication, terms and price"
 msgstr "Tunnistautuminen, ehdot ja hinta"
@@ -1284,11 +1268,11 @@ msgstr "Lisää uusi aikajakso"
 msgid "Add general time period"
 msgstr "Lisää yleinen kausi"
 
-#: respa_admin/templates/resources/form/_terms.html:18
+#: respa_admin/templates/resources/form/_terms.html:20
 msgid "Pricing"
 msgstr "Hinnoittelu"
 
-#: respa_admin/templates/resources/form/_terms.html:20
+#: respa_admin/templates/resources/form/_terms.html:22
 msgid "The space is free of charge"
 msgstr "Tila on ilmainen"
 

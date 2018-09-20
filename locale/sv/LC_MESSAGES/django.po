@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-19 13:31+0300\n"
+"POT-Creation-Date: 2018-09-22 17:25+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -404,6 +404,7 @@ msgid "End date"
 msgstr "Slutdatum"
 
 #: resources/models/availability.py:121 resources/models/availability.py:196
+#: respa_admin/templates/forms/widgets/_checkbox.html:14
 msgid "Closed"
 msgstr "Stängd"
 
@@ -831,7 +832,7 @@ msgstr "Längsta bokningstid"
 
 #: resources/models/resource.py:174
 #: respa_admin/templates/resources/form/_equipment.html:5
-#: respa_admin/templates/resources/form/_nav.html:38
+#: respa_admin/templates/resources/form/_nav.html:33
 msgid "Equipment"
 msgstr "Utrustning"
 
@@ -991,7 +992,6 @@ msgid "Postal code"
 msgstr "Postkod"
 
 #: resources/models/unit.py:40
-#: respa_admin/templates/resources/form/_general_info.html:41
 msgid "Phone number"
 msgstr "Telefonnummer"
 
@@ -1065,48 +1065,48 @@ msgstr ""
 msgid "Delete Item"
 msgstr ""
 
-#: respa/settings.py:166 respa_admin/templates/resources/form/_nav.html:20
+#: respa/settings.py:166
 msgid "Finnish"
 msgstr ""
 
-#: respa/settings.py:167 respa_admin/templates/resources/form/_nav.html:24
+#: respa/settings.py:167
 msgid "English"
 msgstr ""
 
-#: respa/settings.py:168 respa_admin/templates/resources/form/_nav.html:16
+#: respa/settings.py:168
 msgid "Swedish"
 msgstr ""
 
-#: respa_admin/forms.py:57 respa_admin/forms.py:68
+#: respa_admin/forms.py:61 respa_admin/forms.py:72
 msgid "yyyy-mm-dd"
 msgstr "dd.mm.yyyy"
 
-#: respa_admin/forms.py:142 respa_admin/templates/resources/form/_terms.html:24
+#: respa_admin/forms.py:168 respa_admin/templates/resources/form/_terms.html:26
 msgid "Yes"
 msgstr "Ja"
 
-#: respa_admin/forms.py:142
+#: respa_admin/forms.py:168
 msgid "No"
 msgstr "Ingen"
 
-#: respa_admin/forms.py:145
+#: respa_admin/forms.py:171
 msgid "Hidden"
 msgstr "Dold"
 
-#: respa_admin/forms.py:145
+#: respa_admin/forms.py:171
 msgid "Published"
 msgstr "Offentlig"
 
-#: respa_admin/forms.py:148
+#: respa_admin/forms.py:174
 msgid "Can not be reserved"
 msgstr "Kan inte reserveras"
 
-#: respa_admin/forms.py:148
+#: respa_admin/forms.py:174
 #: respa_admin/templates/resources/_resource_list.html:72
 msgid "Bookable"
 msgstr "Kan reserveras"
 
-#: respa_admin/forms.py:187
+#: respa_admin/forms.py:213
 msgid "Please check the opening hours."
 msgstr "Kontrollera öppethållningstider"
 
@@ -1137,10 +1137,6 @@ msgstr "Välj bild"
 #: respa_admin/templates/forms/_image.html:18
 msgid "Remove image"
 msgstr "Radera bild"
-
-#: respa_admin/templates/forms/widgets/_checkbox.html:14
-msgid "Suljettu"
-msgstr "Stängd"
 
 #: respa_admin/templates/page_resources.html:10
 msgid "All resources I manage"
@@ -1184,7 +1180,7 @@ msgstr "Redigera"
 
 #: respa_admin/templates/resources/form/_booking.html:5
 #: respa_admin/templates/resources/form/_booking.html:22
-#: respa_admin/templates/resources/form/_nav.html:35
+#: respa_admin/templates/resources/form/_nav.html:30
 msgid "Booking information"
 msgstr "Bokningsinformation"
 
@@ -1199,11 +1195,11 @@ msgstr "*Obligatoriska fält"
 msgid "Additional information before calendar."
 msgstr "Ytterligare information"
 
-#: respa_admin/templates/resources/form/_booking.html:29
+#: respa_admin/templates/resources/form/_booking.html:31
 msgid "E-mail notifications"
 msgstr "E-post notifikationer"
 
-#: respa_admin/templates/resources/form/_booking.html:30
+#: respa_admin/templates/resources/form/_booking.html:32
 msgid "A notification will be sent when a space is booked."
 msgstr "Ett meddelande kommer att skickas då ett utrymme har bokats."
 
@@ -1216,7 +1212,7 @@ msgid "Additional information"
 msgstr "Ytterligare information"
 
 #: respa_admin/templates/resources/form/_general_info.html:5
-#: respa_admin/templates/resources/form/_nav.html:34
+#: respa_admin/templates/resources/form/_nav.html:29
 msgid "General information"
 msgstr "Allmän information"
 
@@ -1228,11 +1224,11 @@ msgstr "*Obligatoriska fält"
 msgid "Name and description"
 msgstr "Namn och beskrivning"
 
-#: respa_admin/templates/resources/form/_general_info.html:23
+#: respa_admin/templates/resources/form/_general_info.html:28
 msgid "Contact person"
 msgstr "Kontaktperson"
 
-#: respa_admin/templates/resources/form/_general_info.html:24
+#: respa_admin/templates/resources/form/_general_info.html:29
 msgid ""
 "Not used in the user interface of 'varaamo' but the information is added to "
 "the confirmation e-mail sent to the customer."
@@ -1240,20 +1236,8 @@ msgstr ""
 "Används ej i användargränssnittet för 'varaamo', informationen läggs till i "
 "E-postbekräftelsen skickad till kunden."
 
-#: respa_admin/templates/resources/form/_general_info.html:27
-msgid "First name"
-msgstr "Förnamn"
-
-#: respa_admin/templates/resources/form/_general_info.html:31
-msgid "Surname"
-msgstr "Efternamn"
-
-#: respa_admin/templates/resources/form/_general_info.html:37
-msgid "E-mail"
-msgstr "E-post"
-
 #: respa_admin/templates/resources/form/_images.html:5
-#: respa_admin/templates/resources/form/_nav.html:39
+#: respa_admin/templates/resources/form/_nav.html:34
 msgid "Images"
 msgstr "Bilder"
 
@@ -1265,16 +1249,16 @@ msgstr "Du kan endast välja en huvudbild."
 msgid "Add image"
 msgstr "Lägg till bild"
 
-#: respa_admin/templates/resources/form/_nav.html:9
+#: respa_admin/templates/resources/form/_nav.html:10
 msgid "Create new resource"
 msgstr "Skapa ny resurs"
 
-#: respa_admin/templates/resources/form/_nav.html:36
+#: respa_admin/templates/resources/form/_nav.html:31
 #: respa_admin/templates/resources/form/_periods.html:5
 msgid "Opening hours"
 msgstr "Öppettider"
 
-#: respa_admin/templates/resources/form/_nav.html:37
+#: respa_admin/templates/resources/form/_nav.html:32
 #: respa_admin/templates/resources/form/_terms.html:5
 msgid "Authentication, terms and price"
 msgstr "Autentisering, villkor och pris"
@@ -1287,11 +1271,11 @@ msgstr "Lägg till en ny tidsperiod"
 msgid "Add general time period"
 msgstr "Lägg till allmäm tidsperiod"
 
-#: respa_admin/templates/resources/form/_terms.html:18
+#: respa_admin/templates/resources/form/_terms.html:20
 msgid "Pricing"
 msgstr "Pris"
 
-#: respa_admin/templates/resources/form/_terms.html:20
+#: respa_admin/templates/resources/form/_terms.html:22
 msgid "The space is free of charge"
 msgstr "Detta utrymme är gratis"
 
