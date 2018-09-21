@@ -87,7 +87,7 @@ function setPeriodAndDayItems() {
     for (let i = 0; i < $periodList.length; i++) {
       let $days = $($periodList[i]).find('#period-days-list');
       $days.children().last().remove();
-      updateTotalDays(i);
+      updateTotalDays($($periodList[i]));
     }
   }
 
@@ -144,7 +144,7 @@ function enableAddDaysByDate() {
 
   for (let i = 0; i < periods.length; i++) {
     let $dates = $('#date-inputs-' + i);
-    $dates.change(() => modifyDays($dates[0]));
+    $dates.change(() => modifyDays($(periods[i]), $dates));
   }
 }
 
