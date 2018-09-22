@@ -2,11 +2,7 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
-
-from django.views.generic import (
-    CreateView,
-    ListView,
-)
+from django.views.generic import CreateView, ListView
 
 from resources.models import (
     Resource,
@@ -31,25 +27,31 @@ class ResourceListView(ListView):
     context_object_name = 'resources'
     template_name = 'page_resources.html'
 
+    def get(self, request, *args, **kwargs):
+        get_params = request.GET
+        self.search_query = get_params.get('search_query')
+        self.resource_type = get_params.get('resource_type')
+        self.resource_unit = get_params.get('resource_unit')
+        return super().get(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super(ResourceListView, self).get_context_data()
         context['types'] = ResourceType.objects.all()
-        context['units'] = Unit.objects.filter()
+        context['units'] = Unit.objects.all()
+        context['search_query'] = self.search_query
+        context['selected_resource_type'] = self.resource_type
+        context['selected_resource_unit'] = self.resource_unit
         return context
 
     def get_queryset(self):
         qs = super(ResourceListView, self).get_queryset()
 
-        search_query = self.request.GET.get('search_query')
-        resource_type = self.request.GET.get('resource_type')
-        resource_unit = self.request.GET.get('resource_unit')
-
-        if search_query:
-            qs = qs.filter(name__icontains=search_query)
-        if resource_type:
-            qs = qs.filter(type=resource_type)
-        if resource_unit:
-            qs = qs.filter(unit=resource_unit)
+        if self.search_query:
+            qs = qs.filter(name__icontains=self.search_query)
+        if self.resource_type:
+            qs = qs.filter(type=self.resource_type)
+        if self.resource_unit:
+            qs = qs.filter(unit=self.resource_unit)
 
         qs = qs.prefetch_related('images', 'unit')
 
