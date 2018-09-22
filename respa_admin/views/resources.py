@@ -36,15 +36,22 @@ class ResourceListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(ResourceListView, self).get_context_data()
-        context['types'] = ResourceType.objects.all()
-        context['units'] = Unit.objects.all()
+        resources = self.get_unfiltered_queryset()
+        context['types'] = ResourceType.objects.filter(
+            pk__in=resources.values('type'))
+        context['units'] = Unit.objects.filter(
+            pk__in=resources.values('unit'))
         context['search_query'] = self.search_query
         context['selected_resource_type'] = self.resource_type
         context['selected_resource_unit'] = self.resource_unit
         return context
 
-    def get_queryset(self):
+    def get_unfiltered_queryset(self):
         qs = super(ResourceListView, self).get_queryset()
+        return qs
+
+    def get_queryset(self):
+        qs = self.get_unfiltered_queryset()
 
         if self.search_query:
             qs = qs.filter(name__icontains=self.search_query)
