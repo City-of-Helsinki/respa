@@ -48,6 +48,7 @@ class ResourceListView(ListView):
 
     def get_unfiltered_queryset(self):
         qs = super(ResourceListView, self).get_queryset()
+        qs = qs.modifiable_by(self.request.user)
         return qs
 
     def get_queryset(self):
@@ -80,18 +81,23 @@ class SaveResourceView(CreateView):
     """
     http_method_names = ['get', 'post']
     model = Resource
+    pk_url_kwarg = 'resource_id'
     form_class = ResourceForm
     template_name = 'respa_admin/resources/create_resource.html'
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.modifiable_by(self.request.user)
 
     def get_success_url(self, **kwargs):
         messages.success(self.request, 'Resurssi tallennettu')
         return reverse_lazy('respa_admin:edit-resource', kwargs={
-            'resource_id': self.object.id,
+            self.pk_url_kwarg: self.object.id,
         })
 
     def get(self, request, *args, **kwargs):
-        if kwargs:
-            self.object = Resource.objects.get(pk=kwargs['resource_id'])
+        if self.pk_url_kwarg in kwargs:
+            self.object = self.get_object()
         else:
             self.object = None
 
@@ -120,8 +126,8 @@ class SaveResourceView(CreateView):
         )
 
     def post(self, request, *args, **kwargs):
-        if kwargs:
-            self.object = Resource.objects.get(pk=kwargs['resource_id'])
+        if self.pk_url_kwarg in kwargs:
+            self.object = self.get_object()
         else:
             self.object = None
 
