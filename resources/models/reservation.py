@@ -131,8 +131,14 @@ class Reservation(ModifiableModel):
     billing_address_zip = models.CharField(verbose_name=_('Billing address zip'), max_length=30, blank=True)
     billing_address_city = models.CharField(verbose_name=_('Billing address city'), max_length=100, blank=True)
 
+    # EXTRA FIELDS END HERE
+
     # If the reservation was imported from another system, you can store the original ID in the field below.
     origin_id = models.CharField(verbose_name=_('Original ID'), max_length=50, editable=False, null=True)
+
+    parent_reservation = models.ForeignKey('self', verbose_name=_('Parent reservation'),
+                                           related_name='sub_reservations', null=True, blank=True,
+                                           on_delete=models.PROTECT)
 
     objects = ReservationQuerySet.as_manager()
 
@@ -367,6 +373,11 @@ class Reservation(ModifiableModel):
                 ground_plan_image_url = ground_plan_image.get_full_url()
                 if ground_plan_image_url:
                     context['resource_ground_plan_image_url'] = ground_plan_image_url
+
+            context['sub_reservations'] = [
+                r.get_notification_context(language_code, user, notification_type)
+                for r in self.sub_reservations.all()
+            ]
 
         return context
 

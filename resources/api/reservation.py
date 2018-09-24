@@ -1,7 +1,10 @@
+from copy import deepcopy
+
 import uuid
 import arrow
 import django_filters
 from arrow.parser import ParserError
+from django.utils.dateparse import parse_datetime
 from guardian.core import ObjectPermissionChecker
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
@@ -19,8 +22,10 @@ from rest_framework.exceptions import NotAcceptable, ValidationError
 
 from helusers.jwt import JWTAuthentication
 from munigeo import api as munigeo_api
+
 from resources.models import Reservation, Resource, ReservationMetadataSet
 from resources.models.reservation import RESERVATION_EXTRA_FIELDS
+from resources.models.resource import ResourceConnection
 from resources.pagination import ReservationPagination
 from resources.models.utils import generate_reservation_xlsx, get_object_or_none
 
@@ -62,7 +67,7 @@ class UserSerializer(TranslatedModelSerializer):
         fields = ('id', 'display_name', 'email')
 
 
-class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
+class ReservationSerializerBase(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     begin = NullableDateTimeField()
     end = NullableDateTimeField()
     user = UserSerializer(required=False)
@@ -193,7 +198,10 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
 
         # Run model clean
         data.pop('staff_event', None)
-        instance = Reservation(**data)
+        without_sub_reservations = deepcopy(data)
+        without_sub_reservations.pop('sub_reservations', [])
+
+        instance = Reservation(**without_sub_reservations)
         try:
             instance.clean(original_reservation=reservation)
         except DjangoValidationError as exc:
@@ -227,7 +235,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         return deserialized_data
 
     def to_representation(self, instance):
-        data = super(ReservationSerializer, self).to_representation(instance)
+        data = super().to_representation(instance)
         resource = instance.resource
         user = self.context['request'].user
 
@@ -280,6 +288,69 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             'can_modify': can_modify_and_delete,
             'can_delete': can_modify_and_delete,
         }
+
+
+class SubReservationSerializer(ReservationSerializerBase):
+    def validate(self, data):
+        parent_data = self.parent.parent.initial_data
+        parent_id = parent_data['resource']
+
+        try:
+            resource_connection = data['resource'].connections_where_sub_resource.get(parent_resource_id=parent_id)
+        except ResourceConnection.DoesNotExist:
+            raise ValidationError(_('{} is not a sub resource of {}.').format(data['resource'].id, parent_id))
+
+        parent_begin = parse_datetime(parent_data['begin'])
+        parent_end = parse_datetime(parent_data['end'])
+
+        if not (data['begin'] >= parent_begin and data['end'] <= parent_end):
+            raise ValidationError(_("Sub-reservation times must be inside the parent's times."))
+
+        if resource_connection.reservation_begin_times_must_match:
+            if parent_begin != data['begin']:
+                raise ValidationError(_("Sub-reservation's begin time much match the parent's begin time."))
+
+        if resource_connection.reservation_end_times_must_match:
+            if parent_end != data['end']:
+                raise ValidationError(_("Sub-reservation's end time much match the parent's end time."))
+
+        return data
+
+
+class ReservationSerializer(ReservationSerializerBase):
+    sub_reservations = SubReservationSerializer(many=True, required=False)
+
+    class Meta(ReservationSerializerBase.Meta):
+        fields = ReservationSerializerBase.Meta.fields + ['sub_reservations']
+
+    def create(self, validated_data):
+        sub_reservations = validated_data.pop('sub_reservations', [])
+        reservation = super().create(validated_data)
+        for sub_reservation in sub_reservations:
+            Reservation.objects.create(parent_reservation=reservation, user=reservation.user, **sub_reservation)
+        return reservation
+
+    def update(self, instance, validated_data):
+        # Currently it is not possible to update sub reservations via parent reservations,
+        # one needs to update directly the sub reservations
+        validated_data.pop('sub_reservations', None)
+        return super().update(instance, validated_data)
+
+    def validate(self, data):
+        data = super().validate(data)
+
+        sub_resources = set(reservation['resource'].id for reservation in data.get('sub_reservations', ()))
+        required_sub_resources = set(
+            connection.sub_resource.id
+            for connection in data['resource'].connections_where_parent_resource.filter(reservation_requires=True)
+        )
+
+        if not required_sub_resources.issubset(sub_resources):
+            raise ValidationError(
+                _('These required sub resources are missing: {}.'.format(list(required_sub_resources - sub_resources)))
+            )
+
+        return data
 
 
 class UserFilterBackend(filters.BaseFilterBackend):

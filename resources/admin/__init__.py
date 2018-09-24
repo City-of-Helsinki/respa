@@ -11,6 +11,8 @@ from django import forms
 from guardian import admin as guardian_admin
 from image_cropping import ImageCroppingMixin
 from modeltranslation.admin import TranslationAdmin, TranslationStackedInline
+
+from resources.models.resource import ResourceConnection
 from .base import ExtraReadonlyFieldsOnUpdateMixin, CommonExcludeMixin, PopulateCreatedAndModifiedMixin
 from resources.admin.period_inline import PeriodInline
 from resources.models import Day, Reservation, Resource, ResourceImage, ResourceType, Unit, Purpose
@@ -72,11 +74,20 @@ class ResourceGroupInline(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, a
     extra = 0
 
 
+class SubResourceInline(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, admin.TabularInline):
+    model = ResourceConnection
+    fields = ('sub_resource', 'reservation_begin_times_must_match', 'reservation_end_times_must_match',
+              'reservation_requires')
+    fk_name = 'parent_resource'
+    extra = 0
+
+
 class ResourceAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin, HttpsFriendlyGeoAdmin):
     inlines = [
         PeriodInline,
         ResourceEquipmentInline,
         ResourceGroupInline,
+        SubResourceInline,
     ]
 
     default_lon = 2776460  # Central Railway Station in EPSG:3857
@@ -132,6 +143,7 @@ class ResourceEquipmentAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin
 class ReservationAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, ExtraReadonlyFieldsOnUpdateMixin,
                        admin.ModelAdmin):
     extra_readonly_fields_on_update = ('access_code',)
+    raw_id_fields = ('user', 'approver', 'parent_reservation')
 
 
 class ResourceTypeAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):

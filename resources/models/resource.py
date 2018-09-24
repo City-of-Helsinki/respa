@@ -193,6 +193,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                                                                   null=True, blank=True)
     reservation_metadata_set = models.ForeignKey('resources.ReservationMetadataSet', null=True, blank=True,
                                                  on_delete=models.SET_NULL)
+    sub_resources = models.ManyToManyField('self', verbose_name=_('Children'), related_name='parent_resources',
+                                           through='ResourceConnection', blank=True, symmetrical=False)
 
     objects = ResourceQuerySet.as_manager()
 
@@ -715,3 +717,20 @@ class ResourceDailyOpeningHours(models.Model):
             lower = self.open_between.lower
             upper = self.open_between.upper
         return "%s: %s -> %s" % (self.resource, lower, upper)
+
+
+class ResourceConnection(models.Model):
+    parent_resource = models.ForeignKey(Resource, verbose_name=_('Parent resource'),
+                                        related_name='connections_where_parent_resource', on_delete=models.CASCADE)
+    sub_resource = models.ForeignKey(Resource, verbose_name=_('Sub resource'),
+                                     related_name='connections_where_sub_resource', on_delete=models.CASCADE)
+    reservation_begin_times_must_match = models.BooleanField(verbose_name=_('Reservation begin times must match'),
+                                                             default=False)
+    reservation_end_times_must_match = models.BooleanField(verbose_name=_('Reservation end times must match'),
+                                                           default=False)
+    reservation_requires = models.BooleanField(verbose_name=_('Reservation requires'), default=False)
+
+    class Meta:
+        verbose_name = _('Resource connection')
+        verbose_name_plural = _('Resource connections')
+        unique_together = ('parent_resource', 'sub_resource')
