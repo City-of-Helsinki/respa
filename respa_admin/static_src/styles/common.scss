@@ -86,67 +86,67 @@
           margin-right: 36px;
         }
       }
-
-      .weekday-row {
-        border-bottom: solid 1px $dark-gray;
-
-        .weekday-checkbox {
-          margin: auto 0;
-          padding: 0;
-
-          label {
-            padding-left: 32px;
-            font-size: $font-size-large;
-          }
-        }
-
-        .add-time {
-          padding-left: 32px;
-          font-weight: lighter;
-          background-color: transparent;
-          display: inline-flex;
-
-          span {
-            font-size: $font-size-large;
-          }
-        }
-
-        .copy-next {
-          background-color: $hel-copper;
-          margin: 5px 0;
-          color: $white;
-          height: 40px;
-        }
-      }
-
-      .footer-buttons {
-        padding-top: 24px;
-
-        .btn {
-          padding-right: $padding-large-horizontal;
-          padding-left: $padding-large-horizontal;
-        }
-
-        .save-time {
-          background-color: $hel-copper;
-          color: $white;
-        }
-
-        .cancel-time {
-          background-color: transparent;
-          color: $theme-danger;
-        }
-
-        .delete-time {
-          background-color: $theme-danger;
-          color: $white;
-        }
-
-        .remove-day {
-          background-color: $theme-danger;
-          color: $white;
-        }
-      }
     }
+  }
+}
+
+.weekday-row {
+  border-bottom: solid 1px $dark-gray;
+
+  .weekday-checkbox {
+    margin: auto 0;
+    padding: 0;
+
+    label {
+      font-size: $font-size-large;
+      padding-left: 32px;
+    }
+  }
+
+  .add-time {
+    padding-left: 32px;
+    font-weight: lighter;
+    background-color: transparent;
+    display: inline-flex;
+
+    span {
+      font-size: $font-size-large;
+    }
+  }
+
+  .copy-next {
+    background-color: $hel-copper;
+    margin: 5px 0;
+    color: $white;
+    height: 40px;
+  }
+}
+
+.footer-buttons {
+  padding-top: 24px;
+
+  .btn {
+    padding-left: $padding-large-horizontal;
+    padding-right: $padding-large-horizontal;
+  }
+
+  .save-time {
+    background-color: $hel-copper;
+    color: $white;
+  }
+
+  .cancel-time {
+    background-color: transparent;
+    color: $theme-danger;
+  }
+
+  .delete-time {
+    background-color: $theme-danger;
+    color: $white;
+  }
+
+  .remove-day {
+    background-color: $theme-danger;
+    color: $white;
   }
 }
