@@ -25,7 +25,7 @@ class ResourceListView(ListView):
     model = Resource
     paginate_by = 10
     context_object_name = 'resources'
-    template_name = 'page_resources.html'
+    template_name = 'respa_admin/page_resources.html'
 
     def get(self, request, *args, **kwargs):
         get_params = request.GET
@@ -67,11 +67,11 @@ class ResourceListView(ListView):
 
 class RespaAdminIndex(ResourceListView):
     paginate_by = 7
-    template_name = 'index.html'
+    template_name = 'respa_admin/index.html'
 
 
 def admin_office(request):
-    return TemplateResponse(request, 'page_office.html')
+    return TemplateResponse(request, 'respa_admin/page_office.html')
 
 
 class SaveResourceView(CreateView):
@@ -81,7 +81,7 @@ class SaveResourceView(CreateView):
     http_method_names = ['get', 'post']
     model = Resource
     form_class = ResourceForm
-    template_name = 'resources/create_resource.html'
+    template_name = 'respa_admin/resources/create_resource.html'
 
     def get_success_url(self, **kwargs):
         messages.success(self.request, 'Resurssi tallennettu')

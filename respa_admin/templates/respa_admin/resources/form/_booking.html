@@ -1,0 +1,38 @@
+{% load i18n %}
+
+<div id="detail-booking">
+    <div class="form-section-header">
+        <h2>{% trans "Booking information" %}</h2>
+        <span class="pull-right">{% trans "*Mandatory fields" %}</span>
+    </div>
+    <div class="input-row">
+        {% include "respa_admin/forms/_input.html" with field=form.people_capacity %}
+        {% include "respa_admin/forms/_input.html" with field=form.area prefix_text="m2" %}
+    </div>
+    <div class="input-row dropdown-row">
+        {% include "respa_admin/forms/_select.html" with field=form.min_period inline=True %}
+        {% include "respa_admin/forms/_select.html" with field=form.max_period inline=True %}
+    </div>
+    <div class="input-row">
+        {% include "respa_admin/forms/_input.html" with field=form.reservable_days_in_advance prefix_text="day" %}
+        {% include "respa_admin/forms/_input.html" with field=form.max_reservations_per_user prefix_text="pcs" %}
+    </div>
+    <div class="form-group booking-info">
+        <div class="textarea-wrapper">
+            <h4>{% trans "Booking information" %}</h4>
+            <p>{% trans "Additional information before calendar." %}</p>
+            {% include "respa_admin/forms/_textarea_input.html" with field=form.reservation_info_fi %}
+            {% include "respa_admin/forms/_textarea_input.html" with field=form.reservation_info_en %}
+            {% include "respa_admin/forms/_textarea_input.html" with field=form.reservation_info_sv %}
+        </div>
+    </div>
+    <div class="form-group email-notification">
+        <div class="textarea-wrapper">
+            <h4>{% trans "E-mail notifications" %}</h4>
+            <p>{% trans "A notification will be sent when a space is booked." %}</p>
+            {% include "respa_admin/forms/_textarea_input.html" with field=form.reservation_confirmed_notification_extra_fi %}
+            {% include "respa_admin/forms/_textarea_input.html" with field=form.reservation_confirmed_notification_extra_en %}
+            {% include "respa_admin/forms/_textarea_input.html" with field=form.reservation_confirmed_notification_extra_sv %}
+        </div>
+    </div>
+</div>

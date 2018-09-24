@@ -1,4 +1,4 @@
-{% extends "_base.html" %}
+{% extends "respa_admin/_base.html" %}
 
 {% block koro_shape %}
     <section class="hero-section bg-light">
@@ -44,6 +44,6 @@
 {% endblock koro_shape %}
 
 {% block body %}
-    {% include "resources/_resource_list.html" %}
-    {% include "_user_matrix.html" %}
+    {% include "respa_admin/resources/_resource_list.html" %}
+    {% include "respa_admin/_user_matrix.html" %}
 {% endblock body %}
