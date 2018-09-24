@@ -9,13 +9,13 @@
         <span class="control-label input-label">{{ form.need_manual_confirmation.label }}</span>
         {{ form.need_manual_confirmation }}
     </div>
-    {% include "forms/_select.html" with field=form.authentication %}
-    {% include "forms/_select.html" with field=form.generic_terms %}
-    {% include "forms/_select.html" with field=form.access_code_type %}
+    {% include "respa_admin/forms/_select.html" with field=form.authentication %}
+    {% include "respa_admin/forms/_select.html" with field=form.generic_terms %}
+    {% include "respa_admin/forms/_select.html" with field=form.access_code_type %}
 
-    {% include "forms/_textarea_input.html" with field=form.specific_terms_fi %}
-    {% include "forms/_textarea_input.html" with field=form.specific_terms_en %}
-    {% include "forms/_textarea_input.html" with field=form.specific_terms_sv %}
+    {% include "respa_admin/forms/_textarea_input.html" with field=form.specific_terms_fi %}
+    {% include "respa_admin/forms/_textarea_input.html" with field=form.specific_terms_en %}
+    {% include "respa_admin/forms/_textarea_input.html" with field=form.specific_terms_sv %}
     <div class="pricing">
         <h4>{% trans "Pricing" %}</h4>
         <div class="price-confirm">
@@ -33,8 +33,8 @@
         </div>
         <div class="price-range">
             <div class="input-row">
-                {% include "forms/_input.html" with field=form.min_price_per_hour prefix_icon="euro" %}
-                {% include "forms/_input.html" with field=form.max_price_per_hour prefix_icon="euro" %}
+                {% include "respa_admin/forms/_input.html" with field=form.min_price_per_hour prefix_icon="euro" %}
+                {% include "respa_admin/forms/_input.html" with field=form.max_price_per_hour prefix_icon="euro" %}
             </div>
         </div>
     </div>

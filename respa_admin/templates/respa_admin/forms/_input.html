@@ -27,7 +27,7 @@
     {% endif %}
     <span class="help-text">{{ field.help_text }}</span>
 
-    {% include "forms/_errors.html" with field=field %}
+    {% include "respa_admin/forms/_errors.html" with field=field %}
 
     {% if prefix_icon or prefix_text %}
         </div>

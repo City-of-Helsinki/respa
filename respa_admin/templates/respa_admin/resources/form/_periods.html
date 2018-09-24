@@ -18,7 +18,7 @@
     <div class="present-hours-list" id="current-periods-list">
         {% for period in formset %}
             {% with forloop.counter0 as id %}
-            {% include "common/_periods_accordion.html" with period=period id=id %}
+            {% include "respa_admin/common/_periods_accordion.html" with period=period id=id %}
             {% endwith %}
         {% endfor %}
     </div>
