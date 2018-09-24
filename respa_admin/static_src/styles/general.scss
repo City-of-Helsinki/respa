@@ -5,12 +5,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 body {
+    position: relative;
 
     main {
         margin-top: 120px;
-    }
 
-    position: relative;
+        &.content-without-nav {
+            margin-top: 0;
+        }
+    }
 }
 
 span.glyphicon.icon-left {

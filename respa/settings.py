@@ -258,6 +258,8 @@ RESPA_CATERINGS_ENABLED = False
 RESPA_COMMENTS_ENABLED = False
 RESPA_DOCX_TEMPLATE = os.path.join(BASE_DIR, 'reports', 'data', 'default.docx')
 
+RESPA_ADMIN_USERNAME_LOGIN = env.bool(
+    'RESPA_ADMIN_USERNAME_LOGIN', default=DEBUG)
 
 # local_settings.py can be used to override environment-specific settings
 # like database and email that differ between development and production.

@@ -1,5 +1,6 @@
-from ._login import login
+from ._login import LoginView, tunnistamo_login
 
 __all__ = [
-    'login',
+    'LoginView',
+    'tunnistamo_login',
 ]
