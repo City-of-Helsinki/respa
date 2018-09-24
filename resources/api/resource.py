@@ -21,9 +21,12 @@ from resources.models import (
     Purpose, Reservation, Resource, ResourceImage, ResourceType, ResourceEquipment,
     TermsOfUse, Equipment, ReservationMetadataSet, ResourceDailyOpeningHours
 )
+
 from resources.models.resource import determine_hours_time_range
 
 from ..auth import is_general_admin, is_staff
+
+from resources.models.resource import determine_hours_time_range
 from .base import TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
 from .reservation import ReservationSerializer
 from .unit import UnitSerializer
@@ -139,7 +142,7 @@ class TermsOfUseSerializer(TranslatedModelSerializer):
         fields = ('text',)
 
 
-class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
+class ResourceSerializerBase(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     purposes = PurposeSerializer(many=True)
     images = NestedResourceImageSerializer(many=True)
     equipment = ResourceEquipmentSerializer(many=True, read_only=True, source='resource_equipment')
@@ -272,8 +275,30 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
                    'access_code_type', 'reservation_metadata_set')
 
 
+class NestedResourceSerializer(ResourceSerializerBase):
+    class Meta(ResourceSerializerBase.Meta):
+        exclude = ResourceSerializerBase.Meta.exclude + ('child_resources',)
+
+
+class ResourceSerializer(ResourceSerializerBase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and request.version == 'incubating':
+            self.fields['parent_resources'] = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+        else:
+            self.fields.pop('child_resources', None)
+
+
 class ResourceDetailsSerializer(ResourceSerializer):
     unit = UnitSerializer()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and request.version == 'incubating':
+            self.fields['parent_resources'] = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+            self.fields['child_resources'] = NestedResourceSerializer(many=True)
 
 
 class ParentFilter(django_filters.Filter):
@@ -571,7 +596,7 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
                           viewsets.GenericViewSet, ResourceCacheMixin):
     queryset = Resource.objects.select_related('generic_terms', 'unit', 'type', 'reservation_metadata_set')
     queryset = queryset.prefetch_related('favorited_by', 'resource_equipment', 'resource_equipment__equipment',
-                                         'purposes', 'images', 'purposes', 'groups')
+                                         'purposes', 'images', 'groups', 'child_resources')
     serializer_class = ResourceSerializer
     filter_backends = (filters.SearchFilter, ResourceFilterBackend, LocationFilterBackend)
     search_fields = ('name_fi', 'description_fi', 'unit__name_fi',
@@ -588,16 +613,18 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
         return context
 
     def get_queryset(self):
+        queryset = self.queryset.filter(parent_resources=None)
+
         if is_general_admin(self.request.user):
-            return self.queryset
+            return queryset
         else:
-            return self.queryset.filter(public=True)
+            return queryset.filter(public=True)
 
 
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
                       viewsets.GenericViewSet, ResourceCacheMixin):
     serializer_class = ResourceDetailsSerializer
-    queryset = ResourceListViewSet.queryset
+    queryset = ResourceListViewSet.queryset.prefetch_related('child_resources__parent_resources')
 
     def get_serializer(self, page, *args, **kwargs):
         self._page = [page]

@@ -13,7 +13,7 @@ from parler.utils.context import switch_language
 from caterings.models import CateringOrder, CateringProvider
 
 from resources.models import (Period, Day, Reservation, Resource, ResourceGroup, ReservationMetadataField,
-                              ReservationMetadataSet)
+                              ReservationMetadataSet, Purpose)
 from notifications.models import NotificationTemplate, NotificationType
 from notifications.tests.utils import check_received_mail_exists
 from .utils import check_disallowed_methods, assert_non_field_errors_contain, assert_response_objects
@@ -31,6 +31,10 @@ DEFAULT_REQUIRED_RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_nu
 User = get_user_model()
 
 
+def get_detail_url(reservation):
+    return reverse('reservation-detail', kwargs={'pk': reservation.pk})
+
+
 @pytest.fixture
 def list_url():
     return reverse('reservation-list')
@@ -38,7 +42,7 @@ def list_url():
 
 @pytest.fixture
 def detail_url(reservation):
-    return reverse('reservation-detail', kwargs={'pk': reservation.pk})
+    return get_detail_url(reservation)
 
 
 @pytest.mark.django_db

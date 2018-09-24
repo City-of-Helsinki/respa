@@ -131,8 +131,14 @@ class Reservation(ModifiableModel):
     billing_address_zip = models.CharField(verbose_name=_('Billing address zip'), max_length=30, blank=True)
     billing_address_city = models.CharField(verbose_name=_('Billing address city'), max_length=100, blank=True)
 
+    # EXTRA FIELDS END HERE
+
     # If the reservation was imported from another system, you can store the original ID in the field below.
     origin_id = models.CharField(verbose_name=_('Original ID'), max_length=50, editable=False, null=True)
+
+    parent_reservation = models.ForeignKey('self', verbose_name=_('Parent reservation'),
+                                           related_name='child_reservations', null=True, blank=True,
+                                           on_delete=models.PROTECT)
 
     objects = ReservationQuerySet.as_manager()
 
@@ -243,12 +249,27 @@ class Reservation(ModifiableModel):
             self.send_reservation_denied_mail()
         elif new_state == Reservation.CANCELLED:
             if user != self.user:
-                self.send_reservation_cancelled_mail()
+                if self.is_child_reservation():
+                    self.send_child_reservation_cancelled_mail()
+                else:
+                    self.send_reservation_cancelled_mail()
             reservation_cancelled.send(sender=self.__class__, instance=self,
                                        user=user)
 
         self.state = new_state
         self.save()
+
+    def can_create(self, user):
+        if not user:
+            return False
+
+        if self.resource.is_admin(user):
+            return True
+
+        if self.is_child_reservation():
+            return False
+
+        return self.user == user
 
     def can_modify(self, user):
         if not user:
@@ -258,6 +279,10 @@ class Reservation(ModifiableModel):
         # modified or cancelled without reservation approve permission
         cannot_approve = not self.resource.can_approve_reservations(user)
         if self.need_manual_confirmation() and self.state == Reservation.CONFIRMED and cannot_approve:
+            return False
+
+        # currently child reservations and reservations with child reservations can only be modified by admins
+        if (self.is_child_reservation() or self.has_child_reservations()) and not self.resource.is_admin(user):
             return False
 
         return self.user == user or self.resource.can_modify_reservations(user)
@@ -284,6 +309,12 @@ class Reservation(ModifiableModel):
         begin = self.begin.astimezone(tz)
         end = self.end.astimezone(tz)
         return format_dt_range(translation.get_language(), begin, end)
+
+    def has_child_reservations(self):
+        return self.child_reservations.current().exists()
+
+    def is_child_reservation(self):
+        return bool(self.parent_reservation)
 
     def __str__(self):
         if self.state != Reservation.CONFIRMED:
@@ -322,7 +353,7 @@ class Reservation(ModifiableModel):
         if self.access_code:
             validate_access_code(self.access_code, self.resource.access_code_type)
 
-    def get_notification_context(self, language_code, user=None, notification_type=None):
+    def get_notification_context(self, language_code, user=None, notification_type=None, nested=False):
         if not user:
             user = self.user
         with translation.override(language_code):
@@ -368,6 +399,17 @@ class Reservation(ModifiableModel):
                 if ground_plan_image_url:
                     context['resource_ground_plan_image_url'] = ground_plan_image_url
 
+            if self.parent_reservation:
+                if not nested:
+                    context['parent_reservation'] = self.parent_reservation.get_notification_context(
+                        language_code, user, notification_type, nested=True)
+            else:
+                if not nested:
+                    context['child_reservations'] = [
+                        r.get_notification_context(language_code, user, notification_type, nested=True)
+                        for r in self.child_reservations.all()
+                    ]
+
         return context
 
     def send_reservation_mail(self, notification_type, user=None):
@@ -405,30 +447,47 @@ class Reservation(ModifiableModel):
             rendered_notification['html_body']
         )
 
+    def send_non_child_reservation_mail(self, notification_type, user=None):
+        if self.is_child_reservation():
+            return
+        self.send_reservation_mail(notification_type, user)
+
+    def send_child_reservation_mail(self, notification_type, user=None):
+        if not self.is_child_reservation():
+            return
+        self.send_reservation_mail(notification_type, user)
+
     def send_reservation_requested_mail(self):
-        self.send_reservation_mail(NotificationType.RESERVATION_REQUESTED)
+        self.send_non_child_reservation_mail(NotificationType.RESERVATION_REQUESTED)
 
     def send_reservation_requested_mail_to_officials(self):
         notify_users = self.resource.get_users_with_perm('can_approve_reservation')
         if len(notify_users) > 100:
             raise Exception("Refusing to notify more than 100 users (%s)" % self)
         for user in notify_users:
-            self.send_reservation_mail(NotificationType.RESERVATION_REQUESTED_OFFICIAL, user=user)
+            self.send_non_child_reservation_mail(NotificationType.RESERVATION_REQUESTED_OFFICIAL, user=user)
 
     def send_reservation_denied_mail(self):
-        self.send_reservation_mail(NotificationType.RESERVATION_DENIED)
+        self.send_non_child_reservation_mail(NotificationType.RESERVATION_DENIED)
 
     def send_reservation_confirmed_mail(self):
-        self.send_reservation_mail(NotificationType.RESERVATION_CONFIRMED)
+        self.send_non_child_reservation_mail(NotificationType.RESERVATION_CONFIRMED)
 
     def send_reservation_cancelled_mail(self):
-        self.send_reservation_mail(NotificationType.RESERVATION_CANCELLED)
+        self.send_non_child_reservation_mail(NotificationType.RESERVATION_CANCELLED)
 
     def send_reservation_created_mail(self):
-        self.send_reservation_mail(NotificationType.RESERVATION_CREATED)
+        self.send_non_child_reservation_mail(NotificationType.RESERVATION_CREATED)
 
     def send_reservation_created_with_access_code_mail(self):
-        self.send_reservation_mail(NotificationType.RESERVATION_CREATED_WITH_ACCESS_CODE)
+        self.send_non_child_reservation_mail(NotificationType.RESERVATION_CREATED_WITH_ACCESS_CODE)
+
+    def send_child_reservation_created_separately_mail(self):
+        self.send_child_reservation_mail(
+            NotificationType.CHILD_RESERVATION_CREATED_SEPARATELY, user=self.parent_reservation.user)
+
+    def send_child_reservation_cancelled_mail(self):
+        self.send_child_reservation_mail(NotificationType.CHILD_RESERVATION_CANCELLED)
 
     def save(self, *args, **kwargs):
         self.duration = DateTimeTZRange(self.begin, self.end, '[)')

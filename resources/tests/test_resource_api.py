@@ -8,7 +8,8 @@ from freezegun import freeze_time
 from guardian.shortcuts import assign_perm, remove_perm
 
 from resources.models import (Day, Equipment, Period, Reservation, ReservationMetadataSet, ResourceEquipment,
-                              ResourceType)
+                              ResourceType, Resource)
+from resources.models.resource import Purpose
 from .utils import assert_response_objects, check_only_safe_methods_allowed
 
 

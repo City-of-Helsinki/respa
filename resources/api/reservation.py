@@ -1,14 +1,17 @@
+from copy import deepcopy
+
 import uuid
 import arrow
 import django_filters
 from arrow.parser import ParserError
+from django.utils.dateparse import parse_datetime
 from guardian.core import ObjectPermissionChecker
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import (
     PermissionDenied, ValidationError as DjangoValidationError
 )
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, serializers, filters, exceptions, permissions
@@ -19,6 +22,7 @@ from rest_framework.exceptions import NotAcceptable, ValidationError
 from rest_framework.settings import api_settings as drf_settings
 
 from munigeo import api as munigeo_api
+
 from resources.models import Reservation, Resource, ReservationMetadataSet
 from resources.models.reservation import RESERVATION_EXTRA_FIELDS
 from resources.pagination import ReservationPagination
@@ -63,7 +67,7 @@ class UserSerializer(TranslatedModelSerializer):
         fields = ('id', 'display_name', 'email')
 
 
-class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
+class ReservationSerializerBase(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     begin = NullableDateTimeField()
     end = NullableDateTimeField()
     user = UserSerializer(required=False)
@@ -194,7 +198,10 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
 
         # Run model clean
         data.pop('staff_event', None)
-        instance = Reservation(**data)
+        without_child_reservations = deepcopy(data)
+        without_child_reservations.pop('child_reservations', [])
+
+        instance = Reservation(**without_child_reservations)
         try:
             instance.clean(original_reservation=reservation)
         except DjangoValidationError as exc:
@@ -228,7 +235,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         return deserialized_data
 
     def to_representation(self, instance):
-        data = super(ReservationSerializer, self).to_representation(instance)
+        data = super().to_representation(instance)
         resource = instance.resource
         user = self.context['request'].user
 
@@ -281,6 +288,92 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             'can_modify': can_modify_and_delete,
             'can_delete': can_modify_and_delete,
         }
+
+    def _validate_against_parent(self, data, parent_resource_id, parent_begin, parent_end):
+        try:
+            resource = data['resource']
+        except KeyError:
+            resource = self.instance.resource
+
+        if parent_resource_id not in resource.parent_resources.values_list('id', flat=True):
+            raise ValidationError(
+                _('{child_resource} is not a child resource of {parent_resource}.').format(
+                    child_resouce=data['resource'].id, parent_resource=parent_resource_id
+                )
+            )
+
+        if not (data['begin'] >= parent_begin and data['end'] <= parent_end):
+            raise ValidationError(_("Begin and end times must be inside the parent's begin and end times."))
+
+        if parent_begin != data['begin']:
+            raise ValidationError(_("Begin time must match the parent's begin time."))
+
+        return data
+
+
+class NestedReservationSerializer(ReservationSerializerBase):
+    def validate(self, data):
+        data = super().validate(data)
+
+        parent_reservation_data = self.parent.parent.initial_data
+        parent_resource_id = parent_reservation_data['resource']
+
+        data = self._validate_against_parent(
+            data,
+            parent_resource_id,
+            parse_datetime(parent_reservation_data['begin']),
+            parse_datetime(parent_reservation_data['end']),
+        )
+
+        return data
+
+
+class ReservationSerializer(ReservationSerializerBase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get('request')
+
+        if request and request.version == 'incubating':
+            parent_write_only = self.context['view'].action != 'retrieve'
+            self.fields['parent_reservation'] = serializers.PrimaryKeyRelatedField(
+                queryset=Reservation.objects.all(), required=False, write_only=parent_write_only
+            )
+            self.fields['child_reservations'] = NestedReservationSerializer(many=True, required=False)
+
+    def create(self, validated_data):
+        child_reservations = validated_data.pop('child_reservations', [])
+        reservation = super().create(validated_data)
+        for child_reservation in child_reservations:
+            Reservation.objects.create(parent_reservation=reservation, user=reservation.user, **child_reservation)
+
+        return reservation
+
+    def update(self, instance, validated_data):
+        if instance.is_child_reservation():
+            raise PermissionDenied()
+
+        # it is not possible to update child reservations via parent reservations
+        validated_data.pop('child_reservations', None)
+
+        return super().update(instance, validated_data)
+
+    def validate(self, data):
+        data = super().validate(data)
+        parent_reservation = data.get('parent_reservation')
+
+        if parent_reservation:
+            if not data['resource'].is_admin(self.context['request'].user):
+                # other than admins cannot add child reservations for already existing reservations
+                raise PermissionDenied()
+
+            data = self._validate_against_parent(
+                data,
+                parent_reservation.resource.id,
+                parent_reservation.begin,
+                parent_reservation.end,
+            )
+
+        return data
 
 
 class UserFilterBackend(filters.BaseFilterBackend):
@@ -501,8 +594,10 @@ class ReservationCacheMixin:
 
 
 class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, ReservationCacheMixin):
-    queryset = Reservation.objects.select_related('user', 'resource', 'resource__unit')\
-        .prefetch_related('catering_orders').prefetch_related('resource__groups').order_by('begin', 'resource__unit__name', 'resource__name')
+    queryset = Reservation.objects.select_related('user', 'resource', 'resource__unit')
+    queryset = queryset.prefetch_related('catering_orders').prefetch_related('resource__groups')
+
+    queryset = queryset.order_by('begin', 'resource__unit__name', 'resource__name')
 
     serializer_class = ReservationSerializer
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter, UserFilterBackend, ResourceFilterBackend,
@@ -534,8 +629,8 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
             context.update(self._get_cache_context())
         return context
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
+    def get_base_queryset(self):
+        queryset = self.queryset
         user = self.request.user
 
         # General Administrators can see all reservations
@@ -552,6 +647,17 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
 
         return queryset
 
+    def get_queryset(self):
+        queryset = self.get_base_queryset()
+
+        # NOTE in addition to prefetching, this also applies visibility limits for nested reservations
+        queryset = queryset.prefetch_related(Prefetch('child_reservations', queryset=queryset))
+
+        if self.action == 'list':
+            queryset = queryset.filter(parent_reservation=None)
+
+        return queryset
+
     def perform_create(self, serializer):
         override_data = {'created_by': self.request.user, 'modified_by': self.request.user}
         if 'user' not in serializer.validated_data:
@@ -562,10 +668,16 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         resource = serializer.validated_data['resource']
         staff_event = (self.request.data.get('staff_event', False) and
                        resource.can_approve_reservations(self.request.user))
-        if resource.need_manual_confirmation and not staff_event:
+        is_child_reservation = instance.is_child_reservation()
+
+        # child reservations don't support manual confirmation
+        if resource.need_manual_confirmation and not staff_event and not is_child_reservation:
             new_state = Reservation.REQUESTED
         else:
             new_state = Reservation.CONFIRMED
+
+        if is_child_reservation:
+            instance.send_child_reservation_created_separately_mail()
 
         instance.set_state(new_state, self.request.user)
 

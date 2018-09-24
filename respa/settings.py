@@ -236,6 +236,7 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.BasicAuthentication",
     ] if DEBUG else []),
     'DEFAULT_PAGINATION_CLASS': 'resources.pagination.DefaultPagination',
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
 }
 
 JWT_AUTH = {

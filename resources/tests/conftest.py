@@ -25,6 +25,7 @@ def staff_api_client(staff_user):
 def user_api_client(user):
     api_client = APIClient()
     api_client.force_authenticate(user=user)
+    api_client.user = user
     return api_client
 
 
@@ -275,3 +276,41 @@ def resource_group2(resource_in_unit2):
     )
     group.resources = [resource_in_unit2]
     return group
+
+
+@pytest.fixture
+def person_resource_type():
+    return ResourceType.objects.create(
+        id='test_person_resource',
+        name='Test Person Resource Type',
+        main_type='person',
+    )
+
+
+@pytest.fixture
+def guide_resource(person_resource_type, resource_in_unit):
+    guide = Resource.objects.create(
+        type=person_resource_type,
+        name='Opas Taja',
+        unit=resource_in_unit.unit,
+        max_reservations_per_user=2,
+        max_period=datetime.timedelta(hours=4),
+        reservable=True,
+    )
+    guide.purposes.add(Purpose.objects.create(
+        id='guidance',
+        name='Opastus',
+    ))
+
+    resource_in_unit.child_resources.add(guide)
+
+    period = Period.objects.create(
+        start='2115-04-01',
+        end='2115-05-01',
+        resource_id=guide.id,
+        name='test_guide_period'
+    )
+    Day.objects.create(period=period, weekday=3, opens='09:00', closes='15:00')
+    guide.update_opening_hours()
+
+    return guide

@@ -25,6 +25,9 @@ class NotificationType:
     RESERVATION_DENIED = 'reservation_denied'
     RESERVATION_CREATED = 'reservation_created'
     RESERVATION_CREATED_WITH_ACCESS_CODE = 'reservation_created_with_access_code'
+    CHILD_RESERVATION_CREATED_SEPARATELY = 'child_reservation_created_separately'
+    CHILD_RESERVATION_CANCELLED = 'child_reservation_cancelled'
+
     CATERING_ORDER_CREATED = 'catering_order_created'
     CATERING_ORDER_MODIFIED = 'catering_order_modified'
     CATERING_ORDER_DELETED = 'catering_order_deleted'
@@ -46,6 +49,8 @@ class NotificationTemplate(TranslatableModel):
         (NotificationType.RESERVATION_CREATED, _('Reservation created')),
         (NotificationType.RESERVATION_DENIED, _('Reservation denied')),
         (NotificationType.RESERVATION_CREATED_WITH_ACCESS_CODE, _('Reservation created with access code')),
+        (NotificationType.CHILD_RESERVATION_CREATED_SEPARATELY, _('Child reservation created separately')),
+        (NotificationType.CHILD_RESERVATION_CANCELLED, _('Child reservation cancelled')),
         (NotificationType.CATERING_ORDER_CREATED, _('Catering order created')),
         (NotificationType.CATERING_ORDER_MODIFIED, _('Catering order modified')),
         (NotificationType.CATERING_ORDER_DELETED, _('Catering order deleted')),

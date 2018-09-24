@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-27 12:10+0300\n"
+"POT-Creation-Date: 2018-11-14 02:43+0200\n"
 "PO-Revision-Date: 2018-09-27 12:10+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -144,6 +144,12 @@ msgstr "Varaus hylätty"
 msgid "Reservation created with access code"
 msgstr "Varaus pääsykoodin kanssa tehty"
 
+msgid "Child reservation created separately"
+msgstr "Alivaraus luotu erikseen"
+
+msgid "Child reservation cancelled"
+msgstr "Alivaraus peruttu"
+
 msgid "Catering order created"
 msgstr "Tarjoilutilaus luotu"
 
@@ -264,6 +270,16 @@ msgstr "Tätä arvoa ei voi muuttaa"
 #, python-brace-format
 msgid "Invalid pk \"{pk_value}\" - object does not exist."
 msgstr ""
+
+#, python-brace-format
+msgid "{child_resource} is not a child resource of {parent_resource}."
+msgstr "{child_resource} ei ole resurssin {parent_resource} aliresurssi."
+
+msgid "Begin and end times must be inside the parent's begin and end times."
+msgstr "Alku- ja loppuajan täytyy osua aikaikkunoihin"
+
+msgid "Begin time must match the parent's begin time."
+msgstr "Alkuajan täytyy olla sama kuin päävarauksen alkuaika. "
 
 #, python-format
 msgid "Invalid value in filter %(filter)s"
@@ -514,6 +530,9 @@ msgstr "Laskutusosoite kaupunki"
 msgid "Original ID"
 msgstr "Alkuperäinen tunniste"
 
+msgid "Parent reservation"
+msgstr "Päävaraus"
+
 msgid "You must end the reservation after it has begun"
 msgstr "Varauksen loppuaika ei voi olla ennen alkuaikaa"
 
@@ -666,6 +685,9 @@ msgstr "Pääsykoodityyppi"
 
 msgid "Reservable days in advance"
 msgstr "Varattavissa etukäteen (päivissä)"
+
+msgid "Child resources"
+msgstr "Alivaraukset"
 
 msgid "resource"
 msgstr "resurssi"

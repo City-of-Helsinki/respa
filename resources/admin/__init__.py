@@ -11,6 +11,7 @@ from django import forms
 from guardian import admin as guardian_admin
 from image_cropping import ImageCroppingMixin
 from modeltranslation.admin import TranslationAdmin, TranslationStackedInline
+
 from .base import ExtraReadonlyFieldsOnUpdateMixin, CommonExcludeMixin, PopulateCreatedAndModifiedMixin
 from resources.admin.period_inline import PeriodInline
 
@@ -99,6 +100,11 @@ class ResourceAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Transla
         super().save_model(request, obj, form, change)
         obj.update_opening_hours()
 
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == 'child_resources':
+            kwargs['queryset'] = Resource.objects.all().select_related('unit')
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
 
 class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, FixedGuardedModelAdminMixin,
                 TranslationAdmin, HttpsFriendlyGeoAdmin):
@@ -163,6 +169,7 @@ class ResourceEquipmentAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin
 class ReservationAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, ExtraReadonlyFieldsOnUpdateMixin,
                        admin.ModelAdmin):
     extra_readonly_fields_on_update = ('access_code',)
+    raw_id_fields = ('user', 'approver', 'parent_reservation')
 
 
 class ResourceTypeAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):

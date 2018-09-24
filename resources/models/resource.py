@@ -205,6 +205,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                                                                   null=True, blank=True)
     reservation_metadata_set = models.ForeignKey('resources.ReservationMetadataSet', null=True, blank=True,
                                                  on_delete=models.SET_NULL)
+    child_resources = models.ManyToManyField('self', verbose_name=_('Child resources'), related_name='parent_resources',
+                                             blank=True, symmetrical=False)
 
     objects = ResourceQuerySet.as_manager()
 
