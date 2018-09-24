@@ -8,30 +8,54 @@
             <div class='filter pull-right'>
                 <span class="dropdowns-label">{% trans 'Filter' %}:</span>
 
-                <div class='select-dropdown btn btn-primary'>
-                    <form name="type-dropdown" action="." method="get">
+                <form name="filter-dropdowns" method="get">
+                    <div class='select-dropdown btn btn-primary'>
                         <select id="type-selector" name="resource_type" onchange="this.form.submit();">
-                            <option selected="selected" disabled="disabled">{% trans "Filter by type" %}</option>
+                            <option
+                                {% if not selected_resource_type %}
+                                    selected="selected"
+                                {% endif %}
+                                value="">
+                                {% trans "Filter by type" %}...
+                            </option>
                             {% for type in types %}
-                                <option value="{{ type.id }}">{{ type.name }}</option>
+                                <option
+                                    {% if type.id == selected_resource_type %}
+                                        selected="selected"
+                                    {% endif %}
+                                    value="{{ type.id }}"
+                                >
+                                    {{ type.name }}
+                                </option>
                             {% endfor %}
                         </select>
                         <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
-                    </form>>
-                </div>
+                    </div>
 
-                <div class='select-dropdown btn btn-primary'>
-                    <form name="resource_unit" action="." method="get">
+                    <div class='select-dropdown btn btn-primary'>
                         <select id="place-dropdown" name="resource_unit" onchange="this.form.submit();">
-                            <option selected="selected" disabled="disabled">{% trans "Filter by unit" %}</option>
+                            <option
+                                {% if not selected_resource_unit %}
+                                    selected="selected"
+                                {% endif %}
+                                value=""
+                            >
+                                {% trans "Filter by unit" %}...
+                            </option>
                             {% for unit in units %}
-                                <option value="{{ unit.id }}">{{ unit.name }}</option>
+                                <option
+                                    {% if unit.id == selected_resource_unit %}
+                                        selected="selected"
+                                    {% endif %}
+                                    value="{{ unit.id }}"
+                                >
+                                    {{ unit.name }}
+                                </option>
                             {% endfor %}
                         </select>
                         <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
-                    </form>>
-                    <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
-                </div>
+                    </div>
+                </form>
             </div>
         </div>
 
