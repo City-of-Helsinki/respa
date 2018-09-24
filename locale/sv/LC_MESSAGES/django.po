@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-22 17:25+0300\n"
+"POT-Creation-Date: 2018-09-24 22:14+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -830,6 +830,9 @@ msgstr "Kan reserveras"
 msgid "Please check the opening hours."
 msgstr "Kontrollera öppethållningstider"
 
+msgid "Log out"
+msgstr ""
+
 msgid "Copy time period"
 msgstr "Kopiera tidsperiod"
 
@@ -850,6 +853,38 @@ msgstr "Välj bild"
 
 msgid "Remove image"
 msgstr "Radera bild"
+
+msgid "Log in"
+msgstr ""
+
+#, fuzzy
+#| msgid "You are not allowed to make reservations in this resource."
+msgid "You are not allowed to use Respa Admin."
+msgstr "Du får inte göra reservationer i denna resurs."
+
+#, python-format
+msgid ""
+"\n"
+"                Sorry, but \"%(user)s\" is not allowed to use Respa Admin.\n"
+"                Please log in with a different account.\n"
+"                "
+msgstr ""
+
+msgid "Login failed"
+msgstr ""
+
+msgid "Log in with Helsinki account"
+msgstr ""
+
+#, fuzzy
+#| msgid "username"
+msgid "Username"
+msgstr "användarnamn"
+
+#, fuzzy
+#| msgid "password"
+msgid "Password"
+msgstr "lösenord"
 
 msgid "All resources I manage"
 msgstr "Alla mina resurser"
