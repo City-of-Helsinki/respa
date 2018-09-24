@@ -105,3 +105,16 @@ def test_login_view_already_logged_in(client, user_kind):
     else:
         assert not_allowed_text not in content
     assert 'Log in' in content
+
+
+@pytest.mark.django_db
+def test_logout(client):
+    user = User.objects.create_user(username='testuser', password='pasw123')
+    initial_login_ok = client.login(username='testuser', password='pasw123')
+    assert initial_login_ok
+    assert client.session['_auth_user_id'] == str(user.id)
+    response = client.get(reverse('respa_admin:logout'))
+    assert response.status_code == 302
+    assert response.url == (
+        'https://api.hel.fi/sso/logout/?next=http%3A%2F%2Ftestserver%2Fra%2F')
+    assert '_auth_user_id' not in client.session

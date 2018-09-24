@@ -75,7 +75,12 @@ def _get_url_with_next(request, url_name):
     return url + next_part
 
 
-def _logout_locally_and_in_tunnistamo(request):
+def logout(request):
+    index_uri = reverse('respa_admin:index')
+    return _logout_locally_and_in_tunnistamo(request, redirect_uri=index_uri)
+
+
+def _logout_locally_and_in_tunnistamo(request, redirect_uri=None):
     """
     Log out locally and in Tunnistamo.
 
@@ -87,5 +92,7 @@ def _logout_locally_and_in_tunnistamo(request):
     # Then logout from Tunnistamo with a redirect which points
     # back to this view with a given next parameter
     tunnistamo_url = HelsinkiOAuth2Adapter.profile_url.replace('/user/', '')
-    next_param = urlencode({'next': request.build_absolute_uri()})
+    next_param = urlencode({
+        'next': request.build_absolute_uri(redirect_uri)
+    })
     return HttpResponseRedirect(tunnistamo_url + '/logout/?' + next_param)

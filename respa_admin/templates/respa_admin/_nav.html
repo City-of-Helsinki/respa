@@ -1,3 +1,4 @@
+{% load i18n %}
 <nav class="navbar navbar-default">
     <div class="container">
         <!-- Brand and toggle get grouped for better mobile display -->
@@ -12,6 +13,11 @@
                     <a href="#">
                         <span class="glyphicon glyphicon-user icon-left" aria-hidden="true"></span>
                         {{ user.get_full_name|default:user.username }}
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'respa_admin:logout' %}">
+                        {% trans "Log out" %}
                     </a>
                 </li>
             </ul>
