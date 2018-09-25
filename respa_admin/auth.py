@@ -15,7 +15,7 @@ def admin_login_required(function):
     """
     decorator = user_passes_test(
         is_allowed_user,
-        login_url='respa_admin:respa-admin-login')
+        login_url='respa_admin:login')
     return decorator(function)
 
 

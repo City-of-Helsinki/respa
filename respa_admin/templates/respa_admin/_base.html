@@ -18,6 +18,8 @@
 </head>
 
 <body>
+    {% block body_content %}
+
     <div class="hidden" id="all-languages">
         {% for key, value in LANGUAGES %}
             <data value="{{ key }}"></data>
@@ -52,6 +54,8 @@
 
         {% endblock footer %}
     </div>
+
+    {% endblock body_content %}
 
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="{% static 'respa_admin/styles-bundle.js' %}"></script>
