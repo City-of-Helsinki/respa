@@ -6,9 +6,7 @@
         <div class="container-fluid row form-header">
             <div class='form-title col-sm-6'>
                 <h2>
-                    <a href="{% url 'respa_admin:new-resource' %}">
-                        <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>{% trans "Create new resource" %}
-                    </a>
+                    <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>{{ page_headline }}
                 </h2>
             </div>
 
@@ -32,10 +30,10 @@
                 <ul class="nav navbar-nav">
                     <li><a href="#general-info">{% trans "General information" %}</a></li>
                     <li><a href="#detail-booking">{% trans "Booking information" %}</a></li>
-                    <li><a href="#opening-hours">{% trans "Opening hours" %}</a></li>
+                    <li><a href="#add-picture">{% trans "Images" %}</a></li>
                     <li><a href="#term-condition">{% trans "Authentication, terms and price" %}</a></li>
                     <li><a href="#equipment">{% trans "Equipment" %}</a></li>
-                    <li><a href="#add-picture">{% trans "Images" %}</a></li>
+                    <li><a href="#opening-hours">{% trans "Opening hours" %}</a></li>
                 </ul>
             </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->

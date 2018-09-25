@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-24 22:14+0300\n"
+"POT-Creation-Date: 2018-09-25 13:19+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,264 +18,358 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#: caterings/api.py:154
 msgid "No permission to modify this reservation's catering orders."
 msgstr "Ingen tillåtelse att ändra reservationens cateringorder."
 
+#: caterings/api.py:160
 msgid "The order contains products from several providers."
 msgstr "Ordern innehåller produkter från flera leverantörer."
 
+#: caterings/models.py:20 respa_exchange/models.py:173
 msgid "time of creation"
 msgstr "Datum skapad"
 
+#: caterings/models.py:21 respa_exchange/models.py:178
 msgid "time of modification"
 msgstr "Datum modifierad"
 
+#: caterings/models.py:28 caterings/models.py:59
+#: resources/models/availability.py:118 resources/models/equipment.py:12
+#: resources/models/equipment.py:24 resources/models/equipment.py:39
+#: resources/models/reservation.py:457 resources/models/resource.py:85
+#: resources/models/resource.py:100 resources/models/resource.py:114
+#: resources/models/resource.py:159 resources/models/resource.py:684
+#: resources/models/unit.py:29
+#: respa_admin/templates/respa_admin/common/_periods_accordion.html:29
+#: respa_admin/templates/respa_admin/resources/_resource_list.html:67
 msgid "Name"
 msgstr "Namn"
 
+#: caterings/models.py:29
 msgid "Price list URL"
 msgstr "Prislista URL"
 
+#: caterings/models.py:30
 msgid "Units"
 msgstr "Enheter"
 
+#: caterings/models.py:31
 msgid "Notification email"
 msgstr "Meddelande e-post"
 
+#: caterings/models.py:34 caterings/models.py:45 caterings/models.py:89
 msgid "Catering provider"
 msgstr ""
 
+#: caterings/models.py:35
 msgid "Catering providers"
 msgstr ""
 
+#: caterings/models.py:43 caterings/models.py:50
 msgid "Catering product category"
 msgstr ""
 
+#: caterings/models.py:51
 msgid "Catering product categories"
 msgstr ""
 
+#: caterings/models.py:61
 msgctxt "catering"
 msgid "Category"
 msgstr ""
 
+#: caterings/models.py:64 resources/models/availability.py:119
+#: resources/models/resource.py:160 resources/models/unit.py:30
 msgid "Description"
 msgstr "Beskrivning"
 
+#: caterings/models.py:67
 msgid "Catering product"
 msgstr ""
 
+#: caterings/models.py:68
 msgid "Catering products"
 msgstr ""
 
+#: caterings/models.py:92
 msgid "Reservation"
 msgstr "Reservation"
 
+#: caterings/models.py:94 reports/api/reservation_details.py:70
 msgid "Invoicing data"
 msgstr "Faktureringsdata"
 
+#: caterings/models.py:95 reports/api/reservation_details.py:66
 msgid "Message"
 msgstr "Meddelande"
 
+#: caterings/models.py:96
 msgid "Serving time"
 msgstr ""
 
+#: caterings/models.py:101
 msgid "Catering order"
 msgstr ""
 
+#: caterings/models.py:102
 msgid "Catering orders"
 msgstr ""
 
+#: caterings/models.py:168
 msgid "Product"
 msgstr "Produkt"
 
+#: caterings/models.py:171
 msgid "Quantity"
 msgstr "Kvantitet"
 
+#: caterings/models.py:173
 msgid "Order"
 msgstr "Beställning"
 
+#: caterings/models.py:177
 msgid "Catering order line"
 msgstr ""
 
+#: caterings/models.py:178
 msgid "Catering order lines"
 msgstr ""
 
+#: comments/api.py:39
 msgid "Illegal type."
 msgstr "Ogiltig typ."
 
+#: comments/api.py:53
 msgid "You cannot comment this object."
 msgstr "Du kan inte kommentera detta objekt."
 
+#: comments/models.py:59 resources/models/base.py:48
 msgid "Time of creation"
 msgstr "Skapad"
 
+#: comments/models.py:60 resources/models/base.py:49
 msgid "Created by"
 msgstr "Skapad av"
 
+#: comments/models.py:63 resources/models/resource.py:115
 msgid "Text"
 msgstr "Text"
 
+#: comments/models.py:76
 msgid "Comment"
 msgstr "Kommentar"
 
+#: comments/models.py:77 resources/models/reservation.py:101
 msgid "Comments"
 msgstr "Kommentarer"
 
+#: notifications/apps.py:7
 msgid "Notifications"
 msgstr "Notifikationer"
 
+#: notifications/models.py:42
 msgid "Reservation requested"
 msgstr "Bokning begärd"
 
+#: notifications/models.py:43
 msgid "Reservation requested official"
 msgstr "Officiell begärd bokning"
 
+#: notifications/models.py:44
 msgid "Reservation cancelled"
 msgstr "Bokning avbruten"
 
+#: notifications/models.py:45
 msgid "Reservation confirmed"
 msgstr "Bokning godkänd"
 
+#: notifications/models.py:46
 msgid "Reservation created"
 msgstr "Bokning skapad"
 
+#: notifications/models.py:47
 msgid "Reservation denied"
 msgstr "Bokning avböjd"
 
+#: notifications/models.py:48
 msgid "Reservation created with access code"
 msgstr "Bokning skapad med behörighetskod"
 
+#: notifications/models.py:49
 msgid "Catering order created"
 msgstr ""
 
+#: notifications/models.py:50
 msgid "Catering order modified"
 msgstr ""
 
+#: notifications/models.py:51
 msgid "Catering order deleted"
 msgstr ""
 
+#: notifications/models.py:52
 msgid "Reservation comment created"
 msgstr "Bokningskommentar skapad"
 
+#: notifications/models.py:53
 msgid "Catering order comment created"
 msgstr ""
 
+#: notifications/models.py:57 resources/models/resource.py:576
 msgid "Type"
 msgstr "Typ"
 
+#: notifications/models.py:62
 msgid "Short message"
 msgstr "Kort meddelande"
 
+#: notifications/models.py:62
 msgid "Short notification text for e.g. SMS messages"
 msgstr "Kort meddelande för ex. SMS"
 
+#: notifications/models.py:65
 msgid "Subject"
 msgstr "Ämne"
 
+#: notifications/models.py:65
 msgid "Subject for email notifications"
 msgstr "Ämne för e-post meddelande"
 
+#: notifications/models.py:67
 msgid "Body"
 msgstr ""
 
+#: notifications/models.py:67
 msgid "Text body for email notifications"
 msgstr "Text för e-post notifikationer"
 
+#: notifications/models.py:69
 msgid "HTML body"
 msgstr "HTML text"
 
+#: notifications/models.py:69
 msgid "HTML body for email notifications"
 msgstr "HTML text för e-post notifikationer"
 
+#: notifications/models.py:74
 msgid "Notification template"
 msgstr "Meddelande mall"
 
+#: notifications/models.py:75
 msgid "Notification templates"
 msgstr ""
 
+#: reports/api/daily_reservations.py:59
 msgid "No reservations."
 msgstr "Ingen bokning"
 
+#: reports/api/daily_reservations.py:79 reports/api/reservation_details.py:49
 msgid "No information available"
 msgstr "Ingen information tillgänglig"
 
+#: reports/api/daily_reservations.py:90
 msgid "No reservations"
 msgstr "Ingen bokning"
 
+#: reports/api/daily_reservations.py:119
 #, python-brace-format
 msgid "Unit \"{pk_value}\" does not exist."
 msgstr "Enhet \"{pk_value}\" existerar inte."
 
+#: reports/api/daily_reservations.py:129
 msgid "Either unit or a valid resource id is required."
 msgstr "Enhet eller resurs är obligatorisk."
 
+#: reports/api/daily_reservations.py:132
 msgid "No resources found"
 msgstr "Inga resurser hittades"
 
+#: reports/api/daily_reservations.py:166
 msgid "day-report"
 msgstr "dags rapport"
 
+#: reports/api/reservation_details.py:55
 msgctxt "report"
 msgid "Catering order"
 msgstr ""
 
+#: reports/api/reservation_details.py:62
 msgid "pcs."
 msgstr "st."
 
+#: reports/api/reservation_details.py:141
 msgid "Too many (> 1000) reservations to return"
 msgstr ""
 
+#: reports/api/reservation_details.py:146
 msgid "reservation-details"
 msgstr "Bokningsdetaljer"
 
+#: resources/admin/__init__.py:70 resources/models/resource.py:688
 msgid "Resource group"
 msgstr "Resursgrupp"
 
+#: resources/admin/__init__.py:71 resources/models/resource.py:689
 msgid "Resource groups"
 msgstr "Resursgrupper"
 
+#: resources/admin/__init__.py:162
 msgid "Required fields must be a subset of supported fields"
 msgstr ""
 
+#: resources/admin/period_inline.py:38
 msgid "HH:mm"
 msgstr "HH:mm"
 
+#: resources/api/reservation.py:136
 msgid "Illegal state change"
 msgstr "Otillåten förändring av tillstånd"
 
+#: resources/api/reservation.py:149
 msgid "You are not allowed to make reservations in this resource."
 msgstr "Du får inte göra reservationer i denna resurs."
 
+#: resources/api/reservation.py:152
 msgid "You cannot make a reservation in the past"
 msgstr "Det går inte att göra reservationer i det förgångna."
 
+#: resources/api/reservation.py:157
 #, python-format
 msgid "The resource is reservable only before %(datetime)s"
 msgstr ""
 
+#: resources/api/reservation.py:169
 msgid "Only allowed to be set by staff members"
 msgstr "Endast tillåtet att fastställas av personal. "
 
+#: resources/api/reservation.py:178
 msgid "This field cannot have a value with this resource"
 msgstr "Det här fältet kan inte ha ett värde med den här resursen"
 
+#: resources/api/reservation.py:181
 msgid "This field cannot be changed"
 msgstr "Detta fält kan inte modifieras"
 
+#: resources/api/reservation.py:224
 #, python-brace-format
 msgid "Invalid pk \"{pk_value}\" - object does not exist."
 msgstr "Felaktig pk \"{pk_value}\" - objektet existerar inte."
 
+#: resources/api/reservation.py:296 resources/api/reservation.py:310
 #, python-format
 msgid "Invalid value in filter %(filter)s"
 msgstr "Felaktigt värde i filter %(filter)s"
 
+#: resources/api/reservation.py:581 resources/models/reservation.py:141
 msgid "reservations"
 msgstr "reservationer"
 
+#: resources/api/reservation.py:587 resources/models/reservation.py:140
 msgid "reservation"
 msgstr "reservation"
 
+#: resources/apps.py:7
 msgid "Resource app"
 msgstr "Resurs app"
 
@@ -288,491 +382,657 @@ msgstr ""
 msgid "unit manager"
 msgstr ""
 
+#: resources/models/availability.py:14
 msgid "open"
 msgstr "öppen"
 
+#: resources/models/availability.py:15
 msgid "closed"
 msgstr "stängd"
 
+#: resources/models/availability.py:16
 msgid "-"
 msgstr "-"
 
+#: resources/models/availability.py:110 resources/models/reservation.py:95
+#: resources/models/resource.py:574
 msgid "Resource"
 msgstr "Resurs"
 
+#: resources/models/availability.py:112 resources/models/resource.py:154
+#: resources/models/unit.py:96
 msgid "Unit"
 msgstr "Enhet"
 
+#: resources/models/availability.py:115
 msgid "Start date"
 msgstr "Start datum"
 
+#: resources/models/availability.py:116
 msgid "End date"
 msgstr "Slutdatum"
 
+#: resources/models/availability.py:121 resources/models/availability.py:196
+#: respa_admin/templates/respa_admin/forms/widgets/_checkbox.html:14
 msgid "Closed"
 msgstr "Stängd"
 
+#: resources/models/availability.py:124
 msgid "period"
 msgstr "period"
 
+#: resources/models/availability.py:125
 msgid "periods"
 msgstr "perioder"
 
+#: resources/models/availability.py:133
 msgid "You must set 'resource' or 'unit'"
 msgstr "Du måste ange en resurs eller en enhet"
 
+#: resources/models/availability.py:136
 msgid "You must set either 'resource' or 'unit', but not both"
 msgstr "Du måste ange antingen en resurs eller en enhet, men inte båda"
 
+#: resources/models/availability.py:150
 msgid "You must set 'start' and 'end' fields."
 msgstr "Start och slut fälten måste innehålla ett värde"
 
+#: resources/models/availability.py:179
 msgid "Monday"
 msgstr "måndag"
 
+#: resources/models/availability.py:180
 msgid "Tuesday"
 msgstr "tisdag"
 
+#: resources/models/availability.py:181
 msgid "Wednesday"
 msgstr "onsdag"
 
+#: resources/models/availability.py:182
 msgid "Thursday"
 msgstr "torsdag"
 
+#: resources/models/availability.py:183
 msgid "Friday"
 msgstr "fredag"
 
+#: resources/models/availability.py:184
 msgid "Saturday"
 msgstr "lördag"
 
+#: resources/models/availability.py:185
 msgid "Sunday"
 msgstr "söndag"
 
+#: resources/models/availability.py:188
 msgid "Period"
 msgstr "period"
 
+#: resources/models/availability.py:190
 msgid "Weekday"
 msgstr "veckodag"
 
+#: resources/models/availability.py:191
 msgid "Time when opens"
 msgstr "Öppnar"
 
+#: resources/models/availability.py:192
 msgid "Time when closes"
 msgstr "Stänger"
 
+#: resources/models/availability.py:193
 msgid "Range between opens and closes"
 msgstr "Tid mellan öppnar och stänger"
 
+#: resources/models/availability.py:197
 msgid "description"
 msgstr "beskrivning"
 
+#: resources/models/availability.py:200
 msgid "day"
 msgstr "dag"
 
+#: resources/models/availability.py:201
 msgid "days"
 msgstr "dagar"
 
+#: resources/models/base.py:52
 msgid "Time of modification"
 msgstr "Modifieringstidpukt"
 
+#: resources/models/base.py:53
 msgid "Modified by"
 msgstr "Modifierad av"
 
+#: resources/models/equipment.py:15
 msgid "equipment category"
 msgstr "utrsutningskatergori"
 
+#: resources/models/equipment.py:16
 msgid "equipment categories"
 msgstr "utrsutningskatergorier"
 
+#: resources/models/equipment.py:25
 msgid "Category"
 msgstr "Katergori"
 
+#: resources/models/equipment.py:29
 msgctxt "singular"
 msgid "equipment"
 msgstr "utrustning"
 
+#: resources/models/equipment.py:30
 msgctxt "plural"
 msgid "equipment"
 msgstr "utrustning"
 
+#: resources/models/equipment.py:44
 msgid "equipment alias"
 msgstr "utrustning alias"
 
+#: resources/models/equipment.py:45
 msgid "equipment aliases"
 msgstr "utrustning alias"
 
+#: resources/models/permissions.py:4
 msgid "Can approve reservation"
 msgstr "Kan godkänna reservation"
 
+#: resources/models/permissions.py:5
 msgid "Can make reservations"
 msgstr "Kan göra reservationer"
 
+#: resources/models/permissions.py:6
 msgid "Can modify reservations"
 msgstr "Kan modifiera reservationer"
 
+#: resources/models/permissions.py:7
 msgid "Can make reservations outside opening hours"
 msgstr "Kan göra reservationer utanför öppettider"
 
+#: resources/models/permissions.py:8
 msgid "Can view reservation access code"
 msgstr "Kan se reservationers behörighetskod"
 
+#: resources/models/permissions.py:9
 msgid "Can view reservation extra fields"
 msgstr "Kan se reservationers extra fält"
 
+#: resources/models/permissions.py:10
 msgid "Can access reservation comments"
 msgstr "Kan ser kommentarer i reservationer"
 
+#: resources/models/permissions.py:11
 msgid "Can view reservation catering orders"
 msgstr ""
 
+#: resources/models/permissions.py:12
 msgid "Can modify reservation catering orders"
 msgstr ""
 
+#: resources/models/reservation.py:88
 msgid "created"
 msgstr "skapad"
 
+#: resources/models/reservation.py:89
 msgid "cancelled"
 msgstr "avbruten"
 
+#: resources/models/reservation.py:90
 msgid "confirmed"
 msgstr "godkänd"
 
+#: resources/models/reservation.py:91
 msgid "denied"
 msgstr "nekad"
 
+#: resources/models/reservation.py:92
 msgid "requested"
 msgstr "begärd"
 
+#: resources/models/reservation.py:97
 msgid "Begin time"
 msgstr "Påbörja"
 
+#: resources/models/reservation.py:98
 msgid "End time"
 msgstr "Avsluta"
 
+#: resources/models/reservation.py:99
 msgid "Length of reservation"
 msgstr "Reservationens längd"
 
+#: resources/models/reservation.py:102
 msgid "User"
 msgstr "Användare"
 
+#: resources/models/reservation.py:104
 msgid "State"
 msgstr "Tillstånd"
 
+#: resources/models/reservation.py:105
 msgid "Approver"
 msgstr "Godkännare"
 
+#: resources/models/reservation.py:110
 msgid "Access code"
 msgstr "Behörighetskod"
 
+#: resources/models/reservation.py:114
 msgid "Event subject"
 msgstr "Evenemang ämne"
 
+#: resources/models/reservation.py:115
 msgid "Event description"
 msgstr "Evenemang beskrivning"
 
+#: resources/models/reservation.py:116
 msgid "Number of participants"
 msgstr "Antalet deltagare"
 
+#: resources/models/reservation.py:118
 msgid "Participants"
 msgstr "Deltagare"
 
+#: resources/models/reservation.py:119
 msgid "Host name"
 msgstr "Värdnamn"
 
+#: resources/models/reservation.py:122
 msgid "Reserver name"
 msgstr ""
 
+#: resources/models/reservation.py:123
 msgid "Reserver ID (business or person)"
 msgstr ""
 
+#: resources/models/reservation.py:124
 msgid "Reserver email address"
 msgstr ""
 
+#: resources/models/reservation.py:125
 msgid "Reserver phone number"
 msgstr ""
 
+#: resources/models/reservation.py:126
 msgid "Reserver address street"
 msgstr ""
 
+#: resources/models/reservation.py:127
 msgid "Reserver address zip"
 msgstr ""
 
+#: resources/models/reservation.py:128
 msgid "Reserver address city"
 msgstr ""
 
+#: resources/models/reservation.py:129
 msgid "Company"
 msgstr ""
 
+#: resources/models/reservation.py:130
 msgid "Billing address street"
 msgstr ""
 
+#: resources/models/reservation.py:131
 msgid "Billing address zip"
 msgstr ""
 
+#: resources/models/reservation.py:132
 msgid "Billing address city"
 msgstr ""
 
+#: resources/models/reservation.py:135
 msgid "Original ID"
 msgstr ""
 
+#: resources/models/reservation.py:304
 msgid "You must end the reservation after it has begun"
 msgstr ""
 
+#: resources/models/reservation.py:312
 msgid "Begin and end time must match time slots"
 msgstr ""
 
+#: resources/models/reservation.py:316
 msgid "The resource is already reserved for some of the period"
 msgstr ""
 
+#: resources/models/reservation.py:319
 #, python-format
 msgid "The minimum reservation length is %(min_period)s"
 msgstr ""
 
+#: resources/models/reservation.py:446
 msgid "Field name"
 msgstr ""
 
+#: resources/models/reservation.py:449
 msgid "Reservation metadata field"
 msgstr ""
 
+#: resources/models/reservation.py:450
 msgid "Reservation metadata fields"
 msgstr ""
 
+#: resources/models/reservation.py:458
 msgid "Supported fields"
 msgstr ""
 
+#: resources/models/reservation.py:460
 msgid "Required fields"
 msgstr ""
 
+#: resources/models/reservation.py:464
 msgid "Reservation metadata set"
 msgstr ""
 
+#: resources/models/reservation.py:465
 msgid "Reservation metadata sets"
 msgstr ""
 
+#: resources/models/resource.py:56
 msgid "Invalid value"
 msgstr "Ogiltigt värde"
 
+#: resources/models/resource.py:79
 msgid "Space"
 msgstr "Utrymme"
 
+#: resources/models/resource.py:80
 msgid "Person"
 msgstr "Person"
 
+#: resources/models/resource.py:81
 msgid "Item"
 msgstr "Föremål"
 
+#: resources/models/resource.py:84
 msgid "Main type"
 msgstr "Huvudtyp"
 
+#: resources/models/resource.py:88
 msgid "resource type"
 msgstr "typ av resurs"
 
+#: resources/models/resource.py:89
 msgid "resource types"
 msgstr "typ av resurser"
 
+#: resources/models/resource.py:98
 msgid "Parent"
 msgstr "Förälder"
 
+#: resources/models/resource.py:101 resources/models/resource.py:153
 msgid "Public"
 msgstr "Offentlig"
 
+#: resources/models/resource.py:104
 msgid "purpose"
 msgstr "syfte"
 
+#: resources/models/resource.py:105
 msgid "purposes"
 msgstr "syften"
 
+#: resources/models/resource.py:118
 msgctxt "singular"
 msgid "terms of use"
 msgstr "villkor"
 
+#: resources/models/resource.py:119
 msgctxt "plural"
 msgid "terms of use"
 msgstr "villkor"
 
+#: resources/models/resource.py:142 resources/models/resource.py:149
 msgid "None"
 msgstr "Ingen"
 
+#: resources/models/resource.py:143
 msgid "Weak"
 msgstr "Svag"
 
+#: resources/models/resource.py:144
 msgid "Strong"
 msgstr "Stark"
 
+#: resources/models/resource.py:150
 msgid "6-digit pin code"
 msgstr "6-siffrig PIN-kod"
 
+#: resources/models/resource.py:156
 msgid "Resource type"
 msgstr "Resurs typ"
 
+#: resources/models/resource.py:158
+#: respa_admin/templates/respa_admin/resources/form/_general_info.html:13
 msgid "Purposes"
 msgstr "Syften"
 
+#: resources/models/resource.py:161
 msgid "Need manual confirmation"
 msgstr "Kräver manuell bekräftelse"
 
+#: resources/models/resource.py:162
 msgid "Authentication"
 msgstr "Autentisering"
 
+#: resources/models/resource.py:164
 msgid "People capacity"
 msgstr "Kapacitet"
 
+#: resources/models/resource.py:165
 msgid "Area"
 msgstr "Yta"
 
+#: resources/models/resource.py:168 resources/models/unit.py:32
 msgid "Location"
 msgstr "Plats"
 
+#: resources/models/resource.py:170
 msgid "Minimum reservation time"
 msgstr "Minsta bokningstid"
 
+#: resources/models/resource.py:172
 msgid "Maximum reservation time"
 msgstr "Längsta bokningstid"
 
+#: resources/models/resource.py:174
+#: respa_admin/templates/respa_admin/resources/form/_equipment.html:5
+#: respa_admin/templates/respa_admin/resources/form/_nav.html:35
 msgid "Equipment"
 msgstr "Utrustning"
 
+#: resources/models/resource.py:175
 msgid "Maximum number of active reservations per user"
 msgstr "Högsta antalet aktiva bokningar per användare"
 
+#: resources/models/resource.py:177
 msgid "Reservable"
 msgstr "Bokningsbar"
 
+#: resources/models/resource.py:178
 msgid "Reservation info"
 msgstr "Bokningsinfo"
 
+#: resources/models/resource.py:179
 msgid "Responsible contact info"
 msgstr "Ansvarig person"
 
+#: resources/models/resource.py:180
 msgid "Generic terms"
 msgstr "Allmänna villkor"
 
+#: resources/models/resource.py:182
 msgid "Specific terms"
 msgstr "Specifika villkor"
 
+#: resources/models/resource.py:184
 msgid "Extra content to \"reservation requested\" notification"
 msgstr "Extra innehåll till \"reservation begärd\" anmälan"
 
+#: resources/models/resource.py:186
 msgid "Extra content to \"reservation confirmed\" notification"
 msgstr "Extra innehåll till \"reservation godkänd\" anmälan"
 
+#: resources/models/resource.py:187
 msgid "Min price per hour"
 msgstr "Lägsta pris per timme"
 
+#: resources/models/resource.py:189
 msgid "Max price per hour"
 msgstr "Högsta pris per timme"
 
+#: resources/models/resource.py:191
 msgid "Access code type"
 msgstr "Typ av behörighetskod"
 
+#: resources/models/resource.py:193 resources/models/unit.py:53
 msgid "Reservable days in advance"
 msgstr "Bokningsbar dagar i förväg"
 
+#: resources/models/resource.py:201 respa_exchange/models.py:87
 msgid "resource"
 msgstr "resurs"
 
+#: resources/models/resource.py:202
 msgid "resources"
 msgstr "resurser"
 
+#: resources/models/resource.py:260
 msgid "You cannot make a multi day reservation"
 msgstr ""
 
+#: resources/models/resource.py:266
 msgid "You must start and end the reservation during opening hours"
 msgstr ""
 
+#: resources/models/resource.py:269
 #, python-format
 msgid "The maximum reservation length is %(max_period)s"
 msgstr ""
 
+#: resources/models/resource.py:288
 msgid "Maximum number of active reservations for this resource exceeded."
 msgstr ""
 
+#: resources/models/resource.py:563
 msgid "This value cannot be greater than max price per hour"
 msgstr ""
 
+#: resources/models/resource.py:569
 msgid "Main photo"
 msgstr "Huvudbild"
 
+#: resources/models/resource.py:570
 msgid "Ground plan"
 msgstr "Grundritning"
 
+#: resources/models/resource.py:571
 msgid "Map"
 msgstr "Karta"
 
+#: resources/models/resource.py:572
 msgid "Other"
 msgstr "Annan"
 
+#: resources/models/resource.py:577
 msgid "Caption"
 msgstr "Bildtext"
 
+#: resources/models/resource.py:579
 msgid "Image"
 msgstr "Bild"
 
+#: resources/models/resource.py:581
 msgid "Cropping"
 msgstr "Avskärning"
 
+#: resources/models/resource.py:582
 msgid "Sort order"
 msgstr "Sortera efter"
 
+#: resources/models/resource.py:654
 msgid "resource image"
 msgstr "resurs bild"
 
+#: resources/models/resource.py:655
 msgid "resource images"
 msgstr "resurs bilder"
 
+#: resources/models/resource.py:671
 msgctxt "singular"
 msgid "resource equipment"
 msgstr "resrus utrustning"
 
+#: resources/models/resource.py:672
 msgctxt "plural"
 msgid "resource equipment"
 msgstr "resurs utrustning"
 
+#: resources/models/resource.py:683
 msgid "Identifier"
 msgstr "Identifierare"
 
+#: resources/models/resource.py:685
 msgid "Resources"
 msgstr "Resurser"
 
+#: resources/models/resource.py:709
 msgid "Overlapping opening hours"
 msgstr "Överlappande öppettider"
 
+#: resources/models/unit.py:33
 msgid "Time zone"
 msgstr "Tidzon"
 
+#: resources/models/unit.py:36
 msgid "Manager email"
 msgstr ""
 
+#: resources/models/unit.py:38
 msgid "Street address"
 msgstr "Gatuadress"
 
+#: resources/models/unit.py:39
 msgid "Postal code"
 msgstr "Postkod"
 
+#: resources/models/unit.py:40
 msgid "Phone number"
 msgstr "Telefonnummer"
 
+#: resources/models/unit.py:41
 msgid "Email"
 msgstr "E-post"
 
+#: resources/models/unit.py:42
 msgid "WWW link"
 msgstr "WWW länk"
 
+#: resources/models/unit.py:43
 msgid "Full postal address"
 msgstr "Fullständig adress"
 
+#: resources/models/unit.py:45
 msgid "Municipality"
 msgstr "Kommun"
 
+#: resources/models/unit.py:48
 msgid "Picture URL"
 msgstr "Bild URL"
 
+#: resources/models/unit.py:50
 msgid "Picture caption"
 msgstr "Bilddtext"
 
+#: resources/models/unit.py:57
 msgid "unit"
 msgstr "enhet"
 
+#: resources/models/unit.py:58
 msgid "units"
 msgstr "enheter"
 
@@ -794,12 +1054,15 @@ msgstr ""
 msgid "Namespace"
 msgstr ""
 
+#: resources/models/unit.py:99
 msgid "Value"
 msgstr "Värde"
 
+#: resources/models/unit.py:102
 msgid "unit identifier"
 msgstr "identifierare av enhet"
 
+#: resources/models/unit.py:103
 msgid "unit identifiers"
 msgstr "identifierare av enhet"
 
@@ -815,78 +1078,102 @@ msgstr ""
 msgid "unit group authorizations"
 msgstr ""
 
+#: resources/models/utils.py:94
 #, python-format
 msgid "%(count)d hour"
 msgid_plural "%(count)d hours"
 msgstr[0] ""
 msgstr[1] ""
 
+#: resources/models/utils.py:95
 #, python-format
 msgid "%(count)d minute"
 msgid_plural "%(count)d minutes"
 msgstr[0] ""
 msgstr[1] ""
 
+#: resources/templates/admin/resources/period_inline.html:10
 msgid "Add Another"
 msgstr ""
 
+#: resources/templates/admin/resources/period_inline.html:36
 msgid "Delete Item"
 msgstr ""
 
+#: respa/settings.py:166
 msgid "Finnish"
 msgstr ""
 
+#: respa/settings.py:167
 msgid "English"
 msgstr ""
 
+#: respa/settings.py:168
 msgid "Swedish"
 msgstr ""
 
+#: respa_admin/forms.py:61 respa_admin/forms.py:72
 msgid "yyyy-mm-dd"
 msgstr "dd.mm.yyyy"
 
+#: respa_admin/forms.py:168
+#: respa_admin/templates/respa_admin/resources/form/_terms.html:26
 msgid "Yes"
 msgstr "Ja"
 
+#: respa_admin/forms.py:168
 msgid "No"
 msgstr "Ingen"
 
+#: respa_admin/forms.py:171
 msgid "Hidden"
 msgstr "Dold"
 
+#: respa_admin/forms.py:171
 msgid "Published"
 msgstr "Offentlig"
 
+#: respa_admin/forms.py:174
 msgid "Can not be reserved"
 msgstr "Kan inte reserveras"
 
+#: respa_admin/forms.py:174
+#: respa_admin/templates/respa_admin/resources/_resource_list.html:96
 msgid "Bookable"
 msgstr "Kan reserveras"
 
+#: respa_admin/forms.py:213
 msgid "Please check the opening hours."
 msgstr "Kontrollera öppethållningstider"
 
 msgid "Log out"
 msgstr ""
 
+#: respa_admin/templates/respa_admin/common/_periods_accordion.html:13
 msgid "Copy time period"
 msgstr "Kopiera tidsperiod"
 
+#: respa_admin/templates/respa_admin/common/_periods_accordion.html:17
 msgid "Edit time period"
 msgstr "Modifiera tidsperiod"
 
+#: respa_admin/templates/respa_admin/common/_periods_accordion.html:33
 msgid "Time interval"
 msgstr "Tidsintervall"
 
+#: respa_admin/templates/respa_admin/common/_periods_accordion.html:55
 msgid "Remove time period"
 msgstr "Ta bort tidsperiod"
 
+#: respa_admin/templates/respa_admin/forms/_form_errors.html:5
 msgid "Tarkista seuraavat virheet"
 msgstr "Kontrollera följande fel"
 
+#: respa_admin/templates/respa_admin/forms/_image.html:7
 msgid "Choose image"
 msgstr "Välj bild"
 
+#: respa_admin/templates/respa_admin/forms/_image.html:18
 msgid "Remove image"
 msgstr "Radera bild"
 
@@ -922,69 +1209,93 @@ msgstr "användarnamn"
 msgid "Password"
 msgstr "lösenord"
 
+#: respa_admin/templates/respa_admin/page_resources.html:10
 msgid "All resources I manage"
 msgstr "Alla mina resurser"
 
+#: respa_admin/templates/respa_admin/page_resources.html:15
 msgid "Add a new resource"
 msgstr "Skapa ny resurs"
 
+#: respa_admin/templates/respa_admin/page_resources.html:20
 msgid "Search"
 msgstr "Sök"
 
+#: respa_admin/templates/respa_admin/resources/_resource_list.html:7
 msgid "All resources"
 msgstr "Alla resurser"
 
+#: respa_admin/templates/respa_admin/resources/_resource_list.html:9
 msgid "Filter"
 msgstr "Filtrera"
 
+#: respa_admin/templates/respa_admin/resources/_resource_list.html:19
 msgid "Filter by type"
 msgstr "Filtrera enligt typ"
 
+#: respa_admin/templates/respa_admin/resources/_resource_list.html:43
 msgid "Filter by unit"
 msgstr "Filtrera enligt plats"
 
+#: respa_admin/templates/respa_admin/resources/_resource_list.html:70
 msgid "Availability"
 msgstr "Tillgänglighet"
 
+#: respa_admin/templates/respa_admin/resources/_resource_list.html:73
 msgid "Visibility"
 msgstr "Synlighet"
 
+#: respa_admin/templates/respa_admin/resources/_resource_list.html:107
 msgid "Edit"
 msgstr "Redigera"
 
+#: respa_admin/templates/respa_admin/resources/form/_booking.html:5
+#: respa_admin/templates/respa_admin/resources/form/_booking.html:22
+#: respa_admin/templates/respa_admin/resources/form/_nav.html:32
 msgid "Booking information"
 msgstr "Bokningsinformation"
 
+#: respa_admin/templates/respa_admin/resources/form/_booking.html:6
+#: respa_admin/templates/respa_admin/resources/form/_equipment.html:6
+#: respa_admin/templates/respa_admin/resources/form/_images.html:6
+#: respa_admin/templates/respa_admin/resources/form/_terms.html:6
 msgid "*Mandatory fields"
 msgstr "*Obligatoriska fält"
 
+#: respa_admin/templates/respa_admin/resources/form/_booking.html:23
 msgid "Additional information before calendar."
 msgstr "Ytterligare information"
 
+#: respa_admin/templates/respa_admin/resources/form/_booking.html:31
 msgid "E-mail notifications"
 msgstr "E-post notifikationer"
 
+#: respa_admin/templates/respa_admin/resources/form/_booking.html:32
 msgid "A notification will be sent when a space is booked."
 msgstr "Ett meddelande kommer att skickas då ett utrymme har bokats."
 
+#: respa_admin/templates/respa_admin/resources/form/_equipment.html:8
 msgid "Choose from the list below"
 msgstr "Välj från listan nedan"
 
-msgid "Additional information"
-msgstr "Ytterligare information"
-
+#: respa_admin/templates/respa_admin/resources/form/_general_info.html:5
+#: respa_admin/templates/respa_admin/resources/form/_nav.html:31
 msgid "General information"
 msgstr "Allmän information"
 
+#: respa_admin/templates/respa_admin/resources/form/_general_info.html:6
 msgid "*Mandatory Fields"
 msgstr "*Obligatoriska fält"
 
+#: respa_admin/templates/respa_admin/resources/form/_general_info.html:18
 msgid "Name and description"
 msgstr "Namn och beskrivning"
 
+#: respa_admin/templates/respa_admin/resources/form/_general_info.html:28
 msgid "Contact person"
 msgstr "Kontaktperson"
 
+#: respa_admin/templates/respa_admin/resources/form/_general_info.html:29
 msgid ""
 "Not used in the user interface of 'varaamo' but the information is added to "
 "the confirmation e-mail sent to the customer."
@@ -992,114 +1303,157 @@ msgstr ""
 "Används ej i användargränssnittet för 'varaamo', informationen läggs till i "
 "E-postbekräftelsen skickad till kunden."
 
+#: respa_admin/templates/respa_admin/resources/form/_images.html:5
+#: respa_admin/templates/respa_admin/resources/form/_nav.html:33
 msgid "Images"
 msgstr "Bilder"
 
+#: respa_admin/templates/respa_admin/resources/form/_images.html:9
 msgid "You can only choose one main image."
 msgstr "Du kan endast välja en huvudbild."
 
+#: respa_admin/templates/respa_admin/resources/form/_images.html:12
 msgid "Add image"
 msgstr "Lägg till bild"
 
-msgid "Create new resource"
-msgstr "Skapa ny resurs"
-
-msgid "Opening hours"
-msgstr "Öppettider"
-
+#: respa_admin/templates/respa_admin/resources/form/_nav.html:34
+#: respa_admin/templates/respa_admin/resources/form/_terms.html:5
 msgid "Authentication, terms and price"
 msgstr "Autentisering, villkor och pris"
 
+#: respa_admin/templates/respa_admin/resources/form/_nav.html:36
+#: respa_admin/templates/respa_admin/resources/form/_periods.html:5
+msgid "Opening hours"
+msgstr "Öppettider"
+
+#: respa_admin/templates/respa_admin/resources/form/_periods.html:9
 msgid "Add new time period"
 msgstr "Lägg till en ny tidsperiod"
 
+#: respa_admin/templates/respa_admin/resources/form/_periods.html:12
 msgid "Add general time period"
 msgstr "Lägg till allmäm tidsperiod"
 
+#: respa_admin/templates/respa_admin/resources/form/_terms.html:20
 msgid "Pricing"
 msgstr "Pris"
 
+#: respa_admin/templates/respa_admin/resources/form/_terms.html:22
 msgid "The space is free of charge"
 msgstr "Detta utrymme är gratis"
 
+#: respa_admin/templates/respa_admin/resources/form/_toolbar.html:5
 msgid "Functions"
 msgstr "Funktioner"
 
+#: respa_admin/templates/respa_admin/resources/form/_toolbar.html:14
 msgid "Save"
 msgstr "Spara"
 
+#: respa_admin/views/resources.py:96 respa_admin/views/resources.py:181
+msgid "Edit resource"
+msgstr "Modifiera resurs"
+
+#: respa_admin/views/resources.py:98
+msgid "Create new resource"
+msgstr "Skapa ny resurs"
+
+#: respa_exchange/models.py:23
 msgid "name"
 msgstr "namn"
 
+#: respa_exchange/models.py:26
 msgid "a descriptive name for this Exchange configuration"
 msgstr ""
 
+#: respa_exchange/models.py:29
 msgid "EWS URL"
 msgstr ""
 
+#: respa_exchange/models.py:30
 msgid ""
 "the URL to the Exchange Web Service (e.g. https://contoso.com/EWS/Exchange."
 "asmx)"
 msgstr ""
 
+#: respa_exchange/models.py:33
 msgid "username"
 msgstr "användarnamn"
 
+#: respa_exchange/models.py:35
 msgid "the service user to authenticate as, in domain\\username format"
 msgstr ""
 
+#: respa_exchange/models.py:38
 msgid "password"
 msgstr "lösenord"
 
+#: respa_exchange/models.py:40
 msgid "the user's password (stored as plain-text)"
 msgstr ""
 
+#: respa_exchange/models.py:43
 msgid "enabled"
 msgstr ""
 
+#: respa_exchange/models.py:46
 msgid ""
 "whether synchronization is enabled at all against this Exchange instance"
 msgstr ""
 
+#: respa_exchange/models.py:53 respa_exchange/models.py:81
+#: respa_exchange/models.py:226
 msgid "Exchange configuration"
 msgstr ""
 
+#: respa_exchange/models.py:54
 msgid "Exchange configurations"
 msgstr ""
 
+#: respa_exchange/models.py:93
 msgid "sync Exchange to Respa"
 msgstr ""
 
+#: respa_exchange/models.py:94
 msgid ""
 "if disabled, events will not be synced from the Exchange calendar to Respa"
 msgstr ""
 
+#: respa_exchange/models.py:99
 msgid "sync Respa to Exchange"
 msgstr ""
 
+#: respa_exchange/models.py:101
 msgid ""
 "if disabled, new events will not be synced from Respa to the Exchange "
 "calendar; pre-existing events continue to be updated"
 msgstr ""
 
+#: respa_exchange/models.py:106
 msgid "principal email"
 msgstr ""
 
+#: respa_exchange/models.py:108
 msgid "the email address for this resource in Exchange"
 msgstr ""
 
+#: respa_exchange/models.py:112
 msgid "Exchange resource"
 msgstr ""
 
+#: respa_exchange/models.py:113
 msgid "Exchange resources"
 msgstr ""
 
+#: respa_exchange/models.py:184
 msgid "Exchange reservation"
 msgstr ""
 
+#: respa_exchange/models.py:185
 msgid "Exchange reservations"
 msgstr ""
 
+#: users/models.py:16
 msgid "Favorite resources"
 msgstr ""
 
