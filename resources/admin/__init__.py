@@ -13,9 +13,16 @@ from image_cropping import ImageCroppingMixin
 from modeltranslation.admin import TranslationAdmin, TranslationStackedInline
 from .base import ExtraReadonlyFieldsOnUpdateMixin, CommonExcludeMixin, PopulateCreatedAndModifiedMixin
 from resources.admin.period_inline import PeriodInline
-from resources.models import Day, Reservation, Resource, ResourceImage, ResourceType, Unit, Purpose
-from resources.models import Equipment, ResourceEquipment, EquipmentAlias, EquipmentCategory, TermsOfUse
-from resources.models import ReservationMetadataField, ReservationMetadataSet, ResourceGroup
+
+from ..models import (
+    Day, Equipment, EquipmentAlias, EquipmentCategory, Purpose, Reservation,
+    ReservationMetadataField, ReservationMetadataSet, Resource,
+    ResourceEquipment, ResourceGroup, ResourceImage, ResourceType, TermsOfUse,
+    Unit, UnitAuthorization, UnitGroup, UnitGroupAuthorization)
+
+
+class _CommonMixin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin):
+    pass
 
 
 class EmailAndUsernameChoiceField(forms.ModelChoiceField):
@@ -106,6 +113,30 @@ class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, FixedGuarde
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         obj.update_opening_hours()
+
+
+class LimitAuthorizedToStaff(admin.ModelAdmin):
+    def get_field_queryset(self, db, db_field, request):
+        qs = super().get_field_queryset(db, db_field, request)
+        if db_field.name == 'authorized':
+            return qs.filter(is_staff=True).order_by(
+                'last_name', 'first_name', 'email')
+        return qs
+
+
+@admin.register(UnitAuthorization)
+class UnitAuthorizationAdmin(_CommonMixin, LimitAuthorizedToStaff, admin.ModelAdmin):
+    list_display = ['id', 'subject', 'level', 'authorized']
+
+
+@admin.register(UnitGroup)
+class UnitGroupAdmin(_CommonMixin, TranslationAdmin):
+    pass
+
+
+@admin.register(UnitGroupAuthorization)
+class UnitGroupAuthorizationAdmin(_CommonMixin, LimitAuthorizedToStaff, admin.ModelAdmin):
+    list_display = ['id', 'subject', 'level', 'authorized']
 
 
 class ResourceImageAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, ImageCroppingMixin, TranslationAdmin):

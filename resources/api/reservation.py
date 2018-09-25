@@ -16,14 +16,15 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.fields import BooleanField, IntegerField
 from rest_framework import renderers
 from rest_framework.exceptions import NotAcceptable, ValidationError
+from rest_framework.settings import api_settings as drf_settings
 
-from helusers.jwt import JWTAuthentication
 from munigeo import api as munigeo_api
 from resources.models import Reservation, Resource, ReservationMetadataSet
 from resources.models.reservation import RESERVATION_EXTRA_FIELDS
 from resources.pagination import ReservationPagination
 from resources.models.utils import generate_reservation_xlsx, get_object_or_none
 
+from ..auth import is_general_admin
 from .base import (
     NullableDateTimeField, TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
 )
@@ -511,7 +512,9 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, ReservationExcelRenderer)
     pagination_class = ReservationPagination
-    authentication_classes = (JWTAuthentication, TokenAuthentication)
+    authentication_classes = (
+        list(drf_settings.DEFAULT_AUTHENTICATION_CLASSES) +
+        [TokenAuthentication])
     ordering_fields = ('begin',)
 
     def get_serializer(self, *args, **kwargs):
@@ -535,8 +538,8 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         queryset = super().get_queryset()
         user = self.request.user
 
-        # staff members can see all reservations
-        if user.is_staff:
+        # General Administrators can see all reservations
+        if is_general_admin(user):
             return queryset
 
         # normal users can see only their own reservations and reservations that are confirmed or requested

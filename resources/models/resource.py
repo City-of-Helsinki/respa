@@ -29,6 +29,7 @@ from PIL import Image
 from guardian.shortcuts import get_objects_for_user, get_users_with_perms
 from guardian.core import ObjectPermissionChecker
 
+from ..auth import is_authenticated_user, is_general_admin
 from ..errors import InvalidImage
 from ..fields import EquipmentField
 from .base import AutoIdentifiedModel, NameIdentifiedModel, ModifiableModel
@@ -36,7 +37,7 @@ from .utils import create_reservable_before_datetime, get_translated, get_transl
 from .equipment import Equipment
 from .unit import Unit
 from .availability import get_opening_hours
-from .permissions import RESOURCE_PERMISSIONS
+from .permissions import RESOURCE_GROUP_PERMISSIONS
 
 
 def generate_access_code(access_code_type):
@@ -124,10 +125,20 @@ class TermsOfUse(ModifiableModel, AutoIdentifiedModel):
 
 class ResourceQuerySet(models.QuerySet):
     def visible_for(self, user):
-        if user.is_staff:
+        if is_general_admin(user):
             return self
         else:
             return self.filter(public=True)
+
+    def modifiable_by(self, user):
+        if not is_authenticated_user(user):
+            return self.none()
+
+        if is_general_admin(user):
+            return self
+
+        units = Unit.objects.managed_by(user)
+        return self.filter(unit__in=units)
 
     def with_perm(self, perm, user):
         units = get_objects_for_user(user, 'unit:%s' % perm, klass=Unit,
@@ -471,15 +482,20 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             ResourceDailyOpeningHours.objects.bulk_create(add_objs)
 
     def is_admin(self, user):
-        # Currently all staff members are allowed to administrate
-        # all resources. Will be more finegrained in the future.
-        #
+        """
+        Check if the given user is an administrator of this resource.
+
+        :type user: users.models.User
+        :rtype: bool
+        """
         # UserFilterBackend and ReservationFilterSet in resources.api.reservation assume the same behaviour,
         # so if this is changed those need to be changed as well.
-        return user.is_staff
+        if not self.unit:
+            return is_general_admin(user)
+        return self.unit.is_admin(user)
 
     def _has_perm(self, user, perm, allow_admin=True):
-        if not (user and user.is_authenticated):
+        if not is_authenticated_user(user):
             return False
         # Admins are almighty.
         if self.is_admin(user) and allow_admin:
@@ -675,10 +691,6 @@ class ResourceEquipment(ModifiableModel):
         return "%s / %s" % (self.equipment, self.resource)
 
 
-def _generate_resource_group_permissions():
-    return [('group:%s' % p, t) for p, t in RESOURCE_PERMISSIONS]
-
-
 class ResourceGroup(ModifiableModel):
     identifier = models.CharField(verbose_name=_('Identifier'), max_length=100)
     name = models.CharField(verbose_name=_('Name'), max_length=200)
@@ -687,7 +699,7 @@ class ResourceGroup(ModifiableModel):
     class Meta:
         verbose_name = _('Resource group')
         verbose_name_plural = _('Resource groups')
-        permissions = _generate_resource_group_permissions()
+        permissions = RESOURCE_GROUP_PERMISSIONS
         ordering = ('name',)
 
     def __str__(self):

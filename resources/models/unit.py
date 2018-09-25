@@ -1,15 +1,37 @@
 import pytz
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from enumfields import EnumField
 
+from ..auth import is_authenticated_user, is_general_admin
+from ..enums import UnitAuthorizationLevel
 from .base import AutoIdentifiedModel, ModifiableModel
 from .utils import create_reservable_before_datetime, get_translated, get_translated_name
 from .availability import get_opening_hours
-from .permissions import RESOURCE_PERMISSIONS
+from .permissions import UNIT_PERMISSIONS
 
 from munigeo.models import Municipality
+
+
+class UnitQuerySet(models.QuerySet):
+    def managed_by(self, user):
+        if not is_authenticated_user(user):
+            return self.none()
+
+        if is_general_admin(user):
+            return self
+
+        via_unit_group = Q(
+            unit_groups__authorizations__in=(
+                user.unit_group_authorizations.admin_level()))
+        via_unit = Q(
+            authorizations__in=(
+                user.unit_authorizations.at_least_manager_level()))
+
+        return self.filter(via_unit_group | via_unit).distinct()
 
 
 def _get_default_timezone():
@@ -18,10 +40,6 @@ def _get_default_timezone():
 
 def _get_timezone_choices():
     return [(x, x) for x in pytz.all_timezones]
-
-
-def _generate_unit_permissions():
-    return [('unit:%s' % p, t) for p, t in RESOURCE_PERMISSIONS]
 
 
 class Unit(ModifiableModel, AutoIdentifiedModel):
@@ -53,10 +71,12 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
     reservable_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable days in advance'),
                                                                   null=True, blank=True)
 
+    objects = UnitQuerySet.as_manager()
+
     class Meta:
         verbose_name = _("unit")
         verbose_name_plural = _("units")
-        permissions = _generate_unit_permissions()
+        permissions = UNIT_PERMISSIONS
         ordering = ('name',)
 
     def __init__(self, *args, **kwargs):
@@ -87,9 +107,59 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
         return create_reservable_before_datetime(self.reservable_days_in_advance)
 
     def is_admin(self, user):
-        # Currently all staff members are allowed to administrate
-        # all units. Might be more finegrained in the future.
-        return user.is_staff
+        return is_authenticated_user(user) and (
+            is_general_admin(user) or
+            user.unit_authorizations.to_unit(self).admin_level().exists() or
+            (user.unit_group_authorizations
+             .to_unit(self).admin_level().exists()))
+
+    def is_manager(self, user):
+        return self.is_admin(user) or (is_authenticated_user(user) and (
+            user.unit_authorizations.to_unit(self).manager_level().exists()))
+
+
+class UnitAuthorizationQuerySet(models.QuerySet):
+    def for_user(self, user):
+        return self.filter(authorized=user)
+
+    def to_unit(self, unit):
+        return self.filter(subject=unit)
+
+    def admin_level(self):
+        return self.filter(level=UnitAuthorizationLevel.admin)
+
+    def manager_level(self):
+        return self.filter(level=UnitAuthorizationLevel.manager)
+
+    def at_least_manager_level(self):
+        return self.filter(level__in={
+            UnitAuthorizationLevel.admin,
+            UnitAuthorizationLevel.manager,
+        })
+
+
+class UnitAuthorization(models.Model):
+    subject = models.ForeignKey(
+        Unit, on_delete=models.CASCADE, related_name='authorizations',
+        verbose_name=_("subject of the authorization"))
+    level = EnumField(
+        UnitAuthorizationLevel, max_length=50,
+        verbose_name=_("authorization level"))
+    authorized = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='unit_authorizations',
+        verbose_name=_("authorized user"))
+
+    class Meta:
+        unique_together = [('authorized', 'subject', 'level')]
+        verbose_name = _("unit authorization")
+        verbose_name_plural = _("unit authorizations")
+
+    objects = UnitAuthorizationQuerySet.as_manager()
+
+    def __str__(self):
+        return '{unit} / {level}: {user}'.format(
+            unit=self.subject, level=self.level, user=self.authorized)
 
 
 class UnitIdentifier(models.Model):

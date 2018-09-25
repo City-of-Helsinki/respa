@@ -1,6 +1,8 @@
 from django.conf.urls import url
 from django.contrib.auth.decorators import user_passes_test
 
+from .permissions import can_login_to_respa_admin
+
 
 def admin_url(pattern, view, name):
     """
@@ -28,4 +30,4 @@ def is_allowed_user(user):
     """
     if not user or not user.is_authenticated or not user.is_active:
         return False
-    return user.is_staff
+    return can_login_to_respa_admin(user)
