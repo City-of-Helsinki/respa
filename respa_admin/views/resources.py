@@ -3,6 +3,7 @@ from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, ListView
+from django.utils.translation import ugettext_lazy as _
 
 from resources.models import (
     Resource,
@@ -98,7 +99,9 @@ class SaveResourceView(CreateView):
     def get(self, request, *args, **kwargs):
         if self.pk_url_kwarg in kwargs:
             self.object = self.get_object()
+            page_headline = _('Edit resource')
         else:
+            page_headline = _('Create new resource')
             self.object = None
 
         form = self.get_form()
@@ -121,6 +124,7 @@ class SaveResourceView(CreateView):
                 period_formset_with_days=period_formset_with_days,
                 resource_image_formset=resource_image_formset,
                 trans_fields=trans_fields,
+                page_headline=page_headline,
             )
         )
 
@@ -187,6 +191,7 @@ class SaveResourceView(CreateView):
                 period_formset_with_days=period_formset_with_days,
                 resource_image_formset=resource_image_formset,
                 trans_fields=trans_fields,
+                page_headline=_('Edit resource'),
             )
         )
 
