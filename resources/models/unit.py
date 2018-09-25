@@ -1,6 +1,7 @@
 import pytz
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from enumfields import EnumField
@@ -13,6 +14,24 @@ from .availability import get_opening_hours
 from .permissions import UNIT_PERMISSIONS
 
 from munigeo.models import Municipality
+
+
+class UnitQuerySet(models.QuerySet):
+    def managed_by(self, user):
+        if not is_authenticated_user(user):
+            return self.none()
+
+        if is_general_admin(user):
+            return self
+
+        via_unit_group = Q(
+            unit_groups__authorizations__in=(
+                user.unit_group_authorizations.admin_level()))
+        via_unit = Q(
+            authorizations__in=(
+                user.unit_authorizations.at_least_manager_level()))
+
+        return self.filter(via_unit_group | via_unit).distinct()
 
 
 def _get_default_timezone():
@@ -51,6 +70,8 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
 
     reservable_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable days in advance'),
                                                                   null=True, blank=True)
+
+    objects = UnitQuerySet.as_manager()
 
     class Meta:
         verbose_name = _("unit")

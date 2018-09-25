@@ -101,8 +101,7 @@ class SaveResourceView(CreateView):
         else:
             self.object = None
 
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
+        form = self.get_form()
 
         period_formset_with_days = get_period_formset(
             self.request,
@@ -131,8 +130,7 @@ class SaveResourceView(CreateView):
         else:
             self.object = None
 
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
+        form = self.get_form()
 
         period_formset_with_days = get_period_formset(request=request, instance=self.object)
         resource_image_formset = get_resource_image_formset(request=request, instance=self.object)
@@ -141,6 +139,15 @@ class SaveResourceView(CreateView):
             return self.forms_valid(form, period_formset_with_days, resource_image_formset)
         else:
             return self.forms_invalid(form, period_formset_with_days, resource_image_formset)
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        unit_field = form.fields['unit']
+        unit_field.queryset = unit_field.queryset.managed_by(self.request.user)
+        unit_field.required = True
+        if self.object and self.object.pk:
+            unit_field.disabled = True
+        return form
 
     def forms_valid(self, form, period_formset_with_days, resource_image_formset):
         self.object = form.save()

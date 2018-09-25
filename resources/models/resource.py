@@ -137,14 +137,8 @@ class ResourceQuerySet(models.QuerySet):
         if is_general_admin(user):
             return self
 
-        via_unit_group = Q(
-            unit__unit_groups__authorizations__in=(
-                user.unit_group_authorizations.admin_level()))
-        via_unit = Q(
-            unit__authorizations__in=(
-                user.unit_authorizations.at_least_manager_level()))
-
-        return self.filter(via_unit_group | via_unit).distinct()
+        units = Unit.objects.managed_by(user)
+        return self.filter(unit__in=units)
 
     def with_perm(self, perm, user):
         units = get_objects_for_user(user, 'unit:%s' % perm, klass=Unit,
