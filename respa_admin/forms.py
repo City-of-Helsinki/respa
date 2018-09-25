@@ -260,14 +260,35 @@ def get_resource_image_formset(request=None, extra=1, instance=None):
         return resource_image_formset(data=request.POST, files=request.FILES, instance=instance)
 
 
-def get_translated_field_count():
-    lang_num = {}
+def get_translated_field_count(image_formset):
+    """
+    Serve a count of how many fields are possible to translate with the translate
+    buttons in the UI. The image formset is passed as a parameter since it can hold
+    a number of forms with fields which can be translated.
+
+    :param image_formset: formset holding images
+    :return: dictionary of all languages as keys and the count of translated fields
+    in corresponding language.
+    """
     resource_form_data = ResourceForm.Meta.translated_fields
-    image_form_data = ImageForm.Meta.translated_fields
-    translated_fields = resource_form_data + image_form_data
+    translated_fields = resource_form_data
+    lang_num = {}
 
     if translated_fields:
         for key, value in LANGUAGES:
-            lang_num[key] = sum(x.endswith('_' + key) for x in translated_fields)
+            postfix = '_' + key
+            images_fields_count = _get_images_formset_translated_fields(image_formset, postfix)
+            lang_num[key] = sum(x.endswith(postfix) for x in translated_fields) + images_fields_count
 
     return lang_num
+
+
+def _get_images_formset_translated_fields(images_formset, lang_postfix):
+    image_forms = images_formset.forms
+    images_translation_count = 0
+
+    for form in image_forms:
+        if form.initial:
+            images_translation_count += len([x for x in form.initial if x.endswith(lang_postfix)])
+
+    return images_translation_count

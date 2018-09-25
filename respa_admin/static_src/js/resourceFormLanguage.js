@@ -34,6 +34,29 @@ export function toggleCurrentLanguage(language = undefined, input = null) {
 }
 
 /*
+* Reduce the amount of fields translated by the user
+* from the current number displayed in the language buttons.
+*
+* The initial value is served from the backend.
+* */
+export function calculateTranslatedFields() {
+  for (const language of getAllLanguages()) {
+    const $languageInputs = $('[name$="_' + language + '"]');
+    let languageCount = 0; //
+
+    for (const languageInput of $languageInputs) {
+      if (languageInput.value) {
+        languageCount++;
+      }
+    }
+
+    const $languageButton = $('[name="language-' + language + '"]');
+    const currentCountForLanguage = $languageButton.find('span').text();
+    $languageButton.find('span').text(currentCountForLanguage - languageCount);
+  }
+}
+
+/*
 * Hides all inputs where the name postfix is _{language},
 * ex; name_en, name_fi or name_sv.
 *

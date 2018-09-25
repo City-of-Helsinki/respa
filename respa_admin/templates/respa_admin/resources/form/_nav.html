@@ -16,7 +16,11 @@
                 {% for key, value in LANGUAGES %}
                     <button name="language-{{ key }}" value="{{ key }}" class='language-item btn'>
                         {{ value }}
-                        <span class="badge">{{ trans_fields|get_value_from_dict:key}}</span>
+                        {% if trans_fields %}
+                            <span class="badge">{{ trans_fields|get_value_from_dict:key}}</span>
+                        {% else %}
+                            <span class="badge">0</span>
+                        {% endif %}
                     </button>
                 {% endfor %}
             </div>

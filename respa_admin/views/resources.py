@@ -113,7 +113,7 @@ class SaveResourceView(CreateView):
             instance=self.object,
         )
 
-        trans_fields = forms.get_translated_field_count()
+        trans_fields = forms.get_translated_field_count(resource_image_formset)
 
         return self.render_to_response(
             self.get_context_data(
@@ -179,7 +179,7 @@ class SaveResourceView(CreateView):
         for period in period_formset_with_days:
             period.days.forms.append(temp_day_form)
 
-        trans_fields = forms.get_translated_field_count()
+        trans_fields = forms.get_translated_field_count(resource_image_formset)
 
         return self.render_to_response(
             self.get_context_data(
