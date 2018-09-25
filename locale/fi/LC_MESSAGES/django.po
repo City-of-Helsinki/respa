@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-25 09:10+0300\n"
+"POT-Creation-Date: 2018-09-25 13:19+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -840,7 +840,7 @@ msgstr "Pisin varausaika"
 
 #: resources/models/resource.py:174
 #: respa_admin/templates/respa_admin/resources/form/_equipment.html:5
-#: respa_admin/templates/respa_admin/resources/form/_nav.html:37
+#: respa_admin/templates/respa_admin/resources/form/_nav.html:35
 msgid "Equipment"
 msgstr "Varustelut"
 
@@ -1250,7 +1250,7 @@ msgstr "Muokkaa"
 
 #: respa_admin/templates/respa_admin/resources/form/_booking.html:5
 #: respa_admin/templates/respa_admin/resources/form/_booking.html:22
-#: respa_admin/templates/respa_admin/resources/form/_nav.html:34
+#: respa_admin/templates/respa_admin/resources/form/_nav.html:32
 msgid "Booking information"
 msgstr "Varauksen tiedot"
 
@@ -1277,12 +1277,8 @@ msgstr "Ilmoitus lähetetään, kun tilaa varataan."
 msgid "Choose from the list below"
 msgstr "Valitse allaolevasta listasta"
 
-#: respa_admin/templates/respa_admin/resources/form/_equipment.html:14
-msgid "Additional information"
-msgstr "Lisätideot"
-
 #: respa_admin/templates/respa_admin/resources/form/_general_info.html:5
-#: respa_admin/templates/respa_admin/resources/form/_nav.html:33
+#: respa_admin/templates/respa_admin/resources/form/_nav.html:31
 msgid "General information"
 msgstr "Yleiset tiedot"
 
@@ -1305,7 +1301,7 @@ msgid ""
 msgstr ""
 
 #: respa_admin/templates/respa_admin/resources/form/_images.html:5
-#: respa_admin/templates/respa_admin/resources/form/_nav.html:38
+#: respa_admin/templates/respa_admin/resources/form/_nav.html:33
 msgid "Images"
 msgstr "Kuva"
 
@@ -1317,19 +1313,15 @@ msgstr "Voit valita vain yhden pääkuvan."
 msgid "Add image"
 msgstr "Lisää kuva"
 
-#: respa_admin/templates/respa_admin/resources/form/_nav.html:10
-msgid "Create new resource"
-msgstr "Luo uusi resurssi"
-
-#: respa_admin/templates/respa_admin/resources/form/_nav.html:35
-#: respa_admin/templates/respa_admin/resources/form/_periods.html:5
-msgid "Opening hours"
-msgstr "Aukioloajat"
-
-#: respa_admin/templates/respa_admin/resources/form/_nav.html:36
+#: respa_admin/templates/respa_admin/resources/form/_nav.html:34
 #: respa_admin/templates/respa_admin/resources/form/_terms.html:5
 msgid "Authentication, terms and price"
 msgstr "Tunnistautuminen, ehdot ja hinta"
+
+#: respa_admin/templates/respa_admin/resources/form/_nav.html:36
+#: respa_admin/templates/respa_admin/resources/form/_periods.html:5
+msgid "Opening hours"
+msgstr "Aukioloajat"
 
 #: respa_admin/templates/respa_admin/resources/form/_periods.html:9
 msgid "Add new time period"
@@ -1354,6 +1346,14 @@ msgstr "Toiminnot"
 #: respa_admin/templates/respa_admin/resources/form/_toolbar.html:14
 msgid "Save"
 msgstr "Tallenna"
+
+#: respa_admin/views/resources.py:96 respa_admin/views/resources.py:181
+msgid "Edit resource"
+msgstr "Muokkaa resurssia"
+
+#: respa_admin/views/resources.py:98
+msgid "Create new resource"
+msgstr "Luo uusi resurssi"
 
 #: respa_exchange/models.py:23
 msgid "name"

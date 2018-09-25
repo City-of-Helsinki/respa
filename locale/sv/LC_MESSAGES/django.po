@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-25 09:10+0300\n"
+"POT-Creation-Date: 2018-09-25 13:19+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -841,7 +841,7 @@ msgstr "Längsta bokningstid"
 
 #: resources/models/resource.py:174
 #: respa_admin/templates/respa_admin/resources/form/_equipment.html:5
-#: respa_admin/templates/respa_admin/resources/form/_nav.html:37
+#: respa_admin/templates/respa_admin/resources/form/_nav.html:35
 msgid "Equipment"
 msgstr "Utrustning"
 
@@ -1251,7 +1251,7 @@ msgstr "Redigera"
 
 #: respa_admin/templates/respa_admin/resources/form/_booking.html:5
 #: respa_admin/templates/respa_admin/resources/form/_booking.html:22
-#: respa_admin/templates/respa_admin/resources/form/_nav.html:34
+#: respa_admin/templates/respa_admin/resources/form/_nav.html:32
 msgid "Booking information"
 msgstr "Bokningsinformation"
 
@@ -1278,12 +1278,8 @@ msgstr "Ett meddelande kommer att skickas då ett utrymme har bokats."
 msgid "Choose from the list below"
 msgstr "Välj från listan nedan"
 
-#: respa_admin/templates/respa_admin/resources/form/_equipment.html:14
-msgid "Additional information"
-msgstr "Ytterligare information"
-
 #: respa_admin/templates/respa_admin/resources/form/_general_info.html:5
-#: respa_admin/templates/respa_admin/resources/form/_nav.html:33
+#: respa_admin/templates/respa_admin/resources/form/_nav.html:31
 msgid "General information"
 msgstr "Allmän information"
 
@@ -1308,7 +1304,7 @@ msgstr ""
 "E-postbekräftelsen skickad till kunden."
 
 #: respa_admin/templates/respa_admin/resources/form/_images.html:5
-#: respa_admin/templates/respa_admin/resources/form/_nav.html:38
+#: respa_admin/templates/respa_admin/resources/form/_nav.html:33
 msgid "Images"
 msgstr "Bilder"
 
@@ -1320,19 +1316,15 @@ msgstr "Du kan endast välja en huvudbild."
 msgid "Add image"
 msgstr "Lägg till bild"
 
-#: respa_admin/templates/respa_admin/resources/form/_nav.html:10
-msgid "Create new resource"
-msgstr "Skapa ny resurs"
-
-#: respa_admin/templates/respa_admin/resources/form/_nav.html:35
-#: respa_admin/templates/respa_admin/resources/form/_periods.html:5
-msgid "Opening hours"
-msgstr "Öppettider"
-
-#: respa_admin/templates/respa_admin/resources/form/_nav.html:36
+#: respa_admin/templates/respa_admin/resources/form/_nav.html:34
 #: respa_admin/templates/respa_admin/resources/form/_terms.html:5
 msgid "Authentication, terms and price"
 msgstr "Autentisering, villkor och pris"
+
+#: respa_admin/templates/respa_admin/resources/form/_nav.html:36
+#: respa_admin/templates/respa_admin/resources/form/_periods.html:5
+msgid "Opening hours"
+msgstr "Öppettider"
 
 #: respa_admin/templates/respa_admin/resources/form/_periods.html:9
 msgid "Add new time period"
@@ -1357,6 +1349,14 @@ msgstr "Funktioner"
 #: respa_admin/templates/respa_admin/resources/form/_toolbar.html:14
 msgid "Save"
 msgstr "Spara"
+
+#: respa_admin/views/resources.py:96 respa_admin/views/resources.py:181
+msgid "Edit resource"
+msgstr "Modifiera resurs"
+
+#: respa_admin/views/resources.py:98
+msgid "Create new resource"
+msgstr "Skapa ny resurs"
 
 #: respa_exchange/models.py:23
 msgid "name"
