@@ -1,4 +1,4 @@
-import { getEmptyDayItem, getEmptyPeriodItem } from "./resourceForm";
+import { getEmptyDayItem, getEmptyPeriodItem, getPeriodsList } from "./resourceForm";
 
 /*
 * Iterate all periods and update their input indices.
@@ -35,6 +35,7 @@ function updatePeriodChildren(periodItem, idNum) {
   periodItem.find('.dropdown-time').attr('id', `accordion${idNum}`);
   periodItem.find('.date-input').attr('id', `date-inputs-${idNum}`);
   periodItem.find('.panel-heading').attr({id: `heading${idNum}`});
+  periodItem.find('.period-input').attr({id: `period-input-${idNum}`});
 
   periodItem.find('.panel-heading a').attr({
     href: `#collapse${idNum}`,
@@ -292,7 +293,7 @@ export function addNewPeriod() {
     $periodList.append(newItem);
 
     updatePeriodsTotalForms();
-    removePeriodExtraDays(newItem); //TODO: this could be moved into a place where its run once on startup.
+    removePeriodExtraDays(newItem);
     updatePeriodInputIds();
     attachPeriodEventHandlers(newItem);
   }
@@ -315,10 +316,13 @@ function attachPeriodEventHandlers(periodItem) {
   $dates.change(() => modifyDays(periodItem, $dates));
 }
 
-/*
-* Event handler to remove an hour accordion item
-* take the Id of that accordion-item as argument.
-**/
+function removePeriodEventHandlers(periodItem) {
+  periodItem.find(".delete-time").off();
+  periodItem.find(".copy-time-btn").off();
+  periodItem.find("[id^='date-input']").off();
+
+}
+
 export function removePeriod(periodItem) {
   if (periodItem) {
     periodItem.remove();
@@ -328,12 +332,11 @@ export function removePeriod(periodItem) {
     updateAllPeriodDaysIndices();
     updateAllDaysMgmtFormIndices();
 
-    //Re-attach event handler for removing periods, in case the parameter does not
-    //correspond with the new id. This bug might occur when removing a period
-    //from the middle of the list.
-    for (let i = 0; i < getPeriodCount(); i++) {
-      let accordionItem = $('#accordion-item-' + i);
-      attachPeriodEventHandlers(accordionItem);
+    //Re-attach event handlers.
+    const periods = getPeriodsList();
+    for (let period of periods) {
+      removePeriodEventHandlers($(period));
+      attachPeriodEventHandlers($(period));
     }
   }
 }
