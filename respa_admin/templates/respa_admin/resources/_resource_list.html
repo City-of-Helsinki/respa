@@ -15,7 +15,7 @@
                                 {% if not selected_resource_type %}
                                     selected="selected"
                                 {% endif %}
-                                value="">
+                                    value="">
                                 {% trans "Filter by type" %}...
                             </option>
                             {% for type in types %}
@@ -23,7 +23,7 @@
                                     {% if type.id == selected_resource_type %}
                                         selected="selected"
                                     {% endif %}
-                                    value="{{ type.id }}"
+                                        value="{{ type.id }}"
                                 >
                                     {{ type.name }}
                                 </option>
@@ -38,7 +38,7 @@
                                 {% if not selected_resource_unit %}
                                     selected="selected"
                                 {% endif %}
-                                value=""
+                                    value=""
                             >
                                 {% trans "Filter by unit" %}...
                             </option>
@@ -47,7 +47,7 @@
                                     {% if unit.id == selected_resource_unit %}
                                         selected="selected"
                                     {% endif %}
-                                    value="{{ unit.id }}"
+                                        value="{{ unit.id }}"
                                 >
                                     {{ unit.name }}
                                 </option>
@@ -92,15 +92,23 @@
                                         <h4>{{ resource.name }}</h4>
                                     </a>
                                 </div>
+
                                 <div class="col-3">
-                                    <h6> <div class='shape-success'></div> {% trans 'Bookable' %}</h6>
+                                    {% if resource.reservable %}
+                                        <h6> <div class='shape-success'></div> {% trans 'Bookable' %}</h6>
+                                    {% else %}
+                                        <h6> <div class='shape-danger'></div> {% trans 'Can not be reserved' %}</h6>
+                                    {% endif %}
                                 </div>
+
                                 <div class="col-4">
-                                    <h6>
-                                        <div class='shape-warning'></div>
-                                        {{ resource.public|yesno:"Julkaistu,Ei julkaistu" }}
-                                    </h6>
+                                    {% if resource.public %}
+                                        <h6> <div class='shape-success'></div> {% trans 'Published' %}</h6>
+                                    {% else %}
+                                        <h6> <div class='shape-warning'></div> {% trans 'Hidden' %}</h6>
+                                    {% endif %}
                                 </div>
+
                                 <div class="col-5">
                                     <h6>
                                         <span class='glyphicon glyphicon-pencil icon-left' aria-hidden="true"></span>
