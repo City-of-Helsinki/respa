@@ -26,10 +26,8 @@ let emptyDayItem = null;
 * */
 export function initializeEventHandlers() {
   enableNotificationHandler();
-  enableCopyTimePeriod();
+  enablePeriodEventHandlers();
   enableAddNewPeriod();
-  enableRemovePeriod();
-  enableAddDaysByDate();
   enableLanguageButtons();
   enableAddNewImage();
   enableRemoveImage();
@@ -125,30 +123,6 @@ function enableAddNewPeriod() {
 }
 
 /*
-* Bind event for removing a period to its corresponding button.
-* */
-function enableRemovePeriod() {
-  let periods = document.getElementById('current-periods-list').children;
-
-  for (let i = 0; i < periods.length; i++) {
-    let removeButton = document.getElementById('remove-button-' + i);
-    removeButton.addEventListener('click', () => removePeriod(periods[i]), false);
-  }
-}
-
-/*
-* Bind event for adding days to the date input fields.
-* */
-function enableAddDaysByDate() {
-  let periods = document.getElementById('current-periods-list').children;
-
-  for (let i = 0; i < periods.length; i++) {
-    let $dates = $('#date-inputs-' + i);
-    $dates.change(() => modifyDays($(periods[i]), $dates));
-  }
-}
-
-/*
 * Bind event for adding images.
 * */
 function enableAddNewImage() {
@@ -183,14 +157,21 @@ function enableLanguageButtons() {
   }
 }
 
-/*
-* Bind event for copying time periods.
-* */
-function enableCopyTimePeriod() {
-  let periods = document.getElementById('current-periods-list').children;
+function enablePeriodEventHandlers() {
+  let periods = getPeriodsList();
 
   for (let i = 0; i < periods.length; i++) {
-    let copyButton = document.getElementById('copy-time-period-' + i);
-    copyButton.addEventListener('click', () => copyTimePeriod(periods[i]), false);
+    const copyButton = $('#copy-time-period-' + i);
+    copyButton.click(() => copyTimePeriod(periods[i]));
+
+    const $dates = $('#date-inputs-' + i);
+    $dates.change(() => modifyDays($(periods[i]), $dates));
+
+    const removeButton = $('#remove-button-' + i);
+    removeButton.click(() => removePeriod(periods[i]));
   }
+}
+
+export function getPeriodsList() {
+  return document.getElementById('current-periods-list').children;
 }
