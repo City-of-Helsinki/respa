@@ -107,7 +107,11 @@ def send_respa_mail(email_address, subject, body, html_body=None):
                     'noreply@%s' % Site.objects.get_current().domain)
 
     notification_logger.info('Sending notification email to %s: "%s"' % (email_address, subject))
-    send_mail(subject, body, from_address, [email_address], html_message=html_body)
+
+    if html_body:
+        send_mail(subject, body, from_address, [email_address], html_message=html_body)
+    else:
+        send_mail(subject, body, from_address, [email_address])
 
 
 def generate_reservation_xlsx(reservations):
