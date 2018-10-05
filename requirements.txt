@@ -30,13 +30,12 @@ django-mptt==0.8.7        # via django-munigeo
 django-munigeo==0.2.0
 django-parler==1.8
 django-reversion==2.0.10
-django==1.11.11
+django==1.11.16
 djangorestframework-jwt==1.11.0
 djangorestframework==3.6.4
 drf-oidc-auth==0.9        # via django-helusers
 easy-thumbnails==2.4.2
 fake-factory==9999.9.9
-first==2.0.1              # via pip-tools
 flake8==3.4.1
 freezegun==0.3.9
 future==0.16.0            # via pyjwkest
@@ -53,7 +52,7 @@ oauthlib==2.0.4           # via requests-oauthlib
 olefile==0.44             # via pillow
 ordereddict==1.1          # via ntlm-auth
 pillow==4.2.1             # via easy-thumbnails
-pip-tools==1.9.0
+pip-tools==3.0.0
 psycopg2==2.7.3.1
 py==1.4.34                # via pytest
 pycodestyle==2.3.1        # via flake8
