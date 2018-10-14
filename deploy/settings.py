@@ -13,7 +13,8 @@ import environ
 
 deploy_env = environ.Env(
     USE_X_FORWARDED_HOST = (bool, False),
-    SECURE_PROXY = (bool, False)
+    SECURE_PROXY = (bool, False),
+    MEDIA_ROOT = (str, "/usr/src/app/www")
 )
 
 USE_X_FORWARDED_HOST = deploy_env('USE_X_FORWARDED_HOST')

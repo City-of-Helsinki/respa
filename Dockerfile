@@ -14,4 +14,6 @@ RUN pip install --no-cache-dir -r deploy/requirements.txt
 
 COPY . .
 
+RUN mkdir -p www/media
+
 CMD deploy/server.sh
