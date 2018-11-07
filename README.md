@@ -164,7 +164,7 @@ as expected, commit the changes.
 Contributing
 ------------
 
-Your contributions are always welcome! If you want to report a bug or see a new feature feel free to create a new [Issue](https://github.com/City-of-Helsinki/respa/issues/new) or discuss it with us on [Slack](https://cityofhelsinki.slack.com/). Alternatively, you can create a pull request (base master branch). Your PR will be reviewed by the project tech lead.
+Your contributions are always welcome! If you want to report a bug or see a new feature feel free to create a new [Issue](https://github.com/City-of-Helsinki/respa/issues/new) or discuss it with us on [Gitter](https://gitter.im/City-of-Helsinki/heldev). Alternatively, you can create a pull request (base master branch). Your PR will be reviewed by the project tech lead.
 
 License
 ------------
