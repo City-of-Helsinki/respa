@@ -25,7 +25,7 @@ FAQ
 ------------
 
 ### Why is it called Respa?
-Short for "RESurssi PAlvelu" i.e. Resource Service.
+Short for "RESurssiPAlvelu" i.e. Resource Service.
 
 Installation
 ------------
