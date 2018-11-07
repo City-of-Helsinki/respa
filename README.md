@@ -4,7 +4,7 @@
 
 respa – Resource reservation and management service
 ===================
-Respa is a backend service for reserving and managing resources (e.g. meeting rooms, equipment, personnel). The open two-way REST API is interoperable with the [6Aika Resource reservation API specification](https://github.com/6aika/api-resurssienvaraus) created by the six largest cities in Finland. You can explore the API at [dev.hel.fi](https://dev.hel.fi/apis/respa/)
+Respa is a backend service for reserving and managing resources (e.g. meeting rooms, equipment, personnel). The open two-way REST API is interoperable with the [6Aika Resource reservation API specification](https://github.com/6aika/api-resurssienvaraus) created by the six largest cities in Finland. You can explore the API at [api.hel.fi](https://api.hel.fi/respa/v1/) and view the API documentation at [dev.hel.fi](https://dev.hel.fi/apis/respa/).
 
 User interfaces for Respa developed by the City of Helsinki are [Varaamo](https://github.com/City-of-Helsinki/varaamo) and [Huvaja](https://github.com/City-of-Helsinki/huvaja), and the now-defunct [Stadin Tilapankki](https://github.com/City-of-Helsinki/tilapankki). The City of Hämeenlinna has developed a [Berth Reservation UI](https://github.com/CityOfHameenlinna/hmlvaraus-frontend) and [backend](https://github.com/CityOfHameenlinna/hmlvaraus-backend) on top of Respa.
 
@@ -13,13 +13,13 @@ Editing data can be done by using a simple UI based on Django admin.
 Used by
 ------------
 
-- City of Helsinki - [Varaamo UI](https://varaamo.hel.fi/) & [Huvaja UI](https://huonevaraus.hel.fi/)
-- City of Espoo - [Varaamo UI](https://varaamo.espoo.fi/)
-- City of Vantaa - [Varaamo UI](https://varaamo.vantaa.fi/)
-- City of Oulu - [Varaamo UI](https://varaamo.ouka.fi/)
-- City of Mikkeli - [Varaamo UI](https://varaamo.mikkeli.fi/)
-- City of Tampere - [Varaamo UI](https://varaamo.tampere.fi/)
-- City of Hämeenlinna - [Berth Reservation UI](https://varaukset.hameenlinna.fi/)
+- [City of Helsinki](https://api.hel.fi/respa/v1/) - for [Varaamo UI](https://varaamo.hel.fi/) & [Huvaja UI](https://huonevaraus.hel.fi/)
+- [City of Espoo](https://api.hel.fi/respa/v1/) - for [Varaamo UI](https://varaamo.espoo.fi/)
+- [City of Vantaa](https://api.hel.fi/respa/v1/) - for [Varaamo UI](https://varaamo.vantaa.fi/)
+- [City of Oulu](https://varaamo-api.ouka.fi/v1/) - for [Varaamo UI](https://varaamo.ouka.fi/)
+- [City of Mikkeli](https://mikkeli-respa.metatavu.io/v1/) - for [Varaamo UI](https://varaamo.mikkeli.fi/)
+- [City of Tampere](https://respa.tampere.fi/v1/) - for [Varaamo UI](https://varaamo.tampere.fi/)
+- City of Hämeenlinna - for [Berth Reservation UI](https://varaukset.hameenlinna.fi/)
 
 FAQ
 ------------
