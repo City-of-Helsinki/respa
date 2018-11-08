@@ -1,0 +1,25 @@
+{% load i18n %}
+
+<div id="opening-hours">
+    <div class="form-section-header">
+        <h2>{% trans "Opening hours" %}</h2>
+    </div>
+
+    <div class="button-row">
+        <button class="btn btn-primary" type="button" id="add-new-hour">{% trans "Add new time period" %}</button>
+        <div class="select-dropdown btn btn-primary">
+            <select>
+                <option>{% trans "Add general time period" %}</option>
+            </select>
+            <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+        </div>
+    </div>
+
+    <div class="present-hours-list" id="current-periods-list">
+        {% for period in formset %}
+            {% with forloop.counter0 as id %}
+            {% include "respa_admin/common/_periods_accordion.html" with period=period id=id %}
+            {% endwith %}
+        {% endfor %}
+    </div>
+</div>

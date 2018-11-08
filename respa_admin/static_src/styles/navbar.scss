@@ -1,0 +1,63 @@
+.header {
+
+  a.hel-icon {
+    padding-top: 13px;
+    padding-bottom: 13px;
+        
+    svg {
+      height: 36px;
+    }
+  }
+
+  nav.navbar {
+    margin-bottom: 0;
+  }
+
+  button.navbar-toggle span.icon-bar {
+    background: $white;
+  }
+
+  .respa-nav {
+    border: $panel-default-border;
+        
+    ul.navbar-nav {
+      margin-top: 0;
+      margin-bottom: 0;
+      border: $panel-default-border;
+
+      li a {
+        color: $white;
+        font-weight: lighter;
+      }
+    }
+  }
+
+  nav.service {
+    background: $hel-coat;
+    border: 0;
+
+    a.navbar-brand {
+      color: $white;
+    }
+
+    ul.navbar-nav li {
+
+      &.active, &:hover, &:focus {
+
+        a {
+
+          &:hover {
+            color: $white;
+          }
+
+          &:after {
+            border: 0;
+            height: 2px;
+            background-color: $white;
+            bottom: 0;
+          }
+        }
+      }
+    }
+  }
+}

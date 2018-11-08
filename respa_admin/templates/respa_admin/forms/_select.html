@@ -1,0 +1,12 @@
+<div class="form-group {% if not inline %}select-with-label{% endif %}">
+    {% if not skip_label %}
+        <label class="control-label input-label">
+            {{ field.label }}{% if field.field.required %}*{% endif %}
+        </label>
+    {% endif %}
+    <div class="select-dropdown btn btn-primary">
+        {{ field }}
+        <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+    </div>
+    {% include "respa_admin/forms/_errors.html" with field=field %}
+</div>

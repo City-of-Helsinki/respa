@@ -1,0 +1,43 @@
+{% extends "respa_admin/_base.html" %}
+
+{% block koro_shape %}
+    <section class="hero-section bg-light">
+        <div class="container">
+            {% include "./common/_notification.html" with text="Welcome #user#" %}
+            <div>
+                <h2>Toimipaikat</h2>
+                <div class='row cards-list'>
+                    {% for i in "123" %}
+                    <div class="col-sm-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Why Do I have to Pay?</h5>
+                                <p class="card-text">With <a href="#">supporting</a> text below as a natural lead-in to additional content.</p>
+                                <a href="#" class="btn btn-primary">
+                                    Katso tilat<span class='glyphicon glyphicon-menu-right icon-right' aria-hidden="true"></span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="container-fluid">
+                    <div class="resource-control">
+                        <a class="btn" href="#">
+                            <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
+                            Lisää uusi resurssit <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                        </a>
+                        <a class="btn" href="#">
+                            <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
+                            Lisää uusi toimipaikka <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock koro_shape %}
+
+{% block body %}
+    {% include "respa_admin/resources/_resource_list.html" %}
+{% endblock body %}

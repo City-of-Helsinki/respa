@@ -24,16 +24,21 @@ env = environ.Env(
     MEDIA_URL=(str, '/media/'),
     STATIC_URL=(str, '/static/'),
     SENTRY_DSN=(str, ''),
-    COOKIE_PREFIX=(str, 'respa')
+    COOKIE_PREFIX=(str, 'respa'),
+    INTERNAL_IPS=(list, []),
 )
 environ.Env.read_env()
 
 BASE_DIR = root()
 
+DEBUG_TOOLBAR_CONFIG = {
+    'RESULTS_CACHE_SIZE': 100,
+}
 DEBUG = env('DEBUG')
 ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 ADMINS = env('ADMINS')
-
+INTERNAL_IPS = env.list('INTERNAL_IPS',
+                        default=(['127.0.0.1'] if DEBUG else []))
 DATABASES = {
     'default': env.db()
 }
@@ -47,6 +52,7 @@ INSTALLED_APPS = [
     'modeltranslation',
     'parler',
     'grappelli',
+    'django.forms',
     'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -83,6 +89,7 @@ INSTALLED_APPS = [
     'notifications.apps.NotificationsConfig',
 
     'respa_exchange',
+    'respa_admin',
 
     'sanitized_dump',
 ]
@@ -108,6 +115,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
 ]
+
+if DEBUG:
+    INSTALLED_APPS.append('debug_toolbar')
+    MIDDLEWARE = [
+        'debug_toolbar.middleware.DebugToolbarMiddleware',
+    ] + MIDDLEWARE
 
 ROOT_URLCONF = 'respa.urls'
 from django_jinja.builtins import DEFAULT_EXTENSIONS
@@ -213,12 +226,15 @@ SOCIALACCOUNT_ADAPTER = 'helusers.adapter.SocialAccountAdapter'
 # http://www.django-rest-framework.org
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': (
+    'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-    ),
-    'DEFAULT_AUTHENTICATION_CLASSES': (
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
         'helusers.jwt.JWTAuthentication',
-    ),
+    ] + ([
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
+    ] if DEBUG else []),
     'DEFAULT_PAGINATION_CLASS': 'resources.pagination.DefaultPagination',
 }
 
@@ -245,6 +261,8 @@ RESPA_CATERINGS_ENABLED = False
 RESPA_COMMENTS_ENABLED = False
 RESPA_DOCX_TEMPLATE = os.path.join(BASE_DIR, 'reports', 'data', 'default.docx')
 
+RESPA_ADMIN_USERNAME_LOGIN = env.bool(
+    'RESPA_ADMIN_USERNAME_LOGIN', default=True)
 
 # local_settings.py can be used to override environment-specific settings
 # like database and email that differ between development and production.

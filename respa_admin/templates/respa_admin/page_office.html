@@ -1,0 +1,49 @@
+{% extends "respa_admin/_base.html" %}
+
+{% block koro_shape %}
+    <section class="hero-section bg-light">
+        <div class="container">
+            <div class="info row">
+                <div class="col-sm-8">
+                    <h2>Toimipaikan nimi</h2>
+                    <p>
+                        Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Sed posuere interdum sem. Quisque ligula eros ullamcorper quis, lacinia quis facilisis sed sapien. Mauris varius diam vitae arcu. Sed arcu lectus auctor vitae, consectetuer et venenatis eget velit. Sed augue orci, lacinia eu tincidunt et eleifend nec lacus. Donec ultricies nisl ut felis, suspendisse potenti. Lorem ipsum ligula ut hendrerit mollis, ipsum erat vehicula risus, eu suscipit sem libero nec erat. Aliquam erat volutpat. Sed congue augue vitae neque. Nulla consectetuer porttitor pede. Fusce purus morbi tortor magna condimentum vel, placerat id blandit sit amet tortor.
+                    </p>
+                    <span><b>Osoite: </b> Mannerheimintie 1, 00200 Helsinki </span>
+                </div>
+                <div class="col-sm-4 col-info">
+                    <div class="panel panel-default text-center info-details">
+                        <div class="general-info">
+                            <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
+                            <small>Toimipaikan ylläpitäjä</small>
+                        </div>
+                        <strong>Etunimi Sukunimi</strong>
+                        <small>etunimi.sukunimi@hel.fi</small>
+                        <span>040 1234 567</span>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid">
+                <div class="resource-control">
+                    <a class="btn" href="#">
+                        <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
+                        Lisää uusi resurssit tähän toimipaikkaan <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                    </a>
+                    <a class="btn" href="#">
+                        <span class="glyphicon glyphicon-pencil icon-left" aria-hidden="true"></span>
+                        Muokkaa toimipaikkaa <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                    </a>
+                    <a class="btn" href="#">
+                        <span class="glyphicon glyphicon-pencil icon-left" aria-hidden="true"></span>
+                        Muokkaa käyttöoikeuksia <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock koro_shape %}
+
+{% block body %}
+    {% include "respa_admin/resources/_resource_list.html" %}
+    {% include "respa_admin/_user_matrix.html" %}
+{% endblock body %}

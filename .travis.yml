@@ -10,6 +10,7 @@ python:
   - '3.5'
   - '3.6'
   - '3.7-dev'
+node_js: 'lts/*'
 
 matrix:
   allow_failures:
@@ -32,6 +33,9 @@ install: 'pip install codecov -r requirements.txt'
 
 before_script:
   - psql template1 -c 'create extension hstore;'
+  - ./build-resources
+  - ls -l respa_admin/static/respa_admin/main.css  # Check main.css got built
+  - ./manage.py compilemessages
 
 script: pytest --cov . --doctest-modules
 

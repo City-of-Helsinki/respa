@@ -1,0 +1,29 @@
+.page-navigation {
+
+  nav {
+    $pager-size: 50px;
+    display: flex;
+    justify-content: center;
+
+    ul li a {
+      @include box-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
+      border-radius: $border-radius-small;
+      border: $panel-default-border;
+      font-size: $font-size-base;
+      font-weight: bold;
+      height: $pager-size;
+      margin: 5px;
+      padding: $padding-large-horizontal;
+      width: $pager-size;
+    }
+
+    a.next, a.previous {
+      transform: scale(0.7);
+    }
+
+    .active-page {
+      background: $hel-coat;
+      color: $white;
+    }
+  }
+}

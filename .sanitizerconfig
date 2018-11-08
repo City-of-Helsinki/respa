@@ -226,6 +226,7 @@ strategy:
     type: null
   notifications_notificationtemplate_translation:
     body: null
+    html_body: null
     id: null
     language_code: null
     master_id: null
@@ -379,6 +380,7 @@ strategy:
     reservation_info_fi: null
     reservation_info_sv: null
     reservation_metadata_set_id: null
+    reservation_requested_notification_extra: null
     responsible_contact_info: null
     responsible_contact_info_en: null
     responsible_contact_info_fi: null
@@ -499,6 +501,30 @@ strategy:
     www_url_en: null
     www_url_fi: null
     www_url_sv: null
+  resources_unitauthorization:
+    authorized_id: null
+    id: null
+    level: null
+    subject_id: null
+  resources_unitgroup:
+    created_at: null
+    created_by_id: null
+    id: null
+    modified_at: null
+    modified_by_id: null
+    name: null
+    name_en: null
+    name_fi: null
+    name_sv: null
+  resources_unitgroup_members:
+    id: null
+    unit_id: null
+    unitgroup_id: null
+  resources_unitgroupauthorization:
+    authorized_id: null
+    id: null
+    level: null
+    subject_id: null
   resources_unitidentifier:
     id: null
     namespace: null
@@ -593,6 +619,7 @@ strategy:
     ical_token: string.random
     id: null
     is_active: null
+    is_general_admin: null
     is_staff: null
     is_superuser: null
     last_login: constant.null

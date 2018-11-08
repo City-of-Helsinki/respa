@@ -1,0 +1,9 @@
+<div class="rdio rdio-primary radio-inline">
+    <input
+        name="{{ widget.name }}"
+        value="{{ widget.value }}"
+        type="radio"
+        {% include "django/forms/widgets/attrs.html" %}
+    >
+    <label for="{{ widget.attrs.id }}">{{ widget.label }}</label>
+</div>

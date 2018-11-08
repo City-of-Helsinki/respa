@@ -50,6 +50,14 @@ sudo -u postgres createdb -Orespa respa
 sudo -u postgres psql respa -c "CREATE EXTENSION postgis;"
 ```
 
+### Build Respa Admin static resources
+
+Make sure you have Node 8 or LTS and yarn installed.
+
+```shell
+./build-resources
+```
+
 ### Run Django migrations and import data
 
 ```shell
@@ -59,6 +67,15 @@ python manage.py geo_import --municipalities finland
 python manage.py geo_import --divisions helsinki
 python manage.py resources_import --all tprek
 python manage.py resources_import --all kirjastot
+```
+
+### Dev environment configuration
+
+Create a file `respa/.env` to configure the dev environment e.g.:
+
+```
+DEBUG=1
+INTERNAL_IPS='127.0.0.1'
 ```
 
 ### Settings
@@ -78,6 +95,26 @@ Ready to roll!
   * Failing to do this while setting `GEOS_LIBRARY_PATH`/`GDAL_LIBRARY_PATH` will result in
     "Module not found" errors or similar, which can be annoying to track down.
 
+### Respa Admin authentication
+
+Respa Admin views require logged in user with staff status.  For local
+development you can log in via Django Admin login page to an account
+with staff privileges and use that session to access the Respa Admin.
+
+When accessing the Respa Admin without being logged in, the login
+happens with Tunnistamo.  To test the Tunnistamo login flow in local
+development environment this needs either real Respa app client id and
+client secret in the production Tunnistamo or modifying helusers to use
+local Tunnistamo.  The client id and client secret should be configured
+in Django Admin or shell within a socialaccount.SocialApp instance with
+id "helsinki".  When adding the app to Tunnistamo, the OAuth2 callback
+URL for the app should be something like:
+http://localhost:8000/accounts/helsinki/login/callback/
+
+When the Tunnistamo registration is configured and the login is working,
+then go to Django Admin and set the `is_staff` flag on for the user that
+got created when testing the login.  This allows the user to use the
+Respa Admin.
 
 Installation with Docker
 ------------------------

@@ -233,6 +233,20 @@ def staff_user():
 
 @pytest.mark.django_db
 @pytest.fixture
+def general_admin():
+    return get_user_model().objects.create(
+        username='test_general_admin',
+        first_name='Genie',
+        last_name='Manager',
+        email='genie.manager@example.com',
+        is_staff=True,
+        is_general_admin=True,
+        preferred_language='en'
+    )
+
+
+@pytest.mark.django_db
+@pytest.fixture
 def group():
     return Group.objects.create(name='test group')
 

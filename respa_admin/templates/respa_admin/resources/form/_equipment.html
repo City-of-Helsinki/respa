@@ -1,0 +1,12 @@
+{% load i18n %}
+
+<div id="equipment">
+    <div class="form-section-header">
+        <h2>{% trans "Equipment" %}</h2>
+        <span class="pull-right">{% trans "*Mandatory fields" %}</span>
+    </div>
+    <p>{% trans "Choose from the list below" %}</p>
+    <div class="technical">
+        {{ form.equipment }}
+    </div>
+</div>

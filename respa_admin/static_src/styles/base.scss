@@ -1,0 +1,32 @@
+$brand-light:  #00d7a7; // $hel-fog
+$brand-dark:   #009246; // $hel-tram
+
+// // Import Open City Design styles
+
+// @import "osd-bootstrap";
+
+// @import "site-styles";
+
+@import "../../node_modules/bootstrap-datepicker/dist/css/bootstrap-datepicker3.css";
+
+@import "../../node_modules/hel-bootstrap-3/src/sass/helsinki-variables";
+
+// @import application-variables;
+@import "../../node_modules/hel-bootstrap-3/src/sass/application-variables";
+
+@import "../../node_modules/hel-bootstrap-3/src/sass/theme-bootstrap-variables";
+
+$icon-font-path: "~bootstrap-sass/assets/fonts/bootstrap/";
+@import "../../node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
+
+@import "../../node_modules/hel-bootstrap-3/src/sass/theme-custom-styles";
+
+@import "./general";
+@import "./form/page-form";
+@import "./navbar";
+@import "./pagination";
+@import "./page-home";
+@import "./page-office";
+@import "./user-matrix";
+@import "./page-resource";
+@import "./common";

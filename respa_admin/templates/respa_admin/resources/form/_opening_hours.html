@@ -1,0 +1,31 @@
+<div id="opening-hours">
+    <div class="form-section-header">
+        <h2>Aukioloajat</h2>
+    </div>
+    <div class="button-row">
+        <button class="btn btn-primary" type="button" id="add-new-hour">Lisää uusi aikajakso</button>
+        <div class='select-dropdown btn btn-primary'>
+            <select>
+                <option>Lisää yleinen kausi</option>
+                <option>Should be something longer</option>
+            </select>
+            <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+        </div>
+    </div>
+    <div class="present-hours-list">
+        <div style="display: none">
+            {% include "../../common/_hours_accordion.html" with id=new %}
+        </div>
+        {% for i in "123" %}
+            {% include "../../common/_hours_accordion.html" with id=i %}
+        {% endfor %}
+    </div>
+    <div class="past-hours">
+        <h4>Menneet aukioloajat</h4>
+        <div class="past-hours-list">
+            {% for i in "45678" %}
+                {% include "../../common/_hours_accordion.html" with id=i %}
+            {% endfor %}
+        </div>
+    </div>
+</div>

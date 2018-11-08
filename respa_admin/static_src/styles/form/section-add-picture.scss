@@ -1,0 +1,45 @@
+#add-picture {
+
+    p {
+        padding-bottom: 16px;
+    }
+
+    button.add-picture-button {
+        background-color: $hel-copper;
+        color: $white;
+        font-size: $font-size-base;
+        max-height: 60px;
+        min-width: 200px;
+        max-width: 300px;
+        line-height: 1;
+        padding: 20px;
+        text-align: center;
+    }
+
+    button.choose-picture-button {
+        @extend .add-picture-button;
+        max-height: 50px;
+        min-width: 100px;
+        max-width: 200px;
+        line-height: 0.5;
+        padding: 10px;
+        margin-top: 30px;
+    }
+
+    button.remove-picture-button {
+        @extend .btn-danger;
+        @extend .btn;
+        @extend .choose-picture-button;
+        color: #fd4f00;
+        background-color: transparent;
+    }
+
+    img.preview-image {
+        height: 100px;
+        width: 100px;
+    }
+
+    input[type="file"] {
+        display: none;
+    }
+}

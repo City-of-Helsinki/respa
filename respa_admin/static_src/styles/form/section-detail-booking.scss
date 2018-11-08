@@ -1,0 +1,10 @@
+#detail-booking {
+
+  .form-group.booking-info, .form-group.email-notification {
+    margin-top: 32px;
+
+    .textarea-wrapper p {
+      padding: $padding-large-vertical 0;
+    }
+  }
+}

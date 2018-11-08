@@ -69,13 +69,13 @@ def test_user_permissions_in_resource_endpoint(api_client, resource_in_unit, use
     _check_permissions_dict(api_client, resource_in_unit, is_admin=False,
                             can_make_reservations=False, can_ignore_opening_hours=False)
 
-    # staff member, reservable = False
-    user.is_staff = True
+    # admin, reservable = False
+    user.is_general_admin = True
     user.save()
     api_client.force_authenticate(user=user)
     _check_permissions_dict(api_client, resource_in_unit, is_admin=True,
                             can_make_reservations=True, can_ignore_opening_hours=True)
-    user.is_staff = False
+    user.is_general_admin = False
     user.save()
 
     # user has explicit permission to make reservation
@@ -123,8 +123,15 @@ def test_non_public_resource_visibility(api_client, resource_in_unit, user):
     assert response.status_code == 200
     assert response.data['count'] == 0
 
-    # Authenticated as staff
+    # Authenticated as non-admin staff
     user.is_staff = True
+    user.save()
+    response = api_client.get(url)
+    assert response.status_code == 200
+    assert response.data['count'] == 0
+
+    # Authenticated as admin
+    user.is_general_admin = True
     user.save()
     response = api_client.get(url)
     assert response.status_code == 200

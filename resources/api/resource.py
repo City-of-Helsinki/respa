@@ -22,6 +22,8 @@ from resources.models import (
     TermsOfUse, Equipment, ReservationMetadataSet, ResourceDailyOpeningHours
 )
 from resources.models.resource import determine_hours_time_range
+
+from ..auth import is_general_admin, is_staff
 from .base import TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
 from .reservation import ReservationSerializer
 from .unit import UnitSerializer
@@ -65,7 +67,7 @@ class PurposeViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = PurposePagination
 
     def get_queryset(self):
-        if self.request.user.is_staff:
+        if is_staff(self.request.user):
             return self.queryset
         else:
             return self.queryset.filter(public=True)
@@ -586,7 +588,7 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
         return context
 
     def get_queryset(self):
-        if self.request.user.is_staff:
+        if is_general_admin(self.request.user):
             return self.queryset
         else:
             return self.queryset.filter(public=True)
@@ -607,7 +609,7 @@ class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
         return context
 
     def get_queryset(self):
-        if self.request.user.is_staff:
+        if is_general_admin(self.request.user):
             return self.queryset
         else:
             return self.queryset.filter(public=True)

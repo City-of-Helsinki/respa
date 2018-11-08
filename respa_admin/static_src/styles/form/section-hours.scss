@@ -1,0 +1,116 @@
+#opening-hours {
+    padding-bottom: 36px;
+
+    .row-tag {
+        padding: $padding-large-vertical 0 $padding-large-vertical $padding-large-horizontal;
+        font-size: $font-size-large;
+        font-weight: bold;
+        padding-left: 0;
+        min-width: 100px;
+    }
+
+    .button-row {
+
+        button {
+            height: $input-height-default;
+            padding: $padding-large-vertical 24px;
+            margin-right: 10px;
+            background-color: $hel-copper;
+            border: 0;
+        }
+    }
+
+    .dropdown-time {
+        background-color: rgba($light-gray, 0.5);
+        padding: 10px 32px;
+        margin: 0;
+        height: auto;
+
+        span {
+            padding-top: $padding-large-vertical;
+            padding-bottom: $padding-large-vertical;
+        }
+
+        .dropdown-time {
+            background-color: rgba($light-gray, 0.5);
+            padding: 10px 32px;
+            margin: 0;
+            height: auto;
+
+            span {
+                padding-top: $padding-large-vertical;
+                padding-bottom: $padding-large-vertical;
+            }
+
+            a:active {
+                box-shadow: none;
+            }
+
+            .panel-heading {
+                padding: $padding-small-vertical 0;
+                margin: 0;
+                width: 100%;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+            }
+
+            .panel-heading-tag {
+                width: 150px;
+            }
+
+            .panel-heading-period {
+                font-size: $font-size-large;
+                margin-left: 32px;
+            }
+
+            .left-group {
+                padding: $padding-small-vertical 0;
+            }
+
+            .right-group {
+                height: 100%;
+
+                & > * {
+                    border: 0;
+                    padding: $padding-small-vertical 0;
+                    height: 100%;
+                }
+
+                button {
+                    background-color: transparent;
+                }
+
+                a {
+                    margin-left: 32px;
+                }
+            }
+        }
+
+        .hours-wrapper {
+            padding: 0 32px 32px;
+            background-color: rgba($light-gray, 0.5);
+        }
+
+        .present-hours-list {
+            padding-top: $padding-large-vertical;
+        }
+    }
+
+    .hours-wrapper {
+        padding: 0 32px 32px;
+        background-color: rgba($light-gray, 0.5);
+    }
+
+    .present-hours-list {
+        padding-top: $padding-large-vertical;
+    }
+
+    .past-hours {
+
+        h4 {
+            padding-top: 32px;
+            padding-bottom: 24px;
+        }
+    }
+}

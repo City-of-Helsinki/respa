@@ -1,0 +1,50 @@
+{% load i18n %}
+
+<button type="button"
+        id="file-picker-{{ id }}"
+        onclick="openFilePicker(this)"
+        class="choose-picture-button">
+    {% trans "Choose image" %}
+</button>
+
+<input type="file"
+       id="id_images-{{ id }}-image"
+       name="images-{{ id }}-image "
+       onchange="picturePreview(this)">
+
+<button id="remove-image-{{ id }}"
+        type="button"
+        class="remove-picture-button">
+    {% trans "Remove image" %}
+</button>
+
+{% if image %}
+    <img src="{{ image }}" class="preview-image" style="display: block;"/>
+{% else %}
+    <img src="" class="preview-image" style="display: none;"/>
+{% endif %}
+
+{% include "respa_admin/forms/_errors.html" with field=field %}
+
+<script>
+    function openFilePicker(imagePicker) {
+        let imageIdNum = imagePicker.parentNode.id.match(/(\d+)/)[0];
+        document.getElementById("id_images-" + imageIdNum + "-image").click();
+    }
+
+    function picturePreview(image) {
+        let imageItem = image.parentNode;
+        let preview = $(imageItem).find('.preview-image')[0];
+        let file = image.files[0];
+        let reader = new FileReader();
+
+        reader.addEventListener("load", function () {
+            preview.src = reader.result;
+            preview.style.display = "block";
+        }, false);
+
+        if (file) {
+            reader.readAsDataURL(file);
+        }
+    }
+</script>

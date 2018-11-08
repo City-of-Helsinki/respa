@@ -1,0 +1,20 @@
+<div class="form-group">
+    <div class="textarea-wrapper">
+        <label
+            class="control-label input-label"
+            for="{{ field.id_for_label }}"
+        >
+            {{ field.label }}{% if field.field.required %}*{% endif %}
+        </label>
+        <div class="textarea-with-toolbar">
+            <textarea
+                id="{{ field.id_for_label }}"
+                class="form-control"
+                rows="5"
+                name="{{ field.name }}"
+            >{% if field.value %}{{ field.value }}{% endif %}</textarea>
+            <span class="help-text">{{ field.help_text }}</span>
+            {% include "respa_admin/forms/_errors.html" with field=field %}
+        </div>
+    </div>
+</div>

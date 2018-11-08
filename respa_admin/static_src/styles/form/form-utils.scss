@@ -1,0 +1,295 @@
+// reuseable styling for specific elements of the form
+
+$input-height-default: 50px;
+
+.form-control {
+
+  &:focus {
+    border-color: black;
+  }
+}
+
+// styling for select dropdown
+
+.select-dropdown {
+  padding: 0;
+  padding: $padding-large-vertical $padding-large-horizontal;
+  font-weight: lighter;
+  height: $input-height-default;
+  background-color: $btn-default-bg;
+  position: relative;
+
+  &:hover, &:focus, &:active, &:active:focus, &:active:hover {
+    background-color: inherit;
+    cursor: default;
+  }
+
+  span {
+    color: black;
+    vertical-align: middle;
+    position: absolute;
+    top: $padding-large-horizontal;
+    right: $padding-large-horizontal;
+    pointer-events: none;
+  }
+
+  select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: $panel-default-border;
+    text-align: left;
+    color: $black;
+    width: 100%;
+    background-color: $btn-default-bg;
+    padding-right: $padding-small-horizontal + 16px;
+  }
+}
+
+// styling for input label
+
+.input-label {
+  color: $dark-gray;
+  padding-bottom: $padding-base-vertical;
+}
+
+// styling for a general text input
+
+.text-input {
+  padding: $padding-large-vertical $padding-large-horizontal;
+  border: solid 2px black;
+  font-size: 16px;
+  height: $input-height-default;
+  line-height: $line-height-small;
+  background-color: $white;
+}
+
+// styling for toolbar with a buttons toolbar
+
+.textarea-with-toolbar {
+
+  div {
+    display: flex;
+    border: solid 2px black;
+    border-bottom: 0;
+
+    .toolbar-button-border {
+      border: solid 1px $light-gray;
+      border-top-color: transparent;
+      border-bottom-color: transparent;
+      border-left-color: transparent;
+    }
+
+    & > button {
+      line-height: 1;
+      padding: $padding-base-vertical $padding-small-horizontal;
+      @extend .toolbar-button-border;
+
+      &:active, &:hover {
+        @extend .toolbar-button-border;
+      }
+
+      span {
+        transform: scale(0.8);
+      }
+    }
+  }
+
+  textarea {
+    border-top-width: 1px;
+  }
+}
+
+// styling for checkbox
+
+.custom-checkbox {
+  margin: auto;
+
+  [type="checkbox"], label {
+    /*margin-bottom:0px !important;*/
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  [type="checkbox"] {
+    background: red;
+
+    &:not(:checked), &:checked {
+      position: absolute;
+      left: -9999px;
+    }
+
+    &:not(:checked) + label, &:checked + label {
+      position: relative;
+      padding-left: 22px;
+      cursor: pointer;
+    }
+
+    &:not(:checked) + label:before, &:checked + label:before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      margin-top: -9px;
+      width: 20px;
+      height: 20px;
+      background: #00ed95;
+      border: #00ed95 solid 2px;
+    }
+
+    &:not(:checked) + label:after, &:checked + label:after {
+      font: normal normal normal 12px/1 'Glyphicons Halflings';
+      content: '\e013';
+      position: absolute;
+      top: 50%;
+      margin-top: -5px;
+      left: 4px;
+      color: $white;
+      transition: all .2s;
+    }
+
+    &:not(:checked) + label:after {
+      opacity: 0;
+      transform: scale(0);
+    }
+
+    &:checked + label:after {
+      opacity: 1;
+      transform: scale(0.7);
+    }
+
+    &:checked + label {
+      color: #00ed95;
+    }
+
+    &[data-indeterminate] + label:after {
+      content: '\2212';
+      left: 2px;
+      opacity: 1;
+      transform: scale(0.7);
+    }
+
+    &:not(:checked) + label:before {
+      background: $white;
+      border: black solid 2px;
+    }
+
+    &:disabled {
+
+      &:not(:checked) + label:before {
+        box-shadow: none;
+        background-color: #eeeeee;
+        border-color: #eeeeee;
+        cursor: not-allowed;
+        opacity: 1;
+        color: #dadada;
+      }
+
+      &:checked + label {
+
+        &:before {
+          box-shadow: none;
+          background-color: #eeeeee;
+          border-color: #eeeeee;
+          cursor: not-allowed;
+          opacity: 1;
+          color: #00c17a;
+        }
+
+        &:after {
+          color: #fbc52d;
+          cursor: not-allowed;
+        }
+      }
+
+      + label {
+        color: #aaa;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  .checkbox-desc {
+    font-size: $font-size-small * 0.9;
+    margin-left: 8px;
+  }
+}
+
+// styling for radio button
+
+.rdio {
+  position: relative;
+
+  input[type="radio"] {
+    opacity: 0;
+  }
+
+  label {
+    padding-left: 10px;
+    cursor: pointer;
+    font-size: $font-size-small;
+    margin-bottom: 7px !important;
+
+    &:before {
+      width: 20px;
+      height: 20px;
+      position: absolute;
+      top: 1px;
+      left: 0;
+      content: '';
+      display: inline-block;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 50px;
+      border-radius: 50px;
+      border: 2px solid black;
+      background: #fff;
+    }
+  }
+
+  input[type="radio"] {
+    margin: 0px;
+
+    &:disabled + label {
+      color: #999;
+
+      &:before {
+        background-color: #fbc52d;
+      }
+    }
+
+    &:checked + label::after {
+      content: '';
+      position: absolute;
+      top: 5px;
+      left: 4px;
+      display: inline-block;
+      font-size: 11px;
+      width: 12px;
+      height: 12px;
+      background-color: #00ed95;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 50px;
+      border-radius: 50px;
+    }
+  }
+}
+
+.rdio input[type="radio"]:checked + label:before {
+  border-color: #003876;
+}
+
+.rdio input[type="radio"]:checked + label {
+  color: #00ed95;
+
+  &:before {
+    border-color: #00ed95;
+  }
+
+  &::after {
+    background-color: #00ed95;
+  }
+}
