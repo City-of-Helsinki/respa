@@ -251,11 +251,11 @@ msgstr "Det går inte att göra reservationer i det förgångna."
 
 #, python-format
 msgid "The resource is reservable only before %(datetime)s"
-msgstr ""
+msgstr "Resursen kan reserveras endast före %(datetime)s"
 
 #, python-format
 msgid "The resource is reservable only after %(datetime)s"
-msgstr ""
+msgstr "Resursen kan reserveras först efter %(datetime)s"
 
 msgid "Only allowed to be set by staff members"
 msgstr "Endast tillåtet att fastställas av personal. "
@@ -672,10 +672,8 @@ msgstr "Typ av behörighetskod"
 msgid "Reservable days in advance"
 msgstr "Bokningsbar dagar i förväg"
 
-#, fuzzy
-#| msgid "Can view reservation access code"
 msgid "Days until reservation is possible"
-msgstr "Kan se reservationers behörighetskod"
+msgstr "Dagar tills bokning är möjlig"
 
 msgid "resource"
 msgstr "resurs"
