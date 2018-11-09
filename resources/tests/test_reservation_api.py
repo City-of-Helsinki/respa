@@ -1562,6 +1562,7 @@ def test_reservation_reservable_after(user_api_client, resource_in_unit, list_ur
     assert_non_field_errors_contain(response, 'The resource is reservable only after')
 
 
+@freeze_time('2115-04-02')
 @pytest.mark.django_db
 def test_admins_can_make_reservations_despite_delay(
         api_client, list_url, resource_in_unit, reservation_data, general_admin):
