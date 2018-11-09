@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-27 12:10+0300\n"
+"POT-Creation-Date: 2018-11-09 16:45+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -251,6 +251,10 @@ msgstr "Det går inte att göra reservationer i det förgångna."
 
 #, python-format
 msgid "The resource is reservable only before %(datetime)s"
+msgstr ""
+
+#, python-format
+msgid "The resource is reservable only after %(datetime)s"
 msgstr ""
 
 msgid "Only allowed to be set by staff members"
@@ -667,6 +671,11 @@ msgstr "Typ av behörighetskod"
 
 msgid "Reservable days in advance"
 msgstr "Bokningsbar dagar i förväg"
+
+#, fuzzy
+#| msgid "Can view reservation access code"
+msgid "Days until reservation is possible"
+msgstr "Kan se reservationers behörighetskod"
 
 msgid "resource"
 msgstr "resurs"

@@ -140,6 +140,7 @@ class ResourceForm(forms.ModelForm):
             'min_period',
             'max_period',
             'reservable_days_in_advance',
+            'reservable_delay_days',
             'max_reservations_per_user',
             'reservable',
             'need_manual_confirmation',
