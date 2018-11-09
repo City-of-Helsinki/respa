@@ -9,7 +9,7 @@ from enumfields import EnumField
 from ..auth import is_authenticated_user, is_general_admin
 from ..enums import UnitAuthorizationLevel
 from .base import AutoIdentifiedModel, ModifiableModel
-from .utils import create_reservable_before_datetime, get_translated, get_translated_name
+from .utils import create_datetime_days_from_now, get_translated, get_translated_name
 from .availability import get_opening_hours
 from .permissions import UNIT_PERMISSIONS
 
@@ -104,7 +104,7 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
         return pytz.timezone(self.time_zone)
 
     def get_reservable_before(self):
-        return create_reservable_before_datetime(self.reservable_days_in_advance)
+        return create_datetime_days_from_now(self.reservable_days_in_advance)
 
     def is_admin(self, user):
         return is_authenticated_user(user) and (
