@@ -149,6 +149,7 @@ class ResourceForm(forms.ModelForm):
             'min_price_per_hour',
             'generic_terms',
             'public',
+            'reservation_metadata_set',
         ] + translated_fields
 
         widgets = {
