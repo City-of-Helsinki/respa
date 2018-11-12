@@ -1543,7 +1543,7 @@ def test_reservation_reservable_before(user_api_client, resource_in_unit, list_u
 @freeze_time('2115-04-02')
 @pytest.mark.django_db
 def test_reservation_reservable_after(user_api_client, resource_in_unit, list_url, reservation_data):
-    resource_in_unit.reservable_delay_days = 8
+    resource_in_unit.reservable_min_days_in_advance = 8
     resource_in_unit.save()
 
     reservation_data['begin'] = timezone.now().replace(hour=12, minute=0, second=0) + datetime.timedelta(days=9)
@@ -1570,7 +1570,7 @@ def test_admins_can_make_reservations_despite_delay(
     Admin should be able to make reservations regardless of reservation delay limitations
     """
     api_client.force_authenticate(user=general_admin)
-    resource_in_unit.reservable_delay_days = 10
+    resource_in_unit.reservable_min_days_in_advance = 10
     resource_in_unit.save()
 
     reservation_data['begin'] = timezone.now().replace(hour=12, minute=0, second=0) + datetime.timedelta(days=9)

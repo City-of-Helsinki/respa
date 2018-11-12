@@ -203,8 +203,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                                         default=ACCESS_CODE_TYPE_NONE)
     reservable_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable days in advance'),
                                                                   null=True, blank=True)
-    reservable_delay_days = models.PositiveSmallIntegerField(verbose_name=_('Days until reservation is possible'),
-                                                             null=True, blank=True)
+    reservable_min_days_in_advance = models.PositiveSmallIntegerField(
+        verbose_name=_('Days until reservation is possible'), null=True, blank=True)
     reservation_metadata_set = models.ForeignKey('resources.ReservationMetadataSet', null=True, blank=True,
                                                  on_delete=models.SET_NULL)
 
@@ -557,7 +557,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         return create_datetime_days_from_now(self.get_reservable_days_in_advance())
 
     def get_reservable_after(self):
-        return create_datetime_days_from_now(self.reservable_delay_days)
+        return create_datetime_days_from_now(self.reservable_min_days_in_advance)
 
     def get_supported_reservation_extra_field_names(self, cache=None):
         if not self.reservation_metadata_set_id:

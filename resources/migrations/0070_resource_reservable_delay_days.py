@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='resource',
-            name='reservable_delay_days',
+            name='reservable_min_days_in_advance',
             field=models.PositiveSmallIntegerField(blank=True, null=True, verbose_name='Days until reservation is possible'),
         ),
     ]
