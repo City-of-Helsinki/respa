@@ -415,6 +415,21 @@ paths:
           required: false
           type: string
           description: Only return resources that belong to the speficied resource group(s). Accepts multiple comma-separated values.
+        - name: unit
+          in: query
+          required: false
+          type: string
+          description: Only return resources that belong to the specified unit.
+        - name: need_manual_confirmation
+          in: query
+          required: false
+          type: boolean
+          description: Only return resources that need or do not need manual confirmation, based on the boolean value.
+        - name: is_favorite
+          in: query
+          required: false
+          type: boolean
+          description: Only return resources that are or are not favorited by authenticated user, based on the boolean value.
         - name: available_between
           in: query
           required: false
