@@ -669,10 +669,10 @@ msgid "Access code type"
 msgstr "Pääsykoodityyppi"
 
 msgid "Reservable days in advance"
-msgstr "Varattavissa etukäteen (päivissä)"
+msgstr "Varattavissa enintään näin monta päivää etukäteen"
 
 msgid "Days until reservation is possible"
-msgstr "Varattavissa viiveen jälkeen (päivissä)"
+msgstr "Varattavissa vähintään näin monta päivää etukäteen"
 
 msgid "resource"
 msgstr "resurssi"
