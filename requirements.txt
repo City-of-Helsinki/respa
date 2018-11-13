@@ -18,6 +18,7 @@ daemonize==2.4.7
 database-sanitizer==0.4.0
 defusedxml==0.5.0         # via python3-openid
 delorean==0.6.0
+django-admin-json-editor==0.1.5
 django-allauth==0.34.0
 django-anymail==1.2
 django-appconf==1.0.1     # via django-image-cropping
@@ -51,6 +52,7 @@ icalendar==4.0.0
 idna==2.6                 # via cryptography, requests
 iso8601==0.1.12
 jinja2==2.10
+jsonschema==2.6.0
 lxml==4.1.1
 markupsafe==1.0           # via jinja2
 mccabe==0.6.1             # via flake8

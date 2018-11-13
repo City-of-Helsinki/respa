@@ -101,7 +101,7 @@ class Reservation(ModifiableModel):
     comments = models.TextField(null=True, blank=True, verbose_name=_('Comments'))
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('User'), null=True,
                              blank=True, db_index=True, on_delete=models.PROTECT)
-    state = models.CharField(max_length=16, choices=STATE_CHOICES, verbose_name=_('State'), default=CONFIRMED)
+    state = models.CharField(max_length=16, choices=STATE_CHOICES, verbose_name=_('State'), default=CREATED)
     approver = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Approver'),
                                  related_name='approved_reservations', null=True, blank=True,
                                  on_delete=models.SET_NULL)
@@ -237,7 +237,7 @@ class Reservation(ModifiableModel):
         elif new_state == Reservation.CONFIRMED:
             if self.need_manual_confirmation():
                 self.send_reservation_confirmed_mail()
-            elif self.resource.is_access_code_enabled():
+            elif self.access_code:
                 self.send_reservation_created_with_access_code_mail()
             else:
                 if not user_is_staff:
@@ -448,14 +448,16 @@ class Reservation(ModifiableModel):
         self.send_reservation_mail(NotificationType.RESERVATION_CREATED_WITH_ACCESS_CODE,
                                    attachments=[attachment])
 
+    def send_access_code_created_mail(self):
+        self.send_reservation_mail(NotificationType.RESERVATION_ACCESS_CODE_CREATED)
+
     def save(self, *args, **kwargs):
         self.duration = DateTimeTZRange(self.begin, self.end, '[)')
 
-        access_code_type = self.resource.access_code_type
-        if not self.resource.is_access_code_enabled():
-            self.access_code = ''
-        elif not self.access_code:
-            self.access_code = generate_access_code(access_code_type)
+        if not self.access_code:
+            access_code_type = self.resource.access_code_type
+            if self.resource.is_access_code_enabled() and self.resource.generate_access_codes:
+                self.access_code = generate_access_code(access_code_type)
 
         return super().save(*args, **kwargs)
 
