@@ -70,6 +70,8 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
 
     reservable_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable days in advance'),
                                                                   null=True, blank=True)
+    reservable_min_days_in_advance = models.PositiveSmallIntegerField(
+        verbose_name=_('Days until reservation is possible'), null=True, blank=True)
 
     objects = UnitQuerySet.as_manager()
 
@@ -105,6 +107,9 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
 
     def get_reservable_before(self):
         return create_datetime_days_from_now(self.reservable_days_in_advance)
+
+    def get_reservable_after(self):
+        return create_datetime_days_from_now(self.reservable_min_days_in_advance)
 
     def is_admin(self, user):
         return is_authenticated_user(user) and (

@@ -556,8 +556,11 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     def get_reservable_before(self):
         return create_datetime_days_from_now(self.get_reservable_days_in_advance())
 
+    def get_reservable_min_days_in_advance(self):
+        return self.reservable_min_days_in_advance or self.unit.reservable_min_days_in_advance
+
     def get_reservable_after(self):
-        return create_datetime_days_from_now(self.reservable_min_days_in_advance)
+        return create_datetime_days_from_now(self.get_reservable_min_days_in_advance())
 
     def get_supported_reservation_extra_field_names(self, cache=None):
         if not self.reservation_metadata_set_id:
