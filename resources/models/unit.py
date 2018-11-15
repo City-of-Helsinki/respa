@@ -68,10 +68,10 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
     picture_caption = models.CharField(verbose_name=_('Picture caption'), max_length=200,
                                        null=True, blank=True)
 
-    reservable_max_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable days in advance'),
+    reservable_max_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable max. days in advance'),
                                                                       null=True, blank=True)
-    reservable_min_days_in_advance = models.PositiveSmallIntegerField(
-        verbose_name=_('Days until reservation is possible'), null=True, blank=True)
+    reservable_min_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable min. days in advance'),
+                                                                      null=True, blank=True)
 
     objects = UnitQuerySet.as_manager()
 

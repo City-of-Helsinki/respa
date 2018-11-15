@@ -201,10 +201,10 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                                              blank=True, null=True, validators=[MinValueValidator(Decimal('0.00'))])
     access_code_type = models.CharField(verbose_name=_('Access code type'), max_length=20, choices=ACCESS_CODE_TYPES,
                                         default=ACCESS_CODE_TYPE_NONE)
-    reservable_max_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable days in advance'),
-                                                                  null=True, blank=True)
-    reservable_min_days_in_advance = models.PositiveSmallIntegerField(
-        verbose_name=_('Days until reservation is possible'), null=True, blank=True)
+    reservable_max_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable max. days in advance'),
+                                                                      null=True, blank=True)
+    reservable_min_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable min. days in advance'),
+                                                                      null=True, blank=True)
     reservation_metadata_set = models.ForeignKey('resources.ReservationMetadataSet', null=True, blank=True,
                                                  on_delete=models.SET_NULL)
 

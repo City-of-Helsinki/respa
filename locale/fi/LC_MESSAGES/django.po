@@ -668,10 +668,10 @@ msgstr "Maksimituntihinta"
 msgid "Access code type"
 msgstr "Pääsykoodityyppi"
 
-msgid "Reservable days in advance"
+msgid "Reservable max. days in advance"
 msgstr "Varattavissa enintään näin monta päivää etukäteen"
 
-msgid "Days until reservation is possible"
+msgid "Reservable min. days in advance"
 msgstr "Varattavissa vähintään näin monta päivää etukäteen"
 
 msgid "resource"

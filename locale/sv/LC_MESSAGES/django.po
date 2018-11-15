@@ -669,10 +669,10 @@ msgstr "Högsta pris per timme"
 msgid "Access code type"
 msgstr "Typ av behörighetskod"
 
-msgid "Reservable days in advance"
+msgid "Reservable max. days in advance"
 msgstr "Bokningsbar dagar i förväg"
 
-msgid "Days until reservation is possible"
+msgid "Reservable min. days in advance"
 msgstr "Dagar tills bokning är möjlig"
 
 msgid "resource"
