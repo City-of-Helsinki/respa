@@ -135,6 +135,7 @@ class ResourceForm(forms.ModelForm):
             'type',
             'purposes',
             'equipment',
+            'external_calendar_url',
             'people_capacity',
             'area',
             'min_period',

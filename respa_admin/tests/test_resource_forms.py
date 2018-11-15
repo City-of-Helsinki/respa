@@ -72,6 +72,17 @@ def test_create_resource_with_invalid_data_returns_errors(admin_client, empty_re
 
 
 @pytest.mark.django_db
+def test_create_resource_with_invalid_external_calendar_url_data(admin_client, valid_resource_form_data):
+    data = valid_resource_form_data.copy()
+    data['external_calendar_url'] = 'not-an-url'
+    with translation.override('fi'):
+        response = admin_client.post(NEW_RESOURCE_URL, data=data)
+    assert response.context['form'].errors == {
+        'external_calendar_url': ['Syötä oikea URL-osoite.']
+    }
+
+
+@pytest.mark.django_db
 def test_resource_creation_with_valid_data(admin_client, valid_resource_form_data):
     assert Resource.objects.count() == 0  # No resources in the db
     response = admin_client.post(NEW_RESOURCE_URL, data=valid_resource_form_data, follow=True)
