@@ -23,7 +23,9 @@ class UnitSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
                 child=NullableDateTimeField())
         )
     )
-    reservable_days_in_advance = serializers.ReadOnlyField()
+    # depracated, available for backwards compatibility
+    reservable_days_in_advance = serializers.ReadOnlyField(source='reservable_max_days_in_advance')
+    reservable_max_days_in_advance = serializers.ReadOnlyField()
     reservable_before = serializers.SerializerMethodField()
     reservable_min_days_in_advance = serializers.ReadOnlyField()
     reservable_after = serializers.SerializerMethodField()

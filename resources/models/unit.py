@@ -68,8 +68,8 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
     picture_caption = models.CharField(verbose_name=_('Picture caption'), max_length=200,
                                        null=True, blank=True)
 
-    reservable_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable days in advance'),
-                                                                  null=True, blank=True)
+    reservable_max_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable days in advance'),
+                                                                      null=True, blank=True)
     reservable_min_days_in_advance = models.PositiveSmallIntegerField(
         verbose_name=_('Days until reservation is possible'), null=True, blank=True)
 
@@ -106,7 +106,7 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
         return pytz.timezone(self.time_zone)
 
     def get_reservable_before(self):
-        return create_datetime_days_from_now(self.reservable_days_in_advance)
+        return create_datetime_days_from_now(self.reservable_max_days_in_advance)
 
     def get_reservable_after(self):
         return create_datetime_days_from_now(self.reservable_min_days_in_advance)

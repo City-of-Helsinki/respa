@@ -201,7 +201,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                                              blank=True, null=True, validators=[MinValueValidator(Decimal('0.00'))])
     access_code_type = models.CharField(verbose_name=_('Access code type'), max_length=20, choices=ACCESS_CODE_TYPES,
                                         default=ACCESS_CODE_TYPE_NONE)
-    reservable_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable days in advance'),
+    reservable_max_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable days in advance'),
                                                                   null=True, blank=True)
     reservable_min_days_in_advance = models.PositiveSmallIntegerField(
         verbose_name=_('Days until reservation is possible'), null=True, blank=True)
@@ -550,11 +550,11 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     def is_access_code_enabled(self):
         return self.access_code_type != Resource.ACCESS_CODE_TYPE_NONE
 
-    def get_reservable_days_in_advance(self):
-        return self.reservable_days_in_advance or self.unit.reservable_days_in_advance
+    def get_reservable_max_days_in_advance(self):
+        return self.reservable_max_days_in_advance or self.unit.reservable_max_days_in_advance
 
     def get_reservable_before(self):
-        return create_datetime_days_from_now(self.get_reservable_days_in_advance())
+        return create_datetime_days_from_now(self.get_reservable_max_days_in_advance())
 
     def get_reservable_min_days_in_advance(self):
         return self.reservable_min_days_in_advance or self.unit.reservable_min_days_in_advance

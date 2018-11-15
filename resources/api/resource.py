@@ -155,7 +155,9 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     required_reservation_extra_fields = serializers.ReadOnlyField(source='get_required_reservation_extra_field_names')
     is_favorite = serializers.SerializerMethodField()
     generic_terms = serializers.SerializerMethodField()
-    reservable_days_in_advance = serializers.ReadOnlyField(source='get_reservable_days_in_advance')
+    # deprecated, backwards compatibility
+    reservable_days_in_advance = serializers.ReadOnlyField(source='get_reservable_max_days_in_advance')
+    reservable_max_days_in_advance = serializers.ReadOnlyField(source='get_reservable_max_days_in_advance')
     reservable_before = serializers.SerializerMethodField()
     reservable_min_days_in_advance = serializers.ReadOnlyField(source='get_reservable_min_days_in_advance')
     reservable_after = serializers.SerializerMethodField()

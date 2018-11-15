@@ -1523,7 +1523,7 @@ def test_reservation_created_with_access_code_mail(user_api_client, user, resour
 @freeze_time('2115-04-02')
 @pytest.mark.django_db
 def test_reservation_reservable_before(user_api_client, resource_in_unit, list_url, reservation_data):
-    resource_in_unit.reservable_days_in_advance = 10
+    resource_in_unit.reservable_max_days_in_advance = 10
     resource_in_unit.save()
 
     reservation_data['begin'] = timezone.now().replace(hour=12, minute=0, second=0) + datetime.timedelta(days=11)
