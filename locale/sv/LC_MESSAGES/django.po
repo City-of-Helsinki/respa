@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-27 12:10+0300\n"
+"POT-Creation-Date: 2018-11-15 17:05+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -668,6 +668,9 @@ msgstr "Typ av behörighetskod"
 msgid "Reservable days in advance"
 msgstr "Bokningsbar dagar i förväg"
 
+msgid "External calendar url"
+msgstr "Extern kalenderadress"
+
 msgid "resource"
 msgstr "resurs"
 
@@ -988,6 +991,9 @@ msgid ""
 msgstr ""
 "Används ej i användargränssnittet för 'varaamo', informationen läggs till i "
 "E-postbekräftelsen skickad till kunden."
+
+msgid "External calendar"
+msgstr "Externt kalendersystem"
 
 msgid "Images"
 msgstr "Bilder"
