@@ -1282,6 +1282,15 @@ def test_reservation_created_mail(user_api_client, list_url, reservation_data, u
 
 @override_settings(RESPA_MAILS_ENABLED=True)
 @pytest.mark.django_db
+def test_no_reservation_created_mail_for_staff_reservation(
+        staff_api_client, list_url, reservation_data, user, reservation_created_notification):
+    response = staff_api_client.post(list_url, data=reservation_data, format='json')
+    assert response.status_code == 201
+    assert len(mail.outbox) == 0
+
+
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
 def test_reservation_html_mail(user_api_client, list_url, reservation_data, user, reservation_created_notification):
     with switch_language(reservation_created_notification, 'en'):
         reservation_created_notification.html_body = '<b>HTML</b> body'
