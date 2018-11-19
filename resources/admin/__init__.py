@@ -16,7 +16,7 @@ from resources.admin.period_inline import PeriodInline
 
 from ..models import (
     Day, Equipment, EquipmentAlias, EquipmentCategory, Purpose, Reservation,
-    ReservationMetadataField, ReservationMetadataSet, Resource,
+    ReservationMetadataField, ReservationMetadataSet, Resource, DurationSlot,
     ResourceEquipment, ResourceGroup, ResourceImage, ResourceType, TermsOfUse,
     Unit, UnitAuthorization, UnitGroup, UnitGroupAuthorization)
 
@@ -218,3 +218,4 @@ admin_site.register(TermsOfUse, TermsOfUseAdmin)
 admin_site.register(ReservationMetadataField)
 admin_site.register(ReservationMetadataSet, ReservationMetadataSetAdmin)
 admin.site.register(ResourceGroup, ResourceGroupAdmin)
+admin.site.register(DurationSlot)

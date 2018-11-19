@@ -19,7 +19,8 @@ from guardian.core import ObjectPermissionChecker
 from munigeo import api as munigeo_api
 from resources.models import (
     Purpose, Reservation, Resource, ResourceImage, ResourceType, ResourceEquipment,
-    TermsOfUse, Equipment, ReservationMetadataSet, ResourceDailyOpeningHours
+    TermsOfUse, Equipment, ReservationMetadataSet, ResourceDailyOpeningHours, DurationSlot,
+    Period
 )
 from resources.models.resource import determine_hours_time_range
 
@@ -59,6 +60,12 @@ class PurposeSerializer(TranslatedModelSerializer):
     class Meta:
         model = Purpose
         fields = ['name', 'parent', 'id']
+
+
+class PeriodSerializer(TranslatedModelSerializer):
+    class Meta:
+        model = Period
+        fields = ['start', 'end']
 
 
 class PurposeViewSet(viewsets.ReadOnlyModelViewSet):
@@ -139,6 +146,12 @@ class TermsOfUseSerializer(TranslatedModelSerializer):
         fields = ('text',)
 
 
+class DurationSlotSerializer(TranslatedModelSerializer):
+    class Meta:
+        model = DurationSlot
+        fields = ('id', 'duration',)
+
+
 class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     purposes = PurposeSerializer(many=True)
     images = NestedResourceImageSerializer(many=True)
@@ -149,6 +162,7 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     # FIXME: Enable available_hours when it's more performant
     # available_hours = serializers.SerializerMethodField()
     opening_hours = serializers.SerializerMethodField()
+    opening_periods = serializers.SerializerMethodField()
     reservations = serializers.SerializerMethodField()
     user_permissions = serializers.SerializerMethodField()
     supported_reservation_extra_fields = serializers.ReadOnlyField(source='get_supported_reservation_extra_field_names')
@@ -161,6 +175,7 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     reservable_before = serializers.SerializerMethodField()
     reservable_min_days_in_advance = serializers.ReadOnlyField(source='get_reservable_min_days_in_advance')
     reservable_after = serializers.SerializerMethodField()
+    duration_slots = DurationSlotSerializer(many=True)
 
     def get_user_permissions(self, obj):
         request = self.context.get('request', None)
@@ -263,6 +278,9 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
                 d.update(x[1][0])
             ret.append(d)
         return ret
+
+    def get_opening_periods(self, obj):
+        return PeriodSerializer(obj.get_opening_periods(), many=True).data
 
     def get_reservations(self, obj):
         if 'start' not in self.context:

@@ -19,7 +19,7 @@ from resources.signals import (
 )
 from .base import ModifiableModel
 from .resource import generate_access_code, validate_access_code
-from .resource import Resource
+from .resource import Resource, DurationSlot
 from .utils import (
     get_dt, save_dt, is_valid_time_slot, humanize_duration, send_respa_mail,
     DEFAULT_LANG, localize_datetime, format_dt_range
@@ -133,6 +133,8 @@ class Reservation(ModifiableModel):
 
     # If the reservation was imported from another system, you can store the original ID in the field below.
     origin_id = models.CharField(verbose_name=_('Original ID'), max_length=50, editable=False, null=True)
+
+    duration_slot = models.ForeignKey(DurationSlot, verbose_name=_('Resources reservation duration slot'), blank=True, null=True)
 
     objects = ReservationQuerySet.as_manager()
 
