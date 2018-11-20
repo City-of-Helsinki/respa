@@ -545,7 +545,32 @@ paths:
           in: query
           required: false
           type: string
-          description: Only return reservations for resources in the specified resource group(s). Accepts multiple comma-separated values.
+          description: Only return reservations for resources that belong to the speficied resource group(s). Accepts multiple comma-separated values.
+        - name: event_subject
+          in: query
+          required: false
+          type: string
+          description: Only return reservations that has given parameter in the event subject.
+        - name: host_name
+          in: query
+          required: false
+          type: string
+          description: Only return reservations that has given parameter in the host name field.
+        - name: reserver_name
+          in: query
+          required: false
+          type: string
+          description: Only return reservations that has given parameter in the reserver name field.
+        - name: resource_name
+          in: query
+          required: false
+          type: string
+          description: Only return reservations that has given parameter in the resource name field.
+        - name: unit
+          in: query
+          required: false
+          type: string
+          description: Only return reservations for resources that belong to the specified unit.
       responses:
         '200':
           description: Successful response
