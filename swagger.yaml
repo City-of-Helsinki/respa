@@ -445,6 +445,21 @@ paths:
           description: Number of resources per page
           required: false
           type: integer
+        - name: lat
+          in: query
+          required: false
+          type: number
+          description: Use together with `lon` and `distance`. Specifies latitude to return only resources that are within the given `distance`.
+        - name: lon
+          in: query
+          required: false
+          type: number
+          description: Use together with `lat` and `distance`. Specifies longitude to return only resources that are within the given `distance`.
+        - name: distance
+          in: query
+          required: false
+          type: number
+          description: Use together with `lat` and `long`. Returns only resources that are within the given `distance` of the point which is calculated from `lat` and `lon`.
       responses:
         '200':
           description: Successful response
