@@ -168,7 +168,7 @@ def get_object_or_none(cls, **kwargs):
         return None
 
 
-def create_reservable_before_datetime(days_from_now):
+def create_datetime_days_from_now(days_from_now):
     if days_from_now is None:
         return None
 

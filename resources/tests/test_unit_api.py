@@ -35,16 +35,16 @@ def test_reservable_in_advance_fields(api_client, test_unit, detail_url):
     response = api_client.get(detail_url)
     assert response.status_code == 200
 
-    assert response.data['reservable_days_in_advance'] is None
+    assert response.data['reservable_max_days_in_advance'] is None
     assert response.data['reservable_before'] is None
 
-    test_unit.reservable_days_in_advance = 5
+    test_unit.reservable_max_days_in_advance = 5
     test_unit.save()
 
     response = api_client.get(detail_url)
     assert response.status_code == 200
 
-    assert response.data['reservable_days_in_advance'] == 5
+    assert response.data['reservable_max_days_in_advance'] == 5
     before = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + datetime.timedelta(days=6)
     assert response.data['reservable_before'] == before
 

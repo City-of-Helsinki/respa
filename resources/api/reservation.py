@@ -157,6 +157,10 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             if reservable_before and data['begin'] >= reservable_before:
                 raise ValidationError(_('The resource is reservable only before %(datetime)s' %
                                         {'datetime': reservable_before}))
+            reservable_after = resource.get_reservable_after()
+            if reservable_after and data['begin'] < reservable_after:
+                raise ValidationError(_('The resource is reservable only after %(datetime)s' %
+                                        {'datetime': reservable_after}))
 
         # normal users cannot make reservations for other people
         if not resource.is_admin(request_user):
