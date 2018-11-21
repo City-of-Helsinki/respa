@@ -947,6 +947,10 @@ definitions:
             additionalProperties:
               type: string
             description: 'Additional data related to the resource specific equipment instance'
+      external_calendar_url:
+        type: string
+        format: uri
+        description: URL to an external calendar for the resource.
 
   equipment:
     type: object
