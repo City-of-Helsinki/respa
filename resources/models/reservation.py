@@ -340,6 +340,7 @@ class Reservation(ModifiableModel):
                 'host_name': self.host_name,
                 'reserver_name': reserver_name,
                 'event_subject': self.event_subject,
+                'reservation_instructions': self.resource.reservation_instructions,
             }
             if self.resource.unit:
                 context['unit'] = self.resource.unit.name
