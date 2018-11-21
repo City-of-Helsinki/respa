@@ -205,8 +205,10 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                                                                       null=True, blank=True)
     reservable_min_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable min. days in advance'),
                                                                       null=True, blank=True)
-    reservation_metadata_set = models.ForeignKey('resources.ReservationMetadataSet', null=True, blank=True,
-                                                 on_delete=models.SET_NULL)
+    reservation_metadata_set = models.ForeignKey(
+        'resources.ReservationMetadataSet', verbose_name=_('Reservation metadata set'),
+        null=True, blank=True, on_delete=models.SET_NULL
+    )
 
     objects = ResourceQuerySet.as_manager()
 
