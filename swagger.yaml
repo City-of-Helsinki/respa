@@ -877,16 +877,28 @@ definitions:
         type: string
       name:
         type: object
-        properties: 
-          fi: 
+        properties:
+          fi:
             type: string
             description: 'Resource name in Finnish'
       description:
         type: object
-        properties: 
-          fi: 
+        properties:
+          fi:
             type: string
             description: 'Resource description in Finnish'
+      reservation_instructions:
+        type: object
+        properties:
+          en:
+            type: string
+            description: 'Detailed reservation instructions in English'
+          fi:
+            type: string
+            description: 'Detailed reservation instructions in Finnish'
+          sv:
+            type: string
+            description: 'Detailed reservation instructions in Swedish'
       photo:
         type: string
         description: 'URL of resource picture'
