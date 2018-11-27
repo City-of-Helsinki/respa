@@ -887,18 +887,18 @@ definitions:
           fi:
             type: string
             description: 'Resource description in Finnish'
-      reservation_instructions:
+      usage_instructions:
         type: object
         properties:
           en:
             type: string
-            description: 'Detailed reservation instructions in English'
+            description: 'Detailed usage instructions in English'
           fi:
             type: string
-            description: 'Detailed reservation instructions in Finnish'
+            description: 'Detailed usage instructions in Finnish'
           sv:
             type: string
-            description: 'Detailed reservation instructions in Swedish'
+            description: 'Detailed usage instructions in Swedish'
       photo:
         type: string
         description: 'URL of resource picture'

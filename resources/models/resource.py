@@ -186,9 +186,13 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     max_reservations_per_user = models.IntegerField(verbose_name=_('Maximum number of active reservations per user'),
                                                     null=True, blank=True)
     reservable = models.BooleanField(verbose_name=_('Reservable'), default=False)
-    reservation_info = models.TextField(verbose_name=_('Reservation info'), null=True, blank=True)
-    reservation_instructions = models.TextField(
-        verbose_name=_('Optional instructions regarding the use of the resource, including required guide presence.'),
+    reservation_info = models.TextField(
+        verbose_name=_('Reservation info'),
+        help_text=_('If there are any special considerations for making reservations, write them here'),
+        null=True, blank=True)
+    usage_instructions = models.TextField(
+        verbose_name=_('Usage instructions'),
+        help_text=_('Optional instructions regarding the use of the resource, including required guide presence'),
         null=True, blank=True)
     responsible_contact_info = models.TextField(verbose_name=_('Responsible contact info'), blank=True)
     generic_terms = models.ForeignKey(TermsOfUse, verbose_name=_('Generic terms'), null=True, blank=True,
