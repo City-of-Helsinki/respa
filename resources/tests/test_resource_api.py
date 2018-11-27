@@ -327,28 +327,28 @@ def test_reservable_in_advance_fields(api_client, resource_in_unit, test_unit, d
     assert response.status_code == 200
 
     # the unit and the resource both have days None, so expect None in the fields
-    assert response.data['reservable_days_in_advance'] is None
+    assert response.data['reservable_max_days_in_advance'] is None
     assert response.data['reservable_before'] is None
 
-    test_unit.reservable_days_in_advance = 5
+    test_unit.reservable_max_days_in_advance = 5
     test_unit.save()
 
     response = api_client.get(detail_url)
     assert response.status_code == 200
 
     # only the unit has days set, expect those on the resource
-    assert response.data['reservable_days_in_advance'] == 5
+    assert response.data['reservable_max_days_in_advance'] == 5
     before = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + datetime.timedelta(days=6)
     assert response.data['reservable_before'] == before
 
-    resource_in_unit.reservable_days_in_advance = 10
+    resource_in_unit.reservable_max_days_in_advance = 10
     resource_in_unit.save()
 
     response = api_client.get(detail_url)
     assert response.status_code == 200
 
     # both the unit and the resource have days set, expect the resource's days to override the unit's days
-    assert response.data['reservable_days_in_advance'] == 10
+    assert response.data['reservable_max_days_in_advance'] == 10
     before = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + datetime.timedelta(days=11)
     assert response.data['reservable_before'] == before
 

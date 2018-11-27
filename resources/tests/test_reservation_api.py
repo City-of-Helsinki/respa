@@ -1282,6 +1282,15 @@ def test_reservation_created_mail(user_api_client, list_url, reservation_data, u
 
 @override_settings(RESPA_MAILS_ENABLED=True)
 @pytest.mark.django_db
+def test_no_reservation_created_mail_for_staff_reservation(
+        staff_api_client, list_url, reservation_data, user, reservation_created_notification):
+    response = staff_api_client.post(list_url, data=reservation_data, format='json')
+    assert response.status_code == 201
+    assert len(mail.outbox) == 0
+
+
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
 def test_reservation_html_mail(user_api_client, list_url, reservation_data, user, reservation_created_notification):
     with switch_language(reservation_created_notification, 'en'):
         reservation_created_notification.html_body = '<b>HTML</b> body'
@@ -1523,7 +1532,7 @@ def test_reservation_created_with_access_code_mail(user_api_client, user, resour
 @freeze_time('2115-04-02')
 @pytest.mark.django_db
 def test_reservation_reservable_before(user_api_client, resource_in_unit, list_url, reservation_data):
-    resource_in_unit.reservable_days_in_advance = 10
+    resource_in_unit.reservable_max_days_in_advance = 10
     resource_in_unit.save()
 
     reservation_data['begin'] = timezone.now().replace(hour=12, minute=0, second=0) + datetime.timedelta(days=11)
@@ -1538,6 +1547,48 @@ def test_reservation_reservable_before(user_api_client, resource_in_unit, list_u
 
     response = user_api_client.post(list_url, data=reservation_data)
     assert response.status_code == 201
+
+
+@freeze_time('2115-04-02')
+@pytest.mark.django_db
+def test_reservation_reservable_after(user_api_client, resource_in_unit, list_url, reservation_data):
+    resource_in_unit.reservable_min_days_in_advance = 8
+    resource_in_unit.save()
+
+    reservation_data['begin'] = timezone.now().replace(hour=12, minute=0, second=0) + datetime.timedelta(days=9)
+    reservation_data['end'] = timezone.now().replace(hour=13, minute=0, second=0) + datetime.timedelta(days=9)
+
+    response = user_api_client.post(list_url, data=reservation_data)
+    msg = 'expected status_code {}, received {} with message "{}"'
+    assert response.status_code == 201, msg.format(201, response.status_code, response.data)
+
+    reservation_data['begin'] = timezone.now().replace(hour=12, minute=0, second=0) + datetime.timedelta(days=7)
+    reservation_data['end'] = timezone.now().replace(hour=13, minute=0, second=0) + datetime.timedelta(days=7)
+
+    response = user_api_client.post(list_url, data=reservation_data)
+    msg = 'expected status_code {}, received {} with message "{}"'
+    assert response.status_code == 400, msg.format(400, response.status_code, response.data)
+    assert_non_field_errors_contain(response, 'The resource is reservable only after')
+
+
+@freeze_time('2115-04-02')
+@pytest.mark.django_db
+def test_admins_can_make_reservations_despite_delay(
+        api_client, list_url, resource_in_unit, reservation_data, general_admin):
+    """
+    Admin should be able to make reservations regardless of reservation delay limitations
+    """
+    api_client.force_authenticate(user=general_admin)
+    resource_in_unit.reservable_min_days_in_advance = 10
+    resource_in_unit.save()
+
+    reservation_data['begin'] = timezone.now().replace(hour=12, minute=0, second=0) + datetime.timedelta(days=9)
+    reservation_data['end'] = timezone.now().replace(hour=13, minute=0, second=0) + datetime.timedelta(days=9)
+
+    response = api_client.post(list_url, data=reservation_data)
+    msg = 'expected status_code {}, received {} with message "{}"'
+
+    assert response.status_code == 201, msg.format(201, response.status_code, response.data)
 
 
 @pytest.mark.django_db

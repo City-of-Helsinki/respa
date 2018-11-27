@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('resources', '0069_unit_auth'),
+        ('resources', '0070_reservable_min_and_max_days_in_advance'),
     ]
 
     operations = [
