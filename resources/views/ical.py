@@ -1,11 +1,10 @@
 from django.contrib.auth import get_user_model
-from django.utils.translation import ugettext_lazy as _
-from django.core.exceptions import ValidationError, PermissionDenied
+from django.core.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import renderers
 
-from resources.models import Reservation, Resource
+from resources.models import Reservation
 from resources.models.utils import build_reservations_ical_file
 
 
