@@ -9,11 +9,13 @@ import arrow
 from django.conf import settings
 from django.utils import formats
 from django.utils.translation import ungettext
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.contrib.sites.models import Site
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.utils.timezone import localtime
+from rest_framework.reverse import reverse
+from icalendar import Calendar, Event, vDatetime, vText, vGeo
 import xlsxwriter
 
 
@@ -99,7 +101,7 @@ def humanize_duration(duration):
 notification_logger = logging.getLogger('respa.notifications')
 
 
-def send_respa_mail(email_address, subject, body, html_body=None):
+def send_respa_mail(email_address, subject, body, html_body=None, attachments=None):
     if not getattr(settings, 'RESPA_MAILS_ENABLED', False):
         return
 
@@ -108,10 +110,12 @@ def send_respa_mail(email_address, subject, body, html_body=None):
 
     notification_logger.info('Sending notification email to %s: "%s"' % (email_address, subject))
 
+    subject, from_email, to = subject, from_address, email_address
+    text_content = body
+    msg = EmailMultiAlternatives(subject, text_content, from_email, [to], attachments)
     if html_body:
-        send_mail(subject, body, from_address, [email_address], html_message=html_body)
-    else:
-        send_mail(subject, body, from_address, [email_address])
+        msg.attach_alternative(html_body, 'text/html')
+    msg.send()
 
 
 def generate_reservation_xlsx(reservations):
@@ -207,3 +211,34 @@ def format_dt_range(language, begin, end):
         res = sep.join([formats.date_format(begin, begin_format), formats.date_format(end, end_format)])
 
     return res
+
+
+def build_reservations_ical_file(reservations):
+    """
+    Return iCalendar file containing given reservations
+    """
+
+    cal = Calendar()
+    cal['X-WR-CALNAME'] = vText('RESPA')
+    cal['name'] = vText('RESPA')
+    for reservation in reservations:
+        event = Event()
+        event['uid'] = 'respa_reservation_{}'.format(reservation.id)
+        event['dtstart'] = vDatetime(reservation.begin)
+        event['dtend'] = vDatetime(reservation.end)
+        unit = reservation.resource.unit
+        event['location'] = vText('{} {} {}'.format(unit.name, unit.street_address, unit.address_zip))
+        if unit.location:
+            event['geo'] = vGeo(unit.location)
+        event['summary'] = vText('{} {}'.format(unit.name, reservation.resource.name))
+        cal.add_component(event)
+    return cal.to_ical()
+
+
+def build_ical_feed_url(ical_token, request):
+    """
+    Return iCal feed url for given token without query parameters
+    """
+
+    url = reverse('ical-feed', kwargs={'ical_token': ical_token}, request=request)
+    return url[:url.find('?')]
