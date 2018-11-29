@@ -140,7 +140,8 @@ class ResourceForm(forms.ModelForm):
             'area',
             'min_period',
             'max_period',
-            'reservable_days_in_advance',
+            'reservable_max_days_in_advance',
+            'reservable_min_days_in_advance',
             'max_reservations_per_user',
             'reservable',
             'need_manual_confirmation',
@@ -150,6 +151,7 @@ class ResourceForm(forms.ModelForm):
             'min_price_per_hour',
             'generic_terms',
             'public',
+            'reservation_metadata_set',
         ] + translated_fields
 
         widgets = {
@@ -165,6 +167,15 @@ class ResourceForm(forms.ModelForm):
                     ('00:30:00', '30 min'),
                     ('00:45:00', '45 min'),
                     ('01:00:00', '60 min'),
+                    ('02:00:00', '2 h'),
+                    ('03:00:00', '3 h'),
+                    ('04:00:00', '4 h'),
+                    ('05:00:00', '5 h'),
+                    ('06:00:00', '6 h'),
+                    ('07:00:00', '7 h'),
+                    ('08:00:00', '8 h'),
+                    ('09:00:00', '9 h'),
+                    ('10:00:00', '10 h'),
                 )
             ),
             'need_manual_confirmation': RespaRadioSelect(

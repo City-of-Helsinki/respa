@@ -228,6 +228,8 @@ class Reservation(ModifiableModel):
         elif old_state == Reservation.CONFIRMED:
             self.approver = None
 
+        user_is_staff = self.user is not None and self.user.is_staff
+
         # Notifications
         if new_state == Reservation.REQUESTED:
             self.send_reservation_requested_mail()
@@ -238,7 +240,9 @@ class Reservation(ModifiableModel):
             elif self.resource.is_access_code_enabled():
                 self.send_reservation_created_with_access_code_mail()
             else:
-                self.send_reservation_created_mail()
+                if not user_is_staff:
+                    # notifications are not sent from staff created reservations to avoid spam
+                    self.send_reservation_created_mail()
         elif new_state == Reservation.DENIED:
             self.send_reservation_denied_mail()
         elif new_state == Reservation.CANCELLED:
@@ -343,6 +347,7 @@ class Reservation(ModifiableModel):
             }
             if self.resource.unit:
                 context['unit'] = self.resource.unit.name
+                context['unit_id'] = self.resource.unit.id
             if self.can_view_access_code(user) and self.access_code:
                 context['access_code'] = self.access_code
 

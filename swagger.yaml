@@ -866,6 +866,16 @@ definitions:
       reservable:
         type: boolean
         description: 'Is it possible to create or modify reservations for this resource through the API. Even if this is false, reservations by other means (eg. phone call) might still be possible.'
+      reservable_max_days_in_advance:
+        type: integer
+        minimum: 0
+        nullable: true
+        description: 'Reservable max. days in advance'
+      reservable_min_days_in_advance:
+        type: integer
+        minimum: 0
+        nullable: true
+        description: 'Reservable min. days in advance'
       reservations:
         type: array
         description: 'The reservations made for the resource during the queried period'
