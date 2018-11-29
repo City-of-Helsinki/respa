@@ -205,7 +205,10 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                                                                   null=True, blank=True)
     reservation_metadata_set = models.ForeignKey('resources.ReservationMetadataSet', null=True, blank=True,
                                                  on_delete=models.SET_NULL)
-    external_calendar_url = models.URLField(verbose_name=_('External calendar url'), null=True, blank=True)
+    external_reservation_url = models.URLField(
+        verbose_name=_('External reservation URL'),
+        help_text=_('A link to an external reservation system if this resource is managed elsewhere'),
+        null=True, blank=True)
 
     objects = ResourceQuerySet.as_manager()
 

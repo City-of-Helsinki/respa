@@ -877,14 +877,14 @@ definitions:
         type: string
       name:
         type: object
-        properties: 
-          fi: 
+        properties:
+          fi:
             type: string
             description: 'Resource name in Finnish'
       description:
         type: object
-        properties: 
-          fi: 
+        properties:
+          fi:
             type: string
             description: 'Resource description in Finnish'
       photo:
@@ -947,7 +947,7 @@ definitions:
             additionalProperties:
               type: string
             description: 'Additional data related to the resource specific equipment instance'
-      external_calendar_url:
+      external_reservation_url:
         type: string
         format: uri
         description: URL to an external calendar for the resource.
