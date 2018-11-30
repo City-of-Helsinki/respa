@@ -31,4 +31,7 @@
         {% include "respa_admin/forms/_textarea_input.html" with field=form.responsible_contact_info_en %}
         {% include "respa_admin/forms/_textarea_input.html" with field=form.responsible_contact_info_sv %}
     </div>
+    <div class="external-calendar">
+        <h4>{% trans "External calendar" %}</h4>
+        {% include "respa_admin/forms/_input.html" with field=form.external_reservation_url %}
 </div>

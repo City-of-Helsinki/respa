@@ -251,11 +251,7 @@ msgstr "Det går inte att göra reservationer i det förgångna."
 
 #, python-format
 msgid "The resource is reservable only before %(datetime)s"
-msgstr "Resursen kan reserveras endast före %(datetime)s"
-
-#, python-format
-msgid "The resource is reservable only after %(datetime)s"
-msgstr "Resursen kan reserveras först efter %(datetime)s"
+msgstr ""
 
 msgid "Only allowed to be set by staff members"
 msgstr "Endast tillåtet att fastställas av personal. "
@@ -675,6 +671,14 @@ msgstr "Bokningsbar dagar i förväg"
 msgid "Reservable min. days in advance"
 msgstr "Dagar tills bokning är möjlig"
 
+msgid "External reservation URL"
+msgstr "Extern kalenderadress"
+
+msgid ""
+"A link to an external reservation system if this resource is managed "
+"elsewhere"
+msgstr "En URL till ett externt bokningssystem om den här resursen hanteras annorstädes"
+
 msgid "resource"
 msgstr "resurs"
 
@@ -995,6 +999,9 @@ msgid ""
 msgstr ""
 "Används ej i användargränssnittet för 'varaamo', informationen läggs till i "
 "E-postbekräftelsen skickad till kunden."
+
+msgid "External calendar"
+msgstr "Externt kalendersystem"
 
 msgid "Images"
 msgstr "Bilder"

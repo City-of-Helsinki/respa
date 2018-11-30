@@ -674,6 +674,14 @@ msgstr "Varattavissa enintään näin monta päivää etukäteen"
 msgid "Reservable min. days in advance"
 msgstr "Varattavissa vähintään näin monta päivää etukäteen"
 
+msgid "External reservation URL"
+msgstr "Ulkoisen varauskalenterin URL"
+
+msgid ""
+"A link to an external reservation system if this resource is managed "
+"elsewhere"
+msgstr "Ulkoisen varausjärjestelmän osoite jos tätä resurssia hallitaan muualla"
+
 msgid "resource"
 msgstr "resurssi"
 
@@ -991,6 +999,9 @@ msgid ""
 "Not used in the user interface of 'varaamo' but the information is added to "
 "the confirmation e-mail sent to the customer."
 msgstr ""
+
+msgid "External calendar"
+msgstr "Ulkoinen kalenterijärjestelmä"
 
 msgid "Images"
 msgstr "Kuva"

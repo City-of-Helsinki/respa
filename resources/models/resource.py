@@ -209,6 +209,10 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         'resources.ReservationMetadataSet', verbose_name=_('Reservation metadata set'),
         null=True, blank=True, on_delete=models.SET_NULL
     )
+    external_reservation_url = models.URLField(
+        verbose_name=_('External reservation URL'),
+        help_text=_('A link to an external reservation system if this resource is managed elsewhere'),
+        null=True, blank=True)
 
     objects = ResourceQuerySet.as_manager()
 
