@@ -22,9 +22,8 @@ from .resource import generate_access_code, validate_access_code
 from .resource import Resource
 from .utils import (
     get_dt, save_dt, is_valid_time_slot, humanize_duration, send_respa_mail,
-    DEFAULT_LANG, localize_datetime, format_dt_range
+    DEFAULT_LANG, localize_datetime, format_dt_range, build_reservations_ical_file
 )
-from resources.models.utils import build_reservations_ical_file
 
 DEFAULT_TZ = pytz.timezone(settings.TIME_ZONE)
 
@@ -423,7 +422,7 @@ class Reservation(ModifiableModel):
     def send_reservation_confirmed_mail(self):
         reservations = [self]
         ical_file = build_reservations_ical_file(reservations)
-        attachment = 'reservation.ics', ical_file, 'text/calendar'
+        attachment = ('reservation.ics', ical_file, 'text/calendar')
         self.send_reservation_mail(NotificationType.RESERVATION_CONFIRMED,
                                    attachments=[attachment])
 
