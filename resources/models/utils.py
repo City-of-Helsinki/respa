@@ -112,7 +112,7 @@ def send_respa_mail(email_address, subject, body, html_body=None, attachments=No
 
     subject, from_email, to = subject, from_address, email_address
     text_content = body
-    msg = EmailMultiAlternatives(subject, text_content, from_email, [to], attachments)
+    msg = EmailMultiAlternatives(subject, text_content, from_email, [to], attachments=attachments)
     if html_body:
         msg.attach_alternative(html_body, 'text/html')
     msg.send()
