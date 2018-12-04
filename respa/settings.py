@@ -26,7 +26,7 @@ env = environ.Env(
     SENTRY_DSN=(str, ''),
     COOKIE_PREFIX=(str, 'respa'),
     INTERNAL_IPS=(list, []),
-    MAIL_ENABLED=(bool, False)
+    MAIL_ENABLED=(bool, False),
     MAIL_DEFAULT_FROM=(str, ''),
     MAIL_MAILGUN_KEY=(str, ''),
 )
