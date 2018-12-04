@@ -26,6 +26,9 @@ env = environ.Env(
     SENTRY_DSN=(str, ''),
     COOKIE_PREFIX=(str, 'respa'),
     INTERNAL_IPS=(list, []),
+    MAIL_ENABLED=(bool, False)
+    MAIL_DEFAULT_FROM=(str, ''),
+    MAIL_MAILGUN_KEY=(str, ''),
 )
 environ.Env.read_env()
 
@@ -255,11 +258,17 @@ THUMBNAIL_PROCESSORS = (
 ) + thumbnail_settings.THUMBNAIL_PROCESSORS
 
 
-RESPA_MAILS_ENABLED = False
-RESPA_MAILS_FROM_ADDRESS = ""
+RESPA_MAILS_ENABLED = env('MAIL_ENABLED')
+RESPA_MAILS_FROM_ADDRESS = env('MAIL_DEFAULT_FROM')
 RESPA_CATERINGS_ENABLED = False
 RESPA_COMMENTS_ENABLED = False
 RESPA_DOCX_TEMPLATE = os.path.join(BASE_DIR, 'reports', 'data', 'default.docx')
+
+if env('MAIL_MAILGUN_KEY'):
+    ANYMAIL = {
+        'MAILGUN_API_KEY': env('MAIL_MAILGUN_KEY')
+    }
+    EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
 
 RESPA_ADMIN_USERNAME_LOGIN = env.bool(
     'RESPA_ADMIN_USERNAME_LOGIN', default=True)
