@@ -118,6 +118,30 @@ def test_resource_creation_sets_opening_hours(admin_client, valid_resource_form_
 
 
 @pytest.mark.django_db
+def test_resource_creation_with_empty_hours(admin_client, valid_resource_form_data):
+    resource_count = Resource.objects.count()
+    data = valid_resource_form_data.copy()
+    data['days-periods-0-0-opens'] = ''
+    data['days-periods-0-0-closes'] = ''
+    data['days-periods-0-0-closed'] = ''
+    response = admin_client.post(NEW_RESOURCE_URL, data=data, follow=True)
+    assert response.status_code == 200
+    assert Resource.objects.count() == resource_count, 'No new resource should be created with invalid data'
+
+
+@pytest.mark.django_db
+def test_resource_creation_with_empty_hours_on_closed_day(admin_client, valid_resource_form_data):
+    resource_count = Resource.objects.count()
+    data = valid_resource_form_data.copy()
+    data['days-periods-0-0-opens'] = ''
+    data['days-periods-0-0-closes'] = ''
+    data['days-periods-0-0-closed'] = 'on'
+    response = admin_client.post(NEW_RESOURCE_URL, data=data, follow=True)
+    assert response.status_code == 200
+    assert Resource.objects.count() == resource_count + 1, 'Closed day should allow empty hours'
+
+
+@pytest.mark.django_db
 def test_editing_resource_via_form_view(admin_client, valid_resource_form_data):
     assert Resource.objects.all().exists() is False
     # Create a resource via the form view
