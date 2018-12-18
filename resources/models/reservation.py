@@ -22,7 +22,7 @@ from .resource import generate_access_code, validate_access_code
 from .resource import Resource
 from .utils import (
     get_dt, save_dt, is_valid_time_slot, humanize_duration, send_respa_mail,
-    DEFAULT_LANG, localize_datetime, format_dt_range
+    DEFAULT_LANG, localize_datetime, format_dt_range, build_reservations_ical_file
 )
 
 DEFAULT_TZ = pytz.timezone(settings.TIME_ZONE)
@@ -375,7 +375,7 @@ class Reservation(ModifiableModel):
 
         return context
 
-    def send_reservation_mail(self, notification_type, user=None):
+    def send_reservation_mail(self, notification_type, user=None, attachments=None):
         """
         Stuff common to all reservation related mails.
 
@@ -407,7 +407,8 @@ class Reservation(ModifiableModel):
             email_address,
             rendered_notification['subject'],
             rendered_notification['body'],
-            rendered_notification['html_body']
+            rendered_notification['html_body'],
+            attachments
         )
 
     def send_reservation_requested_mail(self):
@@ -424,16 +425,28 @@ class Reservation(ModifiableModel):
         self.send_reservation_mail(NotificationType.RESERVATION_DENIED)
 
     def send_reservation_confirmed_mail(self):
-        self.send_reservation_mail(NotificationType.RESERVATION_CONFIRMED)
+        reservations = [self]
+        ical_file = build_reservations_ical_file(reservations)
+        attachment = ('reservation.ics', ical_file, 'text/calendar')
+        self.send_reservation_mail(NotificationType.RESERVATION_CONFIRMED,
+                                   attachments=[attachment])
 
     def send_reservation_cancelled_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_CANCELLED)
 
     def send_reservation_created_mail(self):
-        self.send_reservation_mail(NotificationType.RESERVATION_CREATED)
+        reservations = [self]
+        ical_file = build_reservations_ical_file(reservations)
+        attachment = 'reservation.ics', ical_file, 'text/calendar'
+        self.send_reservation_mail(NotificationType.RESERVATION_CREATED,
+                                   attachments=[attachment])
 
     def send_reservation_created_with_access_code_mail(self):
-        self.send_reservation_mail(NotificationType.RESERVATION_CREATED_WITH_ACCESS_CODE)
+        reservations = [self]
+        ical_file = build_reservations_ical_file(reservations)
+        attachment = 'reservation.ics', ical_file, 'text/calendar'
+        self.send_reservation_mail(NotificationType.RESERVATION_CREATED_WITH_ACCESS_CODE,
+                                   attachments=[attachment])
 
     def save(self, *args, **kwargs):
         self.duration = DateTimeTZRange(self.begin, self.end, '[)')

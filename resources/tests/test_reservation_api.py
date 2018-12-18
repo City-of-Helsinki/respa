@@ -8,6 +8,7 @@ from django.test.utils import override_settings
 from django.utils import dateparse, timezone, translation
 from guardian.shortcuts import assign_perm, remove_perm
 from freezegun import freeze_time
+from icalendar import Calendar
 from parler.utils.context import switch_language
 
 from caterings.models import CateringOrder, CateringProvider
@@ -678,7 +679,7 @@ def test_max_reservation_period_error_message(
 
     reservation_data['end'] = '2115-04-04T16:00:00+02:00'  # too long reservation
 
-    resource_in_unit.max_period=datetime.timedelta(hours=input_hours, minutes=input_mins)
+    resource_in_unit.max_period = datetime.timedelta(hours=input_hours, minutes=input_mins)
     resource_in_unit.save()
 
     api_client.force_authenticate(user=user)
@@ -844,7 +845,7 @@ def test_staff_event_restrictions(user_api_client, staff_api_client, staff_user,
 
 @pytest.mark.django_db
 def test_new_staff_event_gets_confirmed(user_api_client, staff_api_client, staff_user, list_url, resource_in_unit,
-                                      reservation_data, reservation_data_extra):
+                                        reservation_data, reservation_data_extra):
     resource_in_unit.need_manual_confirmation = True
     resource_in_unit.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
     resource_in_unit.save()
@@ -869,7 +870,7 @@ def test_new_staff_event_gets_confirmed(user_api_client, staff_api_client, staff
 
 @pytest.mark.django_db
 def test_extra_fields_can_be_set_for_paid_reservations(user_api_client, list_url, reservation_data_extra,
-                                                      resource_in_unit):
+                                                       resource_in_unit):
     resource_in_unit.max_reservations_per_user = 2
     resource_in_unit.need_manual_confirmation = True
     resource_in_unit.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
@@ -1270,8 +1271,10 @@ def test_reservation_mails_in_finnish(
 @pytest.mark.django_db
 def test_reservation_created_mail(user_api_client, list_url, reservation_data, user, reservation_created_notification):
     response = user_api_client.post(list_url, data=reservation_data, format='json')
+    file_name, ical_file, mimetype = mail.outbox[0].attachments[0]
     assert response.status_code == 201
-
+    assert len(mail.outbox[0].attachments) == 1
+    Calendar.from_ical(ical_file)
     assert len(mail.outbox) == 1
     check_received_mail_exists(
         'Normal reservation created subject.',
@@ -1515,6 +1518,9 @@ def test_reservation_created_with_access_code_mail(user_api_client, user, resour
 
     response = user_api_client.post(list_url, data=reservation_data)
     assert response.status_code == 201
+    file_name, ical_file, mimetype = mail.outbox[0].attachments[0]
+    assert len(mail.outbox[0].attachments) == 1
+    Calendar.from_ical(ical_file)
     check_received_mail_exists(
         'Reservation created',
         user.email,
