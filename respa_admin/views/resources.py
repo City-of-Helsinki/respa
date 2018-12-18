@@ -163,6 +163,7 @@ class SaveResourceView(CreateView):
         self._save_resource_purposes()
         self._delete_extra_images(resource_image_formset)
         self._save_resource_images(resource_image_formset)
+        self.object.update_opening_hours()
 
         return HttpResponseRedirect(self.get_success_url())
 

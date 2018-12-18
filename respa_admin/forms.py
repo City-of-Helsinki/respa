@@ -1,5 +1,6 @@
 from django.utils.translation import ugettext_lazy as _
 from django import forms
+from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
 
 from .widgets import (
@@ -46,6 +47,14 @@ class DaysForm(forms.ModelForm):
     class Meta:
         model = Day
         fields = ['weekday', 'opens', 'closes', 'closed']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        is_empty_hours = not cleaned_data['opens'] or not cleaned_data['closes']
+        is_closed = cleaned_data['closed']
+        if is_empty_hours and not is_closed:
+            raise ValidationError('Missing opening hours')
+        return cleaned_data
 
 
 class PeriodForm(forms.ModelForm):
