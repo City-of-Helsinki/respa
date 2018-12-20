@@ -1,8 +1,12 @@
-from contextlib import contextmanager
+import contextlib
+import tempfile
 from datetime import datetime, timedelta
 
 import jsonschema
 import requests
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend as crypto_backend
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -98,7 +102,13 @@ class SiPassDriver(AccessControlDriver):
             },
             "verify_tls": {
                 "type": "boolean",
-            }
+            },
+            "tls_ca_cert": {
+                "type": "string",
+            },
+            "tls_client_cert": {
+                "type": "string",
+            },
         },
         "required": [
             "api_url", "username", "password", "credential_profile_name",
@@ -125,11 +135,33 @@ class SiPassDriver(AccessControlDriver):
         "verify_tls": True
     }
 
+    def _validate_tls_cert_config(self, config):
+        ca_cert = config.get('tls_ca_cert', None)
+        if ca_cert:
+            try:
+                x509.load_pem_x509_certificate(ca_cert.encode('ascii'), crypto_backend())
+            except Exception as e:
+                raise ValidationError("'tls_ca_cert' must include the certificate in PEM format: \"%s\"" % e)
+
+        client_cert = config.get('tls_client_cert', None)
+        if client_cert:
+            cert_data = client_cert.encode('ascii')
+            try:
+                x509.load_pem_x509_certificate(cert_data, crypto_backend())
+            except Exception as e:
+                raise ValidationError("'tls_client_cert' must include the certificate in PEM format: \"%s\"" % e)
+            try:
+                load_pem_private_key(cert_data, password=None, backend=crypto_backend())
+            except Exception as e:
+                raise ValidationError("'tls_client_cert' must include a PEM-encoded private key: \"%s\"" % e)
+
     def validate_system_config(self, config):
         try:
             jsonschema.validate(config, self.SYSTEM_CONFIG_SCHEMA)
         except jsonschema.exceptions.ValidationError as e:
             raise ValidationError(e.message)
+
+        self._validate_tls_cert_config(config)
 
     def validate_resource_config(self, resource, config):
         try:
@@ -142,7 +174,6 @@ class SiPassDriver(AccessControlDriver):
 
     def _load_token(self):
         data = self.get_driver_data().get('token')
-        print(data)
         return SiPassToken.deserialize(data)
 
     def api_get_token(self):
@@ -160,7 +191,7 @@ class SiPassDriver(AccessControlDriver):
     def api_renew_session(self):
         self.api_get('authentication')
 
-    @contextmanager
+    @contextlib.contextmanager
     def ensure_token(self):
         driver_data = self.get_driver_data()
         token_expiration_time = driver_data.get('token_expiration_time')
@@ -193,6 +224,27 @@ class SiPassDriver(AccessControlDriver):
             })
         return resp
 
+    @contextlib.contextmanager
+    def _generate_ca_files(self):
+        ca_cert = self.get_setting('tls_ca_cert')
+        client_cert = self.get_setting('tls_client_cert')
+        requests_args = {}
+
+        with contextlib.ExitStack() as stack:
+            if ca_cert:
+                tf = tempfile.NamedTemporaryFile()
+                stack.enter_context(tf)
+                tf.write(ca_cert.encode('ascii'))
+                tf.seek(0)
+                requests_args['verify'] = tf.name
+            if client_cert:
+                tf = tempfile.NamedTemporaryFile()
+                tf.write(client_cert.encode('ascii'))
+                tf.seek(0)
+                stack.enter_context(tf)
+                requests_args['cert'] = tf.name
+            yield requests_args
+
     def api_req_unauth(self, path, method, data=None, params=None, headers=None):
         headers = headers.copy() if headers is not None else {}
         headers.update({
@@ -202,16 +254,22 @@ class SiPassDriver(AccessControlDriver):
         verify_tls = self.get_setting('verify_tls')
         url = '%s/%s' % (self.get_setting('api_url'), path)
         self.logger.info('%s: %s' % (method, url))
+        args = dict(headers=headers, verify=verify_tls)
         if method == 'POST':
-            resp = requests.post(url, verify=verify_tls, json=data, headers=headers)
+            args['json'] = data
         elif method == 'PUT':
-            resp = requests.put(url, verify=verify_tls, json=data, headers=headers)
+            args['json'] = data
         elif method == 'GET':
-            resp = requests.get(url, verify=verify_tls, params=params, headers=headers)
+            args['params'] = params
         elif method == 'DELETE':
-            resp = requests.delete(url, verify=verify_tls, params=params, headers=headers)
+            args['params'] = params
         else:
             raise Exception("Invalid method")
+
+        with self._generate_ca_files() as ca_args:
+            args.update(ca_args)
+            resp = requests.request(method, url, **args)
+
         if resp.status_code not in (200, 201):
             if resp.content:
                 try:
@@ -466,8 +524,6 @@ class SiPassDriver(AccessControlDriver):
                 'VisitorCustomValues': {}
             }
         }
-        from pprint import pprint
-        pprint(cardholder_data)
         resp = self.api_post('Cardholders', data=cardholder_data)
         cardholder_id = resp['Token']
 
