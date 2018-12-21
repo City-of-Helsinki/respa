@@ -204,7 +204,7 @@ class AccessControlGrant(models.Model):
         """Removes the grant from the remote access control system.
         """
         logger.info('[%s] Removing' % self)
-        assert self.state in (self.REQUESTED, self.CANCELLED)
+        assert self.state in (self.INSTALLED, self.CANCELLED)
         old_state = self.state
         with transaction.atomic():
             db_self = AccessControlGrant.objects.select_related('resource').select_for_update().get(id=self.id)
