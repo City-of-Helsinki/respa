@@ -17,9 +17,13 @@ class AccessControlDriver:
         self.system = system
         self.logger = logging.getLogger(str(self.__class__))
 
-    def get_setting(self, name: str):
+    def get_setting(self, name: str, missing_none=False):
         if name not in self.system.driver_config and hasattr(self, 'DEFAULT_CONFIG'):
+            if missing_none and name not in self.DEFAULT_CONFIG:
+                return None
             return self.DEFAULT_CONFIG[name]
+        if missing_none and name not in self.system.driver_config:
+            return None
         return self.system.driver_config[name]
 
     def update_driver_data(self, settings: dict):

@@ -217,17 +217,10 @@ class SiPassDriver(AccessControlDriver):
         except Exception as e:
             raise
 
-    def api_get(self, path, params=None):
-        with self.ensure_token() as token:
-            resp = self.api_req_unauth(path, 'GET', params=params, headers={
-                'Authorization': token.value
-            })
-        return resp
-
     @contextlib.contextmanager
     def _generate_ca_files(self):
-        ca_cert = self.get_setting('tls_ca_cert')
-        client_cert = self.get_setting('tls_client_cert')
+        ca_cert = self.get_setting('tls_ca_cert', True)
+        client_cert = self.get_setting('tls_client_cert', True)
         requests_args = {}
 
         with contextlib.ExitStack() as stack:
@@ -270,7 +263,7 @@ class SiPassDriver(AccessControlDriver):
             args.update(ca_args)
             resp = requests.request(method, url, **args)
 
-        if resp.status_code not in (200, 201):
+        if resp.status_code not in (200, 201, 204):
             if resp.content:
                 try:
                     data = resp.json()
@@ -286,6 +279,13 @@ class SiPassDriver(AccessControlDriver):
         if not resp.content:
             return None
         return resp.json()
+
+    def api_get(self, path, params=None):
+        with self.ensure_token() as token:
+            resp = self.api_req_unauth(path, 'GET', params=params, headers={
+                'Authorization': token.value
+            })
+        return resp
 
     def api_post(self, path, data):
         with self.ensure_token() as token:
@@ -541,7 +541,7 @@ class SiPassDriver(AccessControlDriver):
             # and if that fails, we probably have problems. Upper layers will
             # take care of retrying in case the unlikely false positive happens.
             for i in range(20):
-                pin = get_random_string(4, '0123456789')
+                pin = get_random_string(1, '123456789') + get_random_string(3, '0123456789')
                 if not self.system.users.active().filter(identifier=pin).exists():
                     break
             else:
