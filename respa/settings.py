@@ -17,8 +17,9 @@ env = environ.Env(
     ALLOWED_HOSTS=(list, []),
     ADMINS=(list, []),
     DATABASE_URL=(str, 'postgis:///respa'),
-    JWT_SECRET_KEY=(str, ''),
-    JWT_AUDIENCE=(str, ''),
+    SECURE_PROXY_SSL_HEADER=(tuple, None)
+    TOKEN_AUTH_ACCEPTED_AUDIENCE=(str, ''),
+    TOKEN_AUTH_SHARED_SECRET=(str, ''),
     MEDIA_ROOT=(environ.Path(), root('media')),
     STATIC_ROOT=(environ.Path(), root('static')),
     MEDIA_URL=(str, '/media/'),
@@ -29,8 +30,13 @@ env = environ.Env(
     MAIL_ENABLED=(bool, False),
     MAIL_DEFAULT_FROM=(str, ''),
     MAIL_MAILGUN_KEY=(str, ''),
+    RESPA_IMAGE_BASE_URL=(str, ''),
 )
 environ.Env.read_env()
+
+# used for generating links to images, when no request context is available
+# reservation confirmation emails use this
+RESPA_IMAGE_BASE_URL = env('RESPA_IMAGE_BASE_URL')
 
 BASE_DIR = root()
 
@@ -46,6 +52,8 @@ DATABASES = {
     'default': env.db()
 }
 DATABASES['default']['ATOMIC_REQUESTS'] = True
+
+SECURE_PROXY_SSL_HEADER = env('SECURE_PROXY_SSL_HEADER')
 
 SITE_ID = 1
 
@@ -103,8 +111,54 @@ if env('SENTRY_DSN'):
         'release': raven.fetch_git_sha(BASE_DIR),
     }
     INSTALLED_APPS.append('raven.contrib.django.raven_compat')
-
-
+# start sentry logging config
+# we need a sentry specific logging setup in order to capture mailer failures
+# as the anymail logs instead of allowing the exception to rise
+# this config from: https://docs.sentry.io/clients/python/integrations/django/
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': True,
+        'root': {
+            'level': 'WARNING',
+            'handlers': ['sentry'],
+        },
+        'formatters': {
+            'verbose': {
+                'format': '%(levelname)s %(asctime)s %(module)s '
+                          '%(process)d %(thread)d %(message)s'
+            },
+        },
+        'handlers': {
+            'sentry': {
+                'level': 'ERROR', # To capture more than ERROR, change to WARNING, INFO, etc.
+                'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
+                'tags': {'custom-tag': 'x'},
+            },
+            'console': {
+                'level': 'DEBUG',
+                'class': 'logging.StreamHandler',
+                'formatter': 'verbose'
+            }
+        },
+        'loggers': {
+            'django.db.backends': {
+                'level': 'ERROR',
+                'handlers': ['console'],
+                'propagate': False,
+            },
+            'raven': {
+                'level': 'DEBUG',
+                'handlers': ['console'],
+                'propagate': False,
+            },
+            'sentry.errors': {
+                'level': 'DEBUG',
+                'handlers': ['console'],
+                'propagate': False,
+            },
+        },
+    }
+# END sentry logging config
 
 MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -243,8 +297,8 @@ REST_FRAMEWORK = {
 
 JWT_AUTH = {
     'JWT_PAYLOAD_GET_USER_ID_HANDLER': 'helusers.jwt.get_user_id_from_payload_handler',
-    'JWT_AUDIENCE': env.str('JWT_AUDIENCE'),
-    'JWT_SECRET_KEY': env.str('JWT_SECRET_KEY')
+    'JWT_AUDIENCE': env('TOKEN_AUTH_ACCEPTED_AUDIENCE'),
+    'JWT_SECRET_KEY': env('TOKEN_AUTH_SHARED_SECRET')
 }
 
 
