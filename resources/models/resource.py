@@ -193,6 +193,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     equipment = EquipmentField(Equipment, through='ResourceEquipment', verbose_name=_('Equipment'))
     max_reservations_per_user = models.IntegerField(verbose_name=_('Maximum number of active reservations per user'),
                                                     null=True, blank=True)
+    use_payments = models.BooleanField(verbose_name=_('Chargeable through payments system'), default=False)
     reservable = models.BooleanField(verbose_name=_('Reservable'), default=False)
     reservation_info = models.TextField(verbose_name=_('Reservation info'), null=True, blank=True)
     responsible_contact_info = models.TextField(verbose_name=_('Responsible contact info'), blank=True)
