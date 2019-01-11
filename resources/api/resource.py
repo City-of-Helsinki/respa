@@ -323,6 +323,8 @@ class ResourceFilterSet(django_filters.FilterSet):
                                       widget=django_filters.widgets.CSVWidget, distinct=True)
     available_between = django_filters.Filter(method='filter_available_between',
                                               widget=django_filters.widgets.CSVWidget)
+    municipality = django_filters.Filter(name='unit__municipality', lookup_expr='in',
+                                         widget=django_filters.widgets.CSVWidget, distinct=True)
 
     def filter_is_favorite(self, queryset, name, value):
         if not self.user.is_authenticated():
