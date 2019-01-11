@@ -82,3 +82,16 @@ def test_resource_group_filter(api_client, test_unit, test_unit2, test_unit3, re
     response = api_client.get(list_url + '?' + 'resource_group=foobar')
     assert response.status_code == 200
     assert len(response.data['results']) == 0
+
+
+@pytest.mark.django_db
+def test_unit_has_resource_filter(api_client, test_unit,
+                               resource_in_unit2, list_url):
+
+    response = api_client.get(list_url + '?' + 'unit_has_resource=True')
+    assert response.status_code == 200
+    assert_response_objects(response, (resource_in_unit2.unit))
+
+    response = api_client.get(list_url + '?' + 'unit_has_resource=False')
+    assert response.status_code == 200
+    assert_response_objects(response, (test_unit))
