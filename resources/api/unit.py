@@ -2,13 +2,17 @@ from rest_framework import serializers, viewsets
 
 import django_filters
 from munigeo import api as munigeo_api
-from resources.api.base import NullableDateTimeField, TranslatedModelSerializer, register_view
+from resources.api.base import NullableDateTimeField, TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
 from resources.models import Unit
 
 
 class UnitFilterSet(django_filters.FilterSet):
     resource_group = django_filters.Filter(name='resources__groups__identifier', lookup_expr='in',
                                            widget=django_filters.widgets.CSVWidget, distinct=True)
+    unit_has_resource = django_filters.BooleanFilter(method='filter_unit_has_resource', widget=DRFFilterBooleanWidget)
+
+    def filter_unit_has_resource(self, queryset, name, value):
+        return queryset.exclude(resources__isnull=value)
 
     class Meta:
         model = Unit
