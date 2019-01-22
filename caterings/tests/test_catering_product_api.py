@@ -72,5 +72,4 @@ def test_category_filter(user_api_client, catering_product_category, catering_pr
     assert_response_objects(response, catering_product)
 
     response = user_api_client.get(LIST_URL + '?category=87568957858789698798')
-    assert response.status_code == 200
-    assert len(response.data['results']) == 0
+    assert response.status_code == 400

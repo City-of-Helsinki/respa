@@ -17,7 +17,7 @@ class CateringProviderSerializer(TranslatedModelSerializer):
 
 
 class CateringProviderFilter(django_filters.rest_framework.FilterSet):
-    unit = django_filters.CharFilter(name='units')
+    unit = django_filters.CharFilter(field_name='units')
 
     class Meta:
         model = CateringProvider
@@ -61,7 +61,7 @@ class CateringProductSerializer(TranslatedModelSerializer):
 
 
 class CateringProductFilter(django_filters.rest_framework.FilterSet):
-    provider = django_filters.NumberFilter(name='category__provider')
+    provider = django_filters.NumberFilter(field_name='category__provider')
 
     class Meta:
         model = CateringProduct

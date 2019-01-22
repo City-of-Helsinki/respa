@@ -57,5 +57,4 @@ def test_provider_filter(user_api_client, catering_provider, catering_product_ca
     assert_response_objects(response, catering_product_category)
 
     response = user_api_client.get(LIST_URL + '?provider=not_a_provider')
-    assert response.status_code == 200
-    assert len(response.data['results']) == 0
+    assert response.status_code == 400

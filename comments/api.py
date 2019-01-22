@@ -69,7 +69,7 @@ class CommentFilter(django_filters.rest_framework.FilterSet):
         fields = ('target_type', 'target_id')
 
     target_type = django_filters.CharFilter(method='filter_target_type')
-    target_id = django_filters.CharFilter(name='object_id')
+    target_id = django_filters.CharFilter(field_name='object_id')
 
     def filter_target_type(self, queryset, name, value):
         try:

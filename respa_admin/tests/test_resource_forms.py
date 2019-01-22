@@ -8,11 +8,6 @@ from freezegun import freeze_time
 from resources.models import Resource
 from ..forms import get_period_formset
 
-from .conftest import (
-    empty_resource_form_data,
-    valid_resource_form_data,
-)
-
 
 NEW_RESOURCE_URL = reverse('respa_admin:new-resource')
 
@@ -56,8 +51,9 @@ def test_period_formset_with_invalid_days_data(valid_resource_form_data):
 
 @pytest.mark.django_db
 def test_create_resource_with_invalid_data_returns_errors(admin_client, empty_resource_form_data):
+    data = empty_resource_form_data
     with translation.override('fi'):
-        response = admin_client.post(NEW_RESOURCE_URL, data=empty_resource_form_data)
+        response = admin_client.post(NEW_RESOURCE_URL, data=data)
     assert response.context['form'].errors == {
         'access_code_type': ['Tämä kenttä vaaditaan.'],
         'authentication': ['Tämä kenttä vaaditaan.'],

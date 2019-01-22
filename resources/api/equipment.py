@@ -48,7 +48,7 @@ class EquipmentSerializer(TranslatedModelSerializer):
 
 
 class EquipmentFilterSet(django_filters.FilterSet):
-    resource_group = django_filters.Filter(name='resource_equipment__resource__groups__identifier', lookup_expr='in',
+    resource_group = django_filters.Filter(field_name='resource_equipment__resource__groups__identifier', lookup_expr='in',
                                            widget=django_filters.widgets.CSVWidget, distinct=True)
 
     class Meta:

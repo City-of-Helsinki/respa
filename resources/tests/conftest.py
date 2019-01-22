@@ -32,7 +32,7 @@ def user_api_client(user):
 def all_user_types_api_client(request):
     api_client = APIClient()
     if request.param:
-        api_client.force_authenticate(request.getfuncargvalue(request.param))
+        api_client.force_authenticate(request.getfixturevalue(request.param))
     return api_client
 
 

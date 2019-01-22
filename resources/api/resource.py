@@ -83,7 +83,7 @@ class ResourceTypeSerializer(TranslatedModelSerializer):
 
 
 class ResourceTypeFilterSet(django_filters.FilterSet):
-    resource_group = django_filters.Filter(name='resource__groups__identifier', lookup_expr='in',
+    resource_group = django_filters.Filter(field_name='resource__groups__identifier', lookup_expr='in',
                                            widget=django_filters.widgets.CSVWidget, distinct=True)
 
     class Meta:
@@ -296,7 +296,7 @@ class ParentFilter(django_filters.Filter):
 
     def filter(self, qs, value):
         child_matches = super().filter(qs, value)
-        self.name = self.name.replace('__id', '__parent__id')
+        self.field_name = self.field_name.replace('__id', '__parent__id')
         parent_matches = super().filter(qs, value)
         return child_matches | parent_matches
 
@@ -310,16 +310,16 @@ class ResourceFilterSet(django_filters.FilterSet):
         self.user = kwargs.pop('user')
         super().__init__(*args, **kwargs)
 
-    purpose = ParentCharFilter(name='purposes__id', lookup_expr='iexact')
-    type = django_filters.Filter(name='type__id', lookup_expr='in', widget=django_filters.widgets.CSVWidget)
-    people = django_filters.NumberFilter(name='people_capacity', lookup_expr='gte')
-    need_manual_confirmation = django_filters.BooleanFilter(name='need_manual_confirmation',
+    purpose = ParentCharFilter(field_name='purposes__id', lookup_expr='iexact')
+    type = django_filters.Filter(field_name='type__id', lookup_expr='in', widget=django_filters.widgets.CSVWidget)
+    people = django_filters.NumberFilter(field_name='people_capacity', lookup_expr='gte')
+    need_manual_confirmation = django_filters.BooleanFilter(field_name='need_manual_confirmation',
                                                             widget=DRFFilterBooleanWidget)
     is_favorite = django_filters.BooleanFilter(method='filter_is_favorite', widget=DRFFilterBooleanWidget)
-    unit = django_filters.CharFilter(name='unit__id', lookup_expr='iexact')
-    resource_group = django_filters.Filter(name='groups__identifier', lookup_expr='in',
+    unit = django_filters.CharFilter(field_name='unit__id', lookup_expr='iexact')
+    resource_group = django_filters.Filter(field_name='groups__identifier', lookup_expr='in',
                                            widget=django_filters.widgets.CSVWidget, distinct=True)
-    equipment = django_filters.Filter(name='resource_equipment__equipment__id', lookup_expr='in',
+    equipment = django_filters.Filter(field_name='resource_equipment__equipment__id', lookup_expr='in',
                                       widget=django_filters.widgets.CSVWidget, distinct=True)
     available_between = django_filters.Filter(method='filter_available_between',
                                               widget=django_filters.widgets.CSVWidget)

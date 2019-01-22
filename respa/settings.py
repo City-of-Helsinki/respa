@@ -131,12 +131,6 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
 ]
 
-if DEBUG:
-    INSTALLED_APPS.append('debug_toolbar')
-    MIDDLEWARE = [
-        'debug_toolbar.middleware.DebugToolbarMiddleware',
-    ] + MIDDLEWARE
-
 ROOT_URLCONF = 'respa.urls'
 from django_jinja.builtins import DEFAULT_EXTENSIONS  # noqa
 

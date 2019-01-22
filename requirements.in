@@ -1,6 +1,6 @@
 Django<2
 django-modeltranslation
-psycopg2
+psycopg2-binary
 django-munigeo
 djangorestframework
 django-filter
