@@ -16,6 +16,36 @@ import image_cropping.fields
 import resources.models.unit
 
 
+NMC_SUPPORTED_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street', 'reserver_address_zip',
+                        'reserver_address_city', 'billing_address_street', 'billing_address_zip', 'billing_address_city',
+                        'company', 'event_description', 'reserver_id', 'number_of_participants', 'reserver_email_address')
+
+NMC_REQUIRED_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street', 'reserver_address_zip',
+                       'reserver_address_city', 'event_description', 'reserver_id', 'reserver_email_address')
+
+ALL_FIELDS = NMC_SUPPORTED_FIELDS + ('event_subject',)
+
+
+def create_reservation_metadata_fields_and_set(apps, schema_editor):
+    Resource = apps.get_model('resources', 'Resource')
+    ReservationMetadataField = apps.get_model('resources', 'ReservationMetadataField')
+    ReservationMetadataSet = apps.get_model('resources', 'ReservationMetadataSet')
+
+    for field_name in ALL_FIELDS:
+        ReservationMetadataField.objects.create(field_name=field_name)
+
+    data_set = ReservationMetadataSet.objects.create(
+        name='default',
+
+    )
+    data_set.supported_fields.set(ReservationMetadataField.objects.filter(field_name__in=NMC_SUPPORTED_FIELDS))
+    data_set.required_fields.set(ReservationMetadataField.objects.filter(field_name__in=NMC_REQUIRED_FIELDS))
+
+    for resource in Resource.objects.filter(need_manual_confirmation=True):
+        resource.reservation_metadata_set = data_set
+        resource.save(update_fields=('reservation_metadata_set',))
+
+
 class Migration(migrations.Migration):
 
     replaces = [('resources', '0001_initial'), ('resources', '0002_auto_20150629_1103'), ('resources', '0003_auto_20150629_1309'), ('resources', '0004_auto_20150629_1309'), ('resources', '0005_auto_20150629_1505'), ('resources', '0006_auto_20150630_0903'), ('resources', '0007_auto_20150630_0923'), ('resources', '0008_auto_20150701_1758'), ('resources', '0009_auto_20150705_2114'), ('resources', '0010_auto_20150705_2151'), ('resources', '0011_auto_20150706_1517'), ('resources', '0012_auto_20150708_1443'), ('resources', '0013_auto_20151014_1507'), ('resources', '0014_add_resource_image'), ('resources', '0015_auto_20151028_1648'), ('resources', '0016_auto_20151028_1653'), ('resources', '0017_uneditable_internal_fields'), ('resources', '0018_add_resource_equipment'), ('resources', '0019_add_equipment_category'), ('resources', '0021_auto_20151117_1334'), ('resources', '0020_add_max_reservations_field'), ('resources', '0022_merge'), ('resources', '0023_add_reservable'), ('resources', '0024_auto_20151123_2345'), ('resources', '0025_add_reservation_info'), ('resources', '0026_resource_public'), ('resources', '0027_comments_verbose_name'), ('resources', '0028_purpose_public'), ('resources', '0029_add_reservation_state'), ('resources', '0030_add_reservation_extra_fields'), ('resources', '0031_can_approve_reservation_permission'), ('resources', '0032_add_reservation_approver'), ('resources', '0033_add_responsible_contact_info'), ('resources', '0034_add_reserver_email'), ('resources', '0035_add_reserver_id'), ('resources', '0036_migrate_reserver_id'), ('resources', '0037_remove_business_id'), ('resources', '0038_add_municipality_to_unit'), ('resources', '0039_add_terms_of_use'), ('resources', '0040_resource_specific_notification_content'), ('resources', '0041_add_resource_price_per_hour_fields'), ('resources', '0042_add_access_code_fields_and_perm'), ('resources', '0043_add_reservable_days_in_advance'), ('resources', '0044_auto_20161110_1046'), ('resources', '0045_migrate_reservation_info_data'), ('resources', '0046_access_code_nullable'), ('resources', '0047_period_back_to_basics'), ('resources', '0048_add_reservation_field_metadata'), ('resources', '0049_add_resource_group'), ('resources', '0050_add_reservation_host_name'), ('resources', '0051_add_can_view_reservation_extra_fields_perm'), ('resources', '0052_add_can_access_reservation_comments_perm'), ('resources', '0053_can_view_reservation_catering_orders_perm'), ('resources', '0054_add_reservation_participants'), ('resources', '0055_add_can_make_reservations_perm'), ('resources', '0056_remove_unit_dependency_on_timezone_configuration'), ('resources', '0057_alter_permission_names'), ('resources', '0058_migrate_permission_data'), ('resources', '0059_add_ignore_opening_hours_perm'), ('resources', '0060_add_reservation_created_state')]
@@ -1139,6 +1169,7 @@ class Migration(migrations.Migration):
             name='reservation_metadata_set',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='resources.ReservationMetadataSet'),
         ),
+        migrations.RunPython(create_reservation_metadata_fields_and_set, migrations.RunPython.noop),
         migrations.CreateModel(
             name='ResourceGroup',
             fields=[
