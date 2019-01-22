@@ -7,14 +7,14 @@ services:
 
 language: python
 python:
-  - '3.5'
   - '3.6'
-  - '3.7-dev'
+  - '3.7'
+  - '3.8-dev'
 node_js: 'lts/*'
 
 matrix:
   allow_failures:
-  - python: 3.7-dev
+  - python: 3.8-dev
 
 cache: pip
 
