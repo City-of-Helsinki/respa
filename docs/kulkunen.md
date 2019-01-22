@@ -41,3 +41,15 @@ a retry is scheduled for later.
 6. After the grant is installed successfully, the ACS driver sets the grant to the `installed`
 state. If the grant needs explicit removal from the external ACS, the driver may
 set the `AccessControlGrant.remove_at` timestamp to when the grant needs to removed.
+
+### Reservation cancellation
+
+1. `AccessControlResource.revoke_access()` is called by the signal handler.
+2. If there is an active grant for the reservation, `revoke_access()` calls
+`AccessControlGrant.cancel()`.
+3. `AccessControlGrant.cancel()` sets the state of the grant to `cancelled` and
+marks it for removal by the driver by calling `AccessControlSystem.prepare_remove_grant()`.
+By default the grant is marked for immediate removal, but the driver may override the method
+and remove it at a later time or through other means.
+4. `sync_kulkunen` management command is called, and `AccessControlDriver.remove_grant()` called
+for each grant that should be removed.

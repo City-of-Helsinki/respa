@@ -27,8 +27,7 @@ class AccessControlDriver:
         return self.system.driver_config[name]
 
     def update_driver_data(self, settings: dict):
-        with transaction.atomic():
-            system = AccessControlSystem.objects.select_for_update().get(id=self.system.id)
+        with self.system_lock() as system:
             if system.driver_data is None:
                 system.driver_data = {}
             system.driver_data.update(settings)
@@ -43,8 +42,7 @@ class AccessControlDriver:
     @contextmanager
     def system_lock(self):
         with transaction.atomic():
-            AccessControlSystem.objects.select_for_update().get(id=self.system.id)
-            yield
+            yield AccessControlSystem.objects.select_for_update().get(id=self.system.id)
 
     def install_grant(self, grant: AccessControlGrant):
         raise NotImplementedError("Implement this in the driver")
@@ -65,3 +63,13 @@ class AccessControlDriver:
 
     def validate_resource_config(self, resource: AccessControlResource):
         raise NotImplementedError("Implement this in the driver")
+
+    def get_system_config_schema(self):
+        raise NotImplementedError("Implement this in the driver")
+
+    def get_resource_config_schema(self):
+        raise NotImplementedError("Implement this in the driver")
+
+    def get_resource_identifier(self, resource: AccessControlResource):
+        # This can be overridden by the driver implementation
+        return ''

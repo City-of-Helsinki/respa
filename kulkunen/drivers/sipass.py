@@ -91,9 +91,6 @@ class SiPassDriver(AccessControlDriver):
             "credential_profile_name": {
                 "type": "string",
             },
-            "card_technology_id": {
-                "type": "integer",
-            },
             "cardholder_workgroup_name": {
                 "type": "string",
             },
@@ -105,14 +102,16 @@ class SiPassDriver(AccessControlDriver):
             },
             "tls_ca_cert": {
                 "type": "string",
+                "format": "textarea",
             },
             "tls_client_cert": {
                 "type": "string",
+                "format": "textarea",
             },
         },
         "required": [
             "api_url", "username", "password", "credential_profile_name",
-            "card_technology_id", "cardholder_workgroup_name"
+            "cardholder_workgroup_name",
         ],
     }
     RESOURCE_CONFIG_SCHEMA = {
@@ -134,6 +133,16 @@ class SiPassDriver(AccessControlDriver):
         "client_id": "kulkunen",
         "verify_tls": True
     }
+
+    def get_system_config_schema(self):
+        return self.SYSTEM_CONFIG_SCHEMA
+
+    def get_resource_config_schema(self):
+        return self.RESOURCE_CONFIG_SCHEMA
+
+    def get_resource_identifier(self, resource):
+        config = resource.driver_config or {}
+        return config.get('access_point_group_name', '')
 
     def _validate_tls_cert_config(self, config):
         ca_cert = config.get('tls_ca_cert', None)
@@ -274,6 +283,18 @@ class SiPassDriver(AccessControlDriver):
                     err_str = ''
                 status_code = resp.status_code
                 self.logger.error(f"SiPass API error [HTTP {status_code}] [{err_code}] {err_str}")
+
+            # Clear the object cache just in case, something might've
+            # changed in the API.
+            self._nuke_object_cache()
+
+            if resp.status_code == 401:
+                # If the server responds with "unauthorized", it's possible that
+                # the access token is expired (even though it's not supposed to just yet).
+                # We nuke the access token and rely on the upper-layer retry mechanism
+                # to try again later.
+                self.update_driver_data(dict(token=None))
+
             resp.raise_for_status()
 
         if not resp.content:
@@ -326,6 +347,9 @@ class SiPassDriver(AccessControlDriver):
             last_name=d['LastName']
         ) for d in resp['Records']]
 
+    def get_cardholder(self, cardholder_id):
+        return self.api_get('Cardholders/%s' % cardholder_id)
+
     def get_access_levels(self):
         resp = self.api_get('AccessLevels')
         records = [dict(name=r['Name'], id=r['Token'], type='access_level') for r in resp['Records']]
@@ -343,10 +367,14 @@ class SiPassDriver(AccessControlDriver):
 
     def get_time_schedules(self):
         resp = self.api_get('TimeSchedules')
+        if isinstance(resp, dict) and 'Records' in resp:
+            resp = resp['Records']
         return [dict(id=d['Token'], name=d['Name']) for d in resp]
 
     def get_card_technologies(self):
         resp = self.api_get('CardTechnologies')
+        if isinstance(resp, dict) and 'Records' in resp:
+            resp = resp['Records']
         return [dict(
             id=d['TechnologyCode'],
             name=d['Name'],
@@ -356,9 +384,13 @@ class SiPassDriver(AccessControlDriver):
 
     def get_credential_profiles(self):
         resp = self.api_get('CredentialProfiles')
+        if isinstance(resp, dict) and 'Records' in resp:
+            resp = resp['Records']
         return [dict(
             id=d.pop('Token'),
             name=d.pop('Name'),
+            card_technology_id=d.pop('CardTechnologyCode'),
+            card_technology_name=d.pop('CardTechnology'),
             **d
         ) for d in resp]
 
@@ -366,16 +398,34 @@ class SiPassDriver(AccessControlDriver):
         """Loads named objects from SiPass API and saves them in the database"""
         object_get_func = getattr(self, 'get_%s' % object_type)
         objs = {x['name']: x for x in object_get_func()}
-        self.update_driver_data({object_type: objs})
+
+        with self.system_lock() as system:
+            driver_data = system.driver_data or {}
+            object_cache = driver_data.setdefault('object_cache', {})
+            object_cache[object_type] = objs
+            system.driver_data = driver_data
+            system.save(update_fields=['driver_data'])
         return objs
 
+    def _nuke_object_cache(self):
+        with self.system_lock() as system:
+            driver_data = system.driver_data or {}
+            if driver_data.get('object_cache'):
+                driver_data['object_cache'] = {}
+                system.save(update_fields=['driver_data'])
+
     def get_object_by_id(self, grant, object_type, setting_name):
-        """Returns the API object corresponding to a object name in driver_config"""
+        """Returns the API object corresponding to an object name
+
+        The object name is taken from either the resource config, or if not found,
+        the system-level config. If the object is not in the system-level object
+        cache, the objects are refreshed from the API.
+        """
         obj_name = grant.resource.driver_config.get(setting_name, None)
         if not obj_name:
             obj_name = self.get_setting(setting_name)
 
-        objs = self.get_driver_data().get(object_type, {})
+        objs = self.get_driver_data().get('object_cache', {}).get(object_type, {})
         if obj_name not in objs:
             objs = self._refresh_objects(object_type)
         obj = objs.get(obj_name)
@@ -442,6 +492,7 @@ class SiPassDriver(AccessControlDriver):
             'EndDate': end_time.isoformat(),
             'FacilityCode': 0,
             'Pin': data['pin'],
+            'PinMode': data['credential_profile']['PINModeValue']['Type'],
             'ProfileId': data['credential_profile']['id'],
             'ProfileName': data['credential_profile']['name'],
             'StartDate': start_time.isoformat(),
@@ -535,11 +586,14 @@ class SiPassDriver(AccessControlDriver):
         first_name = user.first_name or 'Kulkunen'
         last_name = user.last_name or 'Kulkunen'
 
+        # We lock the access control instance through the database to protect
+        # against race conditions.
         with self.system_lock():
             # The PIN also serves as the cardholder identifier (they must
             # be identical). Try at most 20 times to generate an unused PIN,
-            # and if that fails, we probably have problems. Upper layers will
-            # take care of retrying in case the unlikely false positive happens.
+            # and if that fails, we probably have other problems. Upper layers
+            # will take care of retrying later in case the unlikely false positive
+            # happens.
             for i in range(20):
                 pin = get_random_string(1, '123456789') + get_random_string(3, '0123456789')
                 if not self.system.users.active().filter(identifier=pin).exists():
@@ -561,7 +615,7 @@ class SiPassDriver(AccessControlDriver):
 
         credential_profile = self.get_object_by_id(grant, 'credential_profiles', 'credential_profile_name')
         workgroup = self.get_object_by_id(grant, 'workgroups', 'cardholder_workgroup_name')
-        card_technology_id = self.get_setting('card_technology_id')
+        card_technology_id = credential_profile['card_technology_id']
 
         cardholder_id = self.api_create_cardholder(dict(
             first_name=user.first_name,

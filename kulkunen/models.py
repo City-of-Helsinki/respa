@@ -260,7 +260,7 @@ class AccessControlResource(models.Model):
         unique_together = (('system', 'resource'),)
 
     def __str__(self) -> str:
-        return self.identifier or "[%d]" % self.id
+        return "%s: %s" % (self.system, self.resource)
 
     def pad_start_and_end_times(self, start, end):
         system = self.system
@@ -314,6 +314,12 @@ class AccessControlResource(models.Model):
                 return
             grant = existing_grants[0]
             grant.cancel()
+
+    def driver_identifier(self):
+        return self.system.get_resource_identifier(self)
+
+    def active_grant_count(self):
+        return self.grants.active().count()
 
 
 class AccessControlSystem(models.Model):
@@ -370,3 +376,12 @@ class AccessControlSystem(models.Model):
 
     def remove_grant(self, grant: AccessControlGrant):
         self._get_driver().remove_grant(grant)
+
+    def get_system_config_schema(self):
+        return self._get_driver().get_system_config_schema()
+
+    def get_resource_config_schema(self):
+        return self._get_driver().get_resource_config_schema()
+
+    def get_resource_identifier(self, resource: AccessControlResource):
+        return self._get_driver().get_resource_identifier(resource)

@@ -87,6 +87,7 @@ INSTALLED_APPS = [
     'django_jinja',
     'anymail',
     'reversion',
+    'django_admin_json_editor',
 
     'allauth',
     'allauth.account',
