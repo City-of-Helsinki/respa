@@ -1,4 +1,3 @@
-
 sudo: required
 dist: xenial
 
@@ -27,12 +26,14 @@ addons:
   apt:
     packages:
       - libgdal-dev
-      - postgresql-9.6-postgis-2.3
+      - postgresql-9.6-postgis-2.4
 
-install: 'pip install codecov -r requirements.txt'
+before_install:
+  - psql template1 -c 'CREATE EXTENSION IF NOT EXISTS hstore;'
+  - psql template1 -c 'CREATE EXTENSION IF NOT EXISTS postgis;'
+  - pip install codecov -r requirements.txt
 
 before_script:
-  - psql template1 -c 'create extension hstore;'
   - ./build-resources
   - ls -l respa_admin/static/respa_admin/main.css  # Check main.css got built
   - ./manage.py compilemessages
