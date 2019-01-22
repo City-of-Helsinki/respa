@@ -1,7 +1,7 @@
 import datetime
 import pytest
 from copy import deepcopy
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.gis.geos import Point
 from django.utils import timezone
 from freezegun import freeze_time
@@ -437,7 +437,7 @@ def test_resource_equipment_filter(api_client, resource_in_unit, resource_in_uni
         resource=resource_in_unit2,
         description='resource equipment 2',
     )
-    resource_in_unit3.resource_equipment = [resource_equipment]
+    resource_in_unit3.resource_equipment.set([resource_equipment])
 
     response = api_client.get(list_url + '?equipment=%s' % equipment_1.id)
     assert response.status_code == 200

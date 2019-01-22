@@ -1,6 +1,6 @@
 import pytest
 from django.contrib.contenttypes.models import ContentType
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core import mail
 from django.test.utils import override_settings
 from guardian.shortcuts import assign_perm

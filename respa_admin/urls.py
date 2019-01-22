@@ -2,13 +2,12 @@ from django.conf.urls import url as unauthorized_url
 
 from . import views
 from .views.resources import (
-    RespaAdminIndex,
     ResourceListView,
-    admin_office,
     SaveResourceView
 )
 from .auth import admin_url as url
 
+app_name = 'respa_admin'
 urlpatterns = [
     url(r'^$', ResourceListView.as_view(), name='index'),
     unauthorized_url(r'^login/$', views.LoginView.as_view(), name='login'),

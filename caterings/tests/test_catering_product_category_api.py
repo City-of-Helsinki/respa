@@ -1,5 +1,5 @@
 import pytest
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from resources.tests.utils import assert_response_objects, check_keys, check_only_safe_methods_allowed
 

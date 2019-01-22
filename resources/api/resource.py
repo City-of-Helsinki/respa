@@ -327,7 +327,7 @@ class ResourceFilterSet(django_filters.FilterSet):
                                          widget=django_filters.widgets.CSVWidget, distinct=True)
 
     def filter_is_favorite(self, queryset, name, value):
-        if not self.user.is_authenticated():
+        if not self.user.is_authenticated:
             if value:
                 return queryset.none()
             else:

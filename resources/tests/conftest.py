@@ -263,7 +263,7 @@ def resource_group(resource_in_unit):
         identifier='test_group',
         name='Test resource group'
     )
-    group.resources = [resource_in_unit]
+    group.resources.set([resource_in_unit])
     return group
 
 
@@ -273,7 +273,7 @@ def resource_group2(resource_in_unit2):
         identifier='test_group_2',
         name='Test resource group 2'
     )
-    group.resources = [resource_in_unit2]
+    group.resources.set([resource_in_unit2])
     return group
 
 @pytest.fixture

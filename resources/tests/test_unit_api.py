@@ -2,7 +2,7 @@
 import datetime
 import pytest
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -57,11 +57,11 @@ def test_resource_group_filter(api_client, test_unit, test_unit2, test_unit3, re
     resource_in_unit3.save()
 
     group_1 = ResourceGroup.objects.create(name='test group 1', identifier='test_group_1')
-    resource_in_unit.groups = [group_1]
-    resource_in_unit3.groups = [group_1]
+    resource_in_unit.groups.set([group_1])
+    resource_in_unit3.groups.set([group_1])
 
     group_2 = ResourceGroup.objects.create(name='test group 2', identifier='test_group_2')
-    resource_in_unit2.groups = [group_1, group_2]
+    resource_in_unit2.groups.set([group_1, group_2])
 
     response = api_client.get(list_url)
     assert response.status_code == 200
