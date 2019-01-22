@@ -86,7 +86,7 @@ class CommentViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.
     queryset = Comment.objects.select_related('created_by').prefetch_related('content_type')
     serializer_class = CommentSerializer
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
-    filter_class = CommentFilter
+    filterset_class = CommentFilter
 
     def get_queryset(self):
         user = self.request.user

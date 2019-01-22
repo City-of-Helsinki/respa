@@ -13,7 +13,7 @@ from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
 from resources.pagination import PurposePagination
 from rest_framework import exceptions, filters, mixins, serializers, viewsets, response, status
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import action
 from guardian.core import ObjectPermissionChecker
 
 from munigeo import api as munigeo_api
@@ -95,7 +95,7 @@ class ResourceTypeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ResourceType.objects.all()
     serializer_class = ResourceTypeSerializer
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
-    filter_class = ResourceTypeFilterSet
+    filterset_class = ResourceTypeFilterSet
 
 register_view(ResourceTypeViewSet, 'type')
 
@@ -648,11 +648,11 @@ class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
             else:
                 return response.Response(status=status.HTTP_304_NOT_MODIFIED)
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def favorite(self, request, pk=None):
         return self._set_favorite(request, True)
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def unfavorite(self, request, pk=None):
         return self._set_favorite(request, False)
 

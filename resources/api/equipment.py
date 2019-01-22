@@ -60,7 +60,7 @@ class EquipmentViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Equipment.objects.all()
     serializer_class = EquipmentSerializer
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
-    filter_class = EquipmentFilterSet
+    filterset_class = EquipmentFilterSet
 
 
 register_view(EquipmentViewSet, 'equipment')

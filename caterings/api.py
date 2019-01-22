@@ -28,7 +28,7 @@ class CateringProvider(viewsets.ReadOnlyModelViewSet):
     queryset = CateringProvider.objects.prefetch_related('units')
     serializer_class = CateringProviderSerializer
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
-    filter_class = CateringProviderFilter
+    filterset_class = CateringProviderFilter
 
 register_view(CateringProvider, 'catering_provider')
 
@@ -49,7 +49,7 @@ class CateringProductCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CateringProductCategory.objects.prefetch_related('products')
     serializer_class = CateringProductCategorySerializer
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
-    filter_class = CateringProductCategoryFilter
+    filterset_class = CateringProductCategoryFilter
 
 register_view(CateringProductCategoryViewSet, 'catering_product_category')
 
@@ -72,7 +72,7 @@ class CateringProductViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CateringProduct.objects.all()
     serializer_class = CateringProductSerializer
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
-    filter_class = CateringProductFilter
+    filterset_class = CateringProductFilter
 
 register_view(CateringProductViewSet, 'catering_product')
 
@@ -177,7 +177,7 @@ class CateringOrderViewSet(viewsets.ModelViewSet):
     queryset = CateringOrder.objects.prefetch_related('order_lines')
     serializer_class = CateringOrderSerializer
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
-    filter_class = CateringOrderFilter
+    filterset_class = CateringOrderFilter
 
     def get_queryset(self):
         return super().get_queryset().can_view(self.request.user)

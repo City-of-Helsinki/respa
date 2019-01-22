@@ -61,7 +61,7 @@ class UnitViewSet(munigeo_api.GeoModelAPIView, viewsets.ReadOnlyModelViewSet):
     queryset = Unit.objects.all()
     serializer_class = UnitSerializer
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
-    filter_class = UnitFilterSet
+    filterset_class = UnitFilterSet
 
 
 register_view(UnitViewSet, 'unit')
