@@ -77,7 +77,7 @@ python-dateutil==2.6.1    # via arrow, delorean, faker, freezegun, icalendar
 python-docx==0.8.6
 python3-openid==3.1.0     # via django-allauth
 pytz==2018.3
-pyyaml==3.12              # via database-sanitizer, django-munigeo, django-sanitized-dump
+pyyaml==3.13              # via database-sanitizer, django-munigeo, django-sanitized-dump
 raven==6.3.0
 requests-cache==0.4.13    # via django-munigeo
 requests-ntlm==1.1.0
