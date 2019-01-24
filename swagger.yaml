@@ -460,6 +460,11 @@ paths:
           required: false
           type: number
           description: Use together with `lat` and `long`. Returns only resources that are within the given `distance` of the point which is calculated from `lat` and `lon`.
+        - name: free_of_charge
+          in: query
+          required: false
+          type: boolean
+          description: If given boolean is `true`, returns only resources that have their `min_price_per_hour` value of `0` or `None`. If given boolean is `false`, returns all resources.  
       responses:
         '200':
           description: Successful response
