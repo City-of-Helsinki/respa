@@ -674,3 +674,24 @@ def test_available_between_with_period(list_url, resource_in_unit, resource_in_u
     response = user_api_client.get(list_url, params)
     assert response.status_code == 200
     assert_response_objects(response, expected_resources)
+
+
+@pytest.mark.django_db
+def test_filtering_free_of_charge(list_url, api_client, resource_in_unit,
+                                  resource_in_unit2, resource_in_unit3):
+    free_resource = resource_in_unit
+    free_resource2 = resource_in_unit2
+    not_free_resource = resource_in_unit3
+
+    free_resource.min_price_per_hour = 0
+    free_resource.save()
+    not_free_resource.min_price_per_hour = 9001
+    not_free_resource.save()
+
+    response = api_client.get('{0}?free_of_charge=true'.format(list_url))
+    assert response.status_code == 200
+    assert_response_objects(response, [free_resource, free_resource2])
+
+    response = api_client.get('{0}?free_of_charge=false'.format(list_url))
+    assert response.status_code == 200
+    assert_response_objects(response, [free_resource, free_resource2, not_free_resource])
