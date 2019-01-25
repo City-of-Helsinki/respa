@@ -43,8 +43,8 @@ class ResourceListView(ListView):
         context['units'] = Unit.objects.filter(
             pk__in=resources.values('unit'))
         context['search_query'] = self.search_query
-        context['selected_resource_type'] = self.resource_type
-        context['selected_resource_unit'] = self.resource_unit
+        context['selected_resource_type'] = self.resource_type or ''
+        context['selected_resource_unit'] = self.resource_unit or ''
         return context
 
     def get_unfiltered_queryset(self):
