@@ -43,29 +43,29 @@ msgid "Notification email"
 msgstr "Meddelande e-post"
 
 msgid "Catering provider"
-msgstr ""
+msgstr "Catering leverantör"
 
 msgid "Catering providers"
-msgstr ""
+msgstr "Catering leverantörer"
 
 msgid "Catering product category"
-msgstr ""
+msgstr "Catering produkt kategorin"
 
 msgid "Catering product categories"
-msgstr ""
+msgstr "Catering produkt kategorier"
 
 msgctxt "catering"
 msgid "Category"
-msgstr ""
+msgstr "Kategori"
 
 msgid "Description"
 msgstr "Beskrivning"
 
 msgid "Catering product"
-msgstr ""
+msgstr "Catering produkt"
 
 msgid "Catering products"
-msgstr ""
+msgstr "Catering produkter"
 
 msgid "Reservation"
 msgstr "Reservation"
@@ -77,13 +77,13 @@ msgid "Message"
 msgstr "Meddelande"
 
 msgid "Serving time"
-msgstr ""
+msgstr "Serverings tid"
 
 msgid "Catering order"
-msgstr ""
+msgstr "Catering beställning"
 
 msgid "Catering orders"
-msgstr ""
+msgstr "Catering beställningar"
 
 msgid "Product"
 msgstr "Produkt"
@@ -95,10 +95,10 @@ msgid "Order"
 msgstr "Beställning"
 
 msgid "Catering order line"
-msgstr ""
+msgstr "Catering beställning linje"
 
 msgid "Catering order lines"
-msgstr ""
+msgstr "Catering beställning linjer"
 
 msgid "Illegal type."
 msgstr "Ogiltig typ."
@@ -146,19 +146,19 @@ msgid "Reservation created with access code"
 msgstr "Bokning skapad med behörighetskod"
 
 msgid "Catering order created"
-msgstr ""
+msgstr "Catering beställning skapad"
 
 msgid "Catering order modified"
-msgstr ""
+msgstr "Catering beställning ändrad"
 
 msgid "Catering order deleted"
-msgstr ""
+msgstr "Catering beställning raderad"
 
 msgid "Reservation comment created"
 msgstr "Bokningskommentar skapad"
 
 msgid "Catering order comment created"
-msgstr ""
+msgstr "Catering beställning komment skapad"
 
 msgid "Type"
 msgstr "Typ"
@@ -191,7 +191,7 @@ msgid "Notification template"
 msgstr "Meddelande mall"
 
 msgid "Notification templates"
-msgstr ""
+msgstr "Meddelande mallar"
 
 msgid "No reservations."
 msgstr "Ingen bokning"
@@ -217,13 +217,13 @@ msgstr "dags rapport"
 
 msgctxt "report"
 msgid "Catering order"
-msgstr ""
+msgstr "Catering beställning"
 
 msgid "pcs."
 msgstr "st."
 
 msgid "Too many (> 1000) reservations to return"
-msgstr ""
+msgstr "För många reservationer att återvända"
 
 msgid "reservation-details"
 msgstr "Bokningsdetaljer"
@@ -235,7 +235,7 @@ msgid "Resource groups"
 msgstr "Resursgrupper"
 
 msgid "Required fields must be a subset of supported fields"
-msgstr ""
+msgstr "Obligatoriska fält måste vara en delmängd av stödda fält"
 
 msgid "HH:mm"
 msgstr "HH:mm"
@@ -251,6 +251,10 @@ msgstr "Det går inte att göra reservationer i det förgångna."
 
 #, python-format
 msgid "The resource is reservable only before %(datetime)s"
+msgstr ""
+
+#, python-format
+msgid "The resource is reservable only after %(datetime)s"
 msgstr ""
 
 msgid "Only allowed to be set by staff members"
@@ -280,13 +284,13 @@ msgid "Resource app"
 msgstr "Resurs app"
 
 msgid "unit group administrator"
-msgstr ""
+msgstr "Enhetsgrupp administratör"
 
 msgid "unit administrator"
-msgstr ""
+msgstr "Enhets administratör"
 
 msgid "unit manager"
-msgstr ""
+msgstr "Enhets chef"
 
 msgid "open"
 msgstr "öppen"
@@ -423,10 +427,10 @@ msgid "Can access reservation comments"
 msgstr "Kan ser kommentarer i reservationer"
 
 msgid "Can view reservation catering orders"
-msgstr ""
+msgstr "Kan visa reservationer catering beställningar"
 
 msgid "Can modify reservation catering orders"
-msgstr ""
+msgstr "Kan redigera reservation catering beställningar"
 
 msgid "created"
 msgstr "skapad"
@@ -480,49 +484,49 @@ msgid "Host name"
 msgstr "Värdnamn"
 
 msgid "Reserver name"
-msgstr ""
+msgstr "Reservnamn"
 
 msgid "Reserver ID (business or person)"
-msgstr ""
+msgstr "Reserv ID (företag eller person)"
 
 msgid "Reserver email address"
-msgstr ""
+msgstr "Reserverares email adress"
 
 msgid "Reserver phone number"
-msgstr ""
+msgstr "Reserverares telefonnummer"
 
 msgid "Reserver address street"
-msgstr ""
+msgstr "Reserverares gatuadress"
 
 msgid "Reserver address zip"
-msgstr ""
+msgstr "Reserverares postnummer"
 
 msgid "Reserver address city"
-msgstr ""
+msgstr "Reserverares postort"
 
 msgid "Company"
-msgstr ""
+msgstr "Företag"
 
 msgid "Billing address street"
-msgstr ""
+msgstr "Fakturering gatuadress"
 
 msgid "Billing address zip"
-msgstr ""
+msgstr "Fakturering gatuadress postnummer"
 
 msgid "Billing address city"
-msgstr ""
+msgstr "Fakturering gatuadress stad"
 
 msgid "Original ID"
-msgstr ""
+msgstr "Original ID"
 
 msgid "You must end the reservation after it has begun"
-msgstr ""
+msgstr "Du måste avsluta bokningen när den har börjat"
 
 msgid "Begin and end time must match time slots"
-msgstr ""
+msgstr "Början och sluttiden måste matcha tidsluckor"
 
 msgid "The resource is already reserved for some of the period"
-msgstr ""
+msgstr "Resursen är redan reserverad under en del av perioden"
 
 #, python-format
 msgid "The minimum reservation length is %(min_period)s"
@@ -677,7 +681,9 @@ msgstr "Extern kalenderadress"
 msgid ""
 "A link to an external reservation system if this resource is managed "
 "elsewhere"
-msgstr "En URL till ett externt bokningssystem om den här resursen hanteras annorstädes"
+msgstr ""
+"En URL till ett externt bokningssystem om den här resursen hanteras "
+"annorstädes"
 
 msgid "resource"
 msgstr "resurs"
@@ -878,7 +884,7 @@ msgid "Please check the opening hours."
 msgstr "Kontrollera öppethållningstider"
 
 msgid "Log out"
-msgstr ""
+msgstr "Logga ut"
 
 msgid "Copy time period"
 msgstr "Kopiera tidsperiod"
@@ -902,7 +908,7 @@ msgid "Remove image"
 msgstr "Radera bild"
 
 msgid "Log in"
-msgstr ""
+msgstr "Logga in"
 
 #, fuzzy
 #| msgid "You are not allowed to make reservations in this resource."
@@ -918,10 +924,10 @@ msgid ""
 msgstr ""
 
 msgid "Login failed"
-msgstr ""
+msgstr "Inloggningen misslyckades"
 
 msgid "Log in with Helsinki account"
-msgstr ""
+msgstr "Logga in med Helsinki konto"
 
 #, fuzzy
 #| msgid "username"
@@ -1046,83 +1052,85 @@ msgid "name"
 msgstr "namn"
 
 msgid "a descriptive name for this Exchange configuration"
-msgstr ""
+msgstr "ett beskrivande namn för denna Exchange konfiguration"
 
 msgid "EWS URL"
-msgstr ""
+msgstr "EWS URL"
 
 msgid ""
 "the URL to the Exchange Web Service (e.g. https://contoso.com/EWS/Exchange."
 "asmx)"
-msgstr ""
+msgstr "URL till Exchange Web Service (e.g. https://contoso.com/EWS/Exchange."
+"asmx)"
 
 msgid "username"
 msgstr "användarnamn"
 
 msgid "the service user to authenticate as, in domain\\username format"
-msgstr ""
+msgstr "tjänsten användare att autentisera som, typ domain\\användarnamn"
 
 msgid "password"
 msgstr "lösenord"
 
 msgid "the user's password (stored as plain-text)"
-msgstr ""
+msgstr "användarens lösenord (lagras som vanlig text)"
 
 msgid "enabled"
-msgstr ""
+msgstr "aktiverad"
 
 msgid ""
 "whether synchronization is enabled at all against this Exchange instance"
-msgstr ""
+msgstr "bestämmer om synkronisering är aktiverad på denna instans"
 
 msgid "Exchange configuration"
-msgstr ""
+msgstr "Exchange konfiguration"
 
 msgid "Exchange configurations"
-msgstr ""
+msgstr "Exchange konfigurationer"
 
 msgid "sync Exchange to Respa"
-msgstr ""
+msgstr "synkronisera Exchange till Respa"
 
 msgid ""
 "if disabled, events will not be synced from the Exchange calendar to Respa"
-msgstr ""
+msgstr "om inaktiverad, händelser kommer inte synkroniseras från Exchange kalendern till Respa"
 
 msgid "sync Respa to Exchange"
-msgstr ""
+msgstr "synkronisera Respa till Exchange"
 
 msgid ""
 "if disabled, new events will not be synced from Respa to the Exchange "
 "calendar; pre-existing events continue to be updated"
-msgstr ""
+msgstr "om inaktiverad, nya händelser kommer inte att synkroniseras från "
+"Respa till Exchange kalender; förevarande händelser fortsätter att uppdateras"
 
 msgid "principal email"
-msgstr ""
+msgstr "viktigaste email"
 
 msgid "the email address for this resource in Exchange"
-msgstr ""
+msgstr "email adressen för den här resursen i Exchange"
 
 msgid "Exchange resource"
-msgstr ""
+msgstr "Exchange resursen"
 
 msgid "Exchange resources"
-msgstr ""
+msgstr "Exchange resurser"
 
 msgid "Exchange reservation"
-msgstr ""
+msgstr "Exchange reservation"
 
 msgid "Exchange reservations"
-msgstr ""
+msgstr "Exchange reservationer"
 
 msgid "Favorite resources"
-msgstr ""
+msgstr "Favorit resurser"
 
 msgid "staff status"
-msgstr ""
+msgstr "personal status"
 
 msgid ""
 "Designates whether the user can log into Django Admin or Respa Admin sites."
-msgstr ""
+msgstr "anger om användaren kan logga in på Django Admin eller Respa Admin webbplatser."
 
 msgid "general administrator status"
 msgstr "universell administratör"
@@ -1131,4 +1139,5 @@ msgid ""
 "Designates whether the user is a General Administrator with special "
 "permissions to many objects within Respa. This is almost as powerful as "
 "superuser."
-msgstr ""
+msgstr "anger om användaren är en General Administrator med särskilda "
+"behörigheter för många objekt inom Respa"
