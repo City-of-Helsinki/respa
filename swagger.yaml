@@ -86,6 +86,10 @@ paths:
           description: Number of units per page
           required: false
           type: integer
+        - name: unit_has_resource
+          in: query
+          description: Only return units that either have or do not have related resources, based on the boolean value given.
+          type: boolean
       responses:
         '200':
           description: Successful response
@@ -929,13 +933,11 @@ definitions:
       reservable_max_days_in_advance:
         type: integer
         minimum: 0
-        nullable: true
-        description: 'Reservable max. days in advance'
+        description: 'Reservable max. days in advance, accepts null value'
       reservable_min_days_in_advance:
         type: integer
         minimum: 0
-        nullable: true
-        description: 'Reservable min. days in advance'
+        description: 'Reservable min. days in advance, accepts null value'
       reservations:
         type: array
         description: 'The reservations made for the resource during the queried period'
