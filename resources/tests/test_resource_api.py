@@ -674,3 +674,17 @@ def test_available_between_with_period(list_url, resource_in_unit, resource_in_u
     response = user_api_client.get(list_url, params)
     assert response.status_code == 200
     assert_response_objects(response, expected_resources)
+
+
+@pytest.mark.django_db
+def test_filtering_by_municipality(list_url, api_client, resource_in_unit, test_unit, test_municipality):
+    test_unit.municipality = test_municipality
+    test_unit.save()
+
+    response = api_client.get('%s?municipality=foo' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, resource_in_unit) 
+
+    response = api_client.get('%s?municipality=bar' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, []) 

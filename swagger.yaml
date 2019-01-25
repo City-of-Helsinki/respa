@@ -460,6 +460,11 @@ paths:
           required: false
           type: number
           description: Use together with `lat` and `long`. Returns only resources that are within the given `distance` of the point which is calculated from `lat` and `lon`.
+        - name: municipality
+          in: query
+          description: Only return resources that belong to units that are located in the given municipality.
+          required: false
+          type: string
       responses:
         '200':
           description: Successful response
