@@ -464,7 +464,7 @@ paths:
           in: query
           required: false
           type: boolean
-          description: If given boolean is `true`, returns only resources that have their `min_price_per_hour` value of `0` or `None`. If given boolean is `false`, returns all resources.  
+          description: If given boolean is `true`, returns only resources that have their `min_price_per_hour` value of `0` or `None`. If given boolean is `false`, returns resources that have their `min_price_per_hour` greater than 0.  
       responses:
         '200':
           description: Successful response
