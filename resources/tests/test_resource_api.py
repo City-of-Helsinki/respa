@@ -694,4 +694,4 @@ def test_filtering_free_of_charge(list_url, api_client, resource_in_unit,
 
     response = api_client.get('{0}?free_of_charge=false'.format(list_url))
     assert response.status_code == 200
-    assert_response_objects(response, [free_resource, free_resource2, not_free_resource])
+    assert_response_objects(response, not_free_resource)

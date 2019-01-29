@@ -339,10 +339,11 @@ class ResourceFilterSet(django_filters.FilterSet):
             return queryset.exclude(favorited_by=self.user)
 
     def filter_free_of_charge(self, queryset, name, value):
+        qs = Q(min_price_per_hour__lte=0) | Q(min_price_per_hour__isnull=True)
         if value:
-            return queryset.filter(Q(min_price_per_hour__lte=0) | Q(min_price_per_hour__isnull=True))
+            return queryset.filter(qs)
         else:
-            return queryset
+            return queryset.exclude(qs)
 
     def _deserialize_datetime(self, value):
         try:
