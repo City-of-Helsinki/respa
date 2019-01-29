@@ -111,57 +111,10 @@ INSTALLED_APPS = [
 if env('SENTRY_DSN'):
     RAVEN_CONFIG = {
         'dsn': env('SENTRY_DSN'),
+        'environment': env('SENTRY_ENVIRONMENT'),
         'release': raven.fetch_git_sha(BASE_DIR),
     }
     INSTALLED_APPS.append('raven.contrib.django.raven_compat')
-# start sentry logging config
-# we need a sentry specific logging setup in order to capture mailer failures
-# as the anymail logs instead of allowing the exception to rise
-# this config from: https://docs.sentry.io/clients/python/integrations/django/
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': True,
-        'root': {
-            'level': 'WARNING',
-            'handlers': ['sentry'],
-        },
-        'formatters': {
-            'verbose': {
-                'format': '%(levelname)s %(asctime)s %(module)s '
-                          '%(process)d %(thread)d %(message)s'
-            },
-        },
-        'handlers': {
-            'sentry': {
-                'level': 'ERROR', # To capture more than ERROR, change to WARNING, INFO, etc.
-                'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
-                'tags': {'custom-tag': 'x'},
-            },
-            'console': {
-                'level': 'DEBUG',
-                'class': 'logging.StreamHandler',
-                'formatter': 'verbose'
-            }
-        },
-        'loggers': {
-            'django.db.backends': {
-                'level': 'ERROR',
-                'handlers': ['console'],
-                'propagate': False,
-            },
-            'raven': {
-                'level': 'DEBUG',
-                'handlers': ['console'],
-                'propagate': False,
-            },
-            'sentry.errors': {
-                'level': 'DEBUG',
-                'handlers': ['console'],
-                'propagate': False,
-            },
-        },
-    }
-# END sentry logging config
 
 MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
