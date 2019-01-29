@@ -1,13 +1,18 @@
+from io import StringIO
+from contextlib import redirect_stdout
+from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.admin import site as admin_site
 from django.contrib.admin.utils import unquote
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.gis.admin import OSMGeoAdmin
+from django.core.management import call_command
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from django import forms
+from django.template.response import TemplateResponse
 from guardian import admin as guardian_admin
 from image_cropping import ImageCroppingMixin
 from modeltranslation.admin import TranslationAdmin, TranslationStackedInline
@@ -105,6 +110,8 @@ class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, FixedGuarde
     inlines = [
         PeriodInline
     ]
+    change_list_template = 'admin/units/import_buttons.html'
+    import_template = 'admin/units/import_template.html'
 
     default_lon = 2776460  # Central Railway Station in EPSG:3857
     default_lat = 8438120
@@ -113,6 +120,36 @@ class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, FixedGuarde
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
         form.instance.update_opening_hours()
+
+    def get_urls(self):
+        urls = super(UnitAdmin, self).get_urls()
+        extra_urls = [
+        url(r'^tprek_import/$', self.admin_site.admin_view(self.tprek_import), name='tprek_import'),
+        url(r'^libraries_import/$', self.admin_site.admin_view(self.libraries_import), name='libraries_import'),
+        ]
+        return extra_urls + urls
+    
+    def tprek_import(self, request):
+        context = dict(
+            self.admin_site.each_context(request),
+        )
+        out = StringIO()
+        with redirect_stdout(out):
+            call_command('resources_import', '--all', 'tprek', stdout=out)
+        context['command_output'] = out.getvalue()
+        context['opts'] = self.model._meta
+        return TemplateResponse(request, self.import_template, context)
+
+    def libraries_import(self, request):
+        context = dict(
+            self.admin_site.each_context(request),
+        )
+        out = StringIO()
+        with redirect_stdout(out):
+            call_command('resources_import', '--all', 'kirjastot', stdout=out)
+        context['command_output'] = out.getvalue()
+        context['opts'] = self.model._meta
+        return TemplateResponse(request, self.import_template, context)
 
 
 class LimitAuthorizedToStaff(admin.ModelAdmin):
