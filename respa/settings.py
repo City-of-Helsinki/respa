@@ -17,20 +17,29 @@ env = environ.Env(
     ALLOWED_HOSTS=(list, []),
     ADMINS=(list, []),
     DATABASE_URL=(str, 'postgis:///respa'),
-    JWT_SECRET_KEY=(str, ''),
-    JWT_AUDIENCE=(str, ''),
+    SECURE_PROXY_SSL_HEADER=(tuple, None),
+    TOKEN_AUTH_ACCEPTED_AUDIENCE=(str, ''),
+    TOKEN_AUTH_SHARED_SECRET=(str, ''),
     MEDIA_ROOT=(environ.Path(), root('media')),
     STATIC_ROOT=(environ.Path(), root('static')),
     MEDIA_URL=(str, '/media/'),
     STATIC_URL=(str, '/static/'),
     SENTRY_DSN=(str, ''),
+    SENTRY_ENVIRONMENT=(str, ''),
     COOKIE_PREFIX=(str, 'respa'),
     INTERNAL_IPS=(list, []),
     MAIL_ENABLED=(bool, False),
     MAIL_DEFAULT_FROM=(str, ''),
     MAIL_MAILGUN_KEY=(str, ''),
+    MAIL_MAILGUN_DOMAIN=(str, ''),
+    MAIL_MAILGUN_API=(str, ''),
+    RESPA_IMAGE_BASE_URL=(str, ''),
 )
 environ.Env.read_env()
+
+# used for generating links to images, when no request context is available
+# reservation confirmation emails use this
+RESPA_IMAGE_BASE_URL = env('RESPA_IMAGE_BASE_URL')
 
 BASE_DIR = root()
 
@@ -46,6 +55,8 @@ DATABASES = {
     'default': env.db()
 }
 DATABASES['default']['ATOMIC_REQUESTS'] = True
+
+SECURE_PROXY_SSL_HEADER = env('SECURE_PROXY_SSL_HEADER')
 
 SITE_ID = 1
 
@@ -100,11 +111,10 @@ INSTALLED_APPS = [
 if env('SENTRY_DSN'):
     RAVEN_CONFIG = {
         'dsn': env('SENTRY_DSN'),
+        'environment': env('SENTRY_ENVIRONMENT'),
         'release': raven.fetch_git_sha(BASE_DIR),
     }
     INSTALLED_APPS.append('raven.contrib.django.raven_compat')
-
-
 
 MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -243,8 +253,8 @@ REST_FRAMEWORK = {
 
 JWT_AUTH = {
     'JWT_PAYLOAD_GET_USER_ID_HANDLER': 'helusers.jwt.get_user_id_from_payload_handler',
-    'JWT_AUDIENCE': env.str('JWT_AUDIENCE'),
-    'JWT_SECRET_KEY': env.str('JWT_SECRET_KEY')
+    'JWT_AUDIENCE': env('TOKEN_AUTH_ACCEPTED_AUDIENCE'),
+    'JWT_SECRET_KEY': env('TOKEN_AUTH_SHARED_SECRET')
 }
 
 
@@ -266,7 +276,9 @@ RESPA_DOCX_TEMPLATE = os.path.join(BASE_DIR, 'reports', 'data', 'default.docx')
 
 if env('MAIL_MAILGUN_KEY'):
     ANYMAIL = {
-        'MAILGUN_API_KEY': env('MAIL_MAILGUN_KEY')
+        'MAILGUN_API_KEY': env('MAIL_MAILGUN_KEY'),
+        'MAILGUN_SENDER_DOMAIN': env('MAIL_MAILGUN_DOMAIN'),
+        'MAILGUN_API_URL': env('MAIL_MAILGUN_API'),
     }
     EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
 
