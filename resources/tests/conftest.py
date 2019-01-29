@@ -7,7 +7,7 @@ from rest_framework.test import APIClient, APIRequestFactory
 
 from resources.models import Resource, ResourceType, Unit, Purpose, Day, Period
 from resources.models import Equipment, EquipmentAlias, ResourceEquipment, EquipmentCategory, TermsOfUse, ResourceGroup
-
+from munigeo.models import Municipality
 
 @pytest.fixture
 def api_client():
@@ -275,3 +275,11 @@ def resource_group2(resource_in_unit2):
     )
     group.resources = [resource_in_unit2]
     return group
+
+@pytest.fixture
+def test_municipality():
+    municipality = Municipality.objects.create(
+        id='foo',
+        name='Foo'
+    )
+    return municipality

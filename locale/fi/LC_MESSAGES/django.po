@@ -253,6 +253,7 @@ msgid "The resource is reservable only before %(datetime)s"
 msgstr "Tila on varattavissa vain ennen %(datetime)s"
 
 # python-format
+#, python-format
 msgid "The resource is reservable only after %(datetime)s"
 msgstr "Tila on varattavissa vain %(datetime)s jälkeen"
 
@@ -298,7 +299,7 @@ msgid "closed"
 msgstr "kiinni"
 
 msgid "-"
-msgstr ""
+msgstr "-"
 
 msgid "Resource"
 msgstr "Resurssi"
@@ -680,7 +681,8 @@ msgstr "Ulkoisen varauskalenterin URL"
 msgid ""
 "A link to an external reservation system if this resource is managed "
 "elsewhere"
-msgstr "Ulkoisen varausjärjestelmän osoite jos tätä resurssia hallitaan muualla"
+msgstr ""
+"Ulkoisen varausjärjestelmän osoite jos tätä resurssia hallitaan muualla"
 
 msgid "resource"
 msgstr "resurssi"
@@ -998,7 +1000,8 @@ msgstr "Yhteyshenkilö"
 msgid ""
 "Not used in the user interface of 'varaamo' but the information is added to "
 "the confirmation e-mail sent to the customer."
-msgstr ""
+msgstr "Ei käytetä Varaamon käyttöliittymässä, mutta tieto lisätään"
+"asiakkaalle lähetettävään vahvistussähköpostiin."
 
 msgid "External calendar"
 msgstr "Ulkoinen kalenterijärjestelmä"
@@ -1046,73 +1049,75 @@ msgid "name"
 msgstr "nimi"
 
 msgid "a descriptive name for this Exchange configuration"
-msgstr ""
+msgstr "kuvaava nimi tälle Exchange-kokoonpanolle"
 
 msgid "EWS URL"
-msgstr ""
+msgstr "EWS URL"
 
 msgid ""
 "the URL to the Exchange Web Service (e.g. https://contoso.com/EWS/Exchange."
 "asmx)"
-msgstr ""
+msgstr "URL Exchange Web Serviceen (esim. https://contoso.com/EWS/Exchange."
+"asmx)"
 
 msgid "username"
 msgstr "käyttäjätunnus"
 
 msgid "the service user to authenticate as, in domain\\username format"
-msgstr ""
+msgstr "palveluun autentikoituva käyttäjä, muotoa domain\\käyttäjänimi"
 
 msgid "password"
 msgstr "salasana"
 
 msgid "the user's password (stored as plain-text)"
-msgstr ""
+msgstr "käyttäjän salasana (säilytetään selkokielisenä)"
 
 msgid "enabled"
-msgstr ""
+msgstr "käytössä"
 
 msgid ""
 "whether synchronization is enabled at all against this Exchange instance"
-msgstr ""
+msgstr "määrittää onko synkronointi käytössä tässä Exchange instanssissa"
 
 msgid "Exchange configuration"
-msgstr ""
+msgstr "Exchange konfiguraatio"
 
 msgid "Exchange configurations"
-msgstr ""
+msgstr "Exchange konfiguraatiot"
 
 msgid "sync Exchange to Respa"
-msgstr ""
+msgstr "synkronoi Exchange Respaan"
 
 msgid ""
 "if disabled, events will not be synced from the Exchange calendar to Respa"
-msgstr ""
+msgstr "mikäli ei käytössä, tapahtumia ei synkronoida Exchange-kalenterista Respaan"
 
 msgid "sync Respa to Exchange"
-msgstr ""
+msgstr "synkronoi Respa Exchangeen"
 
 msgid ""
 "if disabled, new events will not be synced from Respa to the Exchange "
 "calendar; pre-existing events continue to be updated"
-msgstr ""
+msgstr "mikäli ei käytössä, uusia tapahtumia ei synkronoida Respasta Exchange-"
+"kalenteriin; ennestään olleet tapahtumat päivittyvät"
 
 msgid "principal email"
-msgstr ""
+msgstr "pääasiallinen sähköpostiosoite"
 
 msgid "the email address for this resource in Exchange"
-msgstr ""
+msgstr "sähköpostiosoite tähän resurssiin Exchangessa"
 
 msgid "Exchange resource"
-msgstr ""
+msgstr "Exchange resurssi"
 
 msgid "Exchange resources"
-msgstr ""
+msgstr "Exchange resurssit"
 
 msgid "Exchange reservation"
-msgstr ""
+msgstr "Exchange varaus"
 
 msgid "Exchange reservations"
-msgstr ""
+msgstr "Exchange varaukset"
 
 msgid "Favorite resources"
 msgstr "Suosikkiresurssit"

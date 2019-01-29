@@ -325,6 +325,8 @@ class ResourceFilterSet(django_filters.FilterSet):
                                               widget=django_filters.widgets.CSVWidget)
     free_of_charge = django_filters.BooleanFilter(method='filter_free_of_charge',
                                                   widget=DRFFilterBooleanWidget)
+    municipality = django_filters.Filter(name='unit__municipality_id', lookup_expr='in',
+                                         widget=django_filters.widgets.CSVWidget, distinct=True)
 
     def filter_is_favorite(self, queryset, name, value):
         if not self.user.is_authenticated():
