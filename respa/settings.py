@@ -25,6 +25,7 @@ env = environ.Env(
     MEDIA_URL=(str, '/media/'),
     STATIC_URL=(str, '/static/'),
     SENTRY_DSN=(str, ''),
+    SENTRY_ENVIRONMENT=(str, ''),
     COOKIE_PREFIX=(str, 'respa'),
     INTERNAL_IPS=(list, []),
     MAIL_ENABLED=(bool, False),
