@@ -76,11 +76,7 @@ def determine_hours_time_range(begin, end, tz):
 
 
 class ResourceType(ModifiableModel, AutoIdentifiedModel):
-    MAIN_TYPES = (
-        ('space', _('Space')),
-        ('person', _('Person')),
-        ('item', _('Item'))
-    )
+    MAIN_TYPES = settings.RESPA_RESOURCE_TYPE_CHOICES
     id = models.CharField(primary_key=True, max_length=100)
     main_type = models.CharField(verbose_name=_('Main type'), max_length=20, choices=MAIN_TYPES)
     name = models.CharField(verbose_name=_('Name'), max_length=200)

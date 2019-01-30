@@ -55,6 +55,11 @@ if 'reports' in settings.INSTALLED_APPS:
         url(r'^reports/reservation_details/', ReservationDetailsReport.as_view(), name='reservation-details-report'),
     ])
 
+if getattr(settings, 'RESPA_BERTH_ENABLED', False):
+    urlpatterns = [
+        url('^api/', include('respa_berth.urls'))
+    ] + urlpatterns
+
 
 if settings.DEBUG:
     import debug_toolbar
