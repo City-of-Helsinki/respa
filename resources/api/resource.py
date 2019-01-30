@@ -7,6 +7,7 @@ import pytz
 from arrow.parser import ParserError
 
 from django import forms
+from django.conf import settings
 from django.db.models import Prefetch, Q
 from django.urls import reverse
 from django.contrib.gis.db.models.functions import Distance
@@ -601,10 +602,12 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
         return context
 
     def get_queryset(self):
+        queryset = self.queryset
+        queryset = queryset.filter(type__main_type__in=[choice[0] for choice in settings.RESPA_RESOURCE_TYPE_CHOICES])
         if is_general_admin(self.request.user):
-            return self.queryset
+            return queryset
         else:
-            return self.queryset.filter(public=True)
+            return queryset.filter(public=True)
 
 
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,

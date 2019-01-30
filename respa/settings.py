@@ -29,6 +29,8 @@ env = environ.Env(
     MAIL_ENABLED=(bool, False),
     MAIL_DEFAULT_FROM=(str, ''),
     MAIL_MAILGUN_KEY=(str, ''),
+    BROKER_URL=(str, ''),
+    CELERY_ALWAYS_EAGER=(bool, True),
 )
 environ.Env.read_env()
 
@@ -95,6 +97,7 @@ INSTALLED_APPS = [
     'respa_admin',
 
     'sanitized_dump',
+    'respa_berth'
 ]
 
 if env('SENTRY_DSN'):
@@ -143,7 +146,7 @@ TEMPLATES = [
     },
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates'), os.path.join(BASE_DIR, 'templates', 'allauth')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -224,7 +227,6 @@ LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_ON_GET = True
 SOCIALACCOUNT_ADAPTER = 'helusers.adapter.SocialAccountAdapter'
 
-
 # REST Framework
 # http://www.django-rest-framework.org
 
@@ -234,11 +236,12 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'helusers.jwt.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ] + ([
-        "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.BasicAuthentication",
     ] if DEBUG else []),
     'DEFAULT_PAGINATION_CLASS': 'resources.pagination.DefaultPagination',
+    'PAGE_SIZE': 50,
 }
 
 JWT_AUTH = {
@@ -264,6 +267,12 @@ RESPA_CATERINGS_ENABLED = False
 RESPA_COMMENTS_ENABLED = False
 RESPA_DOCX_TEMPLATE = os.path.join(BASE_DIR, 'reports', 'data', 'default.docx')
 
+RESPA_RESOURCE_TYPE_CHOICES = (
+    ('space', _('Space')),
+    ('person', _('Person')),
+    ('item', _('Item'))
+)
+
 if env('MAIL_MAILGUN_KEY'):
     ANYMAIL = {
         'MAILGUN_API_KEY': env('MAIL_MAILGUN_KEY')
@@ -272,6 +281,25 @@ if env('MAIL_MAILGUN_KEY'):
 
 RESPA_ADMIN_USERNAME_LOGIN = env.bool(
     'RESPA_ADMIN_USERNAME_LOGIN', default=True)
+
+# respa_berth
+REGISTRATION_OPEN = False
+ACCOUNT_ADAPTER = 'respa_berth.account_adapter.NoNewUsersAccountAdapter'
+
+PAYTRAIL_MERCHANT_ID = ''
+PAYTRAIL_MERCHANT_SECRET = ''
+
+TWILIO_ACCOUNT_SID = ''
+TWILIO_AUTH_TOKEN = ''
+TWILIO_FROM_NUMBER = ''
+
+# celery
+BROKER_URL = env('BROKER_URL')
+CELERY_ALWAYS_EAGER = env('CELERY_ALWAYS_EAGER')
+CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+# Celery respects root Sentry logger
+CELERYD_HIJACK_ROOT_LOGGER = False
+
 
 # local_settings.py can be used to override environment-specific settings
 # like database and email that differ between development and production.
@@ -299,7 +327,6 @@ if 'SECRET_KEY' not in locals():
             secret.close()
         except IOError:
             Exception('Please create a %s file with random characters to generate your secret key!' % secret_file)
-
 
 #
 # Validate config
