@@ -1,7 +1,6 @@
 import logging
 import random
 from datetime import timedelta
-from importlib import import_module
 
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
@@ -9,6 +8,8 @@ from django.core.exceptions import ImproperlyConfigured
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from django.utils.module_loading import import_string
+
 
 User = get_user_model()
 
@@ -134,13 +135,9 @@ class AccessControlGrant(models.Model):
         index_together = (('resource', 'state'),)
 
     def __str__(self) -> str:
-        # time_range = format_dt_range(settings.LANGUAGES[0][0], self.starts_at, self.ends_at)
         return _("{user} {reservation} ({state})").format(
             user=self.user, reservation=self.reservation, state=self.state
         )
-
-    def is_active(self):
-        return self.state in (self.REQUESTED, self.INSTALLED)
 
     def cancel(self):
         """Cancels a grant.
@@ -356,10 +353,7 @@ class AccessControlSystem(models.Model):
             else:
                 raise ImproperlyConfigured("Driver %s not found" % self.driver)
 
-            parts = driver_path.split('.')
-            module_path, class_name = '.'.join(parts[:-1]), parts[-1]
-            module = import_module(module_path)
-            driver_class = getattr(module, class_name)
+            driver_class = import_string(driver_path)
             driver_classes[self.driver] = driver_class
 
         self._driver = driver_class(self)

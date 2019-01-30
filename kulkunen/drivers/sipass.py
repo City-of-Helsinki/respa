@@ -23,6 +23,8 @@ ACCESS_RULE_TYPES = {
 
 DEFAULT_TIME_SCHEDULE_ID = '1'  # Usually (?) maps to "Always"
 
+REQUESTS_TIMEOUT = 30  # seconds
+
 
 class UnauthorizedError(RemoteError):
     pass
@@ -270,7 +272,7 @@ class SiPassDriver(AccessControlDriver):
 
         with self._generate_ca_files() as ca_args:
             args.update(ca_args)
-            resp = requests.request(method, url, **args)
+            resp = requests.request(method, url, timeout=REQUESTS_TIMEOUT, **args)
 
         if resp.status_code not in (200, 201, 204):
             if resp.content:
@@ -469,7 +471,7 @@ class SiPassDriver(AccessControlDriver):
             assert key in data, "Key '%s' needed" % key
 
         # Compensate for possible clock drift
-        now = datetime.now() - timedelta(minutes=10)
+        now = timezone.now() - timedelta(minutes=10)
 
         ar_list = data.get('access_rules', [])
         if ar_list:
