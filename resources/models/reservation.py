@@ -222,9 +222,10 @@ class Reservation(ModifiableModel):
             return
 
         if new_state == Reservation.CONFIRMED:
-            self.approver = user
-            reservation_confirmed.send(sender=self.__class__, instance=self,
-                                       user=user)
+            self.approver = user if user.is_authenticated else None
+            if user.is_authenticated:
+                reservation_confirmed.send(sender=self.__class__, instance=self,
+                                           user=user)
         elif old_state == Reservation.CONFIRMED:
             self.approver = None
 
