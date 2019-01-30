@@ -19,7 +19,7 @@ from rest_framework.exceptions import NotAcceptable, ValidationError
 from rest_framework.settings import api_settings as drf_settings
 
 from munigeo import api as munigeo_api
-from resources.models import Reservation, Resource, ReservationMetadataSet
+from resources.models import Reservation, Resource, ReservationMetadataSet, DurationSlot
 from resources.models.reservation import RESERVATION_EXTRA_FIELDS
 from resources.pagination import ReservationPagination
 from resources.models.utils import generate_reservation_xlsx, get_object_or_none
@@ -77,7 +77,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         model = Reservation
         fields = [
             'url', 'id', 'resource', 'user', 'begin', 'end', 'comments', 'is_own', 'state', 'need_manual_confirmation',
-            'staff_event', 'access_code', 'user_permissions'
+            'staff_event', 'access_code', 'user_permissions', 'duration_slot'
         ] + list(RESERVATION_EXTRA_FIELDS)
         read_only_fields = RESERVATION_EXTRA_FIELDS
 
@@ -195,6 +195,10 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         # even if it exceeds the limit. (one that was created via admin ui for example).
         if reservation is None:
             resource.validate_max_reservations_per_user(request_user)
+
+        if data.get('duration_slot'):
+            if not resource.duration_slots.filter(pk=data.get('duration_slot').pk).exists():
+                raise ValidationError(dict(duration_slot=_('Resource doesn\'t have chosen duration slot')))
 
         # Run model clean
         data.pop('staff_event', None)

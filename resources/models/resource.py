@@ -157,6 +157,14 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         (ACCESS_CODE_TYPE_NONE, _('None')),
         (ACCESS_CODE_TYPE_PIN6, _('6-digit pin code')),
     )
+
+    LENGTH_WITHIN_DAY = 'within_day'
+    LENGTH_OVER_DAY = 'over_day'
+    RESERVATION_LENGHT_TYPE_CHOICES = (
+        (LENGTH_WITHIN_DAY, _('within day')),
+        (LENGTH_OVER_DAY, _('over day')),
+    )
+
     id = models.CharField(primary_key=True, max_length=100)
     public = models.BooleanField(default=True, verbose_name=_('Public'))
     unit = models.ForeignKey('Unit', verbose_name=_('Unit'), db_index=True, null=True, blank=True,
@@ -171,6 +179,9 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                                       max_length=20, choices=AUTHENTICATION_TYPES)
     people_capacity = models.IntegerField(verbose_name=_('People capacity'), null=True, blank=True)
     area = models.IntegerField(verbose_name=_('Area'), null=True, blank=True)
+
+    reservation_length_type = models.CharField(max_length=16, choices=RESERVATION_LENGHT_TYPE_CHOICES,
+                                               verbose_name=_('Reservations length type'), default=LENGTH_WITHIN_DAY)
 
     # if not set, location is inherited from unit
     location = models.PointField(verbose_name=_('Location'), null=True, blank=True, srid=settings.DEFAULT_SRID)
@@ -272,14 +283,24 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         else:
             end = tz.localize(end)
 
-        if begin.date() != end.date():
-            raise ValidationError(_("You cannot make a multi day reservation"))
+        if self.reservation_length_type == self.LENGTH_WITHIN_DAY:
+            if begin.date() != end.date():
+                raise ValidationError(_("You cannot make a multi day reservation"))
 
-        opening_hours = self.get_opening_hours(begin.date(), end.date())
-        days = opening_hours.get(begin.date(), None)
-        if days is None or not any(day['opens'] and begin >= day['opens'] and end <= day['closes'] for day in days):
-            if not self._has_perm(user, 'can_ignore_opening_hours'):
-                raise ValidationError(_("You must start and end the reservation during opening hours"))
+            opening_hours = self.get_opening_hours(begin.date(), end.date())
+            days = opening_hours.get(begin.date(), None)
+            if days is None or not any(day['opens'] and begin >= day['opens'] and end <= day['closes'] for day in days):
+                if not self._has_perm(user, 'can_ignore_opening_hours'):
+                    raise ValidationError(_("You must start and end the reservation during opening hours"))
+        else:
+            periods = self.get_opening_periods()
+            is_inside_open_period = False
+            for period in periods:
+                if begin.date() >= period.start and end.date() <= period.end:
+                    is_inside_open_period = True
+
+            if not is_inside_open_period:
+                raise ValidationError(_("The reservation is not during any opening periods"))
 
         if self.max_period and (end - begin) > self.max_period:
             raise ValidationError(_("The maximum reservation length is %(max_period)s") %
@@ -429,6 +450,27 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
         return opening_hours
 
+    def get_opening_periods(self):
+        """
+        Purpose of this method is to return resources periods to be user for
+        long reservations. Long reservations ignores opening hours, but uses
+        periods to define when resource is reservable.
+        """
+
+        unit_periods = list(self.unit.periods.all())
+        resource_periods = list(self.periods.all())
+        prioritized_periods = resource_periods
+        for unit_period in unit_periods:
+            is_overlapped = False
+            for resource_period in resource_periods:
+                if unit_period.end >= resource_period.start and resource_period.end >= unit_period.start:
+                    is_overlapped = True
+            if not is_overlapped:
+                prioritized_periods.append(unit_period)
+
+        prioritized_periods.sort(key=lambda p: p.end)
+        return prioritized_periods
+
     def update_opening_hours(self):
         hours = self.opening_hours.order_by('open_between')
         existing_hours = {}
@@ -468,8 +510,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                     if not h['opens'] or not h['closes']:
                         continue
                     if h['opens'] in to_delete and h['closes'] == to_delete[h['opens']]:
-                            del to_delete[h['opens']]
-                            continue
+                        del to_delete[h['opens']]
+                        continue
                     to_add[h['opens']] = h['closes']
 
         if to_delete:
@@ -747,3 +789,17 @@ class ResourceDailyOpeningHours(models.Model):
             lower = self.open_between.lower
             upper = self.open_between.upper
         return "%s: %s -> %s" % (self.resource, lower, upper)
+
+
+class DurationSlot(models.Model):
+    """
+    This model represents reservable predefined timeslot for a resource.
+    It is used for multi day reservations to predefine allowed durations of reservations.
+    """
+    resource = models.ForeignKey(
+        Resource, related_name='duration_slots', on_delete=models.CASCADE, db_index=True
+    )
+    duration = models.DurationField(verbose_name=_('Available reservation slot duration'))
+
+    def __str__(self):
+        return "%s / %s" % (self.resource, self.duration)
