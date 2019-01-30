@@ -4,10 +4,10 @@
 {% block object-tools-items %}
   {% if has_add_permission %}
     <li>
-      <a href="{% url 'admin:tprek_import' %}" class="historylink">Import tprek</a>
+      <a href="{% url 'admin:tprek_import' %}" class="historylink">{% trans 'Import Service Map' %}</a>
     </li>
     <li>
-        <a href="{% url 'admin:libraries_import' %}" class="historylink">Import libraries</a>
+        <a href="{% url 'admin:libraries_import' %}" class="historylink">{% trans 'Import Kirkanta' %}</a>
     </li>
   {% endif %}
   {{ block.super }}

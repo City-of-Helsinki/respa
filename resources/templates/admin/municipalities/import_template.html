@@ -16,10 +16,10 @@
                 <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
             </li>
             <li>
-                {% if request.path == "/admin/resources/unit/tprek_import/" %}
-                    {% trans 'Import Service Map' %}
+                {% if request.path == "/admin/munigeo/municipality/municipalities_import/" %}
+                    {% trans 'Import municipalities' %}
                 {% else %}
-                    {% trans 'Import Kirkanta' %}
+                    {% trans 'Import divisions' %}
                 {% endif %}
             </li>
         </ul>

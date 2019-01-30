@@ -233,8 +233,20 @@ msgstr "Resurssiryhmä"
 msgid "Resource groups"
 msgstr "Resurssiryhmät"
 
+msgid "Import Service Map"
+msgstr "Tuo Service Map"
+
+msgid "Import Kirkanta"
+msgstr "Tuo Kirkanta"
+
 msgid "Required fields must be a subset of supported fields"
 msgstr "Jokaisen pakollisen kentän täytyy olla myös tuettu kenttä"
+
+msgid "Import municipalities"
+msgstr "Tuo kunnat"
+
+msgid "Import divisions"
+msgstr "Tuo alueet"
 
 msgid "HH:mm"
 msgstr "TT:mm"
@@ -843,6 +855,9 @@ msgid_plural "%(count)d minutes"
 msgstr[0] "%(count)d minuutti"
 msgstr[1] "%(count)d minuuttia"
 
+msgid "Home"
+msgstr ""
+
 msgid "Add Another"
 msgstr "Lisää toinen"
 
@@ -1000,8 +1015,9 @@ msgstr "Yhteyshenkilö"
 msgid ""
 "Not used in the user interface of 'varaamo' but the information is added to "
 "the confirmation e-mail sent to the customer."
-msgstr "Ei käytetä Varaamon käyttöliittymässä, mutta tieto lisätään"
-"asiakkaalle lähetettävään vahvistussähköpostiin."
+msgstr ""
+"Ei käytetä Varaamon käyttöliittymässä, mutta tieto lisätäänasiakkaalle "
+"lähetettävään vahvistussähköpostiin."
 
 msgid "External calendar"
 msgstr "Ulkoinen kalenterijärjestelmä"
@@ -1057,8 +1073,8 @@ msgstr "EWS URL"
 msgid ""
 "the URL to the Exchange Web Service (e.g. https://contoso.com/EWS/Exchange."
 "asmx)"
-msgstr "URL Exchange Web Serviceen (esim. https://contoso.com/EWS/Exchange."
-"asmx)"
+msgstr ""
+"URL Exchange Web Serviceen (esim. https://contoso.com/EWS/Exchange.asmx)"
 
 msgid "username"
 msgstr "käyttäjätunnus"
@@ -1090,7 +1106,8 @@ msgstr "synkronoi Exchange Respaan"
 
 msgid ""
 "if disabled, events will not be synced from the Exchange calendar to Respa"
-msgstr "mikäli ei käytössä, tapahtumia ei synkronoida Exchange-kalenterista Respaan"
+msgstr ""
+"mikäli ei käytössä, tapahtumia ei synkronoida Exchange-kalenterista Respaan"
 
 msgid "sync Respa to Exchange"
 msgstr "synkronoi Respa Exchangeen"
@@ -1098,7 +1115,8 @@ msgstr "synkronoi Respa Exchangeen"
 msgid ""
 "if disabled, new events will not be synced from Respa to the Exchange "
 "calendar; pre-existing events continue to be updated"
-msgstr "mikäli ei käytössä, uusia tapahtumia ei synkronoida Respasta Exchange-"
+msgstr ""
+"mikäli ei käytössä, uusia tapahtumia ei synkronoida Respasta Exchange-"
 "kalenteriin; ennestään olleet tapahtumat päivittyvät"
 
 msgid "principal email"

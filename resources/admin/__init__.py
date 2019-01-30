@@ -24,6 +24,7 @@ from ..models import (
     ReservationMetadataField, ReservationMetadataSet, Resource,
     ResourceEquipment, ResourceGroup, ResourceImage, ResourceType, TermsOfUse,
     Unit, UnitAuthorization, UnitGroup, UnitGroupAuthorization)
+from munigeo.models import Municipality
 
 
 class _CommonMixin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin):
@@ -137,6 +138,7 @@ class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, FixedGuarde
         with redirect_stdout(out):
             call_command('resources_import', '--all', 'tprek', stdout=out)
         context['command_output'] = out.getvalue()
+        context['title'] = _('Import Service Map')
         context['opts'] = self.model._meta
         return TemplateResponse(request, self.import_template, context)
 
@@ -148,6 +150,7 @@ class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, FixedGuarde
         with redirect_stdout(out):
             call_command('resources_import', '--all', 'kirjastot', stdout=out)
         context['command_output'] = out.getvalue()
+        context['title'] = _('Import Kirkanta')
         context['opts'] = self.model._meta
         return TemplateResponse(request, self.import_template, context)
 
@@ -241,6 +244,51 @@ class ResourceGroupAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Fi
                          admin.ModelAdmin):
     pass
 
+class MunicipalityAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):
+    change_list_template = 'admin/municipalities/import_buttons.html'
+    import_template = 'admin/municipalities/import_template.html'
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+    def get_urls(self):
+        urls = super(MunicipalityAdmin, self).get_urls()
+        extra_urls = [
+        url(r'^municipalities_import/$', self.admin_site.admin_view(self.municipalities_import), name='municipalities_import'),
+        url(r'^divisions_helsinki_import/$', self.admin_site.admin_view(self.divisions_helsinki_import), name='divisions_helsinki_import'),
+        ]
+        return extra_urls + urls
+    
+    def municipalities_import(self, request):
+        context = dict(
+            self.admin_site.each_context(request),
+        )
+        out = StringIO()
+        with redirect_stdout(out):
+            call_command('geo_import', '--municipalities', 'finland', stdout=out)
+        context['command_output'] = out.getvalue()
+        context['title'] = _('Import municipalities')
+        context['opts'] = self.model._meta
+        return TemplateResponse(request, self.import_template, context)
+
+    def divisions_helsinki_import(self, request):
+        context = dict(
+            self.admin_site.each_context(request),
+        )
+        out = StringIO()
+        with redirect_stdout(out):
+            call_command('geo_import', '--divisions', 'helsinki', stdout=out)
+        context['command_output'] = out.getvalue()
+        context['title'] = _('Import divisions')
+        context['opts'] = self.model._meta
+        return TemplateResponse(request, self.import_template, context)
+
 
 admin_site.register(ResourceImage, ResourceImageAdmin)
 admin_site.register(Resource, ResourceAdmin)
@@ -256,3 +304,4 @@ admin_site.register(TermsOfUse, TermsOfUseAdmin)
 admin_site.register(ReservationMetadataField)
 admin_site.register(ReservationMetadataSet, ReservationMetadataSetAdmin)
 admin.site.register(ResourceGroup, ResourceGroupAdmin)
+admin.site.register(Municipality, MunicipalityAdmin)
