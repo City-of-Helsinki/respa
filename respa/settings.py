@@ -87,6 +87,7 @@ INSTALLED_APPS = [
     'django_jinja',
     'anymail',
     'reversion',
+    'django_admin_json_editor',
 
     'allauth',
     'allauth.account',
@@ -101,6 +102,7 @@ INSTALLED_APPS = [
     'caterings',
     'comments',
     'notifications.apps.NotificationsConfig',
+    'kulkunen',
 
     'respa_exchange',
     'respa_admin',
@@ -136,7 +138,7 @@ if DEBUG:
     ] + MIDDLEWARE
 
 ROOT_URLCONF = 'respa.urls'
-from django_jinja.builtins import DEFAULT_EXTENSIONS
+from django_jinja.builtins import DEFAULT_EXTENSIONS  # noqa
 
 TEMPLATES = [
     {
@@ -262,7 +264,7 @@ CSRF_COOKIE_NAME = '%s-csrftoken' % env.str('COOKIE_PREFIX')
 SESSION_COOKIE_NAME = '%s-sessionid' % env.str('COOKIE_PREFIX')
 
 
-from easy_thumbnails.conf import Settings as thumbnail_settings
+from easy_thumbnails.conf import Settings as thumbnail_settings  # noqa
 THUMBNAIL_PROCESSORS = (
     'image_cropping.thumbnail_processors.crop_corners',
 ) + thumbnail_settings.THUMBNAIL_PROCESSORS
