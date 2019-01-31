@@ -20,6 +20,7 @@ class UnitTranslationOptions(TranslationOptions):
 class ResourceTranslationOptions(TranslationOptions):
     fields = ('name', 'description', 'specific_terms',
               'reservation_confirmed_notification_extra',
+              'reservation_requested_notification_extra',
               'reservation_info', 'responsible_contact_info')
 
 
