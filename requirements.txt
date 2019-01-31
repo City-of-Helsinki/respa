@@ -18,6 +18,7 @@ daemonize==2.4.7
 database-sanitizer==0.4.0
 defusedxml==0.5.0         # via python3-openid
 delorean==0.6.0
+django-admin-json-editor==0.1.5
 django-allauth==0.34.0
 django-anymail==1.2
 django-appconf==1.0.1     # via django-image-cropping
@@ -37,20 +38,21 @@ django-munigeo==0.2.0
 django-parler==1.8.1
 django-reversion==2.0.11
 django-sanitized-dump==0.2.1
-django==1.11.16
+django==1.11.18
 djangorestframework-jwt==1.11.0
 djangorestframework==3.7.3
 drf-oidc-auth==0.9        # via django-helusers
 easy-thumbnails==2.5
 faker==0.9.0
 flake8==3.5.0
-freezegun==0.3.9
+freezegun==0.3.11
 future==0.16.0            # via pyjwkest
 humanize==0.5.1           # via delorean
 icalendar==4.0.0
 idna==2.6                 # via cryptography, requests
 iso8601==0.1.12
 jinja2==2.10
+jsonschema==2.6.0
 lxml==4.1.1
 markupsafe==1.0           # via jinja2
 mccabe==0.6.1             # via flake8
@@ -75,7 +77,7 @@ python-dateutil==2.6.1    # via arrow, delorean, faker, freezegun, icalendar
 python-docx==0.8.6
 python3-openid==3.1.0     # via django-allauth
 pytz==2018.3
-pyyaml==3.12              # via database-sanitizer, django-munigeo, django-sanitized-dump
+pyyaml==3.13              # via database-sanitizer, django-munigeo, django-sanitized-dump
 raven==6.3.0
 requests-cache==0.4.13    # via django-munigeo
 requests-ntlm==1.1.0

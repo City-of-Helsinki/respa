@@ -39,6 +39,7 @@ def test_crud_reservation(
         begin=now(),
         end=now() + timedelta(minutes=30),
         user=(admin_user if authed_res else None),
+        state=Reservation.CONFIRMED
     )
     if master_switch and is_exchange_resource:
         # so now we should have a reservation in Exchange

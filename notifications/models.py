@@ -24,7 +24,14 @@ class NotificationType:
     RESERVATION_CONFIRMED = 'reservation_confirmed'
     RESERVATION_DENIED = 'reservation_denied'
     RESERVATION_CREATED = 'reservation_created'
+    # If the access code is known at reservation time, this notification
+    # type is used.
     RESERVATION_CREATED_WITH_ACCESS_CODE = 'reservation_created_with_access_code'
+    # In some cases, the access code is known only some time after the
+    # reservation is made. A separate notification type is used so that
+    # we don't confuse the user with "new reservation created"-style
+    # messaging.
+    RESERVATION_ACCESS_CODE_CREATED = 'reservation_access_code_created'
     CATERING_ORDER_CREATED = 'catering_order_created'
     CATERING_ORDER_MODIFIED = 'catering_order_modified'
     CATERING_ORDER_DELETED = 'catering_order_deleted'
@@ -46,6 +53,8 @@ class NotificationTemplate(TranslatableModel):
         (NotificationType.RESERVATION_CREATED, _('Reservation created')),
         (NotificationType.RESERVATION_DENIED, _('Reservation denied')),
         (NotificationType.RESERVATION_CREATED_WITH_ACCESS_CODE, _('Reservation created with access code')),
+        (NotificationType.RESERVATION_ACCESS_CODE_CREATED, _('Access code was created for a reservation')),
+
         (NotificationType.CATERING_ORDER_CREATED, _('Catering order created')),
         (NotificationType.CATERING_ORDER_MODIFIED, _('Catering order modified')),
         (NotificationType.CATERING_ORDER_DELETED, _('Catering order deleted')),

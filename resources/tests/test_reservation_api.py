@@ -97,6 +97,7 @@ def reservation(resource_in_unit, user):
         event_subject='some fancy event',
         host_name='esko',
         reserver_name='martta',
+        state=Reservation.CONFIRMED
     )
 
 
@@ -110,6 +111,7 @@ def reservation2(resource_in_unit2, user):
         event_subject='not so fancy event',
         host_name='markku',
         reserver_name='pirkko',
+        state=Reservation.CONFIRMED
     )
 
 
@@ -124,6 +126,7 @@ def reservation3(resource_in_unit2, user2):
         event_subject='not so fancy event',
         host_name='markku',
         reserver_name='pirkko',
+        state=Reservation.CONFIRMED
     )
 
 
@@ -604,6 +607,7 @@ def test_reservation_user_filter(api_client, list_url, reservation, resource_in_
         begin=dateparse.parse_datetime('2115-04-07T11:00:00+02:00'),
         end=dateparse.parse_datetime('2115-04-07T12:00:00+02:00'),
         user=user2,
+        state=Reservation.CONFIRMED,
     )
 
     # even unauthenticated user should see all the reservations
@@ -632,6 +636,7 @@ def test_reservation_time_filters(api_client, list_url, reservation, resource_in
         begin=dateparse.parse_datetime('2015-04-07T11:00:00+02:00'),
         end=dateparse.parse_datetime('2015-04-07T12:00:00+02:00'),
         user=user,
+        state=Reservation.CONFIRMED,
     )
 
     # without the filter, only the reservation in the future should be returned
@@ -1455,6 +1460,18 @@ def test_pin6_access_code_can_be_set(user_api_client, list_url, resource_in_unit
     assert response.status_code == 201
     new_reservation = Reservation.objects.get(id=response.data['id'])
     assert new_reservation.access_code == '023543'
+
+
+@pytest.mark.django_db
+def test_pin4_access_code_is_not_generated(user_api_client, list_url, resource_in_unit, reservation_data):
+    resource_in_unit.access_code_type = Resource.ACCESS_CODE_TYPE_PIN4
+    resource_in_unit.generate_access_codes = False
+    resource_in_unit.save()
+
+    response = user_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201
+    new_reservation = Reservation.objects.get(id=response.data['id'])
+    assert not new_reservation.access_code
 
 
 @pytest.mark.django_db

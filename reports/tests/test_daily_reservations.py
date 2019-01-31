@@ -17,6 +17,7 @@ def reservation(resource_in_unit, user):
         user=user,
         reserver_name='John Smith',
         event_subject="John's welcome party",
+        state=Reservation.CONFIRMED
     )
 
 
@@ -29,6 +30,7 @@ def reservation2(resource_in_unit2, user):
         user=user,
         reserver_name='Mike Smith',
         event_subject="John's farewell party",
+        state=Reservation.CONFIRMED
     )
 
 
