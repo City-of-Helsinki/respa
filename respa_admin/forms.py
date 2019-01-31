@@ -166,8 +166,8 @@ class ResourceForm(forms.ModelForm):
         widgets = {
             'min_period': forms.Select(
                 choices=(
-                    ('00:30:00', '30 min'),
-                    ('01:00:00', '60 min'),
+                    ('00:30:00', '0,5 h'),
+                    ('01:00:00', '1 h'),
                 )
             ),
             'max_period': forms.Select(
