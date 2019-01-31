@@ -40,7 +40,9 @@ class TPRekImporter(Importer):
             point = Point(x=coords[0], y=coords[1], srid=4326)
             data['location'] = point
 
-        data['modified_at'] = dateutil.parser.parse(data['origin_last_modified_time'])
+        data['modified_at'] = dateutil.parser.parse(data['last_modified_time'])
+        data['www_url'] = data['www']
+        data['address_postal_full'] = None  # field does not support translation in respa
 
         obj = syncher.get(tprek_id)
         saved_obj = self.save_unit(data, obj)
@@ -51,22 +53,13 @@ class TPRekImporter(Importer):
 
     def import_units(self, url=None):
         print("Fetching units")
-        # 25480 == Public libraries
-        # 25700 == Youth centers
-        # 25724 == Animal farm
+        # 813 == Public libraries
+        # 468 == Youth centers
         if not url:
-            url = "http://api.hel.fi/servicemap/v1/unit/?service=25480,25700,25724&municipality=helsinki&include=department&page_size=1000"
+            url = "https://api.hel.fi/servicemap/v2/unit/?service=813,468&municipality=helsinki&include=department&page_size=1000"
         resp = requests.get(url)
         assert resp.status_code == 200
         data = resp.json()
-
-        if False:
-            print("Fetching Louhi")
-            url = "http://api.hel.fi/servicemap/v1/unit/44401"
-            resp = requests.get(url)
-            assert resp.status_code == 200
-            louhi = resp.json()
-            data['results'].append(louhi)
 
         unit_list = Unit.objects.filter(identifiers__namespace='tprek').distinct()
         syncher = ModelSyncher(unit_list, generate_tprek_id)
