@@ -977,7 +977,7 @@ msgid "Additional information before calendar."
 msgstr "Lisätiedot ennen kalenteria."
 
 msgid "E-mail notifications"
-msgstr "Sähköposti ilmoitukset"
+msgstr "Sähköposti-ilmoitukset"
 
 msgid "A notification will be sent when a space is booked."
 msgstr "Ilmoitus lähetetään, kun tilaa varataan."
