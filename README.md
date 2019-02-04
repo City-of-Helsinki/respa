@@ -33,25 +33,27 @@ Short for "RESurssiPAlvelu" i.e. Resource Service.
 Installation
 ------------
 
-### Prepare virtualenv
+### Prepare and activate virtualenv
 
-     virtualenv -p /usr/bin/python3 ~/.virtualenvs/
-     workon respa
+     virtualenv -p /usr/bin/python3 venv
+     source venv/bin/activate
 
 ### Install required packages
 
-Install all required packages with pip command:
+Install all packages required for development with pip command:
 
-     pip install -r requirements.txt
+     pip install -r dev-requirements.txt
+
 
 ### Create the database
 
 ```shell
-sudo -u postgres createuser -L -R -S respa
+sudo -u postgres createuser -P -R -S respa
 sudo -u postgres psql -d template1 -c "create extension hstore;"
 sudo -u postgres createdb -Orespa respa
 sudo -u postgres psql respa -c "CREATE EXTENSION postgis;"
 ```
+
 
 ### Build Respa Admin static resources
 
@@ -59,6 +61,16 @@ Make sure you have Node 8 or LTS and yarn installed.
 
 ```shell
 ./build-resources
+```
+
+### Dev environment configuration
+
+Create a file `respa/.env` to configure the dev environment e.g.:
+
+```
+DEBUG=1
+INTERNAL_IPS='127.0.0.1'
+DATABASE_URL='postgis://respa:password@localhost:5432/respa'
 ```
 
 ### Run Django migrations and import data
@@ -72,14 +84,6 @@ python manage.py resources_import --all tprek
 python manage.py resources_import --all kirjastot
 ```
 
-### Dev environment configuration
-
-Create a file `respa/.env` to configure the dev environment e.g.:
-
-```
-DEBUG=1
-INTERNAL_IPS='127.0.0.1'
-```
 
 ### Settings
 - `RESPA_IMAGE_BASE_URL`: Base URL used when building image URLs in email notifications. Example value: `'https://api.hel.fi'`.
@@ -188,6 +192,16 @@ $ py.test --cov-report html .
 ```
 
 to generate a HTML coverage report.
+
+If you get errors about failed database creation, you might need to add
+priviledges for the respa postgresql account:
+
+```
+sudo -u postgres psql respa -c "ALTER ROLE respa WITH SUPERUSER CREATEDB;"
+```
+
+CreateDB allows the account to create a new database for the test run and
+superuser is required to add the required extensions to the database.
 
 
 Requirements
