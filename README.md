@@ -174,6 +174,21 @@ database dump:
     ./manage.py create_sanitized_dump > sanitized_db.sql
 
 
+Importing a database dump
+-------------------------
+
+If you want to import a database dump, create the empty database as in
+"Create the database". Do not run any django commands on it, such as migrations
+or import scripts. Instead import the tables and data from the dump:
+
+    psql -h localhost -d respa -U respa -f sanitized_db.sql
+
+After importing, check for missing migrations (your codebase may contain new
+migrations that have not been executed in the dump) with `python manage.py
+showmigrations`. You can run the new migrations with `python manage.py
+migrate`.
+
+
 Running tests
 -------------
 
