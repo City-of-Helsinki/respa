@@ -125,11 +125,13 @@ class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, FixedGuarde
     def get_urls(self):
         urls = super(UnitAdmin, self).get_urls()
         extra_urls = [
-        url(r'^tprek_import/$', self.admin_site.admin_view(self.tprek_import), name='tprek_import'),
-        url(r'^libraries_import/$', self.admin_site.admin_view(self.libraries_import), name='libraries_import'),
+            url(r'^tprek_import/$', self.admin_site.admin_view(self.tprek_import),
+                name='tprek_import'),
+            url(r'^libraries_import/$', self.admin_site.admin_view(self.libraries_import),
+                name='libraries_import'),
         ]
         return extra_urls + urls
-    
+
     def tprek_import(self, request):
         context = dict(
             self.admin_site.each_context(request),
@@ -244,6 +246,7 @@ class ResourceGroupAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Fi
                          admin.ModelAdmin):
     pass
 
+
 class MunicipalityAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):
     change_list_template = 'admin/municipalities/import_buttons.html'
     import_template = 'admin/municipalities/import_template.html'
@@ -260,11 +263,13 @@ class MunicipalityAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Tra
     def get_urls(self):
         urls = super(MunicipalityAdmin, self).get_urls()
         extra_urls = [
-        url(r'^municipalities_import/$', self.admin_site.admin_view(self.municipalities_import), name='municipalities_import'),
-        url(r'^divisions_helsinki_import/$', self.admin_site.admin_view(self.divisions_helsinki_import), name='divisions_helsinki_import'),
+            url(r'^municipalities_import/$', self.admin_site.admin_view(self.municipalities_import),
+                name='municipalities_import'),
+            url(r'^divisions_helsinki_import/$', self.admin_site.admin_view(self.divisions_helsinki_import),
+                name='divisions_helsinki_import'),
         ]
         return extra_urls + urls
-    
+
     def municipalities_import(self, request):
         context = dict(
             self.admin_site.each_context(request),
