@@ -1,3 +1,4 @@
+import logging
 from io import StringIO
 from contextlib import redirect_stdout
 from django.conf.urls import url
@@ -25,6 +26,8 @@ from ..models import (
     ResourceEquipment, ResourceGroup, ResourceImage, ResourceType, TermsOfUse,
     Unit, UnitAuthorization, UnitGroup, UnitGroupAuthorization)
 from munigeo.models import Municipality
+
+logger = logging.getLogger(__name__)
 
 
 class _CommonMixin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin):
@@ -138,8 +141,12 @@ class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, FixedGuarde
         )
         out = StringIO()
         with redirect_stdout(out):
-            call_command('resources_import', '--all', 'tprek', stdout=out)
-        context['command_output'] = out.getvalue()
+            try:
+                call_command('resources_import', '--all', 'tprek', stdout=out)
+                context['command_output'] = out.getvalue()
+            except Exception as e:
+                context['command_output'] = 'Running import script caused the following exception: {0}'.format(str(e))
+                logger.exception('Running import script caused an exception')
         context['title'] = _('Import Service Map')
         context['opts'] = self.model._meta
         return TemplateResponse(request, self.import_template, context)
@@ -150,8 +157,12 @@ class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, FixedGuarde
         )
         out = StringIO()
         with redirect_stdout(out):
-            call_command('resources_import', '--all', 'kirjastot', stdout=out)
-        context['command_output'] = out.getvalue()
+            try:
+                call_command('resources_import', '--all', 'kirjastot', stdout=out)
+                context['command_output'] = out.getvalue()
+            except Exception as e:
+                context['command_output'] = 'Running import script caused the following exception: {0}'.format(str(e))
+                logger.exception('Running import script caused an exception')
         context['title'] = _('Import Kirkanta')
         context['opts'] = self.model._meta
         return TemplateResponse(request, self.import_template, context)
@@ -276,8 +287,12 @@ class MunicipalityAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Tra
         )
         out = StringIO()
         with redirect_stdout(out):
-            call_command('geo_import', '--municipalities', 'finland', stdout=out)
-        context['command_output'] = out.getvalue()
+            try:
+                call_command('geo_import', '--municipalities', 'finland', stdout=out)
+                context['command_output'] = out.getvalue()
+            except Exception as e:
+                context['command_output'] = 'Running import script caused the following exception: {0}'.format(str(e))
+                logger.exception('Running import script caused an exception')
         context['title'] = _('Import municipalities')
         context['opts'] = self.model._meta
         return TemplateResponse(request, self.import_template, context)
@@ -288,8 +303,12 @@ class MunicipalityAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Tra
         )
         out = StringIO()
         with redirect_stdout(out):
-            call_command('geo_import', '--divisions', 'helsinki', stdout=out)
-        context['command_output'] = out.getvalue()
+            try:
+                call_command('geo_import', '--divisions', 'helsinki', stdout=out)
+                context['command_output'] = out.getvalue()
+            except Exception as e:
+                context['command_output'] = 'Running import script caused the following exception: {0}'.format(str(e))
+                logger.exception('Running import script caused an exception')
         context['title'] = _('Import divisions')
         context['opts'] = self.model._meta
         return TemplateResponse(request, self.import_template, context)
