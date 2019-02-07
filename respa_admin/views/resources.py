@@ -1,3 +1,4 @@
+from django.db.models import FieldDoesNotExist
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
@@ -33,6 +34,7 @@ class ResourceListView(ListView):
         self.search_query = get_params.get('search_query')
         self.resource_type = get_params.get('resource_type')
         self.resource_unit = get_params.get('resource_unit')
+        self.order_by = get_params.get('order_by')
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -45,6 +47,7 @@ class ResourceListView(ListView):
         context['search_query'] = self.search_query
         context['selected_resource_type'] = self.resource_type or ''
         context['selected_resource_unit'] = self.resource_unit or ''
+        context['order_by'] = self.order_by or ''
         return context
 
     def get_unfiltered_queryset(self):
@@ -61,6 +64,12 @@ class ResourceListView(ListView):
             qs = qs.filter(type=self.resource_type)
         if self.resource_unit:
             qs = qs.filter(unit=self.resource_unit)
+        if self.order_by:
+            try:
+                if Resource._meta.get_field(self.order_by):
+                    qs = qs.order_by(self.order_by)
+            except FieldDoesNotExist:
+                qs = self.get_unfiltered_queryset()
 
         qs = qs.prefetch_related('images', 'unit')
 
