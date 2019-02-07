@@ -67,9 +67,10 @@ class PeriodForm(forms.ModelForm):
         required=True,
         widget=forms.DateInput(
             attrs={
-                'class': 'text-input form-control',
+                'class': 'text-input form-control datepicker',
                 'data-provide': 'datepicker',
                 'data-date-format': _("yyyy-mm-dd"),
+                'data-date-language': 'fi',
             }
         )
     )
@@ -78,9 +79,10 @@ class PeriodForm(forms.ModelForm):
         required=True,
         widget=forms.DateInput(
             attrs={
-                'class': 'text-input form-control',
+                'class': 'text-input form-control datepicker',
                 'data-provide': 'datepicker',
                 'data-date-format': _("yyyy-mm-dd"),
+                'data-date-language': 'fi',
             }
         )
     )
