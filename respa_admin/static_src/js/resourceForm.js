@@ -11,6 +11,7 @@ import {
   removePeriod,
   modifyDays,
   copyTimePeriod,
+  sortPeriodDays,
 } from './resourceFormPeriods';
 
 import {
@@ -64,6 +65,7 @@ function setPeriodAndDayItems() {
   let $servedDayItem = $daysList[$daysList.length-1];
 
   emptyDayItem = $($servedDayItem).clone();
+  emptyDayItem.removeClass('original-day');  // added days are not original. used for sorting formset indices.
   emptyPeriodItem = $($servedPeriodItem).clone();
 
   $servedDayItem.remove();
@@ -159,6 +161,14 @@ function enablePeriodEventHandlers() {
 
     const removeButton = $('#remove-button-' + i);
     removeButton.click(() => removePeriod(periods[i]));
+  }
+}
+
+function initialSortPeriodDays() {
+  let periods = getPeriodsList();
+
+  for (let i = 0; i < periods.length; i++) {
+    sortPeriodDays($(periods[i]));
   }
 }
 
