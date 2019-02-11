@@ -621,8 +621,8 @@ msgstr "Tunnistautuminen"
 msgid "People capacity"
 msgstr "Henkilömäärä"
 
-msgid "Area"
-msgstr "Pinta-ala"
+msgid "Area (m2)"
+msgstr "Pinta-ala (m2)"
 
 msgid "Location"
 msgstr "Sijainti"
