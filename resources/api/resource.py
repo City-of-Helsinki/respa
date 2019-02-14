@@ -323,6 +323,8 @@ class ResourceFilterSet(django_filters.FilterSet):
                                       widget=django_filters.widgets.CSVWidget, distinct=True)
     available_between = django_filters.Filter(method='filter_available_between',
                                               widget=django_filters.widgets.CSVWidget)
+    free_of_charge = django_filters.BooleanFilter(method='filter_free_of_charge',
+                                                  widget=DRFFilterBooleanWidget)
     municipality = django_filters.Filter(name='unit__municipality_id', lookup_expr='in',
                                          widget=django_filters.widgets.CSVWidget, distinct=True)
 
@@ -337,6 +339,13 @@ class ResourceFilterSet(django_filters.FilterSet):
             return queryset.filter(favorited_by=self.user)
         else:
             return queryset.exclude(favorited_by=self.user)
+
+    def filter_free_of_charge(self, queryset, name, value):
+        qs = Q(min_price_per_hour__lte=0) | Q(min_price_per_hour__isnull=True)
+        if value:
+            return queryset.filter(qs)
+        else:
+            return queryset.exclude(qs)
 
     def _deserialize_datetime(self, value):
         try:
@@ -468,7 +477,7 @@ class ResourceFilterSet(django_filters.FilterSet):
 
     class Meta:
         model = Resource
-        fields = ['purpose', 'type', 'people', 'need_manual_confirmation', 'is_favorite', 'unit', 'available_between']
+        fields = ['purpose', 'type', 'people', 'need_manual_confirmation', 'is_favorite', 'unit', 'available_between', 'min_price_per_hour']
 
 
 class ResourceFilterBackend(filters.BaseFilterBackend):
