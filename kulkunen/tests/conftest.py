@@ -1,12 +1,9 @@
 import pytest
 from django.utils.module_loading import import_string
 
-from resources.tests.conftest import *  # noqa
-
-from kulkunen.models import (
-    AccessControlSystem, AccessControlResource
-)
 from kulkunen import models as kulkunen_models
+from kulkunen.models import AccessControlResource, AccessControlSystem
+from resources.tests.conftest import *  # noqa
 
 
 @pytest.fixture

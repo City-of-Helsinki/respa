@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django_admin_json_editor.admin import JSONEditorWidget
 
-from .models import AccessControlSystem, AccessControlResource
+from .models import AccessControlResource, AccessControlSystem
 
 
 @admin.register(AccessControlSystem)

@@ -7,11 +7,10 @@ from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models, transaction
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
 from django.utils.module_loading import import_string
+from django.utils.translation import ugettext_lazy as _
 
 from resources.models import Resource
-
 
 User = get_user_model()
 

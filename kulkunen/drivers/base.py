@@ -5,8 +5,9 @@ from django.core.exceptions import ImproperlyConfigured  # noqa
 from django.db import transaction
 from django.utils import timezone
 
-from ..models import AccessControlGrant, AccessControlResource, AccessControlSystem
 from resources.models import Resource
+
+from ..models import AccessControlGrant, AccessControlResource, AccessControlSystem
 
 
 class RemoteError(Exception):

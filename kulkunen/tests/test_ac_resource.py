@@ -1,4 +1,5 @@
 import pytest
+
 from resources.models import Resource
 
 

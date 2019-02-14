@@ -1,9 +1,9 @@
 import logging
 
-from django.db.models.signals import pre_save
 from django.apps import apps
-from resources.signals import reservation_cancelled, reservation_confirmed, reservation_modified
+from django.db.models.signals import pre_save
 
+from resources.signals import reservation_cancelled, reservation_confirmed, reservation_modified
 
 logger = logging.getLogger(__name__)
 
