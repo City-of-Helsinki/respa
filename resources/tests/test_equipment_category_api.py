@@ -2,7 +2,7 @@
 import pytest
 
 from resources.models import Equipment, ResourceEquipment, EquipmentCategory
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from .utils import check_disallowed_methods, UNSAFE_METHODS
 

@@ -77,8 +77,10 @@ def empty_resource_form_data():
 
 
 @pytest.fixture
-def valid_resource_form_data(equipment, terms_of_use, purpose, space_resource_type, test_unit):
-    data = empty_resource_form_data()
+def valid_resource_form_data(
+    equipment, terms_of_use, purpose, space_resource_type, test_unit, empty_resource_form_data
+):
+    data = empty_resource_form_data
     data.update({
         'access_code_type': 'pin6',
         'authentication': 'weak',

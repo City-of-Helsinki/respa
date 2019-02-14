@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from .utils import check_only_safe_methods_allowed
 

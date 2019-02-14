@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from resources.api import RespaAPIRouter
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 import pytest
 
 

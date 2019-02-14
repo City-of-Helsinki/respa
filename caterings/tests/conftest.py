@@ -14,7 +14,7 @@ def catering_provider(test_unit):
         name='Kaikkein Kovin Catering Oy',
         price_list_url_fi='www.kaikkeinkovincatering.biz/hinnasto/',
     )
-    provider.units = (test_unit,)
+    provider.units.set([test_unit])
     return provider
 
 
@@ -24,7 +24,7 @@ def catering_provider2(test_unit, test_unit2):
         name='Lähes Yhtä Kova Catering Ab',
         price_list_url_fi='www.lahesyhtakovacatering.ninja/hinnat/',
     )
-    provider.units = (test_unit, test_unit2)
+    provider.units.set([test_unit, test_unit2])
     return provider
 
 

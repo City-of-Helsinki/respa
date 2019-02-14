@@ -328,7 +328,7 @@ class AccessControlSystem(models.Model):
         help_text=_('How many minutes before and after the reservation the access will be allowed')
     )
 
-    driver_config = JSONField(null=True, blank=True, default={}, help_text=_('Driver-specific configuration'))
+    driver_config = JSONField(null=True, blank=True, help_text=_('Driver-specific configuration'))
     driver_data = JSONField(null=True, editable=False, help_text=_('Internal driver data'))
 
     # Cached driver instance

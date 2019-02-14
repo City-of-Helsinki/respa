@@ -7,7 +7,7 @@ from resources.models import Unit
 
 
 class UnitFilterSet(django_filters.FilterSet):
-    resource_group = django_filters.Filter(name='resources__groups__identifier', lookup_expr='in',
+    resource_group = django_filters.Filter(field_name='resources__groups__identifier', lookup_expr='in',
                                            widget=django_filters.widgets.CSVWidget, distinct=True)
     unit_has_resource = django_filters.BooleanFilter(method='filter_unit_has_resource', widget=DRFFilterBooleanWidget)
 
@@ -61,7 +61,7 @@ class UnitViewSet(munigeo_api.GeoModelAPIView, viewsets.ReadOnlyModelViewSet):
     queryset = Unit.objects.all()
     serializer_class = UnitSerializer
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
-    filter_class = UnitFilterSet
+    filterset_class = UnitFilterSet
 
 
 register_view(UnitViewSet, 'unit')

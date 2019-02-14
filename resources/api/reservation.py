@@ -429,12 +429,12 @@ class ReservationFilterSet(django_filters.rest_framework.FilterSet):
     event_subject = django_filters.CharFilter(lookup_expr='icontains')
     host_name = django_filters.CharFilter(lookup_expr='icontains')
     reserver_name = django_filters.CharFilter(lookup_expr='icontains')
-    resource_name = django_filters.CharFilter(name='resource', lookup_expr='name__icontains')
+    resource_name = django_filters.CharFilter(field_name='resource', lookup_expr='name__icontains')
     is_favorite_resource = django_filters.BooleanFilter(method='filter_is_favorite_resource',
                                                         widget=DRFFilterBooleanWidget)
-    resource_group = django_filters.Filter(name='resource__groups__identifier', lookup_expr='in',
+    resource_group = django_filters.Filter(field_name='resource__groups__identifier', lookup_expr='in',
                                            widget=django_filters.widgets.CSVWidget, distinct=True)
-    unit = django_filters.CharFilter(name='resource__unit_id')
+    unit = django_filters.CharFilter(field_name='resource__unit_id')
     has_catering_order = django_filters.BooleanFilter(method='filter_has_catering_order', widget=DRFFilterBooleanWidget)
 
     def filter_is_favorite_resource(self, queryset, name, value):
@@ -512,7 +512,7 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter, UserFilterBackend, ResourceFilterBackend,
                        ReservationFilterBackend, NeedManualConfirmationFilterBackend, StateFilterBackend,
                        CanApproveFilterBackend)
-    filter_class = ReservationFilterSet
+    filterset_class = ReservationFilterSet
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, ReservationExcelRenderer)
     pagination_class = ReservationPagination

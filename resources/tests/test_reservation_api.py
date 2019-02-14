@@ -2,7 +2,7 @@ import pytest
 import datetime
 import re
 from django.contrib.auth import get_user_model
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core import mail
 from django.test.utils import override_settings
 from django.utils import dateparse, timezone, translation
@@ -1623,8 +1623,8 @@ def test_reservation_metadata_set(user_api_client, reservation, list_url, reserv
         name='test_set',
 
     )
-    metadata_set.supported_fields = [field_1, field_2]
-    metadata_set.required_fields = [field_1]
+    metadata_set.supported_fields.set([field_1, field_2])
+    metadata_set.required_fields.set([field_1])
 
     reservation.resource.reservation_metadata_set = metadata_set
     reservation.resource.save(update_fields=('reservation_metadata_set',))
@@ -1775,13 +1775,13 @@ def test_resource_group_filter(user_api_client, user, reservation, reservation2,
     reservation3.save()
 
     group_1 = ResourceGroup.objects.create(name='test group 1', identifier='test_group_1')
-    resource_in_unit.groups = [group_1]
+    resource_in_unit.groups.set([group_1])
 
     group_2 = ResourceGroup.objects.create(name='test group 2', identifier='test_group_2')
-    resource_in_unit2.groups = [group_1, group_2]
+    resource_in_unit2.groups.set([group_1, group_2])
 
     group_3 = ResourceGroup.objects.create(name='test group 3', identifier='test_group_3')
-    resource_in_unit3.groups = [group_3]
+    resource_in_unit3.groups.set([group_3])
 
     response = user_api_client.get(list_url)
     assert response.status_code == 200
