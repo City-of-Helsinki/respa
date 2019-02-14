@@ -6,6 +6,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from ..models import AccessControlGrant, AccessControlResource, AccessControlSystem
+from resources.models import Resource
 
 
 class RemoteError(Exception):
@@ -71,5 +72,28 @@ class AccessControlDriver:
         raise NotImplementedError("Implement this in the driver")
 
     def get_resource_identifier(self, resource: AccessControlResource):
-        # This can be overridden by the driver implementation
+        """Get a driver-specific, human-readable resource identifier to display in UI
+
+        Should be overridden by the driver implementation if needed.
+        """
         return ''
+
+    def save_respa_resource(self, resource: AccessControlResource, respa_resource: Resource):
+        """Notify driver about saving a Respa resource
+
+        Allows for driver-specific customization of the Respa resource or the
+        access control resource. Called when the model is saved.
+
+        Should be overridden by the driver implementation if needed
+        """
+        pass
+
+    def save_resource(self, resource: AccessControlResource):
+        """Notify driver about saving an access control resource
+
+        Allows for driver-specific customization of the access control resource or the
+        access control resource. Called when either model is saved.
+
+        Should be overridden by the driver implementation if needed
+        """
+        pass

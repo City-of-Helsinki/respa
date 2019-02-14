@@ -682,3 +682,19 @@ class SiPassDriver(AccessControlDriver):
         # every nightly.
         grant.install_at = grant.starts_at - timedelta(days=1)
         grant.save(update_fields=['install_at'])
+
+    def save_respa_resource(self, resource, respa_resource):
+        # SiPass driver generates access codes by itself, so we need to
+        # make sure Respa doesn't generate them.
+        if not respa_resource.generate_access_codes:
+            return
+        respa_resource.generate_access_codes = False
+
+    def save_resource(self, resource):
+        # SiPass driver generates access codes by itself, so we need to
+        # make sure Respa doesn't generate them.
+        respa_resource = resource.resource
+        if not respa_resource.generate_access_codes:
+            return
+        respa_resource.generate_access_codes = False
+        respa_resource.save(update_fields=['generate_access_codes'])

@@ -10,6 +10,8 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.utils.module_loading import import_string
 
+from resources.models import Resource
+
 
 User = get_user_model()
 
@@ -259,6 +261,10 @@ class AccessControlResource(models.Model):
     def __str__(self) -> str:
         return "%s: %s" % (self.system, self.resource)
 
+    def save(self, *args, **kwargs):
+        self.system.save_resource(self)
+        super().save(*args, **kwargs)
+
     def pad_start_and_end_times(self, start, end):
         system = self.system
         leeway = system.reservation_leeway or 0
@@ -379,3 +385,9 @@ class AccessControlSystem(models.Model):
 
     def get_resource_identifier(self, resource: AccessControlResource):
         return self._get_driver().get_resource_identifier(resource)
+
+    def save_respa_resource(self, resource: AccessControlResource, respa_resource: Resource):
+        self._get_driver().save_respa_resource(resource, respa_resource)
+
+    def save_resource(self, resource: AccessControlResource):
+        self._get_driver().save_resource(resource)
