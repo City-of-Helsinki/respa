@@ -83,9 +83,9 @@ class AccessControlDriver:
         """Notify driver about saving a Respa resource
 
         Allows for driver-specific customization of the Respa resource or the
-        access control resource. Called when the model is saved.
-
-        Should be overridden by the driver implementation if needed
+        corresponding access control resource. Called when the Respa resource object is saved.
+        NOTE: The driver must not call `respa_resource.save()`. Saving the resource
+        is handled automatically later.
         """
         pass
 
@@ -93,7 +93,7 @@ class AccessControlDriver:
         """Notify driver about saving an access control resource
 
         Allows for driver-specific customization of the access control resource or the
-        access control resource. Called when either model is saved.
+        corresponding Respa resource. Called when the access control resource is saved.
 
         Should be overridden by the driver implementation if needed
         """

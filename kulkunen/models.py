@@ -386,7 +386,19 @@ class AccessControlSystem(models.Model):
         return self._get_driver().get_resource_identifier(resource)
 
     def save_respa_resource(self, resource: AccessControlResource, respa_resource: Resource):
+        """Notify driver about saving a Respa resource
+
+        Allows for driver-specific customization of the Respa resource or the
+        corresponding access control resource. Called when the Respa resource object is saved.
+        NOTE: The driver must not call `respa_resource.save()`. Saving the resource
+        is handled automatically later.
+        """
         self._get_driver().save_respa_resource(resource, respa_resource)
 
     def save_resource(self, resource: AccessControlResource):
+        """Notify driver about saving an access control resource
+
+        Allows for driver-specific customization of the access control resource or the
+        corresponding Respa resource. Called when the access control resource is saved.
+        """
         self._get_driver().save_resource(resource)
