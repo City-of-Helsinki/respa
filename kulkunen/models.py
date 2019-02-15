@@ -7,9 +7,10 @@ from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models, transaction
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
 from django.utils.module_loading import import_string
+from django.utils.translation import ugettext_lazy as _
 
+from resources.models import Resource
 
 User = get_user_model()
 
@@ -259,6 +260,10 @@ class AccessControlResource(models.Model):
     def __str__(self) -> str:
         return "%s: %s" % (self.system, self.resource)
 
+    def save(self, *args, **kwargs):
+        self.system.save_resource(self)
+        super().save(*args, **kwargs)
+
     def pad_start_and_end_times(self, start, end):
         system = self.system
         leeway = system.reservation_leeway or 0
@@ -379,3 +384,21 @@ class AccessControlSystem(models.Model):
 
     def get_resource_identifier(self, resource: AccessControlResource):
         return self._get_driver().get_resource_identifier(resource)
+
+    def save_respa_resource(self, resource: AccessControlResource, respa_resource: Resource):
+        """Notify driver about saving a Respa resource
+
+        Allows for driver-specific customization of the Respa resource or the
+        corresponding access control resource. Called when the Respa resource object is saved.
+        NOTE: The driver must not call `respa_resource.save()`. Saving the resource
+        is handled automatically later.
+        """
+        self._get_driver().save_respa_resource(resource, respa_resource)
+
+    def save_resource(self, resource: AccessControlResource):
+        """Notify driver about saving an access control resource
+
+        Allows for driver-specific customization of the access control resource or the
+        corresponding Respa resource. Called when the access control resource is saved.
+        """
+        self._get_driver().save_resource(resource)
