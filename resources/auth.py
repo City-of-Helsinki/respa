@@ -17,3 +17,9 @@ def is_any_admin(user):
         is_general_admin(user) or
         user.unit_group_authorizations.admin_level().exists() or
         user.unit_authorizations.admin_level().exists())
+
+
+def is_unit_admin(user):
+    return is_authenticated_user(user) and (
+        user.unit_group_authorizations.admin_level().exists() or
+        user.unit_authorizations.admin_level().exists())

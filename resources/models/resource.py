@@ -29,7 +29,7 @@ from PIL import Image
 from guardian.shortcuts import get_objects_for_user, get_users_with_perms
 from guardian.core import ObjectPermissionChecker
 
-from ..auth import is_authenticated_user, is_general_admin
+from ..auth import is_authenticated_user, is_general_admin, is_unit_admin
 from ..errors import InvalidImage
 from ..fields import EquipmentField
 from .base import AutoIdentifiedModel, NameIdentifiedModel, ModifiableModel
@@ -132,6 +132,11 @@ class ResourceQuerySet(models.QuerySet):
     def visible_for(self, user):
         if is_general_admin(user):
             return self
+        elif is_unit_admin(user):
+            administered_unit_ids = Unit.objects.administered_by(user).values_list('id', flat=True)
+            administered_resources_q = Q(unit__in=administered_unit_ids)
+            public_resources_q = Q(public=True)
+            return self.filter(administered_resources_q | public_resources_q)
         else:
             return self.filter(public=True)
 
