@@ -227,6 +227,7 @@ LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_ON_GET = True
 SOCIALACCOUNT_ADAPTER = 'helusers.adapter.SocialAccountAdapter'
 
+
 # REST Framework
 # http://www.django-rest-framework.org
 
@@ -235,8 +236,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'helusers.jwt.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+        "rest_framework.authentication.SessionAuthentication",
     ] + ([
         "rest_framework.authentication.BasicAuthentication",
     ] if DEBUG else []),
@@ -327,6 +327,7 @@ if 'SECRET_KEY' not in locals():
             secret.close()
         except IOError:
             Exception('Please create a %s file with random characters to generate your secret key!' % secret_file)
+
 
 #
 # Validate config
