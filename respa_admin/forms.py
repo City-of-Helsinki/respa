@@ -173,6 +173,7 @@ class ResourceForm(forms.ModelForm):
             ),
             'max_period': forms.Select(
                 choices=(
+                    ('', '---'),
                     ('00:30:00', '30 min'),
                     ('00:45:00', '45 min'),
                     ('01:00:00', '60 min'),
