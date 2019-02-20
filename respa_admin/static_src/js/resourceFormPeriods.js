@@ -110,13 +110,14 @@ function updatePeriodDaysIndices($periodItem) {
     })
   };
 
-  let index = 0;
-  for (;index < originalDaysList.length; index++) {
-    setIndex(index, originalDaysList[index]);
+  let dayIndex = 0;
+  for (let i = 0;i < originalDaysList.length; i++) {
+    setIndex(dayIndex, originalDaysList[i]);
+    dayIndex++;
   }
-  for (let newDayLoopIndex = 0;newDayLoopIndex < newDaysList.length; newDayLoopIndex++) {
-    setIndex(index, newDaysList[newDayLoopIndex]);
-    index++;
+  for (let i = 0;i < newDaysList.length; i++) {
+    setIndex(dayIndex, newDaysList[i]);
+    dayIndex++;
   }
 }
 
@@ -260,7 +261,7 @@ export function modifyDays($periodItem, $dates) {
   }
 
   //If a value does not exist in newDays but it does exist in currentDays => remove it.
-  for (let i = 0; i < currentDays.length; i++) {
+  for (let i = currentDays.length - 1; i >= 0 ; i--) {
     if (!newDays.includes(currentDays[i])) {
       removeDay($periodItem, i);
     }

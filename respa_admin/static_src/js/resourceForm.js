@@ -164,7 +164,7 @@ function enablePeriodEventHandlers() {
   }
 }
 
-function initialSortPeriodDays() {
+export function initialSortPeriodDays() {
   let periods = getPeriodsList();
 
   for (let i = 0; i < periods.length; i++) {
