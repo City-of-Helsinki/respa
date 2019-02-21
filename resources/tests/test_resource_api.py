@@ -151,6 +151,13 @@ def test_non_public_resource_visibility(api_client, resource_in_unit, user, staf
     assert response.status_code == 200
     assert response.data['count'] == 1
 
+    # Authenticated as unit manager
+    user.unit_authorizations.level = UnitAuthorizationLevel.manager
+    user.unit_authorizations.subject = resource_in_unit.unit
+    user.save()
+    url = reverse('resource-list')
+    response = api_client
+
 
 @pytest.mark.django_db
 def test_api_resource_geo_queries(api_client, resource_in_unit):
