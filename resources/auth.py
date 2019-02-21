@@ -23,3 +23,8 @@ def is_unit_admin(user):
     return is_authenticated_user(user) and (
         user.unit_group_authorizations.admin_level().exists() or
         user.unit_authorizations.admin_level().exists())
+
+
+def is_unit_manager(user):
+    return is_authenticated_user(user) and (
+        user.unit_authorizations.manager_level().exists())
