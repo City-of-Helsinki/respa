@@ -6,13 +6,18 @@ from django.db import migrations, models
 def change_negative_fields(apps, schema_editor):
     Resource = apps.get_model('resources', 'Resource')
     for resource in Resource.objects.all():
+        resource_has_changed = False
         if resource.area and resource.area < 0:
             resource.area = 0
+            resource_has_changed = True
         if resource.max_reservations_per_user and resource.max_reservations_per_user < 0:
             resource.max_reservations_per_user = 0
+            resource_has_changed = True
         if resource.people_capacity and resource.people_capacity < 0:
             resource.people_capacity = 0
-        resource.save()
+            resource_has_changed = True
+        if resource_has_changed:
+            resource.save()
 
 
 class Migration(migrations.Migration):
