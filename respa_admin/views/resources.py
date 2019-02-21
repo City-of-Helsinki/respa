@@ -1,5 +1,6 @@
-from django.db.models import FieldDoesNotExist
+from django.conf import settings
 from django.contrib import messages
+from django.db.models import FieldDoesNotExist
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
@@ -21,6 +22,8 @@ from respa_admin.forms import (
     get_resource_image_formset,
     ResourceForm,
 )
+
+from respa_admin import accessibility_api
 
 
 class ResourceListView(ListView):
@@ -128,14 +131,37 @@ class SaveResourceView(CreateView):
 
         trans_fields = forms.get_translated_field_count(resource_image_formset)
 
+        accessibility_data_link = self._get_accessibility_data_link(request)
+
         return self.render_to_response(
             self.get_context_data(
+                accessibility_data_link=accessibility_data_link,
                 form=form,
                 period_formset_with_days=period_formset_with_days,
                 resource_image_formset=resource_image_formset,
                 trans_fields=trans_fields,
                 page_headline=page_headline,
             )
+        )
+
+    def _get_accessibility_data_link(self, request):
+        if self.object.unit is None or not self.object.unit.is_admin(request.user):
+            return None
+        if self.object.type.id != 'meeting_room':
+            return None
+        api_url = getattr(settings, 'RESPA_ACCESSIBILITY_API_BASE_URL', '')
+        system_id = getattr(settings, 'RESPA_ACCESSIBILITY_API_SYSTEM_ID', '')
+        secret = getattr(settings, 'RESPA_ACCESSIBILITY_API_SECRET', '')
+        target_id = self.object.pk
+        target_name = self.object.name
+        user = request.user.email or request.user.username
+        return accessibility_api.generate_url(
+            api_url,
+            system_id,
+            target_id,
+            target_name,
+            user,
+            secret,
         )
 
     def post(self, request, *args, **kwargs):
