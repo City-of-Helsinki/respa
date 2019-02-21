@@ -6,7 +6,7 @@ from django.contrib.gis.geos import Point
 from django.utils import timezone
 from freezegun import freeze_time
 from guardian.shortcuts import assign_perm, remove_perm
-from ..enums import UnitAuthorizationLevel
+from ..enums import UnitAuthorizationLevel, UnitGroupAuthorizationLevel
 
 from resources.models import (Day, Equipment, Period, Reservation, ReservationMetadataSet, ResourceEquipment,
                               ResourceType)
@@ -144,6 +144,15 @@ def test_non_public_resource_visibility(api_client, resource_in_unit, user, staf
     # Authenticated as unit admin
     user.unit_authorizations.authorized = staff_user
     user.unit_authorizations.level = UnitAuthorizationLevel.admin
+    user.unit_authorizations.subject = resource_in_unit.unit
+    user.save()
+    url = reverse('resource-list')
+    response = api_client.get(url)
+    assert response.status_code == 200
+    assert response.data['count'] == 1
+
+    # Authenticated as unit group admin
+    user.unit_authorizations.level = UnitGroupAuthorizationLevel.admin
     user.unit_authorizations.subject = resource_in_unit.unit
     user.save()
     url = reverse('resource-list')
