@@ -25,7 +25,6 @@ from resources.models import (
     Period
 )
 from resources.models.resource import determine_hours_time_range
-from resources import settings
 
 from ..auth import is_general_admin, is_staff
 from .base import TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
@@ -606,7 +605,7 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
     queryset = Resource.objects.select_related('generic_terms', 'unit', 'type', 'reservation_metadata_set')
     queryset = queryset.prefetch_related('favorited_by', 'resource_equipment', 'resource_equipment__equipment',
                                          'purposes', 'images', 'purposes', 'groups')
-    serializer_class = import_string(settings.RESOURCE_SERIALIZER_CLASS)
+    serializer_class = import_string(getattr(settings, 'RESPA_RESOURCES_RESOURCE_SERIALIZER_CLASS', 'resources.api.resource.ResourceSerializer'))
     filter_backends = (filters.SearchFilter, ResourceFilterBackend, LocationFilterBackend)
     search_fields = ('name_fi', 'description_fi', 'unit__name_fi',
                      'name_sv', 'description_sv', 'unit__name_sv',
@@ -632,7 +631,7 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
 
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
                       viewsets.GenericViewSet, ResourceCacheMixin):
-    serializer_class = import_string(settings.RESOURCE_DETAILS_SERIALIZER_CLASS)
+    serializer_class = import_string(getattr(settings, 'RESPA_RESOURCES_RESOURCE_DETAILS_SERIALIZER_CLASS', 'resources.api.resource.ResourceDetailsSerializer'))
     queryset = ResourceListViewSet.queryset
 
     def get_serializer(self, page, *args, **kwargs):
