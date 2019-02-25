@@ -969,6 +969,15 @@ msgstr "Synlighet"
 msgid "Edit"
 msgstr "Redigera"
 
+msgid "Accessibility"
+msgstr "Tillgänglighet"
+
+msgid "Accessibility data is entered in the Accessibility Application."
+msgstr "Tillgänglighetsdata anges i tillgänglighetsansökan."
+
+msgid "Enter accessibility data"
+msgstr "Ange tillgänglighetsdata"
+
 msgid "Booking information"
 msgstr "Bokningsinformation"
 

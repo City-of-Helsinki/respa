@@ -967,6 +967,15 @@ msgstr "Näkyvyys"
 msgid "Edit"
 msgstr "Muokkaa"
 
+msgid "Accessibility"
+msgstr "Esteettömyys"
+
+msgid "Accessibility data is entered in the Accessibility Application."
+msgstr "Tilan esteettömyystiedot täytetään Esteettömyyssovelluksessa."
+
+msgid "Enter accessibility data"
+msgstr "Täytä esteettömyystiedot"
+
 msgid "Booking information"
 msgstr "Varauksen tiedot"
 
