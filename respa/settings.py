@@ -272,9 +272,23 @@ RESPA_CATERINGS_ENABLED = False
 RESPA_COMMENTS_ENABLED = False
 RESPA_DOCX_TEMPLATE = os.path.join(BASE_DIR, 'reports', 'data', 'default.docx')
 
-RESPA_ACCESSIBILITY_API_BASE_URL = env('ACCESSIBILITY_API_BASE_URL')
-RESPA_ACCESSIBILITY_API_SYSTEM_ID = env('ACCESSIBILITY_API_SYSTEM_ID')
-RESPA_ACCESSIBILITY_API_SECRET = env('ACCESSIBILITY_API_SECRET')
+RESPA_ADMIN_ACCESSIBILITY_API_BASE_URL = env('ACCESSIBILITY_API_BASE_URL')
+RESPA_ADMIN_ACCESSIBILITY_API_SYSTEM_ID = env('ACCESSIBILITY_API_SYSTEM_ID')
+RESPA_ADMIN_ACCESSIBILITY_API_SECRET = env('ACCESSIBILITY_API_SECRET')
+# list of ResourceType ids for which accessibility data input link is shown for
+RESPA_ADMIN_ACCESSIBILITY_VISIBILITY = [
+    'art_studio',  # Ateljee
+    'avh553uaks6a',  # Soittohuone
+    'band_practice_space',  # Bändikämppä
+    'club_room',  # Kerhohuone
+    'event_space',  # Tapahtumatila
+    'game_space',  # Pelitila
+    'hall',  # Sali
+    'meeting_room',  # Kokoustila
+    'multipurpose_room',  # Monitoimihuone"
+    'studio',  # Studio
+    'workspace',  # Työtila
+]
 
 if env('MAIL_MAILGUN_KEY'):
     ANYMAIL = {
