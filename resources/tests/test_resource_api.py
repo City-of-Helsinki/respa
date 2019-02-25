@@ -9,7 +9,7 @@ from guardian.shortcuts import assign_perm, remove_perm
 from ..enums import UnitAuthorizationLevel, UnitGroupAuthorizationLevel
 
 from resources.models import (Day, Equipment, Period, Reservation, ReservationMetadataSet, ResourceEquipment,
-                              ResourceType)
+                              ResourceType, Unit)
 from .utils import assert_response_objects, check_only_safe_methods_allowed
 
 
@@ -150,6 +150,7 @@ def test_non_public_resource_visibility(api_client, resource_in_unit, user, staf
     response = api_client.get(url)
     assert response.status_code == 200
     assert response.data['count'] == 1
+    assert Unit.objects.administered_by(user).values_list('id', flat=True)[0] == response.data['results'][0]['unit']
 
     # Authenticated as unit group admin
     user.unit_authorizations.level = UnitGroupAuthorizationLevel.admin
@@ -159,13 +160,17 @@ def test_non_public_resource_visibility(api_client, resource_in_unit, user, staf
     response = api_client.get(url)
     assert response.status_code == 200
     assert response.data['count'] == 1
+    assert Unit.objects.administered_by(user).values_list('id', flat=True)[0] == response.data['results'][0]['unit']
 
     # Authenticated as unit manager
     user.unit_authorizations.level = UnitAuthorizationLevel.manager
     user.unit_authorizations.subject = resource_in_unit.unit
     user.save()
     url = reverse('resource-list')
-    response = api_client
+    response = api_client.get(url)
+    assert response.status_code == 200
+    assert response.data['count'] == 1
+    assert Unit.objects.administered_by(user).values_list('id', flat=True)[0] == response.data['results'][0]['unit']
 
 
 @pytest.mark.django_db
