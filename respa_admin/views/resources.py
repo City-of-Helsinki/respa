@@ -145,9 +145,11 @@ class SaveResourceView(CreateView):
         )
 
     def _get_accessibility_data_link(self, request):
-        if self.object.unit is None or not self.object.unit.is_admin(request.user):
+        if self.object is None or self.object.unit is None or not self.object.unit.is_admin(request.user):
             return None
         if self.object.type.id not in getattr(settings, 'RESPA_ADMIN_ACCESSIBILITY_VISIBILITY', []):
+            return None
+        if not getattr(settings, 'RESPA_ADMIN_ACCESSIBILITY_API_SECRET', None):
             return None
         api_url = getattr(settings, 'RESPA_ADMIN_ACCESSIBILITY_API_BASE_URL', '')
         system_id = getattr(settings, 'RESPA_ADMIN_ACCESSIBILITY_API_SYSTEM_ID', '')

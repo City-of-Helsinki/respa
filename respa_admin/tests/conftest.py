@@ -3,7 +3,9 @@ import pytest
 from resources.tests.conftest import (
     equipment_category,
     equipment,
+    general_admin,
     purpose,
+    resource_in_unit,
     space_resource_type,
     terms_of_use,
     test_unit,
