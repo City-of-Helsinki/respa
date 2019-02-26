@@ -33,6 +33,14 @@
                         {% endfor %}
                     </ul>
                 </li>
+                {% if INSTRUCTIONS_URL %}
+                <li>
+                    <a href="{{ INSTRUCTIONS_URL }}">
+                        <span class="glyphicon glyphicon-question-sign icon-left" aria-hidden="true"></span>
+                        {% trans "Instructions" %}
+                    </a>
+                </li>
+                {% endif %}
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-hidden="true">
                         <svg class="nav-icon" aria-hidden="true" viewBox="0 0 512 512">

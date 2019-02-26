@@ -894,6 +894,9 @@ msgstr "Varattavissa"
 msgid "Please check the opening hours."
 msgstr "Tarkista aukioloajat."
 
+msgid "Instructions"
+msgstr "Ohjeet"
+
 msgid "Log out"
 msgstr "Kirjaudu ulos"
 

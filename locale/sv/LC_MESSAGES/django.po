@@ -895,6 +895,9 @@ msgstr "Kan reserveras"
 msgid "Please check the opening hours."
 msgstr "Kontrollera öppethållningstider"
 
+msgid "Instructions"
+msgstr "Instruktioner"
+
 msgid "Log out"
 msgstr "Logga ut"
 
