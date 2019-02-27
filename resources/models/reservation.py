@@ -105,6 +105,7 @@ class Reservation(ModifiableModel):
     approver = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Approver'),
                                  related_name='approved_reservations', null=True, blank=True,
                                  on_delete=models.SET_NULL)
+    staff_event = models.BooleanField(verbose_name=_('Is staff event'), default=False)
 
     # access-related fields
     access_code = models.CharField(verbose_name=_('Access code'), max_length=32, null=True, blank=True)

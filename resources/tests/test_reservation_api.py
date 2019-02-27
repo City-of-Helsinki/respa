@@ -854,7 +854,6 @@ def test_new_staff_event_gets_confirmed(user_api_client, staff_api_client, staff
     resource_in_unit.need_manual_confirmation = True
     resource_in_unit.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
     resource_in_unit.save()
-    reservation_data['staff_event'] = True
 
     # reservation should not be be confirmed if the user doesn't have approve permission
     response = staff_api_client.post(list_url, data=reservation_data_extra)
@@ -865,6 +864,7 @@ def test_new_staff_event_gets_confirmed(user_api_client, staff_api_client, staff
     reservation.delete()
 
     assign_perm('unit:can_approve_reservation', staff_user, resource_in_unit.unit)
+    reservation_data['staff_event'] = True
     reservation_data['reserver_name'] = 'herra huu'
     reservation_data['event_description'] = 'herra huun bileet'
     response = staff_api_client.post(list_url, data=reservation_data)
@@ -1910,3 +1910,34 @@ def test_has_catering_order_field(
     response = user_api_client.get(detail_url)
     assert response.status_code == 200
     assert response.data['has_catering_order'] is False
+
+
+@pytest.mark.django_db
+def test_normal_user_can_not_make_staff_reservation(
+        api_client, list_url, reservation_data_extra, user):
+    """
+    Authenticated normal user should not be able to create a staff event reservation.
+    """
+    api_client.force_authenticate(user=user)
+    reservation_data_extra['staff_event'] = True
+
+    response = api_client.post(list_url, data=reservation_data_extra)
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_admin_can_make_staff_reservation(
+        resource_in_unit, list_url, reservation_data, staff_user, staff_api_client):
+    """
+    Staff member with can_approve_reservation permission should be able to make staff event reservations.
+    """
+
+    assign_perm('unit:can_approve_reservation', staff_user, resource_in_unit.unit)
+    reservation_data['staff_event'] = True
+    reservation_data['reserver_name'] = 'herra huu'
+    reservation_data['event_description'] = 'herra huun bileet'
+    response = staff_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201, "Request failed with: %s" % (str(response.content, 'utf8'))
+    assert response.data.get('staff_event', False) is True
+    reservation = Reservation.objects.get(id=response.data['id'])
+    assert reservation.staff_event is True

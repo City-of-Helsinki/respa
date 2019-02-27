@@ -126,6 +126,7 @@ def generate_reservation_xlsx(reservations):
       * resource: resource name str
       * begin: begin time datetime
       * end: end time datetime
+      * staff_event: is staff event bool
       * user: user email str (optional)
       * comments: comments str (optional)
 
@@ -142,7 +143,8 @@ def generate_reservation_xlsx(reservations):
         ('End time', 15),
         ('Created at', 15),
         ('User', 30),
-        ('Comments', 30)
+        ('Comments', 30),
+        ('Staff event', 10),
     )
     header_format = workbook.add_format({'bold': True})
     for column, header in enumerate(headers):
@@ -160,6 +162,7 @@ def generate_reservation_xlsx(reservations):
             worksheet.write(row, 5, reservation['user'])
         if 'comments' in reservation:
             worksheet.write(row, 6, reservation['comments'])
+        worksheet.write(row, 7, reservation['staff_event'])
     workbook.close()
     return output.getvalue()
 

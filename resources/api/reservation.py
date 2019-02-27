@@ -70,7 +70,6 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
     is_own = serializers.SerializerMethodField()
     state = serializers.ChoiceField(choices=Reservation.STATE_CHOICES, required=False)
     need_manual_confirmation = serializers.ReadOnlyField()
-    staff_event = serializers.BooleanField(required=False, write_only=True)
     user_permissions = serializers.SerializerMethodField()
 
     class Meta:
@@ -152,7 +151,10 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         if data['end'] < timezone.now():
             raise ValidationError(_('You cannot make a reservation in the past'))
 
-        if not resource.is_admin(request_user):
+        is_resource_admin = resource.is_admin(request_user)
+        can_approve_reservation = resource.can_approve_reservations(request_user)
+
+        if not is_resource_admin:
             reservable_before = resource.get_reservable_before()
             if reservable_before and data['begin'] >= reservable_before:
                 raise ValidationError(_('The resource is reservable only before %(datetime)s' %
@@ -163,14 +165,18 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
                                         {'datetime': reservable_after}))
 
         # normal users cannot make reservations for other people
-        if not resource.is_admin(request_user):
+        if not is_resource_admin:
             data.pop('user', None)
 
         # Check user specific reservation restrictions relating to given period.
         resource.validate_reservation_period(reservation, request_user, data=data)
 
+        if data.get('staff_event', False):
+            if not can_approve_reservation:
+                raise ValidationError(dict(staff_event=_('Only allowed to be set by staff members')))
+
         if 'comments' in data:
-            if not resource.is_admin(request_user):
+            if not is_resource_admin:
                 raise ValidationError(dict(comments=_('Only allowed to be set by staff members')))
 
         if 'access_code' in data:
@@ -197,7 +203,6 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             resource.validate_max_reservations_per_user(request_user)
 
         # Run model clean
-        data.pop('staff_event', None)
         instance = Reservation(**data)
         try:
             instance.clean(original_reservation=reservation)
