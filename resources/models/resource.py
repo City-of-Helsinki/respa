@@ -179,8 +179,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     need_manual_confirmation = models.BooleanField(verbose_name=_('Need manual confirmation'), default=False)
     authentication = models.CharField(blank=False, verbose_name=_('Authentication'),
                                       max_length=20, choices=AUTHENTICATION_TYPES)
-    people_capacity = models.IntegerField(verbose_name=_('People capacity'), null=True, blank=True)
-    area = models.IntegerField(verbose_name=_('Area'), null=True, blank=True)
+    people_capacity = models.PositiveIntegerField(verbose_name=_('People capacity'), null=True, blank=True)
+    area = models.PositiveIntegerField(verbose_name=_('Area'), null=True, blank=True)
 
     # if not set, location is inherited from unit
     location = models.PointField(verbose_name=_('Location'), null=True, blank=True, srid=settings.DEFAULT_SRID)
@@ -190,8 +190,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     max_period = models.DurationField(verbose_name=_('Maximum reservation time'), null=True, blank=True)
 
     equipment = EquipmentField(Equipment, through='ResourceEquipment', verbose_name=_('Equipment'))
-    max_reservations_per_user = models.IntegerField(verbose_name=_('Maximum number of active reservations per user'),
-                                                    null=True, blank=True)
+    max_reservations_per_user = models.PositiveIntegerField(verbose_name=_('Maximum number of active reservations per user'),
+                                                            null=True, blank=True)
     reservable = models.BooleanField(verbose_name=_('Reservable'), default=False)
     reservation_info = models.TextField(verbose_name=_('Reservation info'), null=True, blank=True)
     responsible_contact_info = models.TextField(verbose_name=_('Responsible contact info'), blank=True)
