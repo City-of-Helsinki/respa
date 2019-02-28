@@ -33,22 +33,6 @@ class UnitQuerySet(models.QuerySet):
 
         return self.filter(via_unit_group | via_unit).distinct()
 
-    def administered_by(self, user):
-        if not is_authenticated_user(user):
-            return self.none()
-
-        if is_general_admin(user):
-            return self
-
-        unit_group_q = Q(
-            unit_groups__authorizations__in=(
-                user.unit_group_authorizations.admin_level()))
-        unit_q = Q(
-            authorizations__in=(
-                user.unit_authorizations.admin_level()))
-
-        return self.filter(unit_group_q | unit_q).distinct()
-
 
 def _get_default_timezone():
     return timezone.get_default_timezone().zone
