@@ -1,16 +1,15 @@
 {% load i18n %}
 
 {% with forloop.counter0 as dayId %}
-    <div class="weekday-row input-row" id="period-day-{{ id }}-{{ dayId }}">
+    <div class="weekday-row input-row original-day" id="period-day-{{ id }}-{{ dayId }}">
 
         <div id="day-db-ids">
             {{ day.period }}
             {{ day.id }}
         </div>
 
-        <span class="select-dropdown btn btn-primary">
+        <span class="select-dropdown btn btn-primary period-weekday">
             {{ day.weekday }}
-            <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
         </span>
 
         <div class="form-group">

@@ -49,14 +49,44 @@ function updatePeriodChildren(periodItem, idNum) {
 }
 
 /*
+* Sort period days based on day of week, beginning of the selection first.
+*/
+export function sortPeriodDays($periodItem) {
+  let $daysListContainer = $periodItem.find('#period-days-list');
+  let $daysList = $daysListContainer.children();
+  let $dateInputs = $periodItem.find("[id^='date-input'] input");
+  let startDate = new Date(convertDateFormat($dateInputs[0].value));
+  let firstWeekday = getDayValuesInterval([startDate])[0];
+  let daysInWeek = 7;
+
+  $daysList.detach().sort(function (a, b) {
+    let aDay = parseInt(a.querySelector("[id*='-weekday']").value);
+    if (aDay < firstWeekday) {
+      aDay = aDay + daysInWeek; // consider weekdays before firstWeekday as "next week" for sorting
+    }
+    let bDay = parseInt(b.querySelector("[id*='-weekday']").value);
+    if (bDay < firstWeekday) {
+      bDay = bDay + daysInWeek;
+    }
+    return aDay > bDay;
+  });
+
+  $daysListContainer.append($daysList);
+}
+
+/*
 * Updates the indices of the various input boxes
 * in the each day under a specific period.
+*
+* Django expects that existing items come first and new items come last in
+* the formset. We index the originals first and new ones last.
 * */
 function updatePeriodDaysIndices($periodItem) {
-  let daysList = $periodItem.find('#period-days-list').children();
+  let originalDaysList = $periodItem.find('.weekday-row.original-day');
+  let newDaysList = $periodItem.find('.weekday-row:not(.original-day)');
   let periodIdNum = $periodItem[0].id.match(/[0-9]/)[0];
 
-  daysList.each(function (dayIndex, day) {
+  const setIndex = function (dayIndex, day) {
     $(day).attr('id', $(day).attr('id').replace(/-(\d+)-(\d+)/, '-' + periodIdNum + '-' + dayIndex));
 
     $(day).each(function (inputIndex, inputRow) {
@@ -78,7 +108,17 @@ function updatePeriodDaysIndices($periodItem) {
         $(cellInput).attr('name', $(cellInput).attr('name').replace(/-(\d+)-(\d+)-/, '-' + periodIdNum + '-' + dayIndex + '-'));
       });
     })
-  });
+  };
+
+  let dayIndex = 0;
+  for (let i = 0;i < originalDaysList.length; i++) {
+    setIndex(dayIndex, originalDaysList[i]);
+    dayIndex++;
+  }
+  for (let i = 0;i < newDaysList.length; i++) {
+    setIndex(dayIndex, newDaysList[i]);
+    dayIndex++;
+  }
 }
 
 /*
@@ -140,8 +180,10 @@ function restoreDaysMgmtFormValues(periodItem) {
 * */
 export function updateTotalDays($periodItem) {
   let amountOfDays = $periodItem.find('#period-days-list').children().length;
+  let amountOfOriginalDays = $periodItem.find('#period-days-list').children('.weekday-row.original-day').length;
   let daysMgmtForm = $periodItem.find('#days-management-form');
   daysMgmtForm.find("[id$='-TOTAL_FORMS']").val(amountOfDays);
+  daysMgmtForm.find("[id$='-INITIAL_FORMS']").val(amountOfOriginalDays);
 }
 
 /*
@@ -219,12 +261,15 @@ export function modifyDays($periodItem, $dates) {
   }
 
   //If a value does not exist in newDays but it does exist in currentDays => remove it.
-  for (let i = 0; i < currentDays.length; i++) {
+  for (let i = currentDays.length - 1; i >= 0 ; i--) {
     if (!newDays.includes(currentDays[i])) {
       removeDay($periodItem, i);
     }
   }
 
+  if (newDays.length > 0) {
+    sortPeriodDays($periodItem);
+  }
   updatePeriodDaysIndices($periodItem);
   updateTotalDays($periodItem);
 }
@@ -245,12 +290,10 @@ function convertDateFormat(dateString) {
 }
 
 /*
-* Helper function for modifyDays(). Removes a day
-* with it's exact ID.
+* Helper function for modifyDays(). Removes the n'th day in the list.
 * */
 function removeDay(periodItem, index) {
-  let periodIdNum = periodItem[0].id.match(/[0-9]/)[0];
-  $('#period-day-' + periodIdNum + '-' + index).remove();
+  periodItem.find(".weekday-row")[index].remove();
 }
 
 /*
