@@ -13,8 +13,9 @@ from parler.utils.context import switch_language
 
 from caterings.models import CateringOrder, CateringProvider
 
+from resources.enums import UnitAuthorizationLevel
 from resources.models import (Period, Day, Reservation, Resource, ResourceGroup, ReservationMetadataField,
-                              ReservationMetadataSet)
+                              ReservationMetadataSet, UnitAuthorization)
 from notifications.models import NotificationTemplate, NotificationType
 from notifications.tests.utils import check_received_mail_exists
 from .utils import check_disallowed_methods, assert_non_field_errors_contain, assert_response_objects
@@ -841,8 +842,8 @@ def test_staff_event_restrictions(user_api_client, staff_api_client, staff_user,
     assert response.status_code == 400
     assert set(DEFAULT_REQUIRED_RESERVATION_EXTRA_FIELDS) == set(response.data)
 
-    # staff with permission but reserver_name and event_description missing
-    assign_perm('unit:can_approve_reservation', staff_user, resource_in_unit.unit)
+    # unit manager but reserver_name and event_description missing
+    UnitAuthorization.objects.create(subject=resource_in_unit.unit, level=UnitAuthorizationLevel.manager, authorized=staff_user)
     response = staff_api_client.post(list_url, data=reservation_data)
     assert response.status_code == 400
     assert {'reserver_name', 'event_description'} == set(response.data)
@@ -863,12 +864,12 @@ def test_new_staff_event_gets_confirmed(user_api_client, staff_api_client, staff
 
     reservation.delete()
 
-    assign_perm('unit:can_approve_reservation', staff_user, resource_in_unit.unit)
+    UnitAuthorization.objects.create(subject=resource_in_unit.unit, level=UnitAuthorizationLevel.manager, authorized=staff_user)
     reservation_data['staff_event'] = True
     reservation_data['reserver_name'] = 'herra huu'
     reservation_data['event_description'] = 'herra huun bileet'
     response = staff_api_client.post(list_url, data=reservation_data)
-    assert response.status_code == 201
+    assert response.status_code == 201, "Request failed with: %s" % (str(response.content, 'utf8'))
     reservation = Reservation.objects.get(id=response.data['id'])
     assert reservation.state == Reservation.CONFIRMED
 
@@ -1926,16 +1927,15 @@ def test_normal_user_can_not_make_staff_reservation(
 
 
 @pytest.mark.django_db
-def test_admin_can_make_staff_reservation(
+def test_manager_can_make_staff_reservation(
         resource_in_unit, list_url, reservation_data, staff_user, staff_api_client):
     """
-    Staff member with can_approve_reservation permission should be able to make staff event reservations.
+    User with manager status on the resource should be able to make staff event reservations.
     """
-
-    assign_perm('unit:can_approve_reservation', staff_user, resource_in_unit.unit)
     reservation_data['staff_event'] = True
     reservation_data['reserver_name'] = 'herra huu'
     reservation_data['event_description'] = 'herra huun bileet'
+    UnitAuthorization.objects.create(subject=resource_in_unit.unit, level=UnitAuthorizationLevel.manager, authorized=staff_user)
     response = staff_api_client.post(list_url, data=reservation_data)
     assert response.status_code == 201, "Request failed with: %s" % (str(response.content, 'utf8'))
     assert response.data.get('staff_event', False) is True

@@ -101,12 +101,11 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             supported = resource.get_supported_reservation_extra_field_names(cache=cache)
             required = resource.get_required_reservation_extra_field_names(cache=cache)
 
-            if resource.need_manual_confirmation:
-
-                # manually confirmed reservations have some extra conditions
-                can_approve = resource.can_approve_reservations(self.context['request'].user)
-                if data.get('staff_event', False) and can_approve:
-                    required = {'reserver_name', 'event_description'}
+            # staff events have less requirements
+            is_staff_event = data.get('staff_event', False)
+            is_resource_manager = resource.is_manager(self.context['request'].user)
+            if is_staff_event and is_resource_manager:
+                required = {'reserver_name', 'event_description'}
 
             # we don't need to remove a field here if it isn't supported, as it will be read-only and will be more
             # easily removed in to_representation()
@@ -152,7 +151,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             raise ValidationError(_('You cannot make a reservation in the past'))
 
         is_resource_admin = resource.is_admin(request_user)
-        can_approve_reservation = resource.can_approve_reservations(request_user)
+        is_resource_manager = resource.is_manager(request_user)
 
         if not is_resource_admin:
             reservable_before = resource.get_reservable_before()
@@ -172,8 +171,8 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         resource.validate_reservation_period(reservation, request_user, data=data)
 
         if data.get('staff_event', False):
-            if not can_approve_reservation:
-                raise ValidationError(dict(staff_event=_('Only allowed to be set by staff members')))
+            if not is_resource_manager:
+                raise ValidationError(dict(staff_event=_('Only allowed to be set by resource managers')))
 
         if 'comments' in data:
             if not is_resource_admin:
@@ -569,9 +568,8 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         instance = serializer.save(**override_data)
 
         resource = serializer.validated_data['resource']
-        staff_event = (self.request.data.get('staff_event', False) and
-                       resource.can_approve_reservations(self.request.user))
-        if resource.need_manual_confirmation and not staff_event:
+        is_resource_manager = resource.is_manager(self.request.user)
+        if resource.need_manual_confirmation and not is_resource_manager:
             new_state = Reservation.REQUESTED
         else:
             new_state = Reservation.CONFIRMED

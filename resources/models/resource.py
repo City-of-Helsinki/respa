@@ -518,6 +518,17 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             return is_general_admin(user)
         return self.unit.is_admin(user)
 
+    def is_manager(self, user):
+        """
+        Check if the given user is a manager of this resource.
+
+        :type user: users.models.User
+        :rtype: bool
+        """
+        if not self.unit:
+            return is_general_admin(user)
+        return self.unit.is_manager(user)
+
     def _has_perm(self, user, perm, allow_admin=True):
         if not is_authenticated_user(user):
             return False
