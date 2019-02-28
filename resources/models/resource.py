@@ -164,7 +164,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     ACCESS_CODE_TYPE_PIN6 = 'pin6'
     ACCESS_CODE_TYPES = (
         (ACCESS_CODE_TYPE_NONE, _('None')),
-        (ACCESS_CODE_TYPE_PIN6, _('4-digit PIN code')),
+        (ACCESS_CODE_TYPE_PIN4, _('4-digit PIN code')),
         (ACCESS_CODE_TYPE_PIN6, _('6-digit PIN code')),
     )
     id = models.CharField(primary_key=True, max_length=100)
