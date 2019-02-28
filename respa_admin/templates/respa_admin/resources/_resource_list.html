@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load thumbnail %}
 
 <section class='resources'>
     <div class='container'>
@@ -80,7 +81,7 @@
                                 class="img-rounded pull-left"
                                 alt=""
                                 src={% if resource.main_image %}
-                                    "{{ resource.main_image.url }}"
+                                    "{% thumbnail resource.main_image 100x100 crop %}"
                                 {% else %}
                                     ""
                                 {% endif %}
