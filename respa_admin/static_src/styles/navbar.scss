@@ -16,6 +16,11 @@
   button.navbar-toggle span.icon-bar {
     background: $white;
   }
+  .navbar-button {
+    width: 100%;
+    border: none;
+    background: none;
+  }
 
   .respa-nav {
     border: $panel-default-border;
