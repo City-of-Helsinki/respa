@@ -404,6 +404,8 @@ class PurchaseView(APIView):
         reservation['begin'] = timezone.now()
         reservation['end'] = timezone.now() + timedelta(days=365)
         request.data['reservation'] = reservation
+        # unauthenticated user can not make reservations linked to user objects
+        request.data['reservation'].pop('user', None)
 
         if request.data.get('berth').get('type') != Berth.GROUND:
             code = request.data.pop('code')
