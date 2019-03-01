@@ -180,7 +180,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     authentication = models.CharField(blank=False, verbose_name=_('Authentication'),
                                       max_length=20, choices=AUTHENTICATION_TYPES)
     people_capacity = models.PositiveIntegerField(verbose_name=_('People capacity'), null=True, blank=True)
-    area = models.PositiveIntegerField(verbose_name=_('Area'), null=True, blank=True)
+    area = models.PositiveIntegerField(verbose_name=_('Area (m2)'), null=True, blank=True)
 
     # if not set, location is inherited from unit
     location = models.PointField(verbose_name=_('Location'), null=True, blank=True, srid=settings.DEFAULT_SRID)

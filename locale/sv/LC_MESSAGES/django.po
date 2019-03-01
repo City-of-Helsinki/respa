@@ -621,8 +621,8 @@ msgstr "Autentisering"
 msgid "People capacity"
 msgstr "Kapacitet"
 
-msgid "Area"
-msgstr "Yta"
+msgid "Area (m2)"
+msgstr "Yta (m2)"
 
 msgid "Location"
 msgstr "Plats"
