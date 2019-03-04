@@ -337,7 +337,6 @@ class ResourceFilterSet(django_filters.FilterSet):
             ('unit__name_en', 'unit_name_en'),
             ('unit__name_sv', 'unit_name_sv'),
             ('type', 'type'),
-            ('unit', 'unit'),
             ('people_capacity', 'people_capacity'),
         ),
     )
