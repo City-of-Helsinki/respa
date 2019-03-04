@@ -29,7 +29,7 @@ from PIL import Image
 from guardian.shortcuts import get_objects_for_user, get_users_with_perms
 from guardian.core import ObjectPermissionChecker
 
-from ..auth import is_authenticated_user, is_general_admin, is_unit_admin, is_unit_manager
+from ..auth import is_authenticated_user, is_general_admin
 from ..errors import InvalidImage
 from ..fields import EquipmentField
 from .base import AutoIdentifiedModel, NameIdentifiedModel, ModifiableModel
