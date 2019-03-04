@@ -330,16 +330,15 @@ class ResourceFilterSet(django_filters.FilterSet):
                                          widget=django_filters.widgets.CSVWidget, distinct=True)
     order_by = django_filters.OrderingFilter(
         fields=(
-            ('resource_name_fi', 'name__fi'),
-            ('resource_name_en', 'name__en'),
-            ('resource_name_sv', 'name__sv'),
-            ('unit_name_fi', 'name_fi'),
-            ('unit_name_en', 'name_en'),
-            ('unit_name_sv', 'name_sv'),
+            ('name_fi', 'resource_name_fi'),
+            ('name_en', 'resource_name_en'),
+            ('name_sv', 'resource_name_sv'),
+            ('unit__name_fi', 'unit_name_fi'),
+            ('unit__name_en', 'unit_name_en'),
+            ('unit__name_sv', 'unit_name_sv'),
             ('type', 'type'),
             ('unit', 'unit'),
             ('people_capacity', 'people_capacity'),
-            # ('open_now', 'open_now'),
         ),
     )
 
