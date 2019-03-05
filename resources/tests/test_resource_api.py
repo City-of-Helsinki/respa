@@ -141,9 +141,22 @@ def test_non_public_resource_visibility(api_client, resource_in_unit, user, staf
     response = api_client.get(url)
     assert response.status_code == 200
 
-    # Authenticated as unit admin
+    # Authenticated as unit manager
     user.is_general_admin = False
     user.save()
+    user.unit_authorizations.create(
+        authorized=staff_user,
+        level=UnitAuthorizationLevel.manager,
+        subject=resource_in_unit.unit
+    )
+    user.save()
+    url = reverse('resource-list')
+    response = api_client.get(url)
+    assert response.status_code == 200
+    assert response.data['count'] == 1
+    assert Unit.objects.managed_by(user).values_list('id', flat=True)[0] == response.data['results'][0]['unit']
+
+    # Authenticated as unit admin
     user.unit_authorizations.create(
         authorized=staff_user,
         level=UnitAuthorizationLevel.admin,
@@ -165,16 +178,6 @@ def test_non_public_resource_visibility(api_client, resource_in_unit, user, staf
         level=UnitGroupAuthorizationLevel.admin,
         subject=unit_group
     )
-    user.save()
-    url = reverse('resource-list')
-    response = api_client.get(url)
-    assert response.status_code == 200
-    assert response.data['count'] == 1
-    assert Unit.objects.managed_by(user).values_list('id', flat=True)[0] == response.data['results'][0]['unit']
-
-    # Authenticated as unit manager
-    user.unit_authorizations.level = UnitAuthorizationLevel.manager
-    user.unit_authorizations.subject = resource_in_unit.unit
     user.save()
     url = reverse('resource-list')
     response = api_client.get(url)
