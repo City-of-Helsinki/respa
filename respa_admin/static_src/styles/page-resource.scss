@@ -1,3 +1,10 @@
+.order-by-link {
+  background-color: #ebebeb;
+  &:hover {
+    background-color: #fff;
+  }
+}
+
 .headline {
 
   & > * {
