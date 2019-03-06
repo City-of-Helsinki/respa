@@ -97,6 +97,7 @@ class ResourceTypeViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
     filterset_class = ResourceTypeFilterSet
 
+
 register_view(ResourceTypeViewSet, 'type')
 
 
@@ -327,6 +328,18 @@ class ResourceFilterSet(django_filters.FilterSet):
                                                   widget=DRFFilterBooleanWidget)
     municipality = django_filters.Filter(field_name='unit__municipality_id', lookup_expr='in',
                                          widget=django_filters.widgets.CSVWidget, distinct=True)
+    order_by = django_filters.OrderingFilter(
+        fields=(
+            ('name_fi', 'resource_name_fi'),
+            ('name_en', 'resource_name_en'),
+            ('name_sv', 'resource_name_sv'),
+            ('unit__name_fi', 'unit_name_fi'),
+            ('unit__name_en', 'unit_name_en'),
+            ('unit__name_sv', 'unit_name_sv'),
+            ('type', 'type'),
+            ('people_capacity', 'people_capacity'),
+        ),
+    )
 
     def filter_is_favorite(self, queryset, name, value):
         if not self.user.is_authenticated:

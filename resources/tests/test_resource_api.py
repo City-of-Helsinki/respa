@@ -753,3 +753,136 @@ def test_filtering_by_municipality(list_url, api_client, resource_in_unit, test_
     response = api_client.get('%s?municipality=bar' % list_url)
     assert response.status_code == 200
     assert_response_objects(response, []) 
+
+
+@pytest.mark.django_db
+def test_order_by_filter(list_url, api_client, resource_in_unit, resource_in_unit2):
+    # test resource_name_fi
+    resource_in_unit.name_fi, resource_in_unit.name_en, resource_in_unit.name_sv = 'aaa'
+    resource_in_unit.save()
+
+    resource_in_unit2.name_fi, resource_in_unit2.name_en, resource_in_unit2.name_sv = 'bbb'
+    resource_in_unit2.save()
+
+    response = api_client.get('%s?order_by=resource_name_fi' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][0]['name']['fi'] == resource_in_unit.name_fi
+    assert response.data['results'][1]['name']['fi'] == resource_in_unit2.name_fi
+
+    response = api_client.get('%s?order_by=-resource_name_fi' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][1]['name']['fi'] == resource_in_unit.name_fi
+    assert response.data['results'][0]['name']['fi'] == resource_in_unit2.name_fi
+
+    # test resource_name_en
+    response = api_client.get('%s?order_by=resource_name_en' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][0]['name']['en'] == resource_in_unit.name_en
+    assert response.data['results'][1]['name']['en'] == resource_in_unit2.name_en
+
+    response = api_client.get('%s?order_by=-resource_name_en' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][1]['name']['en'] == resource_in_unit.name_en
+    assert response.data['results'][0]['name']['en'] == resource_in_unit2.name_en
+
+    # test resource_name_sv
+    response = api_client.get('%s?order_by=resource_name_sv' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][0]['name']['sv'] == resource_in_unit.name_sv
+    assert response.data['results'][1]['name']['sv'] == resource_in_unit2.name_sv
+
+    response = api_client.get('%s?order_by=-resource_name_sv' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][1]['name']['sv'] == resource_in_unit.name_sv
+    assert response.data['results'][0]['name']['sv'] == resource_in_unit2.name_sv
+
+    # test unit_name_fi
+    resource_in_unit.unit.name_fi, resource_in_unit.unit.name_en, resource_in_unit.unit.name_sv = 'aaa'
+    resource_in_unit.unit.save()
+
+    resource_in_unit2.unit.name_fi, resource_in_unit2.unit.name_en, resource_in_unit2.unit.name_sv = 'bbb'
+    resource_in_unit2.unit.save()
+
+    response = api_client.get('%s?order_by=unit_name_fi' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][0]['unit'] == resource_in_unit.unit.id
+    assert response.data['results'][1]['unit'] == resource_in_unit2.unit.id
+
+    response = api_client.get('%s?order_by=-unit_name_fi' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][1]['unit'] == resource_in_unit.unit.id
+    assert response.data['results'][0]['unit'] == resource_in_unit2.unit.id
+
+    # test unit_name_en
+    response = api_client.get('%s?order_by=unit_name_en' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][0]['unit'] == resource_in_unit.unit.id
+    assert response.data['results'][1]['unit'] == resource_in_unit2.unit.id
+
+    response = api_client.get('%s?order_by=-unit_name_en' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][1]['unit'] == resource_in_unit.unit.id
+    assert response.data['results'][0]['unit'] == resource_in_unit2.unit.id
+
+    # test unit_name_sv
+    response = api_client.get('%s?order_by=unit_name_sv' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][0]['unit'] == resource_in_unit.unit.id
+    assert response.data['results'][1]['unit'] == resource_in_unit2.unit.id
+
+    response = api_client.get('%s?order_by=-unit_name_sv' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][1]['unit'] == resource_in_unit.unit.id
+    assert response.data['results'][0]['unit'] == resource_in_unit2.unit.id
+
+    # test resource type
+    resource_in_unit.type = ResourceType(id='aaaa', main_type='aaaa', name='aaaa')
+    resource_in_unit.type.save()
+    resource_in_unit.save()
+
+    resource_in_unit2.type = ResourceType(id='bbbb', main_type='bbbb', name='bbbb')
+    resource_in_unit2.type.save()
+    resource_in_unit2.save()
+
+    response = api_client.get('%s?order_by=type' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][0]['unit'] == resource_in_unit.unit.id
+    assert response.data['results'][1]['unit'] == resource_in_unit2.unit.id
+
+    response = api_client.get('%s?order_by=-type' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][1]['unit'] == resource_in_unit.unit.id
+    assert response.data['results'][0]['unit'] == resource_in_unit2.unit.id
+
+    # test resource people capacity
+    resource_in_unit.people_capacity = 1
+    resource_in_unit.save()
+
+    resource_in_unit2.people_capacity = 50
+    resource_in_unit2.save()
+
+    response = api_client.get('%s?order_by=people_capacity' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][0]['people_capacity'] == resource_in_unit.people_capacity
+    assert response.data['results'][1]['people_capacity'] == resource_in_unit2.people_capacity
+
+    response = api_client.get('%s?order_by=-people_capacity' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][1]['people_capacity'] == resource_in_unit.people_capacity
+    assert response.data['results'][0]['people_capacity'] == resource_in_unit2.people_capacity
