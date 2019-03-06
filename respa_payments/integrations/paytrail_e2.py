@@ -1,5 +1,6 @@
 import re
 import urllib
+from datetime import datetime
 from hashlib import sha256
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
@@ -13,7 +14,7 @@ class PaytrailE2Integration(PaymentIntegration):
         self.merchant_id = settings.MERCHANT_ID
         self.merchant_auth_hash = settings.MERCHANT_AUTH_HASH
         self.payment_methods = '1,2,3,5,6,10,50,51,52,61'
-        self.params_out = 'PAYMENT_ID,TIMESTAMP,STATUS'
+        self.params_out = 'RETURN_AUTHCODE,PAYMENT_ID,AMOUNT,CURRENCY,PAYMENT_METHOD,TIMESTAMP,STATUS'
         self.params_in = (
             'MERCHANT_ID,'
             'URL_SUCCESS,'
@@ -49,21 +50,21 @@ class PaytrailE2Integration(PaymentIntegration):
             'PARAMS_IN': self.params_in,
             'PARAMS_OUT': self.params_out,
             'PAYMENT_METHODS': self.payment_methods,
-            'ORDER_NUMBER': order.get('payment_service_order_number', None),
-            'ITEM_TITLE[0]': order.get('product', None),
-            'ITEM_ID[0]': order.get('id', None),
+            'ORDER_NUMBER': order.get('id', ''),
+            'ITEM_TITLE[0]': order.get('product', ''),
+            'ITEM_ID[0]': order.get('product_id', ''),
             'ITEM_QUANTITY[0]': 1,
-            'ITEM_UNIT_PRICE[0]': order.get('price', None),
-            'ITEM_VAT_PERCENT[0]': order.get('vat', None),
+            'ITEM_UNIT_PRICE[0]': order.get('price', ''),
+            'ITEM_VAT_PERCENT[0]': order.get('vat', ''),
             'ITEM_DISCOUNT_PERCENT[0]': 0,
             'ITEM_TYPE[0]': 1,
-            'PAYER_PERSON_PHONE': order.get('reserver_phone_number', None),
-            'PAYER_PERSON_EMAIL': order.get('reserver_email_address', None),
-            'PAYER_PERSON_FIRSTNAME': order.get('reserver_name', None),
-            'PAYER_PERSON_LASTNAME': order.get('reserver_name', None),
-            'PAYER_PERSON_ADDR_STREET': order.get('reserver_address_street', None),
-            'PAYER_PERSON_ADDR_POSTAL_CODE': order.get('reserver_address_zip', None),
-            'PAYER_PERSON_ADDR_TOWN': order.get('reserver_address_city', None),
+            'PAYER_PERSON_PHONE': order.get('reserver_phone_number', '').replace(' ', ''),
+            'PAYER_PERSON_EMAIL': order.get('reserver_email_address', ''),
+            'PAYER_PERSON_FIRSTNAME': order.get('reserver_name', ''),
+            'PAYER_PERSON_LASTNAME': order.get('reserver_name', ''),
+            'PAYER_PERSON_ADDR_STREET': order.get('billing_address_street', order.get('reserver_address_street', '')),
+            'PAYER_PERSON_ADDR_POSTAL_CODE': order.get('billing_address_zip', order.get('reserver_address_zip', '')),
+            'PAYER_PERSON_ADDR_TOWN': order.get('billing_address_city', order.get('reserver_address_city', '')),
         }
 
         auth_code = data['MERCHANT_AUTH_HASH'] + '|' + \
@@ -98,32 +99,17 @@ class PaytrailE2Integration(PaymentIntegration):
 
     def construct_payment_callback(self):
         callback = super(PaytrailE2Integration, self).construct_payment_callback()
+        status = self.request.GET.get('STATUS', None)
         callback_data = {
             **callback,
             'redirect_url': self.url_redirect_callback or '',
-            'payment_service_order_number': self.request.GET.get('ORDER_NUMBER', None),
-            'payment_service_timestamp': self.request.GET.get('TIMESTAMP', None),
-            'payment_service_paid': self.request.GET.get('PAID', None),
-            'payment_service_method': self.request.GET.get('METHOD', None),
+            'payment_service_timestamp': datetime.fromtimestamp(int(self.request.GET.get('TIMESTAMP', None))),
+            'payment_service_amount': self.request.GET.get('AMOUNT', None),
+            'payment_service_currency': self.request.GET.get('CURRENCY', None),
+            'payment_service_method': self.request.GET.get('PAYMENT_METHOD', None),
             'payment_service_return_authcode': self.request.GET.get('RETURN_AUTHCODE', None),
+            'payment_service_status': status
         }
+        if status == 'PAID':
+            callback_data['payment_service_success'] = True
         return callback_data
-
-    def is_valid(self):
-        is_valid = super(PaytrailE2Integration, self).is_valid()
-        try:
-            # Validate success callback
-            str_to_check = '%(PAYMENT_ID)s|%(TIMESTAMP)s|%(STATUS)s' % self.request.GET
-            str_to_check += '|%s' % self.merchant_auth_hash
-            checksum = sha256(str_to_check.encode('utf-8')).hexdigest().upper()
-            return checksum == self.request.GET.get('RETURN_AUTHCODE')
-        except KeyError:
-            try:
-                # Validate failure callback
-                str_to_check = '%(PAYMENT_ID)s|%(TIMESTAMP)s|%(STATUS)s' % self.request.GET
-                str_to_check += '|%s' % self.merchant_auth_hash
-                checksum = sha256(str_to_check.encode('utf-8')).hexdigest().upper()
-                return checksum == self.request.GET.get('RETURN_AUTHCODE')
-            except KeyError as e:
-                raise ValidationError(_(e))
-        return is_valid

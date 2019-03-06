@@ -1,0 +1,103 @@
+{% load i18n %}
+
+<section class='payments'>
+    <div class='container'>
+
+        <div class='filter-bar container-fluid'>
+            <h2 class="pull-left">{% trans 'All payments' %}</h2>
+        </div>
+
+        <div class='payment-list container-fluid'>
+            <ul class='list-group'>
+                <li class="list-group-item sort-bar">
+                    <button class="col-2 btn">
+                        {% trans 'Date' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
+                    </button>
+                    <button class="col-2 btn">
+                        {% trans 'Status' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
+                    </button>
+                    <button class="col-2 btn">
+                        {% trans 'Name' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
+                    </button>
+                    <button class="col-2 btn">
+                        {% trans 'Email' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
+                    </button>
+                    <button class="col-2 btn">
+                        {% trans 'Phone number' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
+                    </button>
+                    <button class="col-2 btn">
+                        {% trans 'Resource' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
+                    </button>
+                    <button class="col-2 btn">
+                        {% trans 'Amount' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
+                    </button>
+                </li>
+                {% for payment in payments %}
+                    <li class="list-group-item">
+                        <div class='panel panel-default'>
+                            <div class="panel-body">
+                                <div class="col-2">
+                                    <h6>{{ payment.order_process_started|date:"m.d.Y"|default:"-"  }}</h6>
+                                </div>
+
+                                <div class="col-2">
+                                    <h6>{{ payment.payment_service_status|default:"-"|lower }}</h6>
+                                </div>
+
+                                <div class="col-2">
+                                    <h6>{{ payment.reservation.reserver_name|default:"-" }}</h6>
+                                </div>
+
+                                <div class="col-2">
+                                    <h6>{{ payment.reservation.reserver_email_address|default:"-" }}</h6>
+                                </div>
+
+                                <div class="col-2">
+                                    <h6>{{ payment.reservation.reserver_phone_number|default:"-" }}</h6>
+                                </div>
+
+                                <div class="col-2">
+                                      {% if payment.reservation.resource %}
+                                        <a href="{% url 'respa_admin:edit-resource' resource_id=payment.reservation.resource.id %}">
+                                          {{ payment.reservation.resource.name|default:payment.reservation.resource.id }}
+                                        </a>
+                                      {% else %}
+                                        -
+                                      {% endif %}
+                                    </h6>
+                                </div>
+
+                                <div class="col-2">
+                                    <h6>{{ payment.payment_service_amount|floatformat:2|add:" €"|default:"-" }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+                <li class="list-group-item">
+                    <div class='panel panel-default'>
+                        <div class="panel-body">
+                            <div class="col-2">
+                            </div>
+                            <div class="col-2">
+                            </div>
+                            <div class="col-2">
+                            </div>
+                            <div class="col-2">
+                            </div>
+                            <div class="col-2">
+                            </div>
+                            <div class="col-2">
+                            </div>
+                            <div class="pull-right col-2">
+                                <h6>{{ total_payment_service_amount|floatformat:2|add:" €"|default:"-" }}</h6>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+
+            {% include "respa_admin/common/_pagination.html" %}
+        </div>
+    </div>
+</section>

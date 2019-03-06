@@ -53,17 +53,18 @@ class OrderSerializer(serializers.ModelSerializer):
     billing_address_street = serializers.CharField(source='reservation.billing_address_street', read_only=True)
     billing_address_zip = serializers.CharField(source='reservation.billing_address_zip', read_only=True)
     billing_address_city = serializers.CharField(source='reservation.billing_address_city', read_only=True)
+    product_id = serializers.CharField(source='sku.id', read_only=True)
     product = serializers.CharField(source='sku.name', read_only=True)
     price = serializers.CharField(source='sku.price', read_only=True)
     vat = serializers.CharField(source='sku.vat', read_only=True)
     class Meta:
         model = Order
         fields = ('id', 'sku', 'reservation', 'order_process_started', 'order_process_success', 'order_process_failure', 
-                  'order_process_notified', 'order_process_report_seen', 'payment_service_order_number',
-                  'payment_service_timestamp', 'payment_service_paid', 'payment_service_method', 
-                  'begin', 'end', 'reserver_name', 'reserver_id', 'reserver_email_address', 'reserver_phone_number',
-                  'reserver_address_street', 'reserver_address_zip', 'reserver_address_city', 'company',
-                  'billing_address_street', 'billing_address_zip', 'billing_address_city', 'product', 'price', 'vat', 'verification_code',)
+                  'order_process_notified', 'payment_service_timestamp', 'payment_service_amount', 'payment_service_currency', 
+                  'payment_service_status', 'payment_service_success', 'payment_service_method', 'payment_service_return_authcode',
+                  'begin', 'end', 'reserver_name', 'reserver_id', 'reserver_email_address', 'reserver_phone_number', 'reserver_address_street', 
+                  'reserver_address_zip', 'reserver_address_city', 'company', 'billing_address_street', 'billing_address_zip', 'billing_address_city', 
+                  'product', 'product_id', 'price', 'vat', 'verification_code',)
 
 
 class OrderViewSet(viewsets.ModelViewSet):
