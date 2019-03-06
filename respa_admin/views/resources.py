@@ -65,8 +65,9 @@ class ResourceListView(ListView):
         if self.resource_unit:
             qs = qs.filter(unit=self.resource_unit)
         if self.order_by:
+            order_by_param = self.order_by.strip('-')
             try:
-                if Resource._meta.get_field(self.order_by):
+                if Resource._meta.get_field(order_by_param):
                     qs = qs.order_by(self.order_by)
             except FieldDoesNotExist:
                 qs = self.get_unfiltered_queryset()

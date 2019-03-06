@@ -7,6 +7,10 @@ from resources.tests.conftest import (
     space_resource_type,
     terms_of_use,
     test_unit,
+    test_unit2,
+    general_admin,
+    resource_in_unit,
+    resource_in_unit2,
 )
 
 

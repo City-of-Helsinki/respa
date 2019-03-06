@@ -63,13 +63,13 @@
             <ul class='list-group'>
                 <li class="list-group-item sort-bar">
                     <div class='pull-left empty-holder col-1'></div>
-                        <a class="col-2 btn order-by-link" href="?order_by={% if order_by == 'name' %}-name{% else %}name{% endif %}">
+                        <a class="col-2 btn order-by-link" href="?resource_type={{ selected_resource_type }}&resource_unit={{ selected_resource_unit }}&order_by={% if order_by == 'name' %}-name{% else %}name{% endif %}">
                             {% trans 'Name' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
                         </a>
-                        <a class="col-3 btn order-by-link" href="?order_by={% if order_by == 'reservable' %}-reservable{% else %}reservable{% endif %}">
+                        <a class="col-3 btn order-by-link" href="?resource_type={{ selected_resource_type }}&resource_unit={{ selected_resource_unit }}&order_by={% if order_by == 'reservable' %}-reservable{% else %}reservable{% endif %}">
                             {% trans 'Availability' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
                         </a>
-                        <a class="col-4 btn order-by-link" href="?order_by={% if order_by == 'public' %}-public{% else %}public{% endif %}">
+                        <a class="col-4 btn order-by-link" href="?resource_type={{ selected_resource_type }}&resource_unit={{ selected_resource_unit }}&order_by={% if order_by == 'public' %}-public{% else %}public{% endif %}">
                             {% trans 'Visibility' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
                         </a>
                 </li>
