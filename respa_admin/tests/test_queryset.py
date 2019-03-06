@@ -8,10 +8,10 @@ url = reverse('respa_admin:index')
 
 @pytest.mark.django_db
 def test_order_by_name(rf, general_admin, resource_in_unit, resource_in_unit2):
-    resource_in_unit.unit.name = 'aaaaa'
-    resource_in_unit.unit.save()
-    resource_in_unit2.unit.name = 'bbbbb'
-    resource_in_unit2.unit.save()
+    resource_in_unit.name = 'aaaaa'
+    resource_in_unit.save()
+    resource_in_unit2.name = 'bbbbb'
+    resource_in_unit2.save()
 
     request = rf.get(url + '?order_by=name')
     request.user = general_admin
