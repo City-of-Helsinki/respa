@@ -612,10 +612,7 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
         return context
 
     def get_queryset(self):
-        if is_general_admin(self.request.user):
-            return self.queryset
-        else:
-            return self.queryset.filter(public=True)
+        return self.queryset.visible_for(self.request.user)
 
 
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,

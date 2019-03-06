@@ -6,9 +6,10 @@ from django.contrib.gis.geos import Point
 from django.utils import timezone
 from freezegun import freeze_time
 from guardian.shortcuts import assign_perm, remove_perm
+from ..enums import UnitAuthorizationLevel, UnitGroupAuthorizationLevel
 
 from resources.models import (Day, Equipment, Period, Reservation, ReservationMetadataSet, ResourceEquipment,
-                              ResourceType)
+                              ResourceType, Unit, UnitAuthorization, UnitGroup)
 from .utils import assert_response_objects, check_only_safe_methods_allowed
 
 
@@ -99,7 +100,7 @@ def test_user_permissions_in_resource_endpoint(api_client, resource_in_unit, use
 
 
 @pytest.mark.django_db
-def test_non_public_resource_visibility(api_client, resource_in_unit, user):
+def test_non_public_resource_visibility(api_client, resource_in_unit, user, staff_user):
     """
     Tests that non-public resources are not returned for non-staff.
     """
@@ -136,10 +137,53 @@ def test_non_public_resource_visibility(api_client, resource_in_unit, user):
     response = api_client.get(url)
     assert response.status_code == 200
     assert response.data['count'] == 1
-
     url = reverse('resource-detail', kwargs={'pk': resource_in_unit.pk})
     response = api_client.get(url)
     assert response.status_code == 200
+
+    # Authenticated as unit manager
+    user.is_general_admin = False
+    user.save()
+    user.unit_authorizations.create(
+        authorized=staff_user,
+        level=UnitAuthorizationLevel.manager,
+        subject=resource_in_unit.unit
+    )
+    user.save()
+    url = reverse('resource-list')
+    response = api_client.get(url)
+    assert response.status_code == 200
+    assert response.data['count'] == 1
+    assert Unit.objects.managed_by(user).values_list('id', flat=True)[0] == response.data['results'][0]['unit']
+
+    # Authenticated as unit admin
+    user.unit_authorizations.create(
+        authorized=staff_user,
+        level=UnitAuthorizationLevel.admin,
+        subject=resource_in_unit.unit
+    )
+    user.save()
+    url = reverse('resource-list')
+    response = api_client.get(url)
+    assert response.status_code == 200
+    assert response.data['count'] == 1
+    assert Unit.objects.managed_by(user).values_list('id', flat=True)[0] == response.data['results'][0]['unit']
+
+    # Authenticated as unit group admin
+    user.unit_authorizations.all().delete()
+    unit_group = UnitGroup.objects.create(name='foo')
+    unit_group.members.add(resource_in_unit.unit)
+    user.unit_group_authorizations.create(
+        authorized=staff_user,
+        level=UnitGroupAuthorizationLevel.admin,
+        subject=unit_group
+    )
+    user.save()
+    url = reverse('resource-list')
+    response = api_client.get(url)
+    assert response.status_code == 200
+    assert response.data['count'] == 1
+    assert Unit.objects.managed_by(user).values_list('id', flat=True)[0] == response.data['results'][0]['unit']
 
 
 @pytest.mark.django_db

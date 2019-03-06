@@ -132,8 +132,9 @@ class ResourceQuerySet(models.QuerySet):
     def visible_for(self, user):
         if is_general_admin(user):
             return self
-        else:
-            return self.filter(public=True)
+        is_in_managed_units = Q(unit__in=Unit.objects.managed_by(user))
+        is_public = Q(public=True)
+        return self.filter(is_in_managed_units | is_public)
 
     def modifiable_by(self, user):
         if not is_authenticated_user(user):
