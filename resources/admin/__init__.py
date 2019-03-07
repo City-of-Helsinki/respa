@@ -258,7 +258,7 @@ class ResourceGroupAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Fi
     pass
 
 
-class MunicipalityAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):
+class MunicipalityAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, admin.ModelAdmin):
     change_list_template = 'admin/municipalities/import_buttons.html'
     import_template = 'admin/municipalities/import_template.html'
 

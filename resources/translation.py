@@ -13,7 +13,7 @@ class UnitGroupTranslationOptions(TranslationOptions):
 @register(Unit)
 class UnitTranslationOptions(TranslationOptions):
     fields = ('name', 'www_url', 'street_address', 'description',
-              'picture_caption', 'municipality')
+              'picture_caption')
 
 
 @register(Resource)
