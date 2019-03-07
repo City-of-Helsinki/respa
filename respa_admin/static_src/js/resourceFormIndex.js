@@ -1,4 +1,4 @@
-import { initializeEventHandlers, setClonableItems }  from './resourceForm';
+import { initializeEventHandlers, initialSortPeriodDays, setClonableItems, calendarHandler }  from './resourceForm';
 import { toggleCurrentLanguage, calculateTranslatedFields }  from './resourceFormLanguage';
 
 function start() {
@@ -6,6 +6,8 @@ function start() {
   setClonableItems();
   toggleCurrentLanguage();
   calculateTranslatedFields();
+  calendarHandler();
+  initialSortPeriodDays();
 }
 
 window.addEventListener('load', start, false);

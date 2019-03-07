@@ -11,6 +11,7 @@ import {
   removePeriod,
   modifyDays,
   copyTimePeriod,
+  sortPeriodDays,
 } from './resourceFormPeriods';
 
 import {
@@ -64,6 +65,7 @@ function setPeriodAndDayItems() {
   let $servedDayItem = $daysList[$daysList.length-1];
 
   emptyDayItem = $($servedDayItem).clone();
+  emptyDayItem.removeClass('original-day');  // added days are not original. used for sorting formset indices.
   emptyPeriodItem = $($servedPeriodItem).clone();
 
   $servedDayItem.remove();
@@ -162,6 +164,30 @@ function enablePeriodEventHandlers() {
   }
 }
 
+export function initialSortPeriodDays() {
+  let periods = getPeriodsList();
+
+  for (let i = 0; i < periods.length; i++) {
+    sortPeriodDays($(periods[i]));
+  }
+}
+
 export function getPeriodsList() {
   return document.getElementById('current-periods-list').children;
+}
+
+export function calendarHandler() {
+  // Copied from bootstrap-datepicker@1.8.0/js/locales/bootstrap-datepicker.fi.js
+  // As it can not be imported as a module, and would need to be shimmed
+  $.fn.datepicker.dates['fi'] = {
+		days: ["sunnuntai", "maanantai", "tiistai", "keskiviikko", "torstai", "perjantai", "lauantai"],
+		daysShort: ["sun", "maa", "tii", "kes", "tor", "per", "lau"],
+		daysMin: ["su", "ma", "ti", "ke", "to", "pe", "la"],
+		months: ["tammikuu", "helmikuu", "maaliskuu", "huhtikuu", "toukokuu", "kesäkuu", "heinäkuu", "elokuu", "syyskuu", "lokakuu", "marraskuu", "joulukuu"],
+		monthsShort: ["tam", "hel", "maa", "huh", "tou", "kes", "hei", "elo", "syy", "lok", "mar", "jou"],
+		today: "tänään",
+		clear: "Tyhjennä",
+		weekStart: 1,
+		format: "d.m.yyyy"
+	};
 }

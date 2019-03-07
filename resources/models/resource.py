@@ -132,8 +132,9 @@ class ResourceQuerySet(models.QuerySet):
     def visible_for(self, user):
         if is_general_admin(user):
             return self
-        else:
-            return self.filter(public=True)
+        is_in_managed_units = Q(unit__in=Unit.objects.managed_by(user))
+        is_public = Q(public=True)
+        return self.filter(is_in_managed_units | is_public)
 
     def modifiable_by(self, user):
         if not is_authenticated_user(user):
@@ -164,7 +165,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     ACCESS_CODE_TYPE_PIN6 = 'pin6'
     ACCESS_CODE_TYPES = (
         (ACCESS_CODE_TYPE_NONE, _('None')),
-        (ACCESS_CODE_TYPE_PIN6, _('4-digit PIN code')),
+        (ACCESS_CODE_TYPE_PIN4, _('4-digit PIN code')),
         (ACCESS_CODE_TYPE_PIN6, _('6-digit PIN code')),
     )
     id = models.CharField(primary_key=True, max_length=100)
@@ -179,8 +180,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     need_manual_confirmation = models.BooleanField(verbose_name=_('Need manual confirmation'), default=False)
     authentication = models.CharField(blank=False, verbose_name=_('Authentication'),
                                       max_length=20, choices=AUTHENTICATION_TYPES)
-    people_capacity = models.IntegerField(verbose_name=_('People capacity'), null=True, blank=True)
-    area = models.IntegerField(verbose_name=_('Area'), null=True, blank=True)
+    people_capacity = models.PositiveIntegerField(verbose_name=_('People capacity'), null=True, blank=True)
+    area = models.PositiveIntegerField(verbose_name=_('Area (m2)'), null=True, blank=True)
 
     # if not set, location is inherited from unit
     location = models.PointField(verbose_name=_('Location'), null=True, blank=True, srid=settings.DEFAULT_SRID)
@@ -190,8 +191,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     max_period = models.DurationField(verbose_name=_('Maximum reservation time'), null=True, blank=True)
 
     equipment = EquipmentField(Equipment, through='ResourceEquipment', verbose_name=_('Equipment'))
-    max_reservations_per_user = models.IntegerField(verbose_name=_('Maximum number of active reservations per user'),
-                                                    null=True, blank=True)
+    max_reservations_per_user = models.PositiveIntegerField(verbose_name=_('Maximum number of active reservations per user'),
+                                                            null=True, blank=True)
     reservable = models.BooleanField(verbose_name=_('Reservable'), default=False)
     reservation_info = models.TextField(verbose_name=_('Reservation info'), null=True, blank=True)
     responsible_contact_info = models.TextField(verbose_name=_('Responsible contact info'), blank=True)

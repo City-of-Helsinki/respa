@@ -1,3 +1,10 @@
+.order-by-link {
+  background-color: #ebebeb;
+  &:hover {
+    background-color: #fff;
+  }
+}
+
 .headline {
 
   & > * {
@@ -13,12 +20,12 @@
       flex-direction: column;
       justify-content: center;
     }
-    
+
     span.resources-count {
       font-size: 24px;
     }
   }
-    
+
   .resources-search {
     max-width: 700px;
 
@@ -32,7 +39,7 @@
       background-color: transparent;
       border: 0;
       padding-left: 0;
-      padding-right: 24px; 
+      padding-right: 24px;
       font-size: $font-size-h5;
     }
 
@@ -48,4 +55,9 @@
       border-right: 0;
     }
   }
+}
+
+.period-weekday select {
+  padding-right: 0;
+  pointer-events: none;
 }

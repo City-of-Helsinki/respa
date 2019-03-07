@@ -1,4 +1,5 @@
 from django.conf.urls import url as unauthorized_url
+from django.urls import include
 
 from . import views
 from .views.resources import (
@@ -17,4 +18,5 @@ urlpatterns = [
     url(r'^resources/$', ResourceListView.as_view(), name='resources'),
     url(r'^resource/new/$', SaveResourceView.as_view(), name='new-resource'),
     url(r'^resource/edit/(?P<resource_id>\w+)/$', SaveResourceView.as_view(), name='edit-resource'),
+    url(r'^i18n/$', include('django.conf.urls.i18n'), name='language'),
 ]

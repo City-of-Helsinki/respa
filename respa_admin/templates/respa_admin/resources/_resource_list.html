@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load thumbnail %}
 
 <section class='resources'>
     <div class='container'>
@@ -63,15 +64,15 @@
             <ul class='list-group'>
                 <li class="list-group-item sort-bar">
                     <div class='pull-left empty-holder col-1'></div>
-                    <button class="col-2 btn">
-                        {% trans 'Name' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
-                    </button>
-                    <button class="col-3 btn">
-                        {% trans 'Availability' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
-                    </button>
-                    <button class="col-4 btn">
-                        {% trans 'Visibility' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
-                    </button>
+                        <a class="col-2 btn order-by-link" href="?resource_type={{ selected_resource_type }}&resource_unit={{ selected_resource_unit }}&order_by={% if order_by == 'name' %}-name{% else %}name{% endif %}">
+                            {% trans 'Name' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
+                        </a>
+                        <a class="col-3 btn order-by-link" href="?resource_type={{ selected_resource_type }}&resource_unit={{ selected_resource_unit }}&order_by={% if order_by == 'reservable' %}-reservable{% else %}reservable{% endif %}">
+                            {% trans 'Availability' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
+                        </a>
+                        <a class="col-4 btn order-by-link" href="?resource_type={{ selected_resource_type }}&resource_unit={{ selected_resource_unit }}&order_by={% if order_by == 'public' %}-public{% else %}public{% endif %}">
+                            {% trans 'Visibility' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
+                        </a>
                 </li>
                 {% for resource in resources %}
                     <li class="list-group-item">
@@ -80,7 +81,7 @@
                                 class="img-rounded pull-left"
                                 alt=""
                                 src={% if resource.main_image %}
-                                    "{{ resource.main_image.url }}"
+                                    "{% thumbnail resource.main_image 100x100 crop %}"
                                 {% else %}
                                     ""
                                 {% endif %}

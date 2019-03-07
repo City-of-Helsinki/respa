@@ -7,15 +7,15 @@
     </div>
     <div class="input-row">
         {% include "respa_admin/forms/_input.html" with field=form.people_capacity %}
-        {% include "respa_admin/forms/_input.html" with field=form.area prefix_text="m2" %}
+        {% include "respa_admin/forms/_input.html" with field=form.area %}
     </div>
     <div class="input-row dropdown-row">
         {% include "respa_admin/forms/_select.html" with field=form.min_period inline=True %}
         {% include "respa_admin/forms/_select.html" with field=form.max_period inline=True %}
     </div>
     <div class="input-row">
-        {% include "respa_admin/forms/_input.html" with field=form.reservable_max_days_in_advance prefix_text="day" %}
-        {% include "respa_admin/forms/_input.html" with field=form.reservable_min_days_in_advance prefix_text="day" %}
+        {% include "respa_admin/forms/_input.html" with field=form.reservable_max_days_in_advance %}
+        {% include "respa_admin/forms/_input.html" with field=form.reservable_min_days_in_advance %}
     </div>
     <div class="input-row">
         {% include "respa_admin/forms/_input.html" with field=form.max_reservations_per_user prefix_text="pcs" %}
