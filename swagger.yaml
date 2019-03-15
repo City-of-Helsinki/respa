@@ -605,6 +605,14 @@ paths:
           required: false
           type: string
           description: Only return reservations for resources that belong to the specified unit.
+        - name: start
+          in: query
+          type: string
+          description: 'The starting time of the reservation in ISO 8601 format'
+        - name: end
+          in: query
+          type: string
+          description: 'The ending time of the reservation in ISO 8601 format'
       responses:
         '200':
           description: Successful response
