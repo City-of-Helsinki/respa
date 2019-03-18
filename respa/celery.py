@@ -36,4 +36,8 @@ app.conf.beat_schedule = {
         'task': 'respa_berth.tasks.check_reservability',
         'schedule': crontab(minute=0, hour='*/1')
     },
+    'clear_unpaid_reservations': {
+        'task': 'respa_payments.tasks.clear_unpaid_reservations',
+        'schedule': crontab(minute='*')
+    },
 }
