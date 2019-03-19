@@ -20,7 +20,7 @@ from guardian.core import ObjectPermissionChecker
 from munigeo import api as munigeo_api
 from resources.models import (
     Purpose, Reservation, Resource, ResourceImage, ResourceType, ResourceEquipment,
-    TermsOfUse, Equipment, ReservationMetadataSet, ResourceDailyOpeningHours
+    TermsOfUse, Equipment, ReservationMetadataSet, ResourceDailyOpeningHours, Unit
 )
 from resources.models.resource import determine_hours_time_range
 
@@ -82,6 +82,12 @@ class ResourceTypeSerializer(TranslatedModelSerializer):
     class Meta:
         model = ResourceType
         fields = ['name', 'main_type', 'id']
+
+
+class UnitDetailSerializer(TranslatedModelSerializer):
+    class Meta:
+        model = Unit
+        fields = ['id', 'name', 'municipality']
 
 
 class ResourceTypeFilterSet(django_filters.FilterSet):
@@ -147,6 +153,7 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     images = NestedResourceImageSerializer(many=True)
     equipment = ResourceEquipmentSerializer(many=True, read_only=True, source='resource_equipment')
     type = ResourceTypeSerializer()
+    unit_detail = UnitDetailSerializer(source='unit')
     # FIXME: location field gets removed by munigeo
     location = serializers.SerializerMethodField()
     # FIXME: Enable available_hours when it's more performant
