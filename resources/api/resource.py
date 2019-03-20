@@ -643,17 +643,13 @@ class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
         return context
 
     def get_queryset(self):
-        if is_general_admin(self.request.user):
-            return self.queryset
-        else:
-            return self.queryset.filter(public=True)
+        return self.queryset.visible_for(self.request.user)
 
     def _set_favorite(self, request, value):
         resource = self.get_object()
         user = request.user
 
         exists = user.favorite_resources.filter(id=resource.id).exists()
-
         if value:
             if not exists:
                 user.favorite_resources.add(resource)
