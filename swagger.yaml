@@ -621,6 +621,14 @@ paths:
           in: query
           type: boolean
           description: Return only reservations that are related to resource that either is or is not favorited by user, based on the boolean value.
+        - name: user
+          in: query
+          type: string
+          description: Return only reservations that are related to given user
+        - name: is_own
+          in: query
+          type: boolean
+          description: Return only own reservations
       responses:
         '200':
           description: Successful response
