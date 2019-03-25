@@ -624,7 +624,7 @@ paths:
         - name: user
           in: query
           type: string
-          description: Return only reservations that are related to given user
+          description: Return only reservations that are related to given user. Expects to recieve user's UUID.
         - name: is_own
           in: query
           type: boolean
