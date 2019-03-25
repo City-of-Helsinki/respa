@@ -153,7 +153,6 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     images = NestedResourceImageSerializer(many=True)
     equipment = ResourceEquipmentSerializer(many=True, read_only=True, source='resource_equipment')
     type = ResourceTypeSerializer()
-    unit_detail = UnitDetailSerializer(source='unit')
     # FIXME: location field gets removed by munigeo
     location = serializers.SerializerMethodField()
     # FIXME: Enable available_hours when it's more performant
@@ -293,6 +292,10 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
         model = Resource
         exclude = ('reservation_requested_notification_extra', 'reservation_confirmed_notification_extra',
                    'access_code_type', 'reservation_metadata_set')
+
+
+class ResourceWithUnitDetailsSerializer(ResourceSerializer):
+    unit_details = UnitDetailSerializer(source='unit')
 
 
 class ResourceDetailsSerializer(ResourceSerializer):
@@ -620,7 +623,6 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
     queryset = Resource.objects.select_related('generic_terms', 'unit', 'type', 'reservation_metadata_set')
     queryset = queryset.prefetch_related('favorited_by', 'resource_equipment', 'resource_equipment__equipment',
                                          'purposes', 'images', 'purposes', 'groups')
-    serializer_class = ResourceSerializer
     filter_backends = (filters.SearchFilter, ResourceFilterBackend, LocationFilterBackend)
     search_fields = ('name_fi', 'description_fi', 'unit__name_fi',
                      'name_sv', 'description_sv', 'unit__name_sv',
@@ -628,6 +630,12 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
     authentication_classes = (
         list(drf_settings.DEFAULT_AUTHENTICATION_CLASSES) +
         [SessionAuthentication])
+
+    def get_serializer_class(self):
+        query_params = self.request.query_params
+        if query_params.get('include') == 'unit_detail':
+            return ResourceWithUnitDetailsSerializer
+        return ResourceSerializer
 
     def get_serializer(self, page, *args, **kwargs):
         self._page = page
