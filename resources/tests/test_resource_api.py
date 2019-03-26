@@ -426,7 +426,7 @@ def test_resource_group_filter(api_client, resource_in_unit, resource_in_unit2, 
 def test_include_unit_detail(api_client, resource_in_unit, list_url):
     response = api_client.get(list_url + '?include=unit_detail')
     assert response.status_code == 200
-    assert response.json()['results'][0]['unit_details']['id'] == resource_in_unit.unit.id
+    assert response.json()['results'][0]['unit']['id'] == resource_in_unit.unit.id
 
 
 @pytest.mark.django_db
