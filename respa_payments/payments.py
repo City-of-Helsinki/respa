@@ -33,8 +33,14 @@ class PaymentIntegration(object):
         return callback_data
 
     def order_post(self):
-        order_serializer = OrderSerializer(data={'order_process_started': timezone.now(), 'reservation': self.request.data.get(
-            'reservation_id', None), 'sku': self.request.data.get('sku_id', None), 'verification_code': str(uuid.uuid4())})
+        if self.request.user.is_staff:
+            return self.skip_payment()
+        order_serializer = OrderSerializer(data={
+            'order_process_started': timezone.now(),
+            'reservation': self.request.data.get('reservation_id', None),
+            'sku': self.request.data.get('sku_id', None),
+            'verification_code': str(uuid.uuid4())
+        })
         if order_serializer.is_valid():
             order = order_serializer.save()
             post_data = self.construct_order_post(OrderSerializer(order).data)
@@ -68,8 +74,24 @@ class PaymentIntegration(object):
             return HttpResponseRedirect(callback_data.get('redirect_url') + 'resources/{}'.format(
                 order.reservation.resource.id,
             ))
-        return HttpResponseRedirect(callback_data.get('redirect_url') + 'reservation?id={}&reservation={}&resource={}'.format(
-            order.id,
-            order.reservation.id,
-            order.reservation.resource.id,
-        ))
+        return HttpResponseRedirect(
+            callback_data.get('redirect_url')
+            + 'reservation?id={}&reservation={}&resource={}'.format(
+                order.id,
+                order.reservation.id,
+                order.reservation.resource.id,
+            ))
+
+    def skip_payment(self):
+        reservation = self.request.data.get('reservation_id', None)
+        reservation.state = Reservation.CONFIRMED
+        reservation.approver = self.request.user
+        reservation.comments = 'Reservation created by staff.'
+        reservation.save()
+        callback_data = self.construct_payment_callback()
+        return HttpResponseRedirect(
+            callback_data.get('redirect_url')
+            + 'reservation?reservation={}&resource={}'.format(
+                reservation.id,
+                reservation.resource.id,
+            ))
