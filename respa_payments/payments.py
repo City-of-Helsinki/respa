@@ -83,7 +83,7 @@ class PaymentIntegration(object):
             ))
 
     def skip_payment(self):
-        reservation = self.request.data.get('reservation_id', None)
+        reservation = Reservation.objects.get(pk=self.request.data.get('reservation_id', None))
         reservation.state = Reservation.CONFIRMED
         reservation.approver = self.request.user
         reservation.comments = 'Reservation created by staff.'
