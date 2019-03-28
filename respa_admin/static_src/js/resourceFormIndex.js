@@ -1,4 +1,4 @@
-import { initializeEventHandlers, initialSortPeriodDays, setClonableItems, calendarHandler }  from './resourceForm';
+import { initializeEventHandlers, initialSortPeriodDays, setClonableItems, calendarHandler, coloredDropdownListener, addDropdownColor }  from './resourceForm';
 import { toggleCurrentLanguage, calculateTranslatedFields }  from './resourceFormLanguage';
 
 function start() {
@@ -8,6 +8,8 @@ function start() {
   calculateTranslatedFields();
   calendarHandler();
   initialSortPeriodDays();
+  addDropdownColor();
+  coloredDropdownListener();
 }
 
 window.addEventListener('load', start, false);
