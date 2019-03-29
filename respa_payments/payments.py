@@ -59,13 +59,11 @@ class PaymentIntegration(object):
 
         order_serializer = OrderSerializer(order, data=callback_data)
         if order_serializer.is_valid() and callback_data.get('payment_service_success', False):
-            reservation.state = Reservation.CONFIRMED
-            reservation.save()
+            reservation.set_state(Reservation.CONFIRMED, self.request.user)
             order_serializer.save()
         else:
-            reservation.state = Reservation.DENIED
             reservation.comments = 'Payment was unsuccesful.'
-            reservation.save()
+            reservation.set_state(Reservation.DENIED, self.request.user)  # set_state() saves the reservation
             order.order_process_failure = timezone.now()
             order.order_process_log = str(order_serializer.errors)
             if not callback_data.get('payment_service_success', False):
@@ -84,10 +82,9 @@ class PaymentIntegration(object):
 
     def skip_payment(self):
         reservation = Reservation.objects.get(pk=self.request.data.get('reservation_id', None))
-        reservation.state = Reservation.CONFIRMED
         reservation.approver = self.request.user
         reservation.comments = 'Reservation created by staff.'
-        reservation.save()
+        reservation.set_state(Reservation.CONFIRMED, self.request.user)  # set_state() saves the reservation
         callback_data = self.construct_payment_callback()
         return HttpResponseRedirect(
             callback_data.get('redirect_url')
