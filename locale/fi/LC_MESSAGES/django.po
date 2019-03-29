@@ -1066,6 +1066,9 @@ msgstr "Toiminnot"
 msgid "Save"
 msgstr "Tallenna"
 
+msgid "View changes"
+msgstr "Tarkastele muutoksia"
+
 msgid "Edit resource"
 msgstr "Muokkaa resurssia"
 

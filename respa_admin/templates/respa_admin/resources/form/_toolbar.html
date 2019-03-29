@@ -12,5 +12,12 @@
             <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
         </div>
         <button class='btn btn-primary toolbar-save' type="submit">{% trans "Save" %}</button>
+        {% if resource %}
+            <a href="https://www.google.com" target="_blank" rel="noopener noreferrer">
+                <button class='btn toolbar-preview' type='button'>
+                {% trans "View changes" %}
+                </button>
+            </a>
+        {% endif %}
     </div>
 </div>
