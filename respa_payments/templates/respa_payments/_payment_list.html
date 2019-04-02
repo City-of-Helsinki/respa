@@ -5,6 +5,23 @@
 
         <div class='filter-bar container-fluid'>
             <h2 class="pull-left">{% trans 'All payments' %}</h2>
+            <div class='filter pull-right'>
+                <span class="dropdowns-label">{% trans 'Filter' %}:</span>
+                <form name="filter-dropdowns" method="get">
+                    <div class="hours-table-header" id="period-list">
+                        <div class="input-row period-input" id="period-input-interval-filter">
+                            <div class="form-group">
+                                <label class="control-label input-label">{% trans "Time interval" %}</label>
+                                <div class="input-row range-input date-input" id="date-inputs-interval-filter">
+                                    <input name="filter_start" value="{{ filter_start|default:'' }}" onchange="this.form.submit();" class="text-input form-control" data-provide="datepicker" data-date-format="dd.mm.yyyy" />
+                                    <span class="glyphicon glyphicon-minus"></span>
+                                    <input name="filter_end" value="{{ filter_end|default:'' }}" onchange="this.form.submit();" class="text-input form-control" data-provide="datepicker" data-date-format="dd.mm.yyyy" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
 
         <div class='payment-list container-fluid'>
