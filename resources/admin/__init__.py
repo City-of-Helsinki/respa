@@ -21,8 +21,8 @@ from .base import ExtraReadonlyFieldsOnUpdateMixin, CommonExcludeMixin, Populate
 from resources.admin.period_inline import PeriodInline
 
 from ..models import (
-    Day, Equipment, EquipmentAlias, EquipmentCategory, Purpose, Reservation,
-    ReservationMetadataField, ReservationMetadataSet, Resource,
+    AccessibilityViewpoint, Day, Equipment, EquipmentAlias, EquipmentCategory, Purpose, Reservation,
+    ReservationMetadataField, ReservationMetadataSet, Resource, ResourceAccessibility,
     ResourceEquipment, ResourceGroup, ResourceImage, ResourceType, TermsOfUse,
     Unit, UnitAuthorization, UnitGroup, UnitGroupAuthorization)
 from munigeo.models import Municipality
@@ -315,6 +315,17 @@ class MunicipalityAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, adm
         return TemplateResponse(request, self.import_template, context)
 
 
+class AccessibilityViewpointAdmin(TranslationAdmin):
+    pass
+
+
+class ResourceAccessibilityAdmin(admin.ModelAdmin):
+    list_display = ('resource', 'viewpoint', 'value')
+    list_filter = ('value',)
+    raw_id_fields = ('resource',)
+    search_fields = ('resource__name', 'viewpoint__name')
+
+
 admin_site.register(ResourceImage, ResourceImageAdmin)
 admin_site.register(Resource, ResourceAdmin)
 admin_site.register(Reservation, ReservationAdmin)
@@ -332,3 +343,5 @@ admin.site.register(ResourceGroup, ResourceGroupAdmin)
 if admin.site.is_registered(Municipality):
     admin.site.unregister(Municipality)
 admin.site.register(Municipality, MunicipalityAdmin)
+admin.site.register(AccessibilityViewpoint, AccessibilityViewpointAdmin)
+admin.site.register(ResourceAccessibility, ResourceAccessibilityAdmin)

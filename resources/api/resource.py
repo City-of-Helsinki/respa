@@ -143,6 +143,7 @@ class TermsOfUseSerializer(TranslatedModelSerializer):
 
 
 class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
+    accessibility = serializers.SerializerMethodField()
     purposes = PurposeSerializer(many=True)
     images = NestedResourceImageSerializer(many=True)
     equipment = ResourceEquipmentSerializer(many=True, read_only=True, source='resource_equipment')
@@ -164,6 +165,11 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     reservable_before = serializers.SerializerMethodField()
     reservable_min_days_in_advance = serializers.ReadOnlyField(source='get_reservable_min_days_in_advance')
     reservable_after = serializers.SerializerMethodField()
+
+    def get_accessibility(self, obj):
+
+
+
 
     def get_user_permissions(self, obj):
         request = self.context.get('request', None)
@@ -306,6 +312,20 @@ class ParentFilter(django_filters.Filter):
 
 class ParentCharFilter(ParentFilter):
     field_class = forms.CharField
+
+
+class AccessibilityOrderFilter(django_filters.Filter):
+    """
+    Order resources by accessibility viewpoint.
+    """
+
+    def filter(self, qs, value):
+        from django.db.models import OuterRef, Subquery, Value
+        from django.db.models.functions import Coalesce
+
+        accessibility_value = ResourceAccessibility.filter(resource_id=OuterRef('pk'), value=value)
+        qs = qs.annotate(priority=Coalesce(Subquery(accessibility_value.values('value')[:1]), Value(ResourceAccessbility.UNKNOWN))).order_by('priority')
+        return qs
 
 
 class ResourceFilterSet(django_filters.FilterSet):

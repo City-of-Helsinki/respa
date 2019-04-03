@@ -1,7 +1,7 @@
 from modeltranslation.translator import TranslationOptions, register
 
 from .models import (
-    Equipment, EquipmentCategory, Purpose, Resource, ResourceEquipment,
+    AccessibilityViewpoint, Equipment, EquipmentCategory, Purpose, Resource, ResourceEquipment,
     ResourceImage, ResourceType, TermsOfUse, Unit, UnitGroup)
 
 
@@ -58,3 +58,8 @@ class EquipmentCategoryTranslationOptions(TranslationOptions):
 @register(TermsOfUse)
 class TermsOfUserTranslationOptions(TranslationOptions):
     fields = ('name', 'text')
+
+
+@register(AccessibilityViewpoint)
+class AccessibilityViewpointTranslationOptions(TranslationOptions):
+    fields = ('name',)
