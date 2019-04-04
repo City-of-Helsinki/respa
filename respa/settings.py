@@ -103,6 +103,7 @@ INSTALLED_APPS = [
     'comments',
     'notifications.apps.NotificationsConfig',
     'kulkunen',
+    'payments',
 
     'respa_exchange',
     'respa_admin',

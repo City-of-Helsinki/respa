@@ -17,6 +17,9 @@ if getattr(settings, 'RESPA_COMMENTS_ENABLED', False):
 if getattr(settings, 'RESPA_CATERINGS_ENABLED', False):
     import caterings.api
 
+if 'payments' in settings.INSTALLED_APPS:
+    import payments.api  # noqa
+
 router = RespaAPIRouter()
 
 urlpatterns = [
