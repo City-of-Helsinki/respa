@@ -85,7 +85,8 @@ class PaymentIntegration(object):
         reservation = order.reservation
         reservation.state = Reservation.CONFIRMED
         reservation.approver = self.request.user
-        reservation.comments = 'Reservation created by staff.'
+        if not reservation.comments:
+            reservation.comments = 'Reservation created by staff.'
         reservation.save()
         order.order_process_success = timezone.now()
         order.order_process_log = 'Reservation created by staff.'
