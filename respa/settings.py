@@ -289,6 +289,14 @@ ACCOUNT_ADAPTER = 'respa_berth.account_adapter.NoNewUsersAccountAdapter'
 
 PAYTRAIL_MERCHANT_ID = ''
 PAYTRAIL_MERCHANT_SECRET = ''
+RESPA_PAYMENTS_PAYTRAIL_MERCHANT_ID = PAYTRAIL_MERCHANT_ID
+RESPA_PAYMENTS_PAYTRAIL_MERCHANT_AUTH_HASH = PAYTRAIL_MERCHANT_SECRET
+RESPA_PAYMENTS_INTEGRATION_CLASS = 'respa_payments.integrations.paytrail_e2.PaytrailE2Integration'
+RESPA_PAYMENTS_API_URL = 'https://payment.paytrail.com/e2'
+RESPA_PAYMENTS_URL_SUCCESS = 'https://varaukset.hameenlinna.fi/v1/rp/order-callback/'
+RESPA_PAYMENTS_URL_FAILED = 'https://varaukset.hameenlinna.fi/v1/rp/order-callback/'
+RESPA_PAYMENTS_URL_CANCEL = 'https://varaukset.hameenlinna.fi/v1/rp/order-callback/'
+RESPA_PAYMENTS_URL_REDIRECT_CALLBACK = 'https://varaukset.hameenlinna.fi/varaamo/'
 
 TWILIO_ACCOUNT_SID = ''
 TWILIO_AUTH_TOKEN = ''

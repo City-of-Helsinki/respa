@@ -1,8 +1,8 @@
 from django.conf import settings
 
 # Paytrail
-MERCHANT_ID = getattr(settings, 'PAYTRAIL_MERCHANT_ID', '')
-MERCHANT_AUTH_HASH = getattr(settings, 'PAYTRAIL_MERCHANT_AUTH_HASH', '')
+MERCHANT_ID = getattr(settings, 'RESPA_PAYMENTS_PAYTRAIL_MERCHANT_ID', '')
+MERCHANT_AUTH_HASH = getattr(settings, 'RESPA_PAYMENTS_PAYTRAIL_MERCHANT_AUTH_HASH', '')
 
 # Payments
 INTEGRATION_CLASS = getattr(settings, 'RESPA_PAYMENTS_INTEGRATION_CLASS', '')
