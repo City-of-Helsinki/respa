@@ -44,3 +44,12 @@ django-environ
 django-enumfields
 django-sanitized-dump>=0.2.0
 database-sanitizer>=0.4.0
+
+#respa_berth requirements
+amqp==2.1.4
+billiard==3.5.0.2
+celery==4.0.2
+kombu==4.0.2
+python-memcached==1.59
+vine==1.1.3
+twilio==6.9.1

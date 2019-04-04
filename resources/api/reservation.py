@@ -19,7 +19,7 @@ from rest_framework.exceptions import NotAcceptable, ValidationError
 from rest_framework.settings import api_settings as drf_settings
 
 from munigeo import api as munigeo_api
-from resources.models import Reservation, Resource, ReservationMetadataSet
+from resources.models import Reservation, Resource, ReservationMetadataSet, DurationSlot
 from resources.models.reservation import RESERVATION_EXTRA_FIELDS
 from resources.pagination import ReservationPagination
 from resources.models.utils import generate_reservation_xlsx, get_object_or_none
@@ -77,7 +77,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         model = Reservation
         fields = [
             'url', 'id', 'resource', 'user', 'begin', 'end', 'comments', 'is_own', 'state', 'need_manual_confirmation',
-            'staff_event', 'access_code', 'user_permissions'
+            'staff_event', 'access_code', 'user_permissions', 'duration_slot'
         ] + list(RESERVATION_EXTRA_FIELDS)
         read_only_fields = RESERVATION_EXTRA_FIELDS
 
@@ -196,6 +196,10 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         if reservation is None:
             resource.validate_max_reservations_per_user(request_user)
 
+        if data.get('duration_slot'):
+            if not resource.duration_slots.filter(pk=data.get('duration_slot').pk).exists():
+                raise ValidationError(dict(duration_slot=_('Resource doesn\'t have chosen duration slot')))
+
         # Run model clean
         data.pop('staff_event', None)
         instance = Reservation(**data)
@@ -254,7 +258,9 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             del data['comments']
             del data['user']
 
-        if instance.are_extra_fields_visible(user):
+        # Return extra fields if user has permission to view them or is creating unauthenticated reservation
+        if (instance.are_extra_fields_visible(user) or
+                (self.context['request'].method == 'POST' and resource.authentication == 'unauthenticated')):
             cache = self.context.get('reservation_metadata_set_cache')
             supported_fields = set(resource.get_supported_reservation_extra_field_names(cache=cache))
         else:
@@ -451,6 +457,19 @@ class ReservationFilterSet(django_filters.rest_framework.FilterSet):
 
 
 class ReservationPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS or request.user and request.user.is_authenticated:
+            return True
+
+        resource_id = request.data.get('resource')
+        resource = None
+        try:
+            resource = Resource.objects.get(pk=resource_id)
+        except Resource.DoesNotExist:
+            return False
+
+        return request.method == 'POST' and resource.authentication == 'unauthenticated'
+
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
@@ -513,7 +532,7 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
                        ReservationFilterBackend, NeedManualConfirmationFilterBackend, StateFilterBackend,
                        CanApproveFilterBackend)
     filter_class = ReservationFilterSet
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
+    permission_classes = (ReservationPermission,)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, ReservationExcelRenderer)
     pagination_class = ReservationPagination
     authentication_classes = (
@@ -557,9 +576,11 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         return queryset
 
     def perform_create(self, serializer):
-        override_data = {'created_by': self.request.user, 'modified_by': self.request.user}
+        user = self.request.user
+        override_data = {'created_by': user if user.is_authenticated else None,
+                         'modified_by': user if user.is_authenticated else None}
         if 'user' not in serializer.validated_data:
-            override_data['user'] = self.request.user
+            override_data['user'] = user if user.is_authenticated else None
         override_data['state'] = Reservation.CREATED
         instance = serializer.save(**override_data)
 

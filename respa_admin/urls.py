@@ -7,6 +7,7 @@ from .views.resources import (
     admin_office,
     SaveResourceView
 )
+from respa_payments.views import PaymentListView
 from .auth import admin_url as url
 
 urlpatterns = [
@@ -18,4 +19,5 @@ urlpatterns = [
     url(r'^resources/$', ResourceListView.as_view(), name='resources'),
     url(r'^resource/new/$', SaveResourceView.as_view(), name='new-resource'),
     url(r'^resource/edit/(?P<resource_id>\w+)/$', SaveResourceView.as_view(), name='edit-resource'),
+    url(r'^payments/$', PaymentListView.as_view(), name='payments'),
 ]

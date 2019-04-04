@@ -39,6 +39,7 @@ router = RespaAPIRouter()
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^ra/', include(respa_admin.urls, namespace='respa_admin')),
+    url(r'^v1/rp/', include('respa_payments.urls')),
     url(r'^i18n/', include('django.conf.urls.i18n')),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^grappelli/', include('grappelli.urls')),
@@ -54,6 +55,11 @@ if 'reports' in settings.INSTALLED_APPS:
         url(r'^reports/daily_reservations/', DailyReservationsReport.as_view(), name='daily-reservations-report'),
         url(r'^reports/reservation_details/', ReservationDetailsReport.as_view(), name='reservation-details-report'),
     ])
+
+if getattr(settings, 'RESPA_BERTH_ENABLED', False):
+    urlpatterns = [
+        url('^api/', include('respa_berth.urls'))
+    ] + urlpatterns
 
 
 if settings.DEBUG:

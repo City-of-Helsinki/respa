@@ -16,7 +16,7 @@ from resources.admin.period_inline import PeriodInline
 
 from ..models import (
     Day, Equipment, EquipmentAlias, EquipmentCategory, Purpose, Reservation,
-    ReservationMetadataField, ReservationMetadataSet, Resource,
+    ReservationMetadataField, ReservationMetadataSet, Resource, DurationSlot,
     ResourceEquipment, ResourceGroup, ResourceImage, ResourceType, TermsOfUse,
     Unit, UnitAuthorization, UnitGroup, UnitGroupAuthorization)
 
@@ -163,6 +163,7 @@ class ResourceEquipmentAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin
 class ReservationAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, ExtraReadonlyFieldsOnUpdateMixin,
                        admin.ModelAdmin):
     extra_readonly_fields_on_update = ('access_code',)
+    raw_id_fields = ('user', 'approver',)
 
 
 class ResourceTypeAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):
@@ -218,3 +219,4 @@ admin_site.register(TermsOfUse, TermsOfUseAdmin)
 admin_site.register(ReservationMetadataField)
 admin_site.register(ReservationMetadataSet, ReservationMetadataSetAdmin)
 admin.site.register(ResourceGroup, ResourceGroupAdmin)
+admin.site.register(DurationSlot)

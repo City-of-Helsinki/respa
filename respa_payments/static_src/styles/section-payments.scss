@@ -1,0 +1,92 @@
+section.payments {
+
+  .container {
+    padding: 32px 0 100px;
+  }
+
+  .filter-bar {
+    margin: 36px auto 24px;
+
+    h2 {
+      margin: 0;
+    }
+
+    .select-dropdown {
+      margin-left: 10px;
+    }
+  }
+
+  .filter {
+    height: 100%;
+
+    span.dropdowns-label {
+      padding-right: 10px;
+      font-size: $font-size-small;
+    }
+  }
+
+  .payment-list ul li {
+    $list-item-height: 100px;
+    $table-template: 1fr 1fr 1.2fr 1.2fr 1.2fr 1.5fr 1fr;
+
+    padding: 0;
+    margin: 12px auto;
+    border: 0;
+
+    div.panel {
+      height: 100%;
+      margin: 0;
+      border: 0;
+    }
+
+    div.panel-body {
+      padding: 0;
+      display: grid;
+      position: relative;
+      grid-template-columns: $table-template;
+      grid-template-rows: $list-item-height;
+    }
+    div.panel-body:before {
+      display: none
+    }
+
+    @for $i from 2 through 5 {
+      .col-#{$i} {
+        grid-area: 1 / $i / 2 / $i + 1;
+        padding: $padding-large-vertical 24px;
+        display: flex;
+        overflow: hidden;
+        flex-direction: column;
+        justify-content: center;
+      }
+    }
+
+    &.sort-bar {
+      display: grid;
+      grid-template-columns: $table-template;
+      grid-template-rows: auto;
+      margin: 24px auto 0;
+
+      & > * {
+        display: inline;
+        overflow: hidden;
+        font-weight: lighter;
+        opacity: 0.5;
+        text-align: left;
+        padding-top: 0;
+        padding-bottom: 0;
+
+        span {
+          margin-left: 5px;
+        }
+      }
+    }
+
+    div.panel img, li div.empty-holder {
+      position: absolute;
+      width: $list-item-height;
+      height: $list-item-height;
+    }
+  }
+
+}

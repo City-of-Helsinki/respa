@@ -29,6 +29,8 @@ env = environ.Env(
     MAIL_ENABLED=(bool, False),
     MAIL_DEFAULT_FROM=(str, ''),
     MAIL_MAILGUN_KEY=(str, ''),
+    BROKER_URL=(str, ''),
+    CELERY_ALWAYS_EAGER=(bool, True),
 )
 environ.Env.read_env()
 
@@ -93,8 +95,10 @@ INSTALLED_APPS = [
 
     'respa_exchange',
     'respa_admin',
+    'respa_payments',
 
     'sanitized_dump',
+    'respa_berth'
 ]
 
 if env('SENTRY_DSN'):
@@ -143,7 +147,7 @@ TEMPLATES = [
     },
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates'), os.path.join(BASE_DIR, 'templates', 'allauth')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -233,12 +237,12 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'helusers.jwt.JWTAuthentication',
-    ] + ([
         "rest_framework.authentication.SessionAuthentication",
+    ] + ([
         "rest_framework.authentication.BasicAuthentication",
     ] if DEBUG else []),
     'DEFAULT_PAGINATION_CLASS': 'resources.pagination.DefaultPagination',
+    'PAGE_SIZE': 50,
 }
 
 JWT_AUTH = {
@@ -264,6 +268,12 @@ RESPA_CATERINGS_ENABLED = False
 RESPA_COMMENTS_ENABLED = False
 RESPA_DOCX_TEMPLATE = os.path.join(BASE_DIR, 'reports', 'data', 'default.docx')
 
+RESPA_RESOURCE_TYPE_CHOICES = (
+    ('space', _('Space')),
+    ('person', _('Person')),
+    ('item', _('Item'))
+)
+
 if env('MAIL_MAILGUN_KEY'):
     ANYMAIL = {
         'MAILGUN_API_KEY': env('MAIL_MAILGUN_KEY')
@@ -272,6 +282,36 @@ if env('MAIL_MAILGUN_KEY'):
 
 RESPA_ADMIN_USERNAME_LOGIN = env.bool(
     'RESPA_ADMIN_USERNAME_LOGIN', default=True)
+
+# respa_berth
+REGISTRATION_OPEN = False
+ACCOUNT_ADAPTER = 'respa_berth.account_adapter.NoNewUsersAccountAdapter'
+
+PAYTRAIL_MERCHANT_ID = ''
+PAYTRAIL_MERCHANT_SECRET = ''
+RESPA_PAYMENTS_PAYTRAIL_MERCHANT_ID = PAYTRAIL_MERCHANT_ID
+RESPA_PAYMENTS_PAYTRAIL_MERCHANT_AUTH_HASH = PAYTRAIL_MERCHANT_SECRET
+RESPA_PAYMENTS_INTEGRATION_CLASS = 'respa_payments.integrations.paytrail_e2.PaytrailE2Integration'
+RESPA_PAYMENTS_API_URL = 'https://payment.paytrail.com/e2'
+RESPA_PAYMENTS_URL_SUCCESS = 'https://varaukset.hameenlinna.fi/v1/rp/order-callback/'
+RESPA_PAYMENTS_URL_FAILED = 'https://varaukset.hameenlinna.fi/v1/rp/order-callback/'
+RESPA_PAYMENTS_URL_CANCEL = 'https://varaukset.hameenlinna.fi/v1/rp/order-callback/'
+RESPA_PAYMENTS_URL_REDIRECT_CALLBACK = 'https://varaukset.hameenlinna.fi/varaamo/'
+
+TWILIO_ACCOUNT_SID = ''
+TWILIO_AUTH_TOKEN = ''
+TWILIO_FROM_NUMBER = ''
+
+RESPA_RESOURCES_RESOURCE_SERIALIZER_CLASS = 'respa_payments.api.PaymentResourceSerializer'
+RESPA_RESOURCES_RESOURCE_DETAILS_SERIALIZER_CLASS = 'respa_payments.api.PaymentResourceDetailsSerializer'
+
+# celery
+BROKER_URL = env('BROKER_URL')
+CELERY_ALWAYS_EAGER = env('CELERY_ALWAYS_EAGER')
+CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+# Celery respects root Sentry logger
+CELERYD_HIJACK_ROOT_LOGGER = False
+
 
 # local_settings.py can be used to override environment-specific settings
 # like database and email that differ between development and production.

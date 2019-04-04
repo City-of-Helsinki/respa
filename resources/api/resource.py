@@ -7,8 +7,10 @@ import pytz
 from arrow.parser import ParserError
 
 from django import forms
+from django.conf import settings
 from django.db.models import Prefetch, Q
 from django.urls import reverse
+from django.utils.module_loading import import_string
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
 from resources.pagination import PurposePagination
@@ -19,7 +21,8 @@ from guardian.core import ObjectPermissionChecker
 from munigeo import api as munigeo_api
 from resources.models import (
     Purpose, Reservation, Resource, ResourceImage, ResourceType, ResourceEquipment,
-    TermsOfUse, Equipment, ReservationMetadataSet, ResourceDailyOpeningHours
+    TermsOfUse, Equipment, ReservationMetadataSet, ResourceDailyOpeningHours, DurationSlot,
+    Period
 )
 from resources.models.resource import determine_hours_time_range
 
@@ -59,6 +62,12 @@ class PurposeSerializer(TranslatedModelSerializer):
     class Meta:
         model = Purpose
         fields = ['name', 'parent', 'id']
+
+
+class PeriodSerializer(TranslatedModelSerializer):
+    class Meta:
+        model = Period
+        fields = ['start', 'end']
 
 
 class PurposeViewSet(viewsets.ReadOnlyModelViewSet):
@@ -139,6 +148,12 @@ class TermsOfUseSerializer(TranslatedModelSerializer):
         fields = ('text',)
 
 
+class DurationSlotSerializer(TranslatedModelSerializer):
+    class Meta:
+        model = DurationSlot
+        fields = ('id', 'duration',)
+
+
 class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     purposes = PurposeSerializer(many=True)
     images = NestedResourceImageSerializer(many=True)
@@ -149,6 +164,7 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     # FIXME: Enable available_hours when it's more performant
     # available_hours = serializers.SerializerMethodField()
     opening_hours = serializers.SerializerMethodField()
+    opening_periods = serializers.SerializerMethodField()
     reservations = serializers.SerializerMethodField()
     user_permissions = serializers.SerializerMethodField()
     supported_reservation_extra_fields = serializers.ReadOnlyField(source='get_supported_reservation_extra_field_names')
@@ -161,6 +177,7 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     reservable_before = serializers.SerializerMethodField()
     reservable_min_days_in_advance = serializers.ReadOnlyField(source='get_reservable_min_days_in_advance')
     reservable_after = serializers.SerializerMethodField()
+    duration_slots = DurationSlotSerializer(many=True)
 
     def get_user_permissions(self, obj):
         request = self.context.get('request', None)
@@ -263,6 +280,9 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
                 d.update(x[1][0])
             ret.append(d)
         return ret
+
+    def get_opening_periods(self, obj):
+        return PeriodSerializer(obj.get_opening_periods(), many=True).data
 
     def get_reservations(self, obj):
         if 'start' not in self.context:
@@ -585,7 +605,7 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
     queryset = Resource.objects.select_related('generic_terms', 'unit', 'type', 'reservation_metadata_set')
     queryset = queryset.prefetch_related('favorited_by', 'resource_equipment', 'resource_equipment__equipment',
                                          'purposes', 'images', 'purposes', 'groups')
-    serializer_class = ResourceSerializer
+    serializer_class = import_string(getattr(settings, 'RESPA_RESOURCES_RESOURCE_SERIALIZER_CLASS', 'resources.api.resource.ResourceSerializer'))
     filter_backends = (filters.SearchFilter, ResourceFilterBackend, LocationFilterBackend)
     search_fields = ('name_fi', 'description_fi', 'unit__name_fi',
                      'name_sv', 'description_sv', 'unit__name_sv',
@@ -601,15 +621,17 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
         return context
 
     def get_queryset(self):
+        queryset = self.queryset
+        queryset = queryset.filter(type__main_type__in=[choice[0] for choice in settings.RESPA_RESOURCE_TYPE_CHOICES])
         if is_general_admin(self.request.user):
-            return self.queryset
+            return queryset
         else:
-            return self.queryset.filter(public=True)
+            return queryset.filter(public=True)
 
 
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
                       viewsets.GenericViewSet, ResourceCacheMixin):
-    serializer_class = ResourceDetailsSerializer
+    serializer_class = import_string(getattr(settings, 'RESPA_RESOURCES_RESOURCE_DETAILS_SERIALIZER_CLASS', 'resources.api.resource.ResourceDetailsSerializer'))
     queryset = ResourceListViewSet.queryset
 
     def get_serializer(self, page, *args, **kwargs):
