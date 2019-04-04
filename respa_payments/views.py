@@ -18,7 +18,7 @@ class PaymentListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(PaymentListView, self).get_context_data()
-        context['total_payment_service_amount'] = str(Order.objects.aggregate(
+        context['total_payment_service_amount'] = str(self.get_queryset().aggregate(
           Sum('payment_service_amount')
         )['payment_service_amount__sum'])
         context['filter_start'] = self.filter_start
@@ -30,6 +30,6 @@ class PaymentListView(ListView):
         if self.filter_start:
             qs = qs.filter(order_process_started__gte=datetime.datetime.strptime(self.filter_start, '%d.%m.%Y'))
         if self.filter_end:
-            qs = qs.filter(order_process_started__lte=datetime.datetime.strptime(self.filter_end, '%d.%m.%Y') 
+            qs = qs.filter(order_process_started__lte=datetime.datetime.strptime(self.filter_end, '%d.%m.%Y')
                            + datetime.timedelta(days=1))
         return qs
