@@ -36,9 +36,10 @@
         border-radius: 20px;
         border: solid 1px black;
         line-height: $badge-line-height;
+        background-color: #fff;
                 
         span.badge {
-          background-color: $theme-danger;
+          background-color: #ff0000;
           line-height: normal;
           padding: 0;
           width: 16px;

@@ -52,7 +52,13 @@ export function calculateTranslatedFields() {
 
     const $languageButton = $('[name="language-' + language + '"]');
     const currentCountForLanguage = $languageButton.find('span').text();
-    $languageButton.find('span').text(currentCountForLanguage - languageCount);
+    const UNICODE_CHECKMARK = '\u2713'
+    if(currentCountForLanguage - languageCount === 0) {
+      $languageButton.find('span').css('background-color', '#23a000').text(UNICODE_CHECKMARK);
+    }
+    else {
+      $languageButton.find('span').text(currentCountForLanguage - languageCount);
+    }
   }
 }
 
