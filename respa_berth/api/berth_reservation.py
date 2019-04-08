@@ -168,6 +168,13 @@ class BerthReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModel
         data = super(BerthReservationSerializer, self).to_representation(instance)
         return data
 
+    def to_internal_value(self, data):
+        # clean up inconsistent data sent by UI
+        if 'reservation' in data and 'user' in data['reservation']:
+            if not data['reservation']['user']:
+                del data['reservation']['user']
+        return super().to_internal_value(data)
+
     def validate_reserver_ssn(self, value):
         number_array = re.findall(r'\d+', value[:-1])
         if not number_array or len(value) != 11:

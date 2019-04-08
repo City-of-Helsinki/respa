@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from django.core.management.base import BaseCommand
-from django.db import connection, transaction, Q
+from django.db import connection, transaction
+from django.db.models import Q
 from resources.models import ResourceType, Unit, UnitIdentifier
 from respa_berth.models.berth import Berth, GroundBerthPrice
 from respa_berth.models.berth_reservation import BerthReservation
@@ -16,12 +17,14 @@ class Command(BaseCommand):
     BERTH_RESOURCE_MAIN_TYPE = 'berth'
 
     def handle(self, *args, **options):
+        self.set_resource_type_main_type()
         self.create_unit_identifiers()
         self.copy_berths()
         self.copy_groundberthprices()
         self.copy_berthreservations()
         self.copy_purchases()
         self.copy_smsmessages()
+        self.reset_sequences()
 
     def set_resource_type_main_type(self):
         # The ResourceType used in the berths should have a berth related main_type for differentiation of resources
