@@ -35,24 +35,11 @@ if [ "$TRAVIS_PULL_REQUEST" != false ]; then
     exit 0
 fi
 
-if [ "$TRAVIS_BRANCH" == "master" ] ; then
-    echo "Tagging master"
-    docker tag "$IMAGE" "$REPO:$COMMIT"
-    docker tag "$REPO:$COMMIT" $REPO:latest
-    docker tag "$REPO:$COMMIT" "$REPO:travis-$TRAVIS_BUILD_NUMBER"
-    docker push "$REPO:$COMMIT"
-    docker push "$REPO:latest"
-    docker push "$REPO:travis-$TRAVIS_BUILD_NUMBER"
-    exit 0
-fi
-
-if [ "$TRAVIS_BRANCH" != "master" ] ; then
-    echo "Tagging branch " "$TRAVIS_BRANCH"
-    docker tag "$IMAGE" "$REPO:$COMMIT"
-    docker tag "$REPO:$COMMIT" "$REPO:$BRANCH"
-    docker tag "$REPO:$COMMIT" "$REPO:travis-$TRAVIS_BUILD_NUMBER"
-    docker push "$REPO:$COMMIT"
-    docker push "$REPO:travis-$TRAVIS_BUILD_NUMBER"
-    docker push "$REPO:$BRANCH"
-    exit 0
-fi
+echo "Tagging branch " "$TRAVIS_BRANCH"
+docker tag "$IMAGE" "$REPO:$COMMIT"
+docker tag "$REPO:$COMMIT" "$REPO:$BRANCH"
+docker tag "$REPO:$COMMIT" "$REPO:travis-$TRAVIS_BUILD_NUMBER"
+docker push "$REPO:$COMMIT"
+docker push "$REPO:travis-$TRAVIS_BUILD_NUMBER"
+docker push "$REPO:$BRANCH"
+exit 0
