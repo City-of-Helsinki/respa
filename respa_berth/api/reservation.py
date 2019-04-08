@@ -8,6 +8,7 @@ from respa_berth.api.resource import ResourceSerializer
 from django.core.exceptions import PermissionDenied, ValidationError as DjangoValidationError
 from rest_framework.exceptions import ValidationError
 from django.utils import timezone, six
+from django.utils.translation import ugettext as _
 import re
 
 
