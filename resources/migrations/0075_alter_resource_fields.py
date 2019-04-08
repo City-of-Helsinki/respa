@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='resource',
             name='area',
-            field=models.PositiveIntegerField(blank=True, null=True, verbose_name='Area'),
+            field=models.PositiveIntegerField(blank=True, null=True, verbose_name='Area (m2)'),
         ),
         migrations.AlterField(
             model_name='resource',

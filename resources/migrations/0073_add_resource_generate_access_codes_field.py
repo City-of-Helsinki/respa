@@ -25,6 +25,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='resource',
             name='access_code_type',
-            field=models.CharField(choices=[('none', 'None'), ('pin6', '4-digit PIN code'), ('pin6', '6-digit PIN code')], default='none', max_length=20, verbose_name='Access code type'),
+            field=models.CharField(choices=[('none', 'None'), ('pin4', '4-digit PIN code'), ('pin6', '6-digit PIN code')], default='none', max_length=20, verbose_name='Access code type'),
         ),
     ]
