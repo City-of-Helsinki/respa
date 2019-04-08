@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ -z "$DOCKER_USERNAME" ]; then
+    echo "Need Docker login credentials to proceed"
+    exit 0
+fi
+
 if [ "$TRAVIS_PYTHON_VERSION" != "3.6" ]; then
     echo "Only deploy on production Python build"
     exit 0
