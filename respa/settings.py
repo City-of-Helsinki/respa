@@ -34,12 +34,17 @@ env = environ.Env(
     MAIL_MAILGUN_DOMAIN=(str, ''),
     MAIL_MAILGUN_API=(str, ''),
     RESPA_IMAGE_BASE_URL=(str, ''),
+    PAYMENT_API_KEY=(str, ''),
+    PAYMENT_API_SECRET=(str, ''),
 )
 environ.Env.read_env()
 
 # used for generating links to images, when no request context is available
 # reservation confirmation emails use this
 RESPA_IMAGE_BASE_URL = env('RESPA_IMAGE_BASE_URL')
+
+PAYMENT_API_KEY = env('PAYMENT_API_KEY')
+PAYMENT_API_SECRET = env('PAYMENT_API_SECRET')
 
 BASE_DIR = root()
 
