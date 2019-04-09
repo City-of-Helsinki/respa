@@ -1012,6 +1012,9 @@ msgstr "Voit valita vain yhden pääkuvan."
 msgid "Add image"
 msgstr "Lisää kuva"
 
+msgid "Translations"
+msgstr "Käännökset"
+
 msgid "Authentication, terms and price"
 msgstr "Tunnistautuminen, ehdot ja hinta"
 

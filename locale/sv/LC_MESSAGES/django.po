@@ -1014,6 +1014,9 @@ msgstr "Du kan endast välja en huvudbild."
 msgid "Add image"
 msgstr "Lägg till bild"
 
+msgid "Translations"
+msgstr "Översättningar"
+
 msgid "Authentication, terms and price"
 msgstr "Autentisering, villkor och pris"
 
