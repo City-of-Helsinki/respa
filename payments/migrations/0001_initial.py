@@ -26,6 +26,7 @@ class Migration(migrations.Migration):
             options={
                 'verbose_name': 'order',
                 'verbose_name_plural': 'orders',
+                'ordering': ('id',),
             },
         ),
         migrations.CreateModel(
@@ -38,6 +39,7 @@ class Migration(migrations.Migration):
             options={
                 'verbose_name': 'order line',
                 'verbose_name_plural': 'order lines',
+                'ordering': ('id',),
             },
         ),
         migrations.CreateModel(
@@ -56,6 +58,7 @@ class Migration(migrations.Migration):
             options={
                 'verbose_name': 'product',
                 'verbose_name_plural': 'products',
+                'ordering': ('id',),
             },
         ),
         migrations.AddField(

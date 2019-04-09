@@ -38,6 +38,7 @@ class Product(models.Model):
     class Meta:
         verbose_name = _('product')
         verbose_name_plural = _('products')
+        ordering = ('id',)
 
     def __str__(self):
         return self.name
@@ -97,6 +98,7 @@ class OrderLine(models.Model):
     class Meta:
         verbose_name = _('order line')
         verbose_name_plural = _('order lines')
+        ordering = ('id',)
 
     def __str__(self):
         return str(self.product)
