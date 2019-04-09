@@ -3,6 +3,7 @@ from rest_framework import mixins, permissions, serializers, viewsets
 
 from payments.models import Order, OrderLine, Product
 from resources.api.base import register_view
+from .integrations.bambora_payform import BamboraPayformPayments
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -32,6 +33,7 @@ class OrderLineReadSerializer(OrderLineSerializerBase):
 
 class OrderWriteSerializer(serializers.ModelSerializer):
     order_lines = OrderLineWriteSerializer(many=True)
+    redirect_url = serializers.CharField(write_only=True)
 
     class Meta:
         model = Order
@@ -40,10 +42,22 @@ class OrderWriteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         order_lines_data = validated_data.pop('order_lines', [])
+        redirect_url = validated_data.pop('redirect_url', '')
         order = super().create(validated_data)
 
+        products_bought = []
         for order_line_data in order_lines_data:
-            OrderLine.objects.create(order=order, **order_line_data)
+            order_line = OrderLine.objects.create(order=order, **order_line_data)
+            products_bought.append(order_line.product)
+
+        reservation = order.reservation
+        payments = BamboraPayformPayments()
+        purchased_items = payments.get_purchased_items(products_bought, reservation)
+        customer = payments.get_customer(reservation)
+        payment_url = payments.order_post(order.order_number, redirect_url, purchased_items, customer)
+
+        # TODO Redirect to payment, order.status = Order.WAITING, save order & orderlines after
+        print(payment_url)
 
         return order
 
