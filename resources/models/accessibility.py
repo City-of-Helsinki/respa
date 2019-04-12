@@ -43,5 +43,14 @@ class ResourceAccessibility(AutoIdentifiedModel):
         verbose_name = _('reservation')
         verbose_name_plural = _('reservations')
 
+    @classmethod
+    def get_value_from_str(cls, string_value):
+        known_values = {
+            'green': cls.GREEN,
+            'red': cls.RED,
+            'unknown': cls.UNKNOWN,
+        }
+        return known_values.get(string_value.lower())
+
     def __str__(self):
         return '{} / {}: {}'.format(self.resource, self.viewpoint, self.value)

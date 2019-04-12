@@ -167,9 +167,7 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     reservable_after = serializers.SerializerMethodField()
 
     def get_accessibility(self, obj):
-
-
-
+        pass
 
     def get_user_permissions(self, obj):
         request = self.context.get('request', None)
