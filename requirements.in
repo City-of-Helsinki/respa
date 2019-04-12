@@ -1,6 +1,7 @@
 Django
 django-modeltranslation>=0.13-beta1
-psycopg2-binary
+--no-binary psycopg2
+psycopg2
 django-munigeo
 djangorestframework
 django-filter
