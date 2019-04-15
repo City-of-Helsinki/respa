@@ -1,9 +1,17 @@
 import hmac
 import hashlib
+import logging
 import requests
+from urllib.parse import urlencode
+from django.http import HttpResponseBadRequest
 
 from .payments_base import PaymentsBase, PurchasedItem, Customer
-from payments import settings
+from .. import settings
+from ..models import Order
+
+UI_RETURN_URL_PARAM_NAME = 'RESPA_UI_RETURN_URL'
+
+logger = logging.getLogger()
 
 
 class BamboraPayformPayments(PaymentsBase):
@@ -18,15 +26,18 @@ class BamboraPayformPayments(PaymentsBase):
         self.url_payment_auth = settings.PAYMENT_URL_API_AUTH
         self.url_payment_token = settings.PAYMENT_URL_API_TOKEN
 
-    def order_post(self, order_num, url_return, purchased_items, customer):
+    def order_post(self, request, order_num, ui_return_url, purchased_items, customer):
         """Initiate payment by constructing the payload and posting it to Bambora"""
+        respa_return_url = self.get_success_url(request)
+        query_params = urlencode({UI_RETURN_URL_PARAM_NAME: ui_return_url})
+        full_return_url = '{}?{}'.format(respa_return_url, query_params)
 
         payload = {
             'version': 'w3.1',
             'api_key': self.api_key,
             'payment_method': {
                 'type': 'e-payment',
-                'return_url': url_return,
+                'return_url': full_return_url,
                 'notify_url': self.url_notify,
                 'selected': self.payment_methods_enabled
             },
@@ -133,3 +144,50 @@ class BamboraPayformPayments(PaymentsBase):
         return hmac.new(bytes(self.api_secret, 'latin-1'),
                         msg=bytes(data, 'latin-1'),
                         digestmod=hashlib.sha256).hexdigest().upper()
+
+    def handle_success_request(self, request):
+        logger.debug('Handling Bambora user return request, params: {}.'.format(request.GET))
+
+        return_url = request.GET.get(UI_RETURN_URL_PARAM_NAME)
+        if not return_url:
+            # TODO should we actually make the whole thing fail here?
+            logger.warning('Return URL missing.')
+            return HttpResponseBadRequest()
+
+        auth_code_calculation_values = [
+            request.GET[param_name]
+            for param_name in ('RETURN_CODE', 'ORDER_NUMBER', 'SETTLED', 'CONTACT_ID', 'INCIDENT_ID')
+            if param_name in request.GET
+        ]
+        correct_auth_code = self.calculate_auth_code('|'.join(auth_code_calculation_values))
+        auth_code = request.GET['AUTHCODE']
+        if not hmac.compare_digest(auth_code, correct_auth_code):
+            logger.warning('Incorrect auth code "{}".'.format(auth_code))
+            return self.ui_redirect_failure(return_url)
+
+        return_code = request.GET['RETURN_CODE']
+        if return_code == '0':
+            logger.debug('Payment completed successfully.')
+            order = Order.objects.get(order_number=request.GET['ORDER_NUMBER'])
+            order.status = Order.CONFIRMED
+            order.save()
+            return self.ui_redirect_success(return_url)
+        elif return_code == '1':
+            logger.debug('Payment failed.')
+            order = Order.objects.get(order_number=request.GET['ORDER_NUMBER'])
+            order.status = Order.REJECTED
+            order.save()
+            return self.ui_redirect_failure(return_url)
+        elif return_code == '4':
+            logger.debug('Transaction status could not be updated.')
+            # TODO what should we do here? description of the situation:
+            # Transaction status could not be updated after customer returned from the web page of a bank.
+            # Please use the merchant UI to resolve the payment status.
+            return self.ui_redirect_failure(return_url)
+        elif return_code == '10':
+            logger.debug('Maintenance break.')
+            # TODO what now?
+            return self.ui_redirect_failure(return_url)
+        else:
+            logger.debug('Incorrect RETURN_CODE "{}".'.format(return_code))
+            return self.ui_redirect_failure(return_url)
