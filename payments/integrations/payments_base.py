@@ -1,4 +1,7 @@
 from collections import namedtuple
+
+from django.http import HttpRequest, HttpResponse, HttpResponseNotFound
+
 from payments import settings
 
 PurchasedItem = namedtuple('PurchasedItem',
@@ -20,9 +23,6 @@ class PaymentsBase(object):
     def order_post(self):
         raise NotImplementedError
 
-    def order_notify_callback(self):
-        raise NotImplementedError
-
     def get_customer(self):
         raise NotImplementedError
 
@@ -35,3 +35,24 @@ class PaymentsBase(object):
         As the hashing algorithms and data varies between providers
         there needs to be a subclass implementation"""
         raise NotImplementedError
+
+    def handle_success_request(self, request: HttpRequest) -> HttpResponse:
+        """Handle incoming payment success request from the payment provider.
+
+        Implement this in your subclass. If everything goes smoothly, should
+        redirect the client back to the UI return URL."""
+        raise NotImplementedError
+
+    def handle_failure_request(self, request: HttpRequest) -> HttpResponse:
+        """Handle incoming payment failure request from the payment provider.
+
+        Override this in your subclass if you need to handle failure requests.
+        When everything goes smoothly, should redirect the client back to the
+        UI return URL."""
+        return HttpResponseNotFound()
+
+    def handle_notify_request(self, request: HttpRequest) -> HttpResponse:
+        """Handle incoming notify request from the payment provider.
+
+        Override this in your subclass if you need to handle notify requests."""
+        return HttpResponseNotFound()
