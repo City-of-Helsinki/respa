@@ -1,6 +1,5 @@
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import mixins, permissions, serializers, viewsets
-
 from payments.models import Order, OrderLine, Product
 from resources.api.base import register_view
 from .integrations.bambora_payform import BamboraPayformPayments
@@ -33,7 +32,8 @@ class OrderLineReadSerializer(OrderLineSerializerBase):
 
 class OrderWriteSerializer(serializers.ModelSerializer):
     order_lines = OrderLineWriteSerializer(many=True)
-    redirect_url = serializers.CharField(write_only=True)
+    return_url = serializers.CharField(write_only=True)
+    payment_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -42,7 +42,7 @@ class OrderWriteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         order_lines_data = validated_data.pop('order_lines', [])
-        redirect_url = validated_data.pop('redirect_url', '')
+        return_url = validated_data.pop('return_url', '')
         order = super().create(validated_data)
 
         products_bought = []
@@ -54,10 +54,13 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         payments = BamboraPayformPayments()
         purchased_items = payments.get_purchased_items(products_bought, reservation)
         customer = payments.get_customer(reservation)
-        payment_url = payments.order_post(order.order_number, redirect_url, purchased_items, customer)
-
-        # TODO Redirect to payment, order.status = Order.WAITING, save order & orderlines after
-        print(payment_url)
+        self.context['payment_url'] = payments.order_post(
+            self.context['request'],
+            order.order_number,
+            return_url,
+            purchased_items,
+            customer
+        )
 
         return order
 
@@ -65,6 +68,9 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         if not value:
             raise serializers.ValidationError(_('At least one order line required.'))
         return value
+
+    def get_payment_url(self, obj):
+        return self.context.get('payment_url', '')
 
 
 class OrderReadSerializer(serializers.ModelSerializer):

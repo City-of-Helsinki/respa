@@ -1,6 +1,8 @@
 from collections import namedtuple
 
 from django.http import HttpRequest, HttpResponse, HttpResponseNotFound
+from django.shortcuts import redirect
+from django.urls import reverse
 
 from payments import settings
 
@@ -56,3 +58,30 @@ class PaymentsBase(object):
 
         Override this in your subclass if you need to handle notify requests."""
         return HttpResponseNotFound()
+
+    def get_success_url(self, request: HttpRequest) -> str:
+        return request.build_absolute_uri(reverse('payments:success'))
+
+    def get_failure_url(self, request: HttpRequest) -> str:
+        return request.build_absolute_uri(reverse('payments:failure'))
+
+    def get_notify_url(self, request: HttpRequest) -> str:
+        return request.build_absolute_uri(reverse('payments:notify'))
+
+    @classmethod
+    def ui_redirect_success(cls, return_url: str) -> HttpResponse:
+        """Redirect back to UI after a successful payment
+
+        This should be used after a successful payment instead of the
+        standard Django redirect.
+        """
+        return redirect('{}?status=success'.format(return_url))
+
+    @classmethod
+    def ui_redirect_failure(cls, return_url: str) -> HttpResponse:
+        """Redirect back to UI after a failed payment
+
+        This should be used after a failed payment instead of the
+        standard Django redirect.
+        """
+        return redirect('{}?status=failure'.format(return_url))
