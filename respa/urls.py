@@ -41,6 +41,10 @@ if 'reports' in settings.INSTALLED_APPS:
         path('reports/reservation_details/', ReservationDetailsReport.as_view(), name='reservation-details-report'),
     ])
 
-
+if 'payments' in settings.INSTALLED_APPS:
+    from payments import urls as payment_urls  # noqa
+    urlpatterns.extend([
+        path('payments/', include(payment_urls))
+    ])
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
