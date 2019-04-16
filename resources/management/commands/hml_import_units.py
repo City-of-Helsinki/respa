@@ -57,7 +57,7 @@ class Command(BaseCommand):
 
     def create_point(self, geo_string):
         x, y = geo_string.split(', ')
-        return Point(x=float(x), y=float(y), srid=settings.DEFAULT_SRID)
+        return Point(x=float(y), y=float(x), srid=settings.DEFAULT_SRID)
 
     def create(self, data):
         self.stdout.write('* Using data: {}'.format(
