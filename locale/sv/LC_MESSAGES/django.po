@@ -1068,8 +1068,8 @@ msgstr "Funktioner"
 msgid "Save"
 msgstr "Spara"
 
-msgid "View changes"
-msgstr "Visa ändringarna"
+msgid "View resource"
+msgstr "Visa resurs"
 
 msgid "Edit resource"
 msgstr "Modifiera resurs"
