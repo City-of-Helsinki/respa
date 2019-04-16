@@ -164,6 +164,7 @@ class ReservationAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Extr
                        admin.ModelAdmin):
     extra_readonly_fields_on_update = ('access_code',)
     search_fields = ('user__first_name', 'user__last_name', 'user__username', 'user__email')
+    raw_id_fields = ('user',)
 
 
 class ResourceTypeAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):
