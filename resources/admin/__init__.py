@@ -328,4 +328,6 @@ admin_site.register(TermsOfUse, TermsOfUseAdmin)
 admin_site.register(ReservationMetadataField)
 admin_site.register(ReservationMetadataSet, ReservationMetadataSetAdmin)
 admin.site.register(ResourceGroup, ResourceGroupAdmin)
+if admin.site.is_registered(Municipality):
+    admin.site.unregister(Municipality)
 admin.site.register(Municipality, MunicipalityAdmin)
