@@ -1,5 +1,8 @@
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import mixins, permissions, serializers, viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
 from payments.models import Order, OrderLine, Product
 from resources.api.base import register_view
 from .integrations.bambora_payform import BamboraPayformPayments
@@ -27,15 +30,22 @@ class OrderLineSerializer(serializers.ModelSerializer):
         return data
 
 
-class OrderSerializer(serializers.ModelSerializer):
+class OrderSerializerBase(serializers.ModelSerializer):
     order_lines = OrderLineSerializer(many=True)
-    return_url = serializers.CharField(write_only=True)
-    payment_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = '__all__'
-        read_only_fields = ('status',)
+
+    def validate_order_lines(self, value):
+        if not value:
+            raise serializers.ValidationError(_('At least one order line required.'))
+        return value
+
+
+class OrderSerializer(OrderSerializerBase):
+    return_url = serializers.CharField(write_only=True)
+    payment_url = serializers.SerializerMethodField()
 
     def create(self, validated_data):
         order_lines_data = validated_data.pop('order_lines', [])
@@ -61,13 +71,13 @@ class OrderSerializer(serializers.ModelSerializer):
 
         return order
 
-    def validate_order_lines(self, value):
-        if not value:
-            raise serializers.ValidationError(_('At least one order line required.'))
-        return value
-
     def get_payment_url(self, obj):
         return self.context.get('payment_url', '')
+
+
+class PriceEndpointOrderSerializer(OrderSerializerBase):
+    class Meta(OrderSerializerBase.Meta):
+        fields = ('order_lines', 'reservation')
 
 
 class OrderViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -76,6 +86,25 @@ class OrderViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.Li
 
     # TODO We'll probably want something else here when going to production
     permission_classes = (permissions.AllowAny,)
+
+    @action(detail=False, methods=['POST'])
+    def check_price(self, request):
+        # validate incoming Order and OrderLine data
+        write_serializer = PriceEndpointOrderSerializer(data=request.data)
+        write_serializer.is_valid(raise_exception=True)
+
+        # build Order and OrderLine objects in memory only
+        order_data = write_serializer.validated_data
+        order_lines_data = order_data.pop('order_lines')
+        order = Order(**order_data)
+        order_lines = [OrderLine(order=order, **data) for data in order_lines_data]
+
+        # serialize the in-memory objects
+        read_serializer = PriceEndpointOrderSerializer(order)
+        order_data = read_serializer.data
+        order_data['order_lines'] = [OrderLineSerializer(ol).data for ol in order_lines]
+
+        return Response(order_data, status=200)
 
 
 class ResourceProductSerializer(serializers.ModelSerializer):
