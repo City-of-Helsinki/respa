@@ -11,7 +11,7 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = ('id', 'type', 'name', 'pretax_price', 'price_type', 'tax_percentage')
 
 
-class OrderLineSerializerBase(serializers.ModelSerializer):
+class OrderLineSerializer(serializers.ModelSerializer):
     price = serializers.SerializerMethodField()
 
     class Meta:
@@ -21,17 +21,14 @@ class OrderLineSerializerBase(serializers.ModelSerializer):
     def get_price(self, obj):
         return str(obj.product.get_price_for_reservation(obj.order.reservation) * obj.quantity)
 
-
-class OrderLineWriteSerializer(OrderLineSerializerBase):
-    pass
-
-
-class OrderLineReadSerializer(OrderLineSerializerBase):
-    product = ProductSerializer()
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['product'] = ProductSerializer(instance.product).data
+        return data
 
 
-class OrderWriteSerializer(serializers.ModelSerializer):
-    order_lines = OrderLineWriteSerializer(many=True)
+class OrderSerializer(serializers.ModelSerializer):
+    order_lines = OrderLineSerializer(many=True)
     return_url = serializers.CharField(write_only=True)
     payment_url = serializers.SerializerMethodField()
 
@@ -73,25 +70,12 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         return self.context.get('payment_url', '')
 
 
-class OrderReadSerializer(serializers.ModelSerializer):
-    order_lines = OrderLineReadSerializer(many=True)
-
-    class Meta:
-        model = Order
-        fields = '__all__'
-
-
 class OrderViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = Order.objects.all()
+    serializer_class = OrderSerializer
 
     # TODO We'll probably want something else here when going to production
     permission_classes = (permissions.AllowAny,)
-
-    def get_serializer_class(self):
-        if self.action == 'create':
-            return OrderWriteSerializer
-        else:
-            return OrderReadSerializer
 
 
 class ResourceProductSerializer(serializers.ModelSerializer):
