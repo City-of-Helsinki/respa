@@ -32,6 +32,7 @@ class OrderLineSerializer(serializers.ModelSerializer):
 
 class OrderSerializerBase(serializers.ModelSerializer):
     order_lines = OrderLineSerializer(many=True)
+    price = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -41,6 +42,19 @@ class OrderSerializerBase(serializers.ModelSerializer):
         if not value:
             raise serializers.ValidationError(_('At least one order line required.'))
         return value
+
+    def get_price(self, obj):
+        if hasattr(obj, '_order_lines'):
+            # we are dealing with the price check endpoint and in-memory objects
+            order_lines = obj._order_lines
+        else:
+            order_lines = obj.order_lines.all()
+        return str(
+            sum(
+                ol.product.get_price_for_reservation(ol.order.reservation) * ol.quantity
+                for ol in order_lines
+            )
+        )
 
 
 class OrderSerializer(OrderSerializerBase):
@@ -77,7 +91,7 @@ class OrderSerializer(OrderSerializerBase):
 
 class PriceEndpointOrderSerializer(OrderSerializerBase):
     class Meta(OrderSerializerBase.Meta):
-        fields = ('order_lines', 'reservation')
+        fields = ('order_lines', 'reservation', 'price')
 
 
 class OrderViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -98,6 +112,10 @@ class OrderViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.Li
         order_lines_data = order_data.pop('order_lines')
         order = Order(**order_data)
         order_lines = [OrderLine(order=order, **data) for data in order_lines_data]
+
+        # store the OrderLine objects in the Order object so that we can use
+        # those when calculating price for the Order
+        order._order_lines = order_lines
 
         # serialize the in-memory objects
         read_serializer = PriceEndpointOrderSerializer(order)
