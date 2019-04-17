@@ -8,7 +8,7 @@ from .integrations.bambora_payform import BamboraPayformPayments
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ('id', 'type', 'name', 'pretax_price', 'tax_percentage')
+        fields = ('id', 'type', 'name', 'pretax_price', 'price_type', 'tax_percentage')
 
 
 class OrderLineSerializerBase(serializers.ModelSerializer):
