@@ -605,6 +605,30 @@ paths:
           required: false
           type: string
           description: Only return reservations for resources that belong to the specified unit.
+        - name: start
+          in: query
+          type: string
+          description: The starting time of the reservation in ISO 8601 format.
+        - name: end
+          in: query
+          type: string
+          description: The ending time of the reservation in ISO 8601 format.
+        - name: has_catering_order
+          in: query
+          type: boolean
+          description: Return only reservations which either have or do not have related catering orders based on the boolean value.
+        - name: is_favorite_resource
+          in: query
+          type: boolean
+          description: Return only reservations that are related to resource that either is or is not favorited by user, based on the boolean value.
+        - name: user
+          in: query
+          type: string
+          description: Return only reservations that are related to given user. Expects to recieve user's UUID.
+        - name: is_own
+          in: query
+          type: boolean
+          description: Return only own reservations
       responses:
         '200':
           description: Successful response

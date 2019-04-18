@@ -441,7 +441,7 @@ class ReservationFilterSet(django_filters.rest_framework.FilterSet):
         user = self.request.user
 
         if not user.is_authenticated:
-            return queryset.none if value else queryset
+            return queryset.none() if value else queryset
 
         filtering = {'resource__favorited_by': user}
         return queryset.filter(**filtering) if value else queryset.exclude(**filtering)
