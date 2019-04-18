@@ -12,7 +12,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, serializers, filters, exceptions, permissions
-from rest_framework.authentication import TokenAuthentication
+from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from rest_framework.fields import BooleanField, IntegerField
 from rest_framework import renderers
 from rest_framework.exceptions import NotAcceptable, ValidationError
@@ -518,7 +518,7 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
     pagination_class = ReservationPagination
     authentication_classes = (
         list(drf_settings.DEFAULT_AUTHENTICATION_CLASSES) +
-        [TokenAuthentication])
+        [TokenAuthentication, SessionAuthentication])
     ordering_fields = ('begin',)
 
     def get_serializer(self, *args, **kwargs):

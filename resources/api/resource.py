@@ -13,6 +13,7 @@ from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
 from resources.pagination import PurposePagination
 from rest_framework import exceptions, filters, mixins, serializers, viewsets, response, status
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import action
 from guardian.core import ObjectPermissionChecker
 
@@ -28,6 +29,7 @@ from .base import TranslatedModelSerializer, register_view, DRFFilterBooleanWidg
 from .reservation import ReservationSerializer
 from .unit import UnitSerializer
 from .equipment import EquipmentSerializer
+from rest_framework.settings import api_settings as drf_settings
 
 
 def parse_query_time_range(params):
@@ -616,6 +618,9 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
     search_fields = ('name_fi', 'description_fi', 'unit__name_fi',
                      'name_sv', 'description_sv', 'unit__name_sv',
                      'name_en', 'description_en', 'unit__name_en')
+    authentication_classes = (
+        list(drf_settings.DEFAULT_AUTHENTICATION_CLASSES) +
+        [SessionAuthentication])
 
     def get_serializer(self, page, *args, **kwargs):
         self._page = page
