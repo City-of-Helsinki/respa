@@ -233,8 +233,20 @@ msgstr "Resurssiryhmä"
 msgid "Resource groups"
 msgstr "Resurssiryhmät"
 
+msgid "Import Service Map"
+msgstr "Tuo Service Map"
+
+msgid "Import Kirkanta"
+msgstr "Tuo Kirkanta"
+
 msgid "Required fields must be a subset of supported fields"
 msgstr "Jokaisen pakollisen kentän täytyy olla myös tuettu kenttä"
+
+msgid "Import municipalities"
+msgstr "Tuo kunnat"
+
+msgid "Import divisions"
+msgstr "Tuo alueet"
 
 msgid "HH:mm"
 msgstr "TT:mm"

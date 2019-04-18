@@ -234,8 +234,20 @@ msgstr "Resursgrupp"
 msgid "Resource groups"
 msgstr "Resursgrupper"
 
+msgid "Import Service Map"
+msgstr ""
+
+msgid "Import Kirkanta"
+msgstr ""
+
 msgid "Required fields must be a subset of supported fields"
 msgstr "Obligatoriska fält måste vara en delmängd av stödda fält"
+
+msgid "Import municipalities"
+msgstr "Importera kommuner"
+
+msgid "Import divisions"
+msgstr "Importera zoner"
 
 msgid "HH:mm"
 msgstr "HH:mm"
