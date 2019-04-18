@@ -1,12 +1,15 @@
 import uuid
 from datetime import timedelta
 from decimal import ROUND_HALF_UP, Decimal
+from typing import Union
 
 from django.core.validators import MaxValueValidator
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from resources.models import Reservation, Resource
+
+Price = Union[Decimal, int]  # int is used for values in sub units (cents)
 
 
 class Product(models.Model):
@@ -43,21 +46,27 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
-    def get_pretax_price_for_reservation(self, reservation: Reservation, rounded: bool = True) -> Decimal:
+    def get_pretax_price_for_reservation(self, reservation: Reservation, rounded: bool = True,
+                                         as_sub_units: bool = False) -> Price:
         if self.price_type == Product.PER_HOUR:
             reservation_duration = reservation.end - reservation.begin
             pretax_price = self.pretax_price * Decimal(reservation_duration / timedelta(hours=1))
             if rounded:
                 pretax_price = pretax_price.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            if as_sub_units:
+                pretax_price = int(pretax_price * 100)
             return pretax_price
         else:
             raise NotImplementedError('Cannot calculate price, unknown price type "{}".'.format(self.price_type))
 
-    def get_price_for_reservation(self, reservation: Reservation, rounded: bool = True) -> Decimal:
+    def get_price_for_reservation(self, reservation: Reservation, rounded: bool = True,
+                                  as_sub_units: bool = False) -> Price:
         pretax_price = self.get_pretax_price_for_reservation(reservation, rounded=False)
         price = pretax_price * (1 + Decimal(self.tax_percentage) / 100)
         if rounded:
             price = price.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        if as_sub_units:
+            price = int(price * 100)
         return price
 
 
@@ -86,6 +95,12 @@ class Order(models.Model):
     def __str__(self):
         return '{} {}'.format(self.order_number, self.reservation)
 
+    def get_price(self, as_sub_units: bool = False) -> Price:
+        price = sum(order_line.get_price() for order_line in self.order_lines.all())
+        if as_sub_units:
+            price = int(price * 100)
+        return price
+
 
 class OrderLine(models.Model):
     order = models.ForeignKey(Order, verbose_name=_('order'), related_name='order_lines', on_delete=models.CASCADE)
@@ -102,3 +117,9 @@ class OrderLine(models.Model):
 
     def __str__(self):
         return str(self.product)
+
+    def get_price(self, as_sub_units: bool = False) -> Price:
+        price = self.product.get_price_for_reservation(self.order.reservation) * self.quantity
+        if as_sub_units:
+            price = int(price * 100)
+        return price
