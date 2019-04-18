@@ -23,6 +23,10 @@ class AccessibilityViewpoint(AutoIdentifiedModel):
 
 
 class ResourceAccessibility(AutoIdentifiedModel):
+    """ Accessibility summary of a Resource related to a certain Accessibility
+    Viewpoint. Value and ordering priority of values are not normalized so no
+    additional JOINs are required for ordering Resources based on accessibility.
+    """
     GREEN = 20
     UNKNOWN = 10
     RED = 0
@@ -35,7 +39,10 @@ class ResourceAccessibility(AutoIdentifiedModel):
                                   verbose_name=_('Resource Accessibility'), on_delete=models.CASCADE)
     resource = models.ForeignKey(Resource, related_name='resource_accessibilities', verbose_name=_('Resource'),
                                  db_index=True, on_delete=models.CASCADE)
-    value = models.CharField(max_length=50, choices=VALUES, verbose_name=_('Accessibility level'))
+    value = models.IntegerField(choices=VALUES, verbose_name=_('Accessibility level'))
+    order = models.IntegerField(verbose_name=_('Resource ordering priority'))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Time of creation'))
+    modified_at = models.DateTimeField(auto_now=True, verbose_name=_('Time of modification'))
 
     class Meta:
         ordering = ('id',)
@@ -51,6 +58,11 @@ class ResourceAccessibility(AutoIdentifiedModel):
             'unknown': cls.UNKNOWN,
         }
         return known_values.get(string_value.lower())
+
+    def save(self, *args, **kwargs):
+        """ Ordering follows the values. """
+        self.order = self.value
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return '{} / {}: {}'.format(self.resource, self.viewpoint, self.value)

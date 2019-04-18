@@ -3,10 +3,10 @@
 import logging
 import requests
 from django.conf import settings
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.utils import timezone
 from django.utils.translation import override
-from optparse import make_option
 
 from resources.models import AccessibilityViewpoint, Resource, ResourceAccessibility
 
@@ -40,12 +40,14 @@ class Command(BaseCommand):
         """ Populate accessibility viewpoints from the accessibility API """
         url = '{}/api/v1/accessibility/viewpoints'.format(base_url)
         data = self.make_request(url)
+        vp_ids = []
 
         for viewpoint_data in data:
             vp_id = viewpoint_data['viewpointId']
             if vp_id == 0:
                 # id 0 seems to be the "empty" option in a dropdown: "Choose accessibility perspective"
                 continue
+            vp_ids.append(vp_id)
             vp_attributes = {
                 'order_text': viewpoint_data['viewpointOrderText'],
             }
@@ -67,6 +69,8 @@ class Command(BaseCommand):
                     self.stdout.write('Updated AccessibilityViewpoint {}: {}'.format(
                         vp.name_en, ', '.join(dirty_fields)
                     ))
+        # remove viewpoints which did not exist in the source anymore
+        AccessibilityViewpoint.objects.exclude(id__in=vp_ids).delete()
 
     def fetch_resource_accessibility_data(self, base_url):
         """ Populate resource accessibility data from the accessibility API """
@@ -129,8 +133,5 @@ class Command(BaseCommand):
                 dirty_fields.append(key)
                 setattr(instance, key, val)
         return dirty_fields
-
-
-
 
 

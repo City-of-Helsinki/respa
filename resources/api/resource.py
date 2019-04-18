@@ -312,17 +312,24 @@ class ParentCharFilter(ParentFilter):
     field_class = forms.CharField
 
 
-class AccessibilityOrderFilter(django_filters.Filter):
+class AccessibilityOrderingFilter(django_filters.OrderingFilter):
     """
     Order resources by accessibility viewpoint.
     """
 
     def filter(self, qs, value):
-        from django.db.models import OuterRef, Subquery, Value
-        from django.db.models.functions import Coalesce
+        #from django.db.models import OuterRef, Subquery, Value
+        #from django.db.models.functions import Coalesce
 
-        accessibility_value = ResourceAccessibility.filter(resource_id=OuterRef('pk'), value=value)
-        qs = qs.annotate(priority=Coalesce(Subquery(accessibility_value.values('value')[:1]), Value(ResourceAccessbility.UNKNOWN))).order_by('priority')
+        #accessibility_value = ResourceAccessibility.filter(resource_id=OuterRef('pk'), value=value)
+        #qs = qs.annotate(priority=Coalesce(Subquery(accessibility_value.values('value')[:1]), Value(ResourceAccessbility.UNKNOWN))).order_by('priority')
+
+
+        # filtering by accessibility requires that desired accessibility
+        # viewpoint is specified in the query. enforce this somehow by checking
+        # query params (in FilterBackend?)
+        # the viewpoint must be annotated to the qs too for ordering to work
+
         return qs
 
 
