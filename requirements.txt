@@ -4,6 +4,8 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
+--no-binary psycopg2
+
 arrow==0.13.0
 asn1crypto==0.24.0        # via cryptography
 atomicwrites==1.2.1       # via pytest
@@ -65,7 +67,7 @@ oauthlib==3.0.0           # via requests-oauthlib
 pillow==5.4.1             # via easy-thumbnails
 pip-tools==3.2.0
 pluggy==0.8.1             # via pytest
-psycopg2-binary==2.7.6.1
+psycopg2==2.7.6.1
 py==1.7.0                 # via pytest
 pycodestyle==2.4.0        # via flake8
 pycparser==2.19           # via cffi
