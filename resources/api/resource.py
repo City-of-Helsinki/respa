@@ -20,7 +20,7 @@ from guardian.core import ObjectPermissionChecker
 from munigeo import api as munigeo_api
 from resources.models import (
     Purpose, Reservation, Resource, ResourceImage, ResourceType, ResourceEquipment,
-    TermsOfUse, Equipment, ReservationMetadataSet, ResourceDailyOpeningHours, Unit
+    TermsOfUse, Equipment, ReservationMetadataSet, ResourceDailyOpeningHours
 )
 from resources.models.resource import determine_hours_time_range
 
