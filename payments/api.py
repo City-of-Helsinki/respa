@@ -22,7 +22,7 @@ class OrderLineSerializer(serializers.ModelSerializer):
         fields = ('product', 'quantity', 'price')
 
     def get_price(self, obj):
-        return str(obj.product.get_price_for_reservation(obj.order.reservation) * obj.quantity)
+        return str(obj.get_price())
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -49,12 +49,7 @@ class OrderSerializerBase(serializers.ModelSerializer):
             order_lines = obj._order_lines
         else:
             order_lines = obj.order_lines.all()
-        return str(
-            sum(
-                ol.product.get_price_for_reservation(ol.order.reservation) * ol.quantity
-                for ol in order_lines
-            )
-        )
+        return str(sum(order_line.get_price() for order_line in order_lines))
 
 
 class OrderSerializer(OrderSerializerBase):
