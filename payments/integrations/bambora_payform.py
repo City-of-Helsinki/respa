@@ -38,7 +38,7 @@ class BamboraPayformPayments(PaymentsBase):
             'payment_method': {
                 'type': 'e-payment',
                 'return_url': full_return_url,
-                'notify_url': self.url_notify,
+                'notify_url': self.get_notify_url(request),
                 'selected': self.payment_methods_enabled
             },
             'currency': 'EUR'

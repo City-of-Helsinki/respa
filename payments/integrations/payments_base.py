@@ -20,7 +20,6 @@ class PaymentsBase(object):
         self.api_key = settings.PAYMENT_API_KEY
         self.api_secret = settings.PAYMENT_API_SECRET
         self.url_api = settings.PAYMENT_URL_API
-        self.url_notify = settings.PAYMENT_URL_NOTIFY
 
     def order_post(self):
         raise NotImplementedError
