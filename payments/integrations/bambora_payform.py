@@ -123,12 +123,13 @@ class BamboraPayformPayments(PaymentsBase):
                         address_city=reservation.billing_address_city)
 
     def get_purchased_items(self, products_bought, reservation):
+        """Create bambora compatible generator of bought products"""
         for product in products_bought:
             yield PurchasedItem(
                 id=product.code,
                 title=product.name,
-                price=int(product.get_price_for_reservation(reservation)) * 100,
-                pretax_price=int(product.get_pretax_price_for_reservation(reservation)) * 100,
+                price=product.get_price_for_reservation(reservation, as_sub_units=True),
+                pretax_price=product.get_pretax_price_for_reservation(reservation, as_sub_units=True),
                 tax=product.tax_percentage,
                 count=1,
                 type=1
