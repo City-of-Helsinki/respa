@@ -2,10 +2,16 @@ import hmac
 import hashlib
 import logging
 import requests
+from requests.exceptions import RequestException
 from urllib.parse import urlencode
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, HttpResponse
 
-from .payments_base import PaymentsBase, PurchasedItem, Customer
+from .payments_base import (
+    Customer,
+    PaymentsBase,
+    PaymentError,
+    PurchasedItem,
+)
 from .. import settings
 from ..models import Order
 
@@ -44,38 +50,31 @@ class BamboraPayformPayments(PaymentsBase):
             'currency': 'EUR'
         }
 
-        # TODO Info for the "bookkeeping ID" talpa requires
-        # Tilino_Tulosyksikkö_Sisäinen tilaus_Projekti_Toimintoalue_ALV-koodi_Vapaaehtoinen oma tuotenumero
         payload['order_number'] = str(order_num)
 
         self.payload_add_products(payload, purchased_items)
         self.payload_add_customer(payload, customer)
         self.payload_add_auth_code(payload)
 
-        r = requests.post(self.url_payment_auth, json=payload)
+        try:
+            r = requests.post(self.url_payment_auth, json=payload)
+            r.raise_for_status()
+        except RequestException as e:
+            raise ServiceUnavailableError("Payment service is unreachable") from e
+
         if r.status_code == 200:
             json_response = r.json()
             result = json_response['result']
             if result == 0:
                 return self.get_payment_url(json_response)
-        # TODO Handle error cases
-        # 1:  validation error
-        # 2:  duplicate order number
-        # 10: maintenance break
-
-    def order_notify_callback(self):
-        """Get response from bambora how the payment went
-
-        Called asynchronously some time after user has completed payment,
-        to mark payment process completed
-        Sample params:
-        ?AUTHCODE=769C463CFB93539F89EA58575AFD1B74E9D4C0DCA30AEF8981139B4DF6CAE8BE
-        &RETURN_CODE=0
-        &ORDER_NUMBER=test-order-131
-        &SETTLED=1
-        """
-        result = self.request.GET.get('RETURN_CODE', '')
-        print(result)
+            elif result == 1:
+                raise PayloadValidationError("Payment payload data validation failed: {}"
+                                             .format(" ".join(json_response['errors'])))
+            elif result == 2:
+                raise DuplicateOrderError("Order with the same ID already exists")
+            elif result == 10:
+                raise ServiceUnavailableError("Payment service is down for maintentance")
+        raise ServiceUnavailableError("Payment service is unreachable")
 
     def payload_add_products(self, payload, purchased_items):
         """Attach info of bought items to payload"""
@@ -115,6 +114,9 @@ class BamboraPayformPayments(PaymentsBase):
         payload.update(authcode=self.calculate_auth_code(data))
 
     def get_customer(self, reservation):
+        """Create bambora compatible customer from reservation data
+
+        TODO Somehow split reserver first and last name into separate fields"""
         return Customer(firstname=reservation.reserver_name,
                         lastname=reservation.reserver_name,
                         email=reservation.reserver_email_address,
@@ -231,3 +233,14 @@ class BamboraPayformPayments(PaymentsBase):
 
         return HttpResponse(status=204)
 
+
+class ServiceUnavailableError(PaymentError):
+    """When payment service is unreachable, offline for maintenance etc"""
+
+
+class PayloadValidationError(PaymentError):
+    """When something is wrong or missing in the posted payload data"""
+
+
+class DuplicateOrderError(PaymentError):
+    """If order with the same ID has already been previously posted"""

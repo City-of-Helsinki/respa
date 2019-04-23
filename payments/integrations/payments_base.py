@@ -84,3 +84,7 @@ class PaymentsBase(object):
         standard Django redirect.
         """
         return redirect('{}?status=failure'.format(return_url))
+
+
+class PaymentError(Exception):
+    """Base for payment specific exceptions"""

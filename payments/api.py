@@ -1,11 +1,17 @@
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import mixins, permissions, serializers, viewsets
+from rest_framework import mixins, permissions, serializers, viewsets, status, exceptions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from payments.models import Order, OrderLine, Product
 from resources.api.base import register_view
 from .integrations import get_payment_provider
+
+from .integrations.bambora_payform import (
+    ServiceUnavailableError,
+    PayloadValidationError,
+    DuplicateOrderError
+)
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -70,13 +76,24 @@ class OrderSerializer(OrderSerializerBase):
         payments = get_payment_provider()
         purchased_items = payments.get_purchased_items(products_bought, reservation)
         customer = payments.get_customer(reservation)
-        self.context['payment_url'] = payments.order_post(
-            self.context['request'],
-            order.order_number,
-            return_url,
-            purchased_items,
-            customer
-        )
+
+        try:
+            self.context['payment_url'] = payments.order_post(
+                self.context['request'],
+                order.order_number,
+                return_url,
+                purchased_items,
+                customer
+            )
+        except DuplicateOrderError as doe:
+            raise exceptions.APIException(detail=str(doe),
+                                          code=status.HTTP_409_CONFLICT)
+        except PayloadValidationError as pve:
+            raise exceptions.APIException(detail=str(pve),
+                                          code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except ServiceUnavailableError as sue:
+            raise exceptions.APIException(detail=str(sue),
+                                          code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
         return order
 
