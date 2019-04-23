@@ -5,7 +5,7 @@ from rest_framework.response import Response
 
 from payments.models import Order, OrderLine, Product
 from resources.api.base import register_view
-from .integrations.bambora_payform import BamboraPayformPayments
+from .integrations import get_payment_provider
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -67,7 +67,7 @@ class OrderSerializer(OrderSerializerBase):
             products_bought.append(order_line.product)
 
         reservation = order.reservation
-        payments = BamboraPayformPayments()
+        payments = get_payment_provider()
         purchased_items = payments.get_purchased_items(products_bought, reservation)
         customer = payments.get_customer(reservation)
         self.context['payment_url'] = payments.order_post(
