@@ -146,15 +146,9 @@ class BamboraPayformPayments(PaymentsBase):
                         msg=bytes(data, 'latin-1'),
                         digestmod=hashlib.sha256).hexdigest().upper()
 
-    def handle_success_request(self, request):
-        logger.debug('Handling Bambora user return request, params: {}.'.format(request.GET))
-
-        return_url = request.GET.get(UI_RETURN_URL_PARAM_NAME)
-        if not return_url:
-            # TODO should we actually make the whole thing fail here?
-            logger.warning('Return URL missing.')
-            return HttpResponseBadRequest()
-
+    def check_new_payment_authcode(self, request):
+        """Validate that success/notify payload authcode matches"""
+        is_valid = True
         auth_code_calculation_values = [
             request.GET[param_name]
             for param_name in ('RETURN_CODE', 'ORDER_NUMBER', 'SETTLED', 'CONTACT_ID', 'INCIDENT_ID')
@@ -164,6 +158,20 @@ class BamboraPayformPayments(PaymentsBase):
         auth_code = request.GET['AUTHCODE']
         if not hmac.compare_digest(auth_code, correct_auth_code):
             logger.warning('Incorrect auth code "{}".'.format(auth_code))
+            is_valid = False
+        return is_valid
+
+    def handle_success_request(self, request):
+        """Handle the payform response after user has completed the payment flow in normal fashion"""
+        logger.debug('Handling Bambora user return request, params: {}.'.format(request.GET))
+
+        return_url = request.GET.get(UI_RETURN_URL_PARAM_NAME)
+        if not return_url:
+            # TODO should we actually make the whole thing fail here?
+            logger.warning('Return URL missing.')
+            return HttpResponseBadRequest()
+
+        if not self.check_new_payment_authcode(request):
             return self.ui_redirect_failure(return_url)
 
         return_code = request.GET['RETURN_CODE']
@@ -192,3 +200,34 @@ class BamboraPayformPayments(PaymentsBase):
         else:
             logger.debug('Incorrect RETURN_CODE "{}".'.format(return_code))
             return self.ui_redirect_failure(return_url)
+
+    def handle_notify_request(self, request):
+        """Handle the asynchronous part of payform response
+
+        Arrives some time after user has completed the payment flow or stopped it abruptly.
+        Bambora expects 20x response to acknowledge the notify was received"""
+        if not self.check_new_payment_authcode(request):
+            return HttpResponse(status=204)
+
+        order = Order.objects.get(order_number=request.GET['ORDER_NUMBER'])
+        if not order:
+            # Target order might be deleted after posting but before the notify arrives
+            logger.debug('Notify: Order not found.')
+            return HttpResponse(status=204)
+
+        return_code = request.GET['RETURN_CODE']
+        if return_code == '0':
+            logger.debug('Notify: Payment completed successfully.')
+            if order.status != Order.CONFIRMED:
+                order.status = Order.CONFIRMED
+                order.save()
+        elif return_code == '1':
+            logger.debug('Notify: Payment failed.')
+            if order.status != Order.REJECTED:
+                order.status = Order.REJECTED
+                order.save()
+        else:
+            logger.debug('Incorrect RETURN_CODE "{}".'.format(return_code))
+
+        return HttpResponse(status=204)
+
