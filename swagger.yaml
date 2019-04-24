@@ -479,6 +479,11 @@ paths:
           description: Order queryset by given resource fields, accepted values are `resource_name_fi`, `resource_name_en`, `resource_name_sv`, `unit_name_fi`, `unit_name_en`, `unit_name_sv`, `type`, `people_capacity`. Prefix parameter value with `-` to get reverse ordering.
           required: false
           type: string
+        - name: include
+          in: query
+          description: Include extra data to queryset. Currently accepts value `unit_detail`.
+          required: false
+          type: string
       responses:
         '200':
           description: Successful response
