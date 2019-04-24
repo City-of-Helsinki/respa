@@ -477,6 +477,9 @@ msgstr "Tila"
 msgid "Approver"
 msgstr "Hyväksyjä"
 
+msgid "Is staff event"
+msgstr "Viraston oma tapahtuma"
+
 msgid "Access code"
 msgstr "Pääsykoodi"
 

@@ -477,6 +477,9 @@ msgstr "Tillstånd"
 msgid "Approver"
 msgstr "Godkännare"
 
+msgid "Is staff event"
+msgstr "Verkets eget evenemang"
+
 msgid "Access code"
 msgstr "Behörighetskod"
 
