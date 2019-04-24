@@ -904,6 +904,9 @@ msgstr "Instruktioner"
 msgid "Log out"
 msgstr "Logga ut"
 
+msgid "Contact us"
+msgstr "Kontakta oss"
+
 msgid "Copy time period"
 msgstr "Kopiera tidsperiod"
 
