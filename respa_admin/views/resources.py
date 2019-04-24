@@ -6,6 +6,7 @@ from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, ListView
 from django.utils.translation import ugettext_lazy as _
+from respa_admin.views.base import ExtraContextMixin
 
 from resources.models import (
     Resource,
@@ -26,7 +27,7 @@ from respa_admin.forms import (
 from respa_admin import accessibility_api
 
 
-class ResourceListView(ListView):
+class ResourceListView(ExtraContextMixin, ListView):
     model = Resource
     paginate_by = 10
     context_object_name = 'resources'
@@ -89,7 +90,7 @@ def admin_office(request):
     return TemplateResponse(request, 'respa_admin/page_office.html')
 
 
-class SaveResourceView(CreateView):
+class SaveResourceView(ExtraContextMixin, CreateView):
     """
     View for saving new resources and updating existing resources.
     """

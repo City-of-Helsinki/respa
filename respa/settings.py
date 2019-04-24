@@ -37,6 +37,7 @@ env = environ.Env(
     ACCESSIBILITY_API_BASE_URL=(str, 'https://asiointi.hel.fi/kapaesteettomyys/'),
     ACCESSIBILITY_API_SYSTEM_ID=(str, ''),
     ACCESSIBILITY_API_SECRET=(str, ''),
+    RESPA_ADMIN_INSTRUCTIONS_URL=(str, ''),
 )
 environ.Env.read_env()
 
@@ -289,6 +290,8 @@ RESPA_ADMIN_ACCESSIBILITY_VISIBILITY = [
     'studio',  # Studio
     'workspace',  # Työtila
 ]
+
+RESPA_ADMIN_INSTRUCTIONS_URL = env('RESPA_ADMIN_INSTRUCTIONS_URL')
 
 if env('MAIL_MAILGUN_KEY'):
     ANYMAIL = {

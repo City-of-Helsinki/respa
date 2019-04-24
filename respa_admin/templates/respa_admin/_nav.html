@@ -12,6 +12,14 @@
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse">
             <ul class="nav navbar-nav navbar-right">
+                {% if INSTRUCTIONS_URL %}
+                <li>
+                    <a href="{{ INSTRUCTIONS_URL }}" target="_blank" rel="noopener noreferrer">
+                        <span class="glyphicon glyphicon-question-sign icon-left" aria-hidden="true"></span>
+                        {% trans "Instructions" %}
+                    </a>
+                </li>
+                {% endif %}
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-hidden="true">
                         <svg class="nav-icon" aria-hidden="true" viewBox="0 0 512 512">
