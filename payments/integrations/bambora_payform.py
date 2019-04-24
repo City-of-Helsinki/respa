@@ -211,8 +211,9 @@ class BamboraPayformPayments(PaymentsBase):
         if not self.check_new_payment_authcode(request):
             return HttpResponse(status=204)
 
-        order = Order.objects.get(order_number=request.GET['ORDER_NUMBER'])
-        if not order:
+        try:
+            order = Order.objects.get(order_number=request.GET['ORDER_NUMBER'])
+        except Order.DoesNotExist:
             # Target order might be deleted after posting but before the notify arrives
             logger.debug('Notify: Order not found.')
             return HttpResponse(status=204)
