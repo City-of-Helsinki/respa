@@ -2,7 +2,7 @@
 [![Build Status](https://api.travis-ci.org/City-of-Helsinki/respa.svg?branch=master)](https://travis-ci.org/City-of-Helsinki/respa)
 [![codecov](https://codecov.io/gh/City-of-Helsinki/respa/branch/master/graph/badge.svg)](https://codecov.io/gh/City-of-Helsinki/respa)
 
-respa – Resource reservation and management service
+Respa – Resource reservation and management service
 ===================
 Respa is a backend service for reserving and managing resources (e.g. meeting rooms, equipment, personnel). The open two-way REST API is interoperable with the [6Aika Resource reservation API specification](https://github.com/6aika/api-resurssienvaraus) created by the six largest cities in Finland. You can explore the API at [api.hel.fi](https://api.hel.fi/respa/v1/) and view the API documentation at [dev.hel.fi](https://dev.hel.fi/apis/respa/).
 
@@ -11,7 +11,29 @@ User interfaces for Respa developed by the City of Helsinki are [Varaamo](https:
 There are two user interfaces for editing data: Admins may use the more powerful Django Admin UI - other users with less privileges may use the more restricted but easier-to-use and nicer-looking Respa Admin UI.
 
 
-Used by
+Table of Contents
+-----------------
+- [Contributing](#contributing)
+- [Who is using Respa](#who-is-using-respa)
+- [FAQ](#faq)
+- [Installation](#installation)
+- [Installation with Docker](#installation-with-docker)
+- [Database](#database)
+- [Running tests](#running-tests)
+- [Production considerations](#production-considerations)
+- [Requirements](#requirements)
+- [Documentation](#documentation)
+- [Licence](licence)
+
+
+Contributing
+------------
+
+Your contributions are always welcome! 
+
+Our main issue tracking is at [City of Helsinki Jira](https://helsinkisolutionoffice.atlassian.net/projects/RESPA/issues). However, we also monitor this repository's issues and import them to Jira. If you want to report a bug or see a new feature feel free to create a new [Issue](https://github.com/City-of-Helsinki/respa/issues/new) on GitHub or discuss it with us on [Gitter](https://gitter.im/City-of-Helsinki/heldev). Alternatively, you can create a pull request (base master branch). Your PR will be reviewed by the project tech lead.
+
+Who is using Respa
 ------------
 
 - [City of Helsinki](https://api.hel.fi/respa/v1/) - for [Varaamo UI](https://varaamo.hel.fi/) & [Huvaja UI](https://huonevaraus.hel.fi/)
@@ -139,33 +161,11 @@ cat <name_of_the_sanitized_respa_dump>.sql | docker exec -i respa-db psql -U pos
 
 Try: http://localhost:8000/ra/resource/
 
-Production considerations
--------------------------
 
-### Respa Exchange sync
+Database
+-------------
 
-Respa supports synchronizing reservations with Exchange resource mailboxes (calendars). You can run the sync either manually through `manage.py respa_exchange_download`, or you can set up a listener daemon with `manage.py respa_exchange_listen_notifications`.
-
-If you're using UWSGI, you can set up the listener as an attached daemon:
-
-```yaml
-uwsgi:
-  attach-daemon2: cmd=/home/respa/run-exchange-sync.sh,pidfile=/home/respa/exchange_sync.pid,reloadsignal=15,touch=/home/respa/service_state/touch_to_reload
-```
-
-The helper script `run-exchange-sync.sh` activates a virtualenv and starts the listener daemon:
-
-```bash
-#!/bin/sh
-
-. $HOME/venv/bin/activate
-
-cd $HOME/respa
-./manage.py respa_exchange_listen_notifications --log-file=$HOME/logs/exchange_sync.log --pid-file=$HOME/exchange_sync.pid --daemonize
-```
-
-Creating sanitized database dump
---------------------------------
+### Creating a sanitized database dump
 
 This project uses Django Sanitized Dump for database sanitation.  Issue
 the following management command on the server to create a sanitized
@@ -174,8 +174,7 @@ database dump:
     ./manage.py create_sanitized_dump > sanitized_db.sql
 
 
-Importing a database dump
--------------------------
+### Importing a database dump
 
 If you want to import a database dump, create the empty database as in
 "Create the database". Do not run any django commands on it, such as migrations
@@ -218,6 +217,30 @@ sudo -u postgres psql respa -c "ALTER ROLE respa WITH SUPERUSER CREATEDB;"
 CreateDB allows the account to create a new database for the test run and
 superuser is required to add the required extensions to the database.
 
+Production considerations
+-------------------------
+
+### Respa Exchange sync
+
+Respa supports synchronizing reservations with Exchange resource mailboxes (calendars). You can run the sync either manually through `manage.py respa_exchange_download`, or you can set up a listener daemon with `manage.py respa_exchange_listen_notifications`.
+
+If you're using UWSGI, you can set up the listener as an attached daemon:
+
+```yaml
+uwsgi:
+  attach-daemon2: cmd=/home/respa/run-exchange-sync.sh,pidfile=/home/respa/exchange_sync.pid,reloadsignal=15,touch=/home/respa/service_state/touch_to_reload
+```
+
+The helper script `run-exchange-sync.sh` activates a virtualenv and starts the listener daemon:
+
+```bash
+#!/bin/sh
+
+. $HOME/venv/bin/activate
+
+cd $HOME/respa
+./manage.py respa_exchange_listen_notifications --log-file=$HOME/logs/exchange_sync.log --pid-file=$HOME/exchange_sync.pid --daemonize
+```
 
 Requirements
 ------------
@@ -246,10 +269,10 @@ To remove a dependency, remove it from `requirements.in`,
 run `pip-compile` and then `pip-sync`. If everything works
 as expected, commit the changes.
 
-Contributing
-------------
+Documentation
+-------------
 
-Your contributions are always welcome! If you want to report a bug or see a new feature feel free to create a new [Issue](https://github.com/City-of-Helsinki/respa/issues/new) or discuss it with us on [Gitter](https://gitter.im/City-of-Helsinki/heldev). Alternatively, you can create a pull request (base master branch). Your PR will be reviewed by the project tech lead.
+Documentation can be found in this GitHub repository (in English) and on [GitLab](https://gitlab.com/City-of-Helsinki/ohjelmistokehitys/wikis/respa) (in Finnish). Interactive API documentation at [dev.hel.fi](https://dev.hel.fi/apis/respa/).
 
 License
 ------------
