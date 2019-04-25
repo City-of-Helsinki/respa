@@ -19,13 +19,14 @@ from guardian.core import ObjectPermissionChecker
 
 from munigeo import api as munigeo_api
 from resources.models import (
-    Purpose, Reservation, Resource, ResourceImage, ResourceType, ResourceEquipment,
-    TermsOfUse, Equipment, ReservationMetadataSet, ResourceDailyOpeningHours
+    AccessibilityViewpoint, Purpose, Reservation, Resource, ResourceAccessibility,
+    ResourceImage, ResourceType, ResourceEquipment, TermsOfUse, Equipment, ReservationMetadataSet,
+    ResourceDailyOpeningHours
 )
 from resources.models.resource import determine_hours_time_range
 
 from ..auth import is_general_admin, is_staff
-from .base import TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
+from .base import ExtraDataMixin, TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
 from .reservation import ReservationSerializer
 from .unit import UnitSerializer
 from .equipment import EquipmentSerializer
@@ -142,8 +143,28 @@ class TermsOfUseSerializer(TranslatedModelSerializer):
         fields = ('text',)
 
 
-class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
-    accessibility = serializers.SerializerMethodField()
+class AccessibilityViewpointSerializer(TranslatedModelSerializer):
+    class Meta:
+        model = AccessibilityViewpoint
+        fields = ('id', 'name')
+
+
+class ResourceAccessibilitySerializer(TranslatedModelSerializer):
+    value = serializers.SerializerMethodField()
+    viewpoint = AccessibilityViewpointSerializer(read_only=True)
+
+    class Meta:
+        model = ResourceAccessibility
+        fields = ('viewpoint', 'value')
+
+    def get_value(self, obj):
+        for value, name in ResourceAccessibility.VALUES:
+            if obj.value == value:
+                return name
+        return 'unknown'
+
+
+class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     purposes = PurposeSerializer(many=True)
     images = NestedResourceImageSerializer(many=True)
     equipment = ResourceEquipmentSerializer(many=True, read_only=True, source='resource_equipment')
@@ -166,8 +187,14 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     reservable_min_days_in_advance = serializers.ReadOnlyField(source='get_reservable_min_days_in_advance')
     reservable_after = serializers.SerializerMethodField()
 
-    def get_accessibility(self, obj):
-        pass
+    def get_extra_fields(self, includes, context):
+        """ Define extra fields that can be included via query parameters. Method from ExtraDataMixin."""
+        extra_fields = {}
+        if 'accessibility_summaries' in includes:
+            # TODO: think about populating "unknown" results here if no data is available
+            extra_fields['accessibility_summaries'] = ResourceAccessibilitySerializer(
+                many=True, read_only=True, context=context)
+        return extra_fields
 
     def get_user_permissions(self, obj):
         request = self.context.get('request', None)

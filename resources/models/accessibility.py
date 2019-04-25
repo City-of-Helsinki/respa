@@ -31,13 +31,13 @@ class ResourceAccessibility(AutoIdentifiedModel):
     UNKNOWN = 10
     RED = 0
     VALUES = (
-        (GREEN, _('green')),
-        (UNKNOWN, _('unknown')),
-        (RED, _('red')),
+        (GREEN, 'green'),
+        (UNKNOWN, 'unknown'),
+        (RED, 'red'),
     )
-    viewpoint = models.ForeignKey(AccessibilityViewpoint, related_name='resource_accessibilities',
+    viewpoint = models.ForeignKey(AccessibilityViewpoint, related_name='accessibility_summaries',
                                   verbose_name=_('Resource Accessibility'), on_delete=models.CASCADE)
-    resource = models.ForeignKey(Resource, related_name='resource_accessibilities', verbose_name=_('Resource'),
+    resource = models.ForeignKey(Resource, related_name='accessibility_summaries', verbose_name=_('Resource'),
                                  db_index=True, on_delete=models.CASCADE)
     value = models.IntegerField(choices=VALUES, verbose_name=_('Accessibility level'))
     order = models.IntegerField(verbose_name=_('Resource ordering priority'))
