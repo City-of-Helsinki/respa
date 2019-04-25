@@ -23,7 +23,7 @@ Table of Contents
 - [Production considerations](#production-considerations)
 - [Requirements](#requirements)
 - [Documentation](#documentation)
-- [Licence](licence)
+- [License](#license)
 
 
 Contributing
