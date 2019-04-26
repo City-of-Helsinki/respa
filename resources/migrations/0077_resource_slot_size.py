@@ -21,7 +21,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='resource',
             name='slot_size',
-            field=models.DurationField(default=datetime.timedelta(0, 1800), verbose_name='Slot size for reservation time'),
+            field=models.DurationField(default=datetime.timedelta(0, 1800),
+                                       verbose_name='Slot size for reservation time'),
         ),
         migrations.RunPython(set_existing_resources_slot_size),
     ]

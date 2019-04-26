@@ -648,6 +648,9 @@ msgstr "Minsta bokningstid"
 msgid "Maximum reservation time"
 msgstr "Längsta bokningstid"
 
+msgid "Slot size for reservation time"
+msgstr "Spårstorlek för bokningstid"
+
 msgid "Equipment"
 msgstr "Utrustning"
 
@@ -721,6 +724,9 @@ msgstr ""
 
 msgid "This value cannot be greater than max price per hour"
 msgstr ""
+
+msgid "This value must be a multiple of min_period"
+msgstr "Detta värde måste vara ett flertal av min_period"
 
 msgid "Main photo"
 msgstr "Huvudbild"
