@@ -1,8 +1,8 @@
-swagger: '2.0'
+swagger: "2.0"
 info:
-  version: 0.4.0
   title: 'Respa'
-  description: 'Resource reservation system for City of Helsinki'
+  description: 'The Respa API provides categorized data on resources available for reservation within a city or metropolitan area and enables the reservation of these resources. The API provides data in the JSON format, in a RESTful fashion.'
+  version: v1
 host: api.hel.fi
 basePath: /respa/v1
 tags:
