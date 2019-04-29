@@ -191,3 +191,42 @@ export function calendarHandler() {
 		format: "d.m.yyyy"
 	};
 }
+
+/*
+* Inject class to display colored ball in a dropdown
+*/
+export function addDropdownColor() {
+  let publicDropdown = document.getElementById('id_public');
+  let publicDropdownValue = publicDropdown.options[publicDropdown.selectedIndex].value;
+  let publicDropdownIcon = document.getElementById('public-dropdown-icon');
+
+  let reservableDropdown = document.getElementById('id_reservable');
+  let reservableDropdownValue = reservableDropdown.options[reservableDropdown.selectedIndex].value;
+  let reservableDropdownIcon = document.getElementById('reservable-dropdown-icon');
+
+
+
+  if(publicDropdownValue === 'True') {
+    publicDropdownIcon.className = 'shape-success'
+  }
+  else {
+    publicDropdownIcon.className = 'shape-warning';
+  }
+
+  if(reservableDropdownValue === 'True') {
+    reservableDropdownIcon.className = 'shape-success'
+  }
+  else {
+    reservableDropdownIcon.className = 'shape-danger';
+  }
+}
+
+/*
+* Listener to change the color of the color-coding ball when change happens
+*/
+export function coloredDropdownListener(event) {
+  let publicDropdown = document.getElementById('id_public');
+  let reservableDropdown = document.getElementById('id_reservable');
+  publicDropdown.addEventListener('change', addDropdownColor, false);
+  reservableDropdown.addEventListener('change', addDropdownColor, false);
+}

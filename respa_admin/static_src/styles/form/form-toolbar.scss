@@ -23,8 +23,8 @@
     }
     
     button.toolbar-preview {
-      display: inline-flex;
-      line-height: 1;
+      margin-left: 10px;
+      padding: $padding-large-vertical $padding-base-horizontal * 2;
       background: transparent;
     }
   }
