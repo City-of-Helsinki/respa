@@ -70,23 +70,16 @@ def time_to_dtz(time, date=None, arr=None):
         return None
 
 
-def is_valid_time_slot(time, time_slot_duration, opening_time, min_period):
+def is_valid_time_slot(time, time_slot_duration, opening_time):
     """
     Check if given time is correctly aligned with time slots.
 
     :type time: datetime.datetime
     :type time_slot_duration: datetime.timedelta
     :type opening_time: datetime.datetime
-    :type min_period: datetime.timedelta
     :rtype: bool
     """
-    if ((time - opening_time) % time_slot_duration) == datetime.timedelta(0):
-        return True
-    else:
-        if ((time - opening_time) - time_slot_duration) % min_period == datetime.timedelta(0):
-            return True
-        else:
-            return False
+    return not ((time - opening_time) % time_slot_duration)
 
 
 def humanize_duration(duration):

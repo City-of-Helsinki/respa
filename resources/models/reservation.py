@@ -313,7 +313,7 @@ class Reservation(ModifiableModel):
         for dt in (self.begin, self.end):
             days = opening_hours.get(dt.date(), [])
             day = next((day for day in days if day['opens'] is not None and day['opens'] <= dt <= day['closes']), None)
-            if day and not is_valid_time_slot(dt, self.resource.slot_size, day['opens'], self.resource.min_period):
+            if day and not is_valid_time_slot(dt, self.resource.slot_size, day['opens']):
                 raise ValidationError(_("Begin and end time must match time slots"))
 
         original_reservation = self if self.pk else kwargs.get('original_reservation', None)
@@ -322,7 +322,7 @@ class Reservation(ModifiableModel):
 
         if (self.end - self.begin) < self.resource.min_period:
             raise ValidationError(_("The minimum reservation length is %(min_period)s") %
-                                  {'min_period': humanize_duration(self.min_period)})
+                                  {'min_period': humanize_duration(self.resource.min_period)})
 
         if self.access_code:
             validate_access_code(self.access_code, self.resource.access_code_type)
