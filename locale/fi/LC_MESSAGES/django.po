@@ -724,8 +724,8 @@ msgstr "Liikaa voimassa olevia varauksia tähän tilaan."
 msgid "This value cannot be greater than max price per hour"
 msgstr "Tämä arvo ei voi olla suurempi kuin maksimituntihinta"
 
-msgid "This value must be a multiple of min_period"
-msgstr "Tämän arvon täytyy olla min_period arvon moninkerta"
+msgid "This value must be a multiple of slot_size"
+msgstr "Tämän arvon täytyy olla slot_size arvon moninkerta"
 
 msgid "Main photo"
 msgstr "Päävalokuva"

@@ -623,7 +623,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                     {'min_price_per_hour': _('This value cannot be greater than max price per hour')}
                 )
         if self.min_period % self.slot_size != datetime.timedelta(0):
-            raise ValidationError({'slot_size': _('This value must be a multiple of min_period')})
+            raise ValidationError({'min_period': _('This value must be a multiple of slot_size')})
 
 
 class ResourceImage(ModifiableModel):
