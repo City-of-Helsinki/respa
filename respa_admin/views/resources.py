@@ -100,6 +100,14 @@ class SaveResourceView(ExtraContextMixin, CreateView):
     form_class = ResourceForm
     template_name = 'respa_admin/resources/create_resource.html'
 
+    def get_context_data(self, **kwargs):
+        context = super(SaveResourceView, self).get_context_data(**kwargs)
+        if settings.RESPA_ADMIN_VIEW_RESOURCE_URL and self.object.id:
+            context['RESPA_ADMIN_VIEW_RESOURCE_URL'] = settings.RESPA_ADMIN_VIEW_RESOURCE_URL + self.object.id
+        else:
+            context['RESPA_ADMIN_VIEW_RESOURCE_URL'] = ''
+        return context
+
     def get_queryset(self):
         qs = super().get_queryset()
         return qs.modifiable_by(self.request.user)
