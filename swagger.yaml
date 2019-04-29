@@ -413,7 +413,7 @@ paths:
           in: query
           required: false
           type: string
-          description: Only return resources that contain the specified piece(s) of equipment. Accepts multiple comma-separated values.
+          description: Only return resources that contain the specified piece(s) of equipment. Use equipment ID. Accepts multiple comma-separated values.
         - name: resource_group
           in: query
           required: false
