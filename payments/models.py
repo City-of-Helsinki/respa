@@ -1,15 +1,27 @@
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Union
 
 from django.core.validators import MaxValueValidator
-from django.db import models
+from django.db import models, transaction, IntegrityError
+from django.db.models import Max
+from django.utils.timezone import now, utc
 from django.utils.translation import ugettext_lazy as _
 
 from resources.models import Reservation, Resource
 
 Price = Union[Decimal, int]  # int is used for values in sub units (cents)
+
+# The best way for representing non existing archived_at would be using None for it,
+# but that would not work with the unique_together constraint, which brings many
+# benefits, so we use this sentinel value instead of None.
+ARCHIVED_AT_NONE = datetime(9999, 12, 31, tzinfo=utc)
+
+
+class ProductQuerySet(models.QuerySet):
+    def current(self):
+        return self.filter(archived_at=ARCHIVED_AT_NONE)
 
 
 class Product(models.Model):
@@ -21,6 +33,18 @@ class Product(models.Model):
     PER_HOUR = 'per_hour'
     PRICE_TYPE_CHOICES = (
         (PER_HOUR, _('per hour')),
+    )
+
+    created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
+
+    # This ID is common to all versions of the same product.
+    product_id = models.PositiveIntegerField(verbose_name=_('product ID'), editable=False, db_index=True)
+
+    # archived_at determines when this version of the product has been either (soft)
+    # deleted or replaced by a newer version. Value ARCHIVED_AT_NONE means this is the
+    # current version in use.
+    archived_at = models.DateTimeField(
+        verbose_name=_('archived_at'), db_index=True, editable=False, default=ARCHIVED_AT_NONE
     )
 
     type = models.CharField(max_length=32, verbose_name=_('type'), choices=TYPE_CHOICES, default=RENT)
@@ -38,13 +62,59 @@ class Product(models.Model):
 
     resources = models.ManyToManyField(Resource, verbose_name=_('resource'), related_name='products', blank=True)
 
+    objects = ProductQuerySet.as_manager()
+
     class Meta:
         verbose_name = _('product')
         verbose_name_plural = _('products')
         ordering = ('id',)
+        unique_together = ('archived_at', 'product_id')
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        if self.id:
+            self._save_existing(*args, **kwargs)
+        else:
+            self._save_new(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        Product.objects.filter(id=self.id).update(archived_at=now())
+
+    def _save_existing(self, *args, **kwargs):
+        """
+        Save an already existing product.
+
+        Marks the previous version archived and creates a new Product instance.
+        """
+        assert self.id
+        Product.objects.filter(id=self.id).update(archived_at=now())
+        self.id = None
+        super().save(*args, **kwargs)
+
+    def _save_new(self, *args, **kwargs):
+        """
+        Save a new product.
+
+        We need to generate a product_id for this new product, which is carried out by
+        optimistically trying out next free product_id value(s). Because there is a
+        chance of a race, we try several product_id values until a free one is found.
+        """
+        assert not self.id
+        current_product_id_max = Product.objects.aggregate(Max('product_id'))['product_id__max'] or 0
+        self.product_id = current_product_id_max + 1
+        for _i in range(11):  # 11 determined using the Stetson-Harrison method
+            with transaction.atomic():
+                try:
+                    super().save(*args, **kwargs)
+                    break
+                except IntegrityError:  # there was a race and someone beat us
+                    self.product_id += 1
+                    transaction.set_rollback(True)  # needed because of the IntegrityError
+                    continue
+        else:
+            raise Exception('Cannot obtain a new product ID for product {}.'.format(self))
 
     def get_pretax_price_for_reservation(self, reservation: Reservation, rounded: bool = True,
                                          as_sub_units: bool = False) -> Price:
