@@ -38,7 +38,7 @@
       }
 
       .language-item-selected {
-        border: solid 1px black;
+        border: solid 1px black !important;
       }
     
       .language-item {
@@ -47,6 +47,7 @@
         border-radius: 20px;
         line-height: $badge-line-height;
         background-color: #fff;
+        border: solid 1px #fff;
                 
         span.badge {
           background-color: #ff0000;
