@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from decimal import Decimal
 import pytest
+import datetime
 from django.core.files.base import ContentFile
 from django.core.exceptions import ValidationError
 from django.utils.translation import activate
@@ -101,3 +102,18 @@ def test_price_validations(resource_in_unit):
         resource_in_unit.full_clean()
     assert 'Ensure this value is greater than or equal to 0.00.' in get_field_errors(ei.value, 'min_price_per_hour')
     assert 'Ensure this value is greater than or equal to 0.00.' in get_field_errors(ei.value, 'max_price_per_hour')
+
+
+@pytest.mark.django_db
+def test_time_slot_validations(resource_in_unit):
+    activate('en')
+
+    resource_in_unit.min_period = datetime.timedelta(hours=2)
+    resource_in_unit.slot_size = datetime.timedelta(minutes=45)
+    with pytest.raises(ValidationError) as error:
+        resource_in_unit.full_clean()
+    assert 'This value must be a multiple of slot_size' in get_field_errors(error.value, 'min_period')
+
+    resource_in_unit.min_period = datetime.timedelta(hours=2)
+    resource_in_unit.slot_size = datetime.timedelta(minutes=30)
+    resource_in_unit.full_clean()
