@@ -108,11 +108,36 @@ python manage.py resources_import --all kirjastot
 
 
 ### Settings
+
+- `DEBUG`: Whether to run Django in debug mode. [Django setting](https://docs.djangoproject.com/en/2.2/ref/settings/#debug).
+- `SECRET_KEY`: Secret used for various functions within Django. This setting is mandatory for Django. [Django setting](https://docs.djangoproject.com/en/2.2/ref/settings/#secret-key).
+- `ALLOWED_HOSTS`: List of Host-values, that Respa will accept in requests. This setting is a Django protection measure against HTTP [Host-header attacks](https://docs.djangoproject.com/en/2.2/topics/security/#host-headers-virtual-hosting). Specified as a comma separated list of allowed values. Note that this does NOT matter if you are running with DEBUG. [Django setting](https://docs.djangoproject.com/en/2.2/ref/settings/#allowed-hosts).
+- `ADMINS`: List of tuples (or just e-mail addresses) specifying Administrators of this Respa instance. Django uses this only when logging is configured to send exceptions to admins. [Django setting](https://docs.djangoproject.com/en/2.2/ref/settings/#admins).
+- `DATABASE_URL`: Configures database for Respa using URL style. Format is: `'postgis://USER:PASSWORD@HOST:PORT/NAME'`. Unused components may be left out, only Postgis is supported. The example value `'postgis:///respa'` configures Respa to use local PostgreSQL database called "respa", connecting same as username as Django is running as. [Django setting](https://docs.djangoproject.com/en/2.2/ref/settings/#databases).
+- `SECURE_PROXY_SSL_HEADER`: Specifies a header that is trusted to indicate that the request was using https while traversing over the Internet at large. This is used when a proxy terminates the TLS connection and forwards the request over a secure network. Specified using a tuple. [Django setting](https://docs.djangoproject.com/en/2.2/ref/settings/#secure-proxy-ssl-header).
+- `TOKEN_AUTH_ACCEPTED_AUDIENCE`: Respa uses JWT tokens for authentication. This setting specifies the value that must be present in the "aud"-key of the token presented by a client when making an authenticated request. Respa uses this key for verifying that the token was meant for accessing this particular Respa instance (the tokens are signed, see below). Does not correspond to standard Django setting.
+- `TOKEN_AUTH_SHARED_SECRET`: This key is used by Respa to verify the JWT token is from trusted Identity Provider (OpenID terminology). The provider must have signed the JWT TOKEN using this shared secret. Does not correspond to standard Django setting.
+- `MEDIA_ROOT`: Media root is the place in file system where Django and, by extension Respa stores "uploaded" files. This means any and all files that are inputted through importers or API. [Django setting](https://docs.djangoproject.com/en/2.2/ref/settings/#media-root).
+- `STATIC_ROOT`: Static root is the place where Respa will install any static files that need to be served to clients. [Django setting](https://docs.djangoproject.com/en/2.2/ref/settings/#STATIC_ROOT).
+- `MEDIA_URL`: Media URL is address (URL) where users can access files in MEDIA_ROOT through http. Ie. where your uploaded files are publicly accessible. In the simple case this is a relative URL to same server as API. [Django setting](https://docs.djangoproject.com/en/2.2/ref/settings/#media-url).
+- `STATIC_URL`: Static URL is address (URL) where users can access files in STATIC_ROOT through http. Same factors apply as to MEDIA_URL. [Django setting](https://docs.djangoproject.com/en/2.2/ref/settings/#static-url).
+- `SENTRY_DSN`: Sentry is an error tracking sentry (sentry.io) that can be self hosted or purchased as PaaS. SENTRY_DSN setting specifies the URL where reports for this Respa instance should be sent. You can find this in your Sentry interface (or through its API). Example value `'http://your.sentry.here/fsdafads/13'`.
+- `SENTRY_ENVIRONMENT`: Sentry environment is an optional tag that can be included in sentry reports. It is used to separate deployments within Sentry UI.
+- `COOKIE_PREFIX`: Cookie prefix is added to the every cookie set by Respa. These are mostly used when accessing the internal Django admin site. This applies to django session cookie and csrf cookie. Django setting: prepended to `CSRF_COOKIE_NAME` and `SESSION_COOKIE_NAME`. 
+- `INTERNAL_IPS`: Django INTERNAL_IPS setting allows some debugging aids for the addresses specified here. [Django setting](https://docs.djangoproject.com/en/2.2/ref/settings/#internal-ips). Example value `'127.0.0.1'`.
+- `MAIL_ENABLED`: Whether sending emails to users is enabled or not.
+- `MAIL_DEFAULT_FROM`: Specifies the from-address for emails sent to users.
+- `MAIL_MAILGUN_KEY`: Mailgun can be used to send emails to end users. Specify Mailgun API key here. See [Mailgun API documentation](https://documentation.mailgun.com/en/latest/user_manual.html).
+- `MAIL_MAILGUN_DOMAIN`: Specifies Mailgun domain. Mailgun requires verification for domains via DNS. Example value `'mail.hel.ninja'`.
+- `MAIL_MAILGUN_API`: Specifies which Mailgun API server is used.
 - `RESPA_IMAGE_BASE_URL`: Base URL used when building image URLs in email notifications. Example value: `'https://api.hel.fi'`.
+- `ACCESSIBILITY_API_BASE_URL`: Base URL used for Respa Admin Accessibility data input link. If left empty, the input link remains hidden in Respa Admin. Example value `'https://asiointi.hel.fi/kapaesteettomyys/'`.
+- `ACCESSIBILITY_API_SYSTEM_ID`: Accessibility API system ID. If left empty, the input link remains hidden in Respa Admin.
+- `ACCESSIBILITY_API_SECRET`: Secret for the Accessibility API. If left empty, the input link remains hidden in Respa Admin.
+- `RESPA_ADMIN_INSTRUCTIONS_URL`: URL for the user instructions link visible in Respa Admin. Example value: `'https://cityofhelsinki.gitbook.io/varaamo/'`.
+- `RESPA_ADMIN_SUPPORT_EMAIL`: Email address for user support link visible in Respa Admin.
+- `RESPA_ADMIN_VIEW_RESOURCE_URL`: URL for a "view changes" link in Respa Admin through which the user can view changes made to a given resource. Example value: `'https://varaamo.hel.fi/resource/'`.
 
-- *TODO* document rest of relevant settings.
-
-Ready to roll!
 
 ### Setting up PostGIS/GEOS/GDAL on Windows (x64) / Python 3
 
