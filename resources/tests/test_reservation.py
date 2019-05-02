@@ -3,8 +3,10 @@ import pytest
 
 import arrow
 from django.core.exceptions import ValidationError
+from django.utils.translation import activate
 from django.test import TestCase
 from django.utils import timezone
+from freezegun import freeze_time
 
 from resources.models import *
 
@@ -102,3 +104,38 @@ def test_need_manual_confirmation_metadata_set(resource_in_unit):
     data_set = ReservationMetadataSet.objects.get(name='default')
     assert data_set.supported_fields.exists()
     assert data_set.required_fields.exists()
+
+
+@freeze_time('2115-04-02')
+@pytest.mark.django_db
+def test_valid_reservation_duration_with_slot_size(resource_with_opening_hours):
+    resource_with_opening_hours.min_period = datetime.timedelta(hours=1)
+    resource_with_opening_hours.slot_size = datetime.timedelta(minutes=30)
+    resource_with_opening_hours.save()
+
+    tz = timezone.get_current_timezone()
+    begin = tz.localize(datetime.datetime(2115, 6, 1, 8, 0, 0))
+    end = begin + datetime.timedelta(hours=2, minutes=30)
+
+    reservation = Reservation(resource=resource_with_opening_hours, begin=begin, end=end)
+    reservation.clean()
+
+
+@freeze_time('2115-04-02')
+@pytest.mark.django_db
+def test_invalid_reservation_duration_with_slot_size(resource_with_opening_hours):
+    activate('en')
+    
+    resource_with_opening_hours.min_period = datetime.timedelta(hours=1)
+    resource_with_opening_hours.slot_size = datetime.timedelta(minutes=30)
+    resource_with_opening_hours.save()
+
+    tz = timezone.get_current_timezone()
+    begin = tz.localize(datetime.datetime(2115, 6, 1, 8, 0, 0))
+    end = begin + datetime.timedelta(hours=2, minutes=45)
+
+    reservation = Reservation(resource=resource_with_opening_hours, begin=begin, end=end)
+
+    with pytest.raises(ValidationError) as error:
+        reservation.clean()
+    assert error.value.code == 'invalid_time_slot'
