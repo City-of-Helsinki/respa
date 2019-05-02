@@ -1074,6 +1074,9 @@ msgstr "Funktioner"
 msgid "Save"
 msgstr "Spara"
 
+msgid "View resource"
+msgstr "Visa resurs"
+
 msgid "Edit resource"
 msgstr "Modifiera resurs"
 
