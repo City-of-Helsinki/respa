@@ -1,5 +1,6 @@
 import collections
 import datetime
+import logging
 
 import arrow
 import django_filters
@@ -7,7 +8,8 @@ import pytz
 from arrow.parser import ParserError
 
 from django import forms
-from django.db.models import Prefetch, Q
+from django.db.models import OuterRef, Prefetch, Q, Subquery, Value
+from django.db.models.functions import Coalesce
 from django.urls import reverse
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
@@ -31,6 +33,9 @@ from .reservation import ReservationSerializer
 from .unit import UnitSerializer
 from .equipment import EquipmentSerializer
 from rest_framework.settings import api_settings as drf_settings
+
+
+logger = logging.getLogger(__name__)
 
 
 def parse_query_time_range(params):
@@ -339,25 +344,31 @@ class ParentCharFilter(ParentFilter):
     field_class = forms.CharField
 
 
-class AccessibilityOrderingFilter(django_filters.OrderingFilter):
+class ResourceOrderingFilter(django_filters.OrderingFilter):
     """
-    Order resources by accessibility viewpoint.
+    Resource ordering with added capabilities for Accessibility data.
     """
 
     def filter(self, qs, value):
-        #from django.db.models import OuterRef, Subquery, Value
-        #from django.db.models.functions import Coalesce
+        if 'accessibility' in value or '-accessibility' in value:
+            viewpoint_id = self.parent.data.get('accessibility_viewpoint')
+            try:
+                accessibility_viewpoint = AccessibilityViewpoint.objects.get(id=viewpoint_id)
+            except AccessibilityViewpoint.DoesNotExist:
+                accessibility_viewpoint = AccessibilityViewpoint.objects.first()
+            if accessibility_viewpoint is None:
+                logging.error('Accessibility Viewpoints are not imported from Accessibility database')
+                value = [val for val in value if val != 'accessibility' or val != '-accessibility']
+                return super().filter(qs, value)
 
-        #accessibility_value = ResourceAccessibility.filter(resource_id=OuterRef('pk'), value=value)
-        #qs = qs.annotate(priority=Coalesce(Subquery(accessibility_value.values('value')[:1]), Value(ResourceAccessbility.UNKNOWN))).order_by('priority')
-
-
-        # filtering by accessibility requires that desired accessibility
-        # viewpoint is specified in the query. enforce this somehow by checking
-        # query params (in FilterBackend?)
-        # the viewpoint must be annotated to the qs too for ordering to work
-
-        return qs
+            # annotate the queryset with accessibility priority from selected viewpoint.
+            # resources with no accessibility data are considered same priority as UNKNOWN
+            accessibility_value = ResourceAccessibility.objects.filter(
+                resource_id=OuterRef('pk'), viewpoint_id=accessibility_viewpoint.id)
+            qs = qs.annotate(
+                accessibility_priority=Coalesce(
+                    Subquery(accessibility_value.values('order')[:1]), Value(ResourceAccessibility.UNKNOWN)))
+        return super().filter(qs, value)
 
 
 class ResourceFilterSet(django_filters.FilterSet):
@@ -382,7 +393,7 @@ class ResourceFilterSet(django_filters.FilterSet):
                                                   widget=DRFFilterBooleanWidget)
     municipality = django_filters.Filter(field_name='unit__municipality_id', lookup_expr='in',
                                          widget=django_filters.widgets.CSVWidget, distinct=True)
-    order_by = django_filters.OrderingFilter(
+    order_by = ResourceOrderingFilter(
         fields=(
             ('name_fi', 'resource_name_fi'),
             ('name_en', 'resource_name_en'),
@@ -394,6 +405,7 @@ class ResourceFilterSet(django_filters.FilterSet):
             ('type__name_en', 'type_name_en'),
             ('type__name_sv', 'type_name_sv'),
             ('people_capacity', 'people_capacity'),
+            ('accessibility_priority', 'accessibility'),
         ),
     )
 
