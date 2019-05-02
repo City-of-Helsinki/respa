@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from payments.models import Order, OrderLine, Product
-from resources.api.base import register_view
+from resources.api.base import register_view, TranslatedModelSerializer
 from .integrations import get_payment_provider
 
 from .integrations.bambora_payform import (
@@ -14,7 +14,7 @@ from .integrations.bambora_payform import (
 )
 
 
-class ProductSerializer(serializers.ModelSerializer):
+class ProductSerializer(TranslatedModelSerializer):
     id = serializers.IntegerField(source='product_id')
 
     class Meta:
@@ -140,7 +140,7 @@ class OrderViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.Li
         return Response(order_data, status=200)
 
 
-class ResourceProductSerializer(serializers.ModelSerializer):
+class ResourceProductSerializer(TranslatedModelSerializer):
     class Meta:
         model = Product
         fields = ('id', 'name', 'type', 'pretax_price', 'price_type', 'tax_percentage')

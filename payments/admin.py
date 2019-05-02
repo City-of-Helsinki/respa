@@ -1,10 +1,11 @@
 from django.contrib import admin
+from modeltranslation.admin import TranslationAdmin
 
 from payments.models import Order, OrderLine, Product
 
 
 @admin.register(Product)
-class Product(admin.ModelAdmin):
+class Product(TranslationAdmin):
     list_display = ('product_id', 'name', 'type', 'pretax_price', 'price_type')
     readonly_fields = ('product_id',)
 
