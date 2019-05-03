@@ -10,7 +10,8 @@ from .integrations import get_payment_provider
 from .integrations.bambora_payform import (
     ServiceUnavailableError,
     PayloadValidationError,
-    DuplicateOrderError
+    DuplicateOrderError,
+    UnknownReturnCodeError
 )
 
 
@@ -69,29 +70,19 @@ class OrderSerializer(OrderSerializerBase):
         return_url = validated_data.pop('return_url', '')
         order = super().create(validated_data)
 
-        products_bought = []
         for order_line_data in order_lines_data:
-            order_line = OrderLine.objects.create(order=order, **order_line_data)
-            products_bought.append(order_line.product)
+            OrderLine.objects.create(order=order, **order_line_data)
 
-        reservation = order.reservation
         payments = get_payment_provider()
-        purchased_items = payments.get_purchased_items(products_bought, reservation)
-        customer = payments.get_customer(reservation)
-
         try:
-            self.context['payment_url'] = payments.order_post(
-                self.context['request'],
-                order.order_number,
-                return_url,
-                purchased_items,
-                customer
+            self.context['payment_url'] = payments.order_create(
+                self.context['request'], return_url, order
             )
         except DuplicateOrderError as doe:
             raise exceptions.APIException(detail=str(doe),
                                           code=status.HTTP_409_CONFLICT)
-        except PayloadValidationError as pve:
-            raise exceptions.APIException(detail=str(pve),
+        except (PayloadValidationError, UnknownReturnCodeError) as e:
+            raise exceptions.APIException(detail=str(e),
                                           code=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except ServiceUnavailableError as sue:
             raise exceptions.APIException(detail=str(sue),

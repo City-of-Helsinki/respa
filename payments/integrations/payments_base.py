@@ -1,41 +1,15 @@
-from collections import namedtuple
-
 from django.http import HttpRequest, HttpResponse, HttpResponseNotFound
 from django.shortcuts import redirect
 from django.urls import reverse
 
-from payments import settings
-
-PurchasedItem = namedtuple('PurchasedItem',
-                           'id, title, price, pretax_price, tax count type')
-
-Customer = namedtuple('Customer',
-                      'firstname lastname email address_street address_zip address_city')
+PAYMENT_CONFIG = 'PAYMENT_CONFIG'
 
 
 class PaymentsBase(object):
     """Common base for payment provider integrations"""
 
     def __init__(self, **kwargs):
-        self.api_key = settings.PAYMENT_API_KEY
-        self.api_secret = settings.PAYMENT_API_SECRET
-        self.url_api = settings.PAYMENT_URL_API
-
-    def order_post(self):
-        raise NotImplementedError
-
-    def get_customer(self):
-        raise NotImplementedError
-
-    def get_purchased_items(self):
-        return []
-
-    def calculate_auth_code(self, data):
-        """Calculate and return a hash of some data
-
-        As the hashing algorithms and data varies between providers
-        there needs to be a subclass implementation"""
-        raise NotImplementedError
+        self.config = kwargs.get(PAYMENT_CONFIG)
 
     def handle_success_request(self, request: HttpRequest) -> HttpResponse:
         """Handle incoming payment success request from the payment provider.

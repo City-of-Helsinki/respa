@@ -6,19 +6,19 @@ from requests.exceptions import RequestException
 from urllib.parse import urlencode
 from django.http import HttpResponseBadRequest, HttpResponse
 
-from .payments_base import (
-    Customer,
-    PaymentsBase,
-    PaymentError,
-    PurchasedItem,
-)
-from .. import settings
-from ..models import Order
+from ..models import Order, OrderLine
 from ..utils import price_as_sub_units
-
-UI_RETURN_URL_PARAM_NAME = 'RESPA_UI_RETURN_URL'
+from .payments_base import PaymentsBase, PaymentError
 
 logger = logging.getLogger()
+
+# Keys the provider expects to find in the config
+RESPA_PAYMENTS_BAMBORA_API_KEY = 'RESPA_PAYMENTS_BAMBORA_API_KEY'
+RESPA_PAYMENTS_BAMBORA_API_SECRET = 'RESPA_PAYMENTS_BAMBORA_API_SECRET'
+RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS = 'RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS'
+
+# Param for respa redirect
+UI_RETURN_URL_PARAM_NAME = 'RESPA_UI_RETURN_URL'
 
 
 class BamboraPayformPayments(PaymentsBase):
@@ -29,83 +29,103 @@ class BamboraPayformPayments(PaymentsBase):
 
     def __init__(self, **kwargs):
         super(BamboraPayformPayments, self).__init__(**kwargs)
-        self.payment_methods_enabled = ['osuuspankki']
-        self.url_payment_auth = settings.PAYMENT_URL_API_AUTH
-        self.url_payment_token = settings.PAYMENT_URL_API_TOKEN
+        self.url_payment_api = 'https://payform.bambora.com/pbwapi'
+        self.url_payment_auth = '{}/auth_payment'.format(self.url_payment_api)
+        self.url_payment_token = '{}/token/{{token}}'.format(self.url_payment_api)
 
-    def order_post(self, request, order_num, ui_return_url, purchased_items, customer):
-        """Initiate payment by constructing the payload and posting it to Bambora"""
+    @staticmethod
+    def get_config_template() -> dict:
+        """Keys and value types what Bambora requires from environment"""
+        return {
+            RESPA_PAYMENTS_BAMBORA_API_KEY: str,
+            RESPA_PAYMENTS_BAMBORA_API_SECRET: str,
+            RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS: list
+        }
+
+    def order_create(self, request, ui_return_url, order) -> str:
+        """Initiate payment by constructing the payload with necessary items"""
+
         respa_return_url = self.get_success_url(request)
         query_params = urlencode({UI_RETURN_URL_PARAM_NAME: ui_return_url})
         full_return_url = '{}?{}'.format(respa_return_url, query_params)
 
         payload = {
             'version': 'w3.1',
-            'api_key': self.api_key,
+            'api_key': self.config.get(RESPA_PAYMENTS_BAMBORA_API_KEY),
             'payment_method': {
                 'type': 'e-payment',
                 'return_url': full_return_url,
                 'notify_url': self.get_notify_url(request),
-                'selected': self.payment_methods_enabled
+                'selected': self.config.get(RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS)
             },
-            'currency': 'EUR'
+            'currency': 'EUR',
+            'order_number': str(order.order_number)
         }
 
-        payload['order_number'] = str(order_num)
-
-        self.payload_add_products(payload, purchased_items)
-        self.payload_add_customer(payload, customer)
+        self.payload_add_products(payload, order)
+        self.payload_add_customer(payload, order.reservation)
         self.payload_add_auth_code(payload)
 
         try:
             r = requests.post(self.url_payment_auth, json=payload)
             r.raise_for_status()
+            return self.handle_order_create(r.json())
         except RequestException as e:
             raise ServiceUnavailableError("Payment service is unreachable") from e
 
-        if r.status_code == 200:
-            json_response = r.json()
-            result = json_response['result']
-            if result == 0:
-                return self.get_payment_url(json_response)
-            elif result == 1:
-                raise PayloadValidationError("Payment payload data validation failed: {}"
-                                             .format(" ".join(json_response['errors'])))
-            elif result == 2:
-                raise DuplicateOrderError("Order with the same ID already exists")
-            elif result == 10:
-                raise ServiceUnavailableError("Payment service is down for maintentance")
-        raise ServiceUnavailableError("Payment service is unreachable")
+        return self.order_create_send(payload)
 
-    def payload_add_products(self, payload, purchased_items):
-        """Attach info of bought items to payload"""
-        total_amount = 0
+    def handle_order_create(self, response) -> str:
+        """Handling the Bambora payment auth response"""
+        result = response['result']
+        if result == 0:
+            # Create the URL where user is redirected to complete the payment
+            # Append "?minified" to get a stripped version of the payment page
+            return self.url_payment_token.format(token=response['token'])
+        elif result == 1:
+            raise PayloadValidationError("Payment payload data validation failed: {}"
+                                         .format(" ".join(response['errors'])))
+        elif result == 2:
+            raise DuplicateOrderError("Order with the same ID already exists")
+        elif result == 10:
+            raise ServiceUnavailableError("Payment service is down for maintentance")
+        else:
+            raise UnknownReturnCodeError("Return code was not recognized: {}".format(result))
+
+    def payload_add_products(self, payload, order):
+        """Attach info of bought products to payload
+
+        Order lines that contain bought products are retrieved through order"""
+        reservation = order.reservation
+        order_lines = OrderLine.objects.filter(order=order.id)
         items = []
-        for item in purchased_items:
-            total_amount += item.price
+        for order_line in order_lines:
+            product = order_line.product
             items.append({
-                'id': item.id,
-                'title': item.title,
-                'price': item.price,
-                'pretax_price': item.pretax_price,
-                'tax': item.tax,
-                'count': item.count,
-                'type': item.type
+                'id': product.code,  # TODO Use the book-keeping ID
+                'title': product.name,
+                'price': price_as_sub_units(product.get_price_for_reservation(reservation)),
+                'pretax_price': price_as_sub_units(product.get_pretax_price_for_reservation(reservation)),
+                'tax': product.tax_percentage,
+                'count': order_line.quantity,
+                'type': 1
             })
-        payload['amount'] = total_amount
+        payload['amount'] = price_as_sub_units(order.get_price())
         payload['products'] = items
 
-    def payload_add_customer(self, payload, customer):
-        """Attach customer data to payload"""
+    def payload_add_customer(self, payload, reservation):
+        """Attach customer data to payload
+
+        TODO Somehow split reserver first and last name into separate fields"""
         payload.update({
-            'email': customer.email,
+            'email': reservation.reserver_email_address,
             'customer': {
-                'firstname': customer.firstname,
-                'lastname': customer.lastname,
-                'email': customer.email,
-                'address_street': customer.address_street,
-                'address_zip': customer.address_zip,
-                'address_city': customer.address_city,
+                'firstname': reservation.reserver_name,
+                'lastname': reservation.reserver_name,
+                'email': reservation.reserver_email_address,
+                'address_street': reservation.billing_address_street,
+                'address_zip': reservation.billing_address_zip,
+                'address_city': reservation.billing_address_city,
             }
         })
 
@@ -114,38 +134,9 @@ class BamboraPayformPayments(PaymentsBase):
         data = '{}|{}'.format(payload['api_key'], payload['order_number'])
         payload.update(authcode=self.calculate_auth_code(data))
 
-    def get_customer(self, reservation):
-        """Create bambora compatible customer from reservation data
-
-        TODO Somehow split reserver first and last name into separate fields"""
-        return Customer(firstname=reservation.reserver_name,
-                        lastname=reservation.reserver_name,
-                        email=reservation.reserver_email_address,
-                        address_street=reservation.billing_address_street,
-                        address_zip=reservation.billing_address_zip,
-                        address_city=reservation.billing_address_city)
-
-    def get_purchased_items(self, products_bought, reservation):
-        """Create bambora compatible generator of bought products"""
-        for product in products_bought:
-            yield PurchasedItem(
-                id=product.code,
-                title=product.name,
-                price=price_as_sub_units(product.get_price_for_reservation(reservation)),
-                pretax_price=price_as_sub_units(product.get_pretax_price_for_reservation(reservation)),
-                tax=product.tax_percentage,
-                count=1,
-                type=1
-            )
-
-    def get_payment_url(self, json_response) -> str:
-        """Where user should be directed to complete the payment
-        Append "?minified" to get a stripped version
-        """
-        return self.url_payment_token.format(token=json_response['token'])
-
     def calculate_auth_code(self, data) -> str:
-        return hmac.new(bytes(self.api_secret, 'latin-1'),
+        """Calculate a hmac sha256 out of some data string"""
+        return hmac.new(bytes(self.config.get(RESPA_PAYMENTS_BAMBORA_API_SECRET), 'latin-1'),
                         msg=bytes(data, 'latin-1'),
                         digestmod=hashlib.sha256).hexdigest().upper()
 
@@ -246,3 +237,7 @@ class PayloadValidationError(PaymentError):
 
 class DuplicateOrderError(PaymentError):
     """If order with the same ID has already been previously posted"""
+
+
+class UnknownReturnCodeError(PaymentError):
+    """If service returns a status code that is not recognized by the handler"""
