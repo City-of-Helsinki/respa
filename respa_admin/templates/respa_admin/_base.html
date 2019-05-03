@@ -28,10 +28,13 @@
 
     <div class='header'>
         {% include "respa_admin/_nav.html" %}
-
-        {% if messages %}
-            {% include "respa_admin/common/_notification.html" %}
-        {% endif %}
+        {% block notification-wrapper %}
+            <div class="noti-wrapper">
+                {% if messages %}
+                    {% include "respa_admin/common/_notification.html" %}
+                {% endif %}
+            </div>
+        {% endblock %}
 
         {% block form_nav %}
 

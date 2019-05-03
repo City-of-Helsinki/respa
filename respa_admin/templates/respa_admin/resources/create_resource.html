@@ -5,6 +5,12 @@
     {% include "respa_admin/resources/form/_nav.html" %}
 {% endblock form_nav %}
 
+{% block notification-wrapper %}
+        {% if messages %}
+            {% include "respa_admin/common/_notification.html" %}
+        {% endif %}
+{% endblock %}
+
 {% block body %}
     <div class="container form-container">
         <form

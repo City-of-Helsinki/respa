@@ -1,10 +1,15 @@
+.noti-wrapper {
+  padding-top: 10px;
+  background-color: #9fc9eb;
+}
+
 .noti {
   border-radius: 2px;
   border: $panel-default-border;
-  color: $white;
+  color: $black;
   height: 72px;
   justify-content: center;
-  margin-bottom: 0;
+  margin-bottom: 0px;
   padding: 24px;
 
   .remove-click {
