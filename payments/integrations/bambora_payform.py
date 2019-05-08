@@ -14,6 +14,7 @@ from .payments_base import (
 )
 from .. import settings
 from ..models import Order
+from ..utils import price_as_sub_units
 
 UI_RETURN_URL_PARAM_NAME = 'RESPA_UI_RETURN_URL'
 
@@ -130,8 +131,8 @@ class BamboraPayformPayments(PaymentsBase):
             yield PurchasedItem(
                 id=product.code,
                 title=product.name,
-                price=product.get_price_for_reservation(reservation, as_sub_units=True),
-                pretax_price=product.get_pretax_price_for_reservation(reservation, as_sub_units=True),
+                price=price_as_sub_units(product.get_price_for_reservation(reservation)),
+                pretax_price=price_as_sub_units(product.get_pretax_price_for_reservation(reservation)),
                 tax=product.tax_percentage,
                 count=1,
                 type=1

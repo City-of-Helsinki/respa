@@ -1,7 +1,6 @@
 import uuid
 from datetime import datetime, timedelta
-from decimal import ROUND_HALF_UP, Decimal
-from typing import Union
+from decimal import Decimal
 
 from django.core.validators import MaxValueValidator
 from django.db import models, transaction, IntegrityError
@@ -11,7 +10,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from resources.models import Reservation, Resource
 
-Price = Union[Decimal, int]  # int is used for values in sub units (cents)
+from .utils import round_price
 
 # The best way for representing non existing archived_at would be using None for it,
 # but that would not work with the unique_together constraint, which brings many
@@ -116,28 +115,33 @@ class Product(models.Model):
         else:
             raise Exception('Cannot obtain a new product ID for product {}.'.format(self))
 
-    def get_pretax_price_for_reservation(self, reservation: Reservation, rounded: bool = True,
-                                         as_sub_units: bool = False) -> Price:
+    def get_pretax_price_for_time_range(self, begin: datetime, end: datetime, rounded: bool = True) -> Decimal:
+        assert begin < end
+
         if self.price_type == Product.PER_HOUR:
-            reservation_duration = reservation.end - reservation.begin
-            pretax_price = self.pretax_price * Decimal(reservation_duration / timedelta(hours=1))
-            if rounded:
-                pretax_price = pretax_price.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-            if as_sub_units:
-                pretax_price = int(pretax_price * 100)
-            return pretax_price
+            price = self.pretax_price * Decimal((end - begin) / timedelta(hours=1))
         else:
             raise NotImplementedError('Cannot calculate price, unknown price type "{}".'.format(self.price_type))
 
-    def get_price_for_reservation(self, reservation: Reservation, rounded: bool = True,
-                                  as_sub_units: bool = False) -> Price:
-        pretax_price = self.get_pretax_price_for_reservation(reservation, rounded=False)
-        price = pretax_price * (1 + Decimal(self.tax_percentage) / 100)
         if rounded:
-            price = price.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-        if as_sub_units:
-            price = int(price * 100)
+            price = round_price(price)
+
         return price
+
+    def get_price_for_time_range(self, begin: datetime, end: datetime, rounded: bool = True) -> Decimal:
+        pretax_price = self.get_pretax_price_for_time_range(begin, end, rounded=False)
+        price = pretax_price * (1 + Decimal(self.tax_percentage) / 100)
+
+        if rounded:
+            price = round_price(price)
+
+        return price
+
+    def get_pretax_price_for_reservation(self, reservation: Reservation, rounded: bool = True) -> Decimal:
+        return self.get_pretax_price_for_time_range(reservation.begin, reservation.end, rounded)
+
+    def get_price_for_reservation(self, reservation: Reservation, rounded: bool = True) -> Decimal:
+        return self.get_price_for_time_range(reservation.begin, reservation.end, rounded)
 
 
 class Order(models.Model):
@@ -165,11 +169,11 @@ class Order(models.Model):
     def __str__(self):
         return '{} {}'.format(self.order_number, self.reservation)
 
-    def get_price(self, as_sub_units: bool = False) -> Price:
-        price = sum(order_line.get_price() for order_line in self.order_lines.all())
-        if as_sub_units:
-            price = int(price * 100)
-        return price
+    def get_pretax_price(self) -> Decimal:
+        return sum(order_line.get_pretax_price() for order_line in self.order_lines.all())
+
+    def get_price(self) -> Decimal:
+        return sum(order_line.get_price() for order_line in self.order_lines.all())
 
 
 class OrderLine(models.Model):
@@ -188,8 +192,8 @@ class OrderLine(models.Model):
     def __str__(self):
         return str(self.product)
 
-    def get_price(self, as_sub_units: bool = False) -> Price:
-        price = self.product.get_price_for_reservation(self.order.reservation) * self.quantity
-        if as_sub_units:
-            price = int(price * 100)
-        return price
+    def get_pretax_price(self) -> Decimal:
+        return self.product.get_pretax_price_for_reservation(self.order.reservation) * self.quantity
+
+    def get_price(self) -> Decimal:
+        return self.product.get_price_for_reservation(self.order.reservation) * self.quantity
