@@ -21,8 +21,8 @@ from .base import ExtraReadonlyFieldsOnUpdateMixin, CommonExcludeMixin, Populate
 from resources.admin.period_inline import PeriodInline
 
 from ..models import (
-    AccessibilityViewpoint, Day, Equipment, EquipmentAlias, EquipmentCategory, Purpose, Reservation,
-    ReservationMetadataField, ReservationMetadataSet, Resource, ResourceAccessibility,
+    AccessibilityValue, AccessibilityViewpoint, Day, Equipment, EquipmentAlias, EquipmentCategory, Purpose,
+    Reservation, ReservationMetadataField, ReservationMetadataSet, Resource, ResourceAccessibility,
     ResourceEquipment, ResourceGroup, ResourceImage, ResourceType, TermsOfUse,
     Unit, UnitAuthorization, UnitGroup, UnitGroupAuthorization)
 from munigeo.models import Municipality
@@ -344,4 +344,5 @@ if admin.site.is_registered(Municipality):
     admin.site.unregister(Municipality)
 admin.site.register(Municipality, MunicipalityAdmin)
 admin.site.register(AccessibilityViewpoint, AccessibilityViewpointAdmin)
+admin.site.register(AccessibilityValue)
 admin.site.register(ResourceAccessibility, ResourceAccessibilityAdmin)

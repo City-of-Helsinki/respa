@@ -21,7 +21,7 @@ from guardian.core import ObjectPermissionChecker
 
 from munigeo import api as munigeo_api
 from resources.models import (
-    AccessibilityViewpoint, Purpose, Reservation, Resource, ResourceAccessibility,
+    AccessibilityValue, AccessibilityViewpoint, Purpose, Reservation, Resource, ResourceAccessibility,
     ResourceImage, ResourceType, ResourceEquipment, TermsOfUse, Equipment, ReservationMetadataSet,
     ResourceDailyOpeningHours
 )
@@ -156,17 +156,21 @@ class AccessibilityViewpointSerializer(TranslatedModelSerializer):
 
 class ResourceAccessibilitySerializer(TranslatedModelSerializer):
     value = serializers.SerializerMethodField()
-    viewpoint = AccessibilityViewpointSerializer(read_only=True)
+    viewpoint_id = serializers.SerializerMethodField()
+    viewpoint_name = serializers.SerializerMethodField()
 
     class Meta:
         model = ResourceAccessibility
-        fields = ('viewpoint', 'value')
+        fields = ('viewpoint_id', 'viewpoint_name', 'value')
 
     def get_value(self, obj):
-        for value, name in ResourceAccessibility.VALUES:
-            if obj.value == value:
-                return name
-        return 'unknown'
+        return obj.value.value
+
+    def get_viewpoint_id(self, obj):
+        return obj.viewpoint_id
+
+    def get_viewpoint_name(self, obj):
+        return AccessibilityViewpointSerializer(obj.viewpoint).data['name']
 
 
 class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
@@ -350,7 +354,7 @@ class ResourceOrderingFilter(django_filters.OrderingFilter):
     """
 
     def filter(self, qs, value):
-        if 'accessibility' in value or '-accessibility' in value:
+        if value and ('accessibility' in value or '-accessibility' in value):
             viewpoint_id = self.parent.data.get('accessibility_viewpoint')
             try:
                 accessibility_viewpoint = AccessibilityViewpoint.objects.get(id=viewpoint_id)
@@ -363,11 +367,11 @@ class ResourceOrderingFilter(django_filters.OrderingFilter):
 
             # annotate the queryset with accessibility priority from selected viewpoint.
             # resources with no accessibility data are considered same priority as UNKNOWN
-            accessibility_value = ResourceAccessibility.objects.filter(
+            accessibility_summary = ResourceAccessibility.objects.filter(
                 resource_id=OuterRef('pk'), viewpoint_id=accessibility_viewpoint.id)
             qs = qs.annotate(
                 accessibility_priority=Coalesce(
-                    Subquery(accessibility_value.values('order')[:1]), Value(ResourceAccessibility.UNKNOWN)))
+                    Subquery(accessibility_summary.values('order')[:1]), Value(AccessibilityValue.UNKNOWN_ORDERING)))
         return super().filter(qs, value)
 
 
@@ -567,6 +571,12 @@ class ResourceFilterBackend(filters.BaseFilterBackend):
     """
 
     def filter_queryset(self, request, queryset, view):
+        accessibility_filtering = request.query_params.get('order_by', None) == 'accessibility'
+        viewpoint_defined = 'accessibility_viewpoint' in request.query_params
+        if accessibility_filtering and not viewpoint_defined:
+            error_message = "'accessibility_viewpoint' must be defined when ordering by accessibility"
+            raise exceptions.ParseError(error_message)
+
         return ResourceFilterSet(request.query_params, queryset=queryset, user=request.user).qs
 
 

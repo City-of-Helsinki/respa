@@ -7,6 +7,7 @@ from rest_framework.test import APIClient, APIRequestFactory
 
 from resources.models import Resource, ResourceType, Unit, Purpose, Day, Period
 from resources.models import Equipment, EquipmentAlias, ResourceEquipment, EquipmentCategory, TermsOfUse, ResourceGroup
+from resources.models import AccessibilityValue, AccessibilityViewpoint, ResourceAccessibility
 from munigeo.models import Municipality
 
 @pytest.fixture
@@ -284,3 +285,60 @@ def test_municipality():
         name='Foo'
     )
     return municipality
+
+
+@pytest.fixture
+def accessibility_viewpoint_wheelchair():
+    vp = {"id": "10", "name_en": "I am a wheelchair user", "order_text": 10}
+    return AccessibilityViewpoint.objects.create(**vp)
+
+
+@pytest.fixture
+def accessibility_viewpoint_hearing():
+    vp = {"id": "20", "name_en": "I am hearing impaired", "order_text": 20}
+    return AccessibilityViewpoint.objects.create(**vp)
+
+
+@pytest.fixture
+def accessibility_value_green():
+    return AccessibilityValue.objects.create(value='green', order=10)
+
+
+@pytest.fixture
+def accessibility_value_red():
+    return AccessibilityValue.objects.create(value='red', order=-10)
+
+
+@pytest.fixture
+def resource_with_accessibility_data(resource_in_unit, accessibility_viewpoint_wheelchair,
+                                     accessibility_viewpoint_hearing, accessibility_value_green,
+                                     accessibility_value_red):
+    ResourceAccessibility.objects.create(
+        resource=resource_in_unit,
+        viewpoint=accessibility_viewpoint_wheelchair,
+        value=accessibility_value_green
+    )
+    ResourceAccessibility.objects.create(
+        resource=resource_in_unit,
+        viewpoint=accessibility_viewpoint_hearing,
+        value=accessibility_value_red
+    )
+    return resource_in_unit
+
+
+@pytest.fixture
+def resource_with_accessibility_data2(resource_in_unit2, accessibility_viewpoint_wheelchair,
+                                      accessibility_viewpoint_hearing, accessibility_value_green,
+                                      accessibility_value_red):
+    ResourceAccessibility.objects.create(
+        resource=resource_in_unit2,
+        viewpoint=accessibility_viewpoint_wheelchair,
+        value=accessibility_value_red
+    )
+    ResourceAccessibility.objects.create(
+        resource=resource_in_unit2,
+        viewpoint=accessibility_viewpoint_hearing,
+        value=accessibility_value_green
+    )
+    return resource_in_unit2
+

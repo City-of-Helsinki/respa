@@ -8,7 +8,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import override
 
-from resources.models import AccessibilityViewpoint, Resource, ResourceAccessibility
+from resources.models import AccessibilityValue, AccessibilityViewpoint, Resource, ResourceAccessibility
 
 
 LOG = logging.getLogger(__name__)
@@ -90,7 +90,7 @@ class Command(BaseCommand):
                 self.stdout.write('Received unknown Accessibility viewpoint id from API: {}. Skipping.'.format(
                     accessibility_data['viewpointId']))
                 continue
-            value = self.map_value(accessibility_data['isAccessible'])
+            value = self.get_or_create_value(accessibility_data['isAccessible'])
             resource_accessibility, created = ResourceAccessibility.objects.get_or_create(
                 resource=resource, viewpoint=viewpoint, defaults={'value': value}
             )
@@ -116,15 +116,25 @@ class Command(BaseCommand):
             LOG.exception('Accessibility data import failed. Response did not contain JSON')
             raise e
 
-    def map_value(self, value_data):
-        """Accessibility API represents accessibility summaries in words like "red", "green" """
-        value = ResourceAccessibility.get_value_from_str(value_data)
-        if value is None:
-            msg = """Accessibility API reports unrecognized accessibility summary value ({}),
-            using UNKNOWN instead. Update ResourceAccessibility known values."""
-            self.stdout.write(msg.format(value_data))
-            value = ResourceAccessibility.UNKNOWN
-        return value
+    def get_or_create_value(self, value_data):
+        """Accessibility API represents accessibility summaries in words like "red", "green"
+        default ordering levels set here are
+        - green: 10
+        - unknown: 0
+        - red: -10
+
+        These can be changed later in django admin. Resources which don't have data in Accessibility database
+        are considered to have an ordering priority of 0.
+        """
+        accessibility_value, created = AccessibilityValue.objects.get_or_create(value=value_data)
+        if created:
+            if accessibility_value.value == 'green':
+                accessibility_value.order = 10
+                accessibility_value.save()
+            elif accessibility_value.value == 'red':
+                accessibility_value.order = -10
+                accessibility_value.save()
+        return accessibility_value
 
     def update_model_attributes(self, instance, attributes):
         dirty_fields = []
