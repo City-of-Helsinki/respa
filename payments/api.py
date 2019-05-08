@@ -22,7 +22,7 @@ class ProductSerializer(TranslatedModelSerializer):
         fields = ('id', 'type', 'name', 'pretax_price', 'price_type', 'tax_percentage')
 
 
-class OrderLineSerializer(serializers.ModelSerializer):
+class OrderLineSerializerBase(serializers.ModelSerializer):
     price = serializers.SerializerMethodField()
     product = serializers.SlugRelatedField(queryset=Product.objects.current(), slug_field='product_id')
 
@@ -30,13 +30,20 @@ class OrderLineSerializer(serializers.ModelSerializer):
         model = OrderLine
         fields = ('product', 'quantity', 'price')
 
-    def get_price(self, obj):
-        return str(obj.get_price())
-
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data['product'] = ProductSerializer(instance.product).data
         return data
+
+
+class OrderLineSerializer(OrderLineSerializerBase):
+    def get_price(self, obj):
+        return str(obj.get_price())
+
+
+class PriceEndpointOrderLineSerializer(OrderLineSerializerBase):
+    def get_price(self, obj):
+        return str(calculate_in_memory_order_line_price(obj, obj.order._begin, obj.order._end))
 
 
 class OrderSerializerBase(serializers.ModelSerializer):
@@ -51,14 +58,6 @@ class OrderSerializerBase(serializers.ModelSerializer):
         if not value:
             raise serializers.ValidationError(_('At least one order line required.'))
         return value
-
-    def get_price(self, obj):
-        if hasattr(obj, '_order_lines'):
-            # we are dealing with the price check endpoint and in-memory objects
-            order_lines = obj._order_lines
-        else:
-            order_lines = obj.order_lines.all()
-        return str(sum(order_line.get_price() for order_line in order_lines))
 
 
 class OrderSerializer(OrderSerializerBase):
@@ -103,10 +102,24 @@ class OrderSerializer(OrderSerializerBase):
     def get_payment_url(self, obj):
         return self.context.get('payment_url', '')
 
+    def get_price(self, obj):
+        return str(obj.get_price())
+
 
 class PriceEndpointOrderSerializer(OrderSerializerBase):
+    order_lines = PriceEndpointOrderLineSerializer(many=True)
+
+    # these fields are actually returned from the API as well, but because
+    # they are non-model fields, it seems to be easier to mark them as write
+    # only and add them manually to returned data in the viewset
+    begin = serializers.DateTimeField(write_only=True)
+    end = serializers.DateTimeField(write_only=True)
+
     class Meta(OrderSerializerBase.Meta):
-        fields = ('order_lines', 'reservation', 'price')
+        fields = ('order_lines', 'price', 'begin', 'end')
+
+    def get_price(self, obj):
+        return str(sum(calculate_in_memory_order_line_price(ol, obj._begin, obj._end) for ol in obj._order_lines))
 
 
 class OrderViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -125,17 +138,22 @@ class OrderViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.Li
         # build Order and OrderLine objects in memory only
         order_data = write_serializer.validated_data
         order_lines_data = order_data.pop('order_lines')
+        begin = order_data.pop('begin')
+        end = order_data.pop('end')
         order = Order(**order_data)
         order_lines = [OrderLine(order=order, **data) for data in order_lines_data]
 
-        # store the OrderLine objects in the Order object so that we can use
-        # those when calculating price for the Order
+        # store the OrderLine objects and begin and end times in the Order
+        # object so that we can use those when calculating prices
         order._order_lines = order_lines
+        order._begin = begin
+        order._end = end
 
         # serialize the in-memory objects
         read_serializer = PriceEndpointOrderSerializer(order)
         order_data = read_serializer.data
-        order_data['order_lines'] = [OrderLineSerializer(ol).data for ol in order_lines]
+        order_data['order_lines'] = [PriceEndpointOrderLineSerializer(ol).data for ol in order_lines]
+        order_data.update({'begin': begin, 'end': end})
 
         return Response(order_data, status=200)
 
@@ -147,3 +165,7 @@ class ResourceProductSerializer(TranslatedModelSerializer):
 
 
 register_view(OrderViewSet, 'order')
+
+
+def calculate_in_memory_order_line_price(order_line, begin, end):
+    return order_line.product.get_price_for_time_range(begin, end) * order_line.quantity
