@@ -393,20 +393,21 @@ Kiitos venepaikkavarauksestasi! Tässä yhteenveto varauksestasi:\n
 Alkupäivä: {1}\n
 Loppupäivä: {2}\n
 Venepaikka: {3}\n\n
-Lukittujen laituripaikkojen avaimet ja maallevetoalueiden poletit noudetaan palvelupiste Kastellista.
-Palvelupisteiden yhteystiedot löydät osoitteesta www.hameenlinna.fi/Asiointi/Palvelupisteet/.
+Lukittujen laituripaikkojen avaimet ja maallevetoalueiden poletit noudetaan palvelupiste Kastellista. Uusiessasi olemassa olevan varauksen et tarvitse uutta polettia.
+Palvelupisteiden yhteystiedot löydät osoitteesta https://www.hameenlinna.fi/hallinto-ja-talous/neuvonta-ja-asiointi/kirjasto-palvelupisteet/.
 Hakiessasi avainta tai polettia varauduthan todistamaan henkilöllisyytesi.
-Lisää venerantojen sekä laituripaikkojen käytöstä osoitteessa www.hameenlinna.fi/venepaikat'''.format(full_name, begin_date_finnish, end_date_finnish, berth_name)
+Lisää venerantojen sekä laituripaikkojen käytöstä osoitteessa https://www.hameenlinna.fi/vesireititjaveneily.
+'''.format(full_name, begin_date_finnish, end_date_finnish, berth_name)
 
     body_html = '''<p>Hei {0},</p>
     <p>Kiitos venepaikkavarauksestasi! Tässä yhteenveto varauksestasi:</p>
     <p><strong>Alkupäivä</strong>: {1}</p>
     <p><strong>Loppupäivä</strong>: {2}</p>
     <p><strong>Venepaikka</strong>: {3}</p>
-    <p>Lukittujen laituripaikkojen avaimet ja maallevetoalueiden poletit noudetaan palvelupiste Kastellista.
-    Palvelupisteiden yhteystiedot löydät osoitteesta www.hameenlinna.fi/Asiointi/Palvelupisteet/.
+    <p>Lukittujen laituripaikkojen avaimet ja maallevetoalueiden poletit noudetaan palvelupiste Kastellista. Uusiessasi olemassa olevan varauksen et tarvitse uutta polettia.
+    Palvelupisteiden yhteystiedot löydät osoitteesta https://www.hameenlinna.fi/hallinto-ja-talous/neuvonta-ja-asiointi/kirjasto-palvelupisteet/.
     Hakiessasi avainta tai polettia varauduthan todistamaan henkilöllisyytesi.
-    Lisää venerantojen sekä laituripaikkojen käytöstä osoitteessa www.hameenlinna.fi/venepaikat</p>'''.format(full_name, begin_date_finnish, end_date_finnish, berth_name)
+    Lisää venerantojen sekä laituripaikkojen käytöstä osoitteessa https://www.hameenlinna.fi/vesireititjaveneily.</p>'''.format(full_name, begin_date_finnish, end_date_finnish, berth_name)
 
     send_mail(
         topic,
