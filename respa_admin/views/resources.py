@@ -102,7 +102,7 @@ class SaveResourceView(ExtraContextMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super(SaveResourceView, self).get_context_data(**kwargs)
-        if settings.RESPA_ADMIN_VIEW_RESOURCE_URL and self.object.id:
+        if settings.RESPA_ADMIN_VIEW_RESOURCE_URL and self.object:
             context['RESPA_ADMIN_VIEW_RESOURCE_URL'] = settings.RESPA_ADMIN_VIEW_RESOURCE_URL + self.object.id
         else:
             context['RESPA_ADMIN_VIEW_RESOURCE_URL'] = ''

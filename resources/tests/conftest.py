@@ -136,6 +136,7 @@ def resource_with_opening_hours(resource_in_unit):
                            opens=datetime.time(8, 0),
                            closes=datetime.time(18, 0))
     resource_in_unit.update_opening_hours()
+    return resource_in_unit
 
 
 @pytest.mark.django_db
