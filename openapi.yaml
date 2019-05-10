@@ -1,10 +1,11 @@
 openapi: 3.0.1
 info:
   title: Respa
-  description: The Respa API provides categorized data on resources available for reservation within a city or metropolitan area and enables the reservation of these resources. The API provides data in the JSON format, in a RESTful fashion.
+  description: The Respa API provides categorized data on resources available for reservation within a city or metropolitan area 
+    and enables the reservation of these resources. The API provides data in the JSON format, in a RESTful fashion.
   version: v1
 servers:
-- url: //api.hel.fi/respa/v1
+- url: https://api.hel.fi/respa/v1
 tags:
 - name: resource
   description: Look for available resources
@@ -63,9 +64,8 @@ paths:
     get:
       tags:
       - unit
-      description: |-
-        The unit endpoint returns City of Helsinki units (libraries, youth centers etc.) listed in the reservation system.
-        Returns 20 units per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 20 units per page.
+      description: The unit endpoint returns units (libraries, youth centers etc.) listed in the reservation system. The optional 
+        parameter **page** allows specifying page number and **page_size** allows specifying more than the default 20 units per page.
       parameters:
       - name: resource_group
         in: query
@@ -114,13 +114,12 @@ paths:
     get:
       tags:
       - unit
-      description: The unit endpoint returns City of Helsinki units (libraries, youth
+      description: The unit endpoint returns units (libraries, youth
         centers etc.) listed in the reservation system.
       parameters:
       - name: id
         in: path
-        description: Unique identifier for the City of Helsinki unit in the City of
-          Helsinki service registry.
+        description: Unique identifier for the unit in the service registry.
         required: true
         schema:
           type: string
@@ -135,10 +134,9 @@ paths:
     get:
       tags:
       - filter
-      description: |
-        The purpose endpoint returns the possible resource usage purposes registered in the system.
-
-        Returns 50 purposes per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 50 purposes per page.
+      description: The purpose endpoint returns the possible resource usage purposes registered in the system. 
+        The optional parameter **page** allows specifying page number and **page_size** allows specifying more than the default 
+        50 purposes per page.
       parameters:
       - name: page
         in: query
@@ -195,10 +193,8 @@ paths:
     get:
       tags:
       - filter
-      description: |
-        The type endpoint returns the possible resource types registered in the system.
-
-        Returns 20 types per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 20 units per page.
+      description: The type endpoint returns the possible resource types registered in the system. The optional parameter **page** 
+      allows specifying page number and **page_size** allows specifying more than the default 20 units per page.
       parameters:
       - name: resource_group
         in: query
@@ -261,9 +257,8 @@ paths:
     get:
       tags:
       - equipment
-      description: |-
-        The equipment endpoint returns the pieces of equipment of the resources.
-        Returns 20 pieces of equipment per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 20 pieces of equipment per page.
+      description: The equipment endpoint returns the pieces of equipment of the resources. The optional parameter **page** allows 
+        specifying page number and **page_size** allows specifying more than the default 20 pieces of equipment per page.
       parameters:
       - name: resource_group
         in: query
@@ -325,9 +320,8 @@ paths:
     get:
       tags:
       - equipment
-      description: |-
-        The equipment category endpoint returns the possible categories for the pieces of equipment.
-        Returns 20 equipment categories per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 20 equipment categories per page.
+      description: The equipment category endpoint returns the possible categories for the pieces of equipment. The optional parameter 
+        **page** allows specifying page number and **page_size** allows specifying more than the default 20 equipment categories per page.
       parameters:
       - name: page
         in: query
@@ -369,8 +363,7 @@ paths:
       parameters:
       - name: id
         in: path
-        description: Unique identifier for the City of Helsinki equipment category
-          in the City of Helsinki service registry.
+        description: Unique identifier for the equipment category in the service registry.
         required: true
         schema:
           type: string
@@ -385,40 +378,40 @@ paths:
     get:
       tags:
       - resource
-      description: |
-        The resource endpoint returns resources (meeting rooms, workstations, reservable spaces etc.) listed in the reservation system.
-
-        The endpoint allows queries based on resource purpose, type, name and availability. Availability can be specified for a desired duration in a desired time interval. This allows fetching only the resources that match a particular need at a particular time.
-
-        Returns 20 resources per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 20 units per page.
+      description: The resource endpoint returns resources (e.g. meeting rooms) listed in the reservation system, 
+        allowing queries based on resource purpose, type, name and availability. Availability can be specified for a desired 
+        duration in a desired time interval. This allows fetching only the resources that match a particular need at a particular time. 
+        The optional **page** parameter allows specifying page number and **page_size** allows specifying more than the default 20 units per page.
       parameters:
       - name: purpose
         in: query
         description: Only return resources that have the specified purpose(s)
         schema:
           type: string
+        example: meetings-and-working
       - name: type
         in: query
         description: Only return resources of the specified type(s). Accepts multiple
           comma-separated values.
         schema:
           type: string
+        example: meeting_room
       - name: search
         in: query
-        description: Only return resources matching the specified string
+        description: Only return resources matching the specified string. Queries the resource name, description and unit name fields.
         schema:
           type: string
       - name: start
         in: query
         description: Use together with `end`. Only return resources that are free
-          within the specified interval.
+          within the specified interval. Accepts ISO 8601 format.
         schema:
           type: string
           format: date-time
       - name: end
         in: query
         description: Use together with `start`. Only return resources that are free
-          within the specified interval.
+          within the specified interval. Accepts ISO 8601 format.
         schema:
           type: string
           format: date-time
@@ -440,10 +433,11 @@ paths:
         description: Only return resources with greater or equal capacity
         schema:
           type: number
+        example: 2
       - name: equipment
         in: query
         description: Only return resources that contain the specified piece(s) of
-          equipment. Accepts multiple comma-separated values.
+          equipment. Accepts multiple comma-separated values of equipment ID.
         schema:
           type: string
       - name: resource_group
@@ -457,6 +451,7 @@ paths:
         description: Only return resources that belong to the specified unit.
         schema:
           type: string
+        example: tprek:51342
       - name: need_manual_confirmation
         in: query
         description: Only return resources that need or do not need manual confirmation,
@@ -483,23 +478,27 @@ paths:
         description: Result page number
         schema:
           type: integer
+        example: 1
       - name: page_size
         in: query
         description: Number of resources per page
         schema:
           type: integer
+        example: 10
       - name: lat
         in: query
         description: Use together with `lon` and `distance`. Specifies latitude to
           return only resources that are within the given `distance`.
         schema:
           type: number
+        example: 60.1695096
       - name: lon
         in: query
         description: Use together with `lat` and `distance`. Specifies longitude to
           return only resources that are within the given `distance`.
         schema:
           type: number
+        example: 24.9405559
       - name: distance
         in: query
         description: Use together with `lat` and `long`. Returns only resources that
@@ -507,6 +506,7 @@ paths:
           and `lon`.
         schema:
           type: number
+        example: 10000.2
       - name: free_of_charge
         in: query
         description: If given boolean is `true`, returns only resources that have
@@ -520,6 +520,7 @@ paths:
           the given municipality.
         schema:
           type: string
+        example: helsinki
       - name: order_by
         in: query
         description: Order queryset by given resource fields, accepted values are
@@ -528,11 +529,13 @@ paths:
           value with `-` to get reverse ordering.
         schema:
           type: string
+        example: resource_name_fi
       - name: include
         in: query
         description: Include extra data to queryset. Currently accepts value `unit_detail`.
         schema:
           type: string
+        example: unit_detail
       responses:
         200:
           description: Successful response
@@ -598,10 +601,8 @@ paths:
     get:
       tags:
       - reservation
-      description: |
-        The reservation endpoint returns reservations listed in the reservation system.
-
-        Returns 20 reservations per page. The optional parameter **page** allows specifying page number. **page_size** allows specifying more than 20 units per page.
+      description: The reservation endpoint returns reservations listed in the reservation system. The optional parameter **page** 
+        allows specifying page number and **page_size** allows specifying more than the default 20 units per page.
       parameters:
       - name: page
         in: query
@@ -835,8 +836,7 @@ components:
       properties:
         id:
           type: string
-          description: Unique identifier for the City of Helsinki unit in the City
-            of Helsinki service registry.
+          description: Unique identifier for the unit in the service registry.
         opening_hours_today:
           type: object
           properties: {}
@@ -1028,8 +1028,7 @@ components:
           type: string
         unit:
           type: string
-          description: Unique identifier for the City of Helsinki unit where the resource
-            is located
+          description: Unique identifier for the unit where the resource is located
         location:
           $ref: '#/components/schemas/location'
         equipment:
