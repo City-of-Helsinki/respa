@@ -14,7 +14,7 @@ def auto_use_django_db(db):
 def product_1():
     return Product.objects.create(
         name_en='test product 1',
-        code='1',
+        sku='1',
     )
 
 
@@ -22,7 +22,7 @@ def product_1():
 def product_2():
     return Product.objects.create(
         name_en='test product 2',
-        code='2',
+        sku='2',
     )
 
 

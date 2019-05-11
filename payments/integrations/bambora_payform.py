@@ -73,8 +73,6 @@ class BamboraPayformPayments(PaymentsBase):
         except RequestException as e:
             raise ServiceUnavailableError("Payment service is unreachable") from e
 
-        return self.order_create_send(payload)
-
     def handle_order_create(self, response) -> str:
         """Handling the Bambora payment auth response"""
         result = response['result']
@@ -101,12 +99,14 @@ class BamboraPayformPayments(PaymentsBase):
         items = []
         for order_line in order_lines:
             product = order_line.product
+            int_tax = int(product.tax_percentage)
+            assert int_tax == product.tax_percentage  # make sure the tax is a whole number
             items.append({
-                'id': product.code,  # TODO Use the book-keeping ID
+                'id': product.sku,
                 'title': product.name,
                 'price': price_as_sub_units(product.get_price_for_reservation(reservation)),
                 'pretax_price': price_as_sub_units(product.get_pretax_price_for_reservation(reservation)),
-                'tax': product.tax_percentage,
+                'tax': int_tax,
                 'count': order_line.quantity,
                 'type': 1
             })
