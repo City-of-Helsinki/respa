@@ -5,6 +5,7 @@ from rest_framework.response import Response
 
 from payments.models import Order, OrderLine, Product
 from resources.api.base import register_view, TranslatedModelSerializer
+from resources.api.resource import ResourceSerializer as OriginalResourceSerializer
 from .integrations import get_payment_provider
 
 from .integrations.bambora_payform import (
@@ -158,13 +159,15 @@ class OrderViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.Li
         return Response(order_data, status=200)
 
 
-class ResourceProductSerializer(TranslatedModelSerializer):
-    class Meta:
-        model = Product
-        fields = ('id', 'name', 'type', 'pretax_price', 'price_type', 'tax_percentage')
-
-
 register_view(OrderViewSet, 'order')
+
+
+class ResourceSerializer(OriginalResourceSerializer):
+    products = ProductSerializer(many=True)
+
+
+class ResourceDetailsSerializer(ResourceSerializer):
+    pass
 
 
 def calculate_in_memory_order_line_price(order_line, begin, end):
