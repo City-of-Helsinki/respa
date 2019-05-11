@@ -115,6 +115,9 @@ class Product(models.Model):
         else:
             raise Exception('Cannot obtain a new product ID for product {}.'.format(self))
 
+    def get_price(self):
+        return round_price(self.pretax_price * (1 + Decimal(self.tax_percentage) / 100))
+
     def get_pretax_price_for_time_range(self, begin: datetime, end: datetime, rounded: bool = True) -> Decimal:
         assert begin < end
 
