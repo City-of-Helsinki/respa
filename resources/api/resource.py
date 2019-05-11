@@ -7,10 +7,13 @@ import pytz
 from arrow.parser import ParserError
 
 from django import forms
+from django.conf import settings
 from django.db.models import Prefetch, Q
 from django.urls import reverse
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
+from django.utils.module_loading import import_string
+
 from resources.pagination import PurposePagination
 from rest_framework import exceptions, filters, mixins, serializers, viewsets, response, status
 from rest_framework.decorators import action
@@ -611,7 +614,9 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
     queryset = Resource.objects.select_related('generic_terms', 'unit', 'type', 'reservation_metadata_set')
     queryset = queryset.prefetch_related('favorited_by', 'resource_equipment', 'resource_equipment__equipment',
                                          'purposes', 'images', 'purposes', 'groups')
-    serializer_class = ResourceSerializer
+    serializer_class = import_string(
+        getattr(settings, 'RESPA_RESOURCE_SERIALIZER_CLASS', 'resources.api.resource.ResourceSerializer')
+    )
     filter_backends = (filters.SearchFilter, ResourceFilterBackend, LocationFilterBackend)
     search_fields = ('name_fi', 'description_fi', 'unit__name_fi',
                      'name_sv', 'description_sv', 'unit__name_sv',
@@ -632,7 +637,9 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
 
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
                       viewsets.GenericViewSet, ResourceCacheMixin):
-    serializer_class = ResourceDetailsSerializer
+    serializer_class = import_string(
+        getattr(settings, 'RESPA_RESOURCE_DETAILS_SERIALIZER_CLASS', 'resources.api.resource.ResourceDetailsSerializer')
+    )
     queryset = ResourceListViewSet.queryset
 
     def get_serializer(self, page, *args, **kwargs):
