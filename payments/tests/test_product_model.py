@@ -36,8 +36,7 @@ def product_1_v2(product_1):
 
 
 def test_product_creation(product_1, product_2):
-    assert product_1.product_id == 1
-    assert product_2.product_id == 2
+    assert product_1.product_id != product_2.product_id
     assert Product.objects.count() == 2
     assert Product.objects.current().count() == 2
 
