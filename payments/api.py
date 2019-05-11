@@ -18,10 +18,11 @@ from .integrations.bambora_payform import (
 
 class ProductSerializer(TranslatedModelSerializer):
     id = serializers.IntegerField(source='product_id')
+    price = serializers.CharField(source='get_price')
 
     class Meta:
         model = Product
-        fields = ('id', 'type', 'name', 'pretax_price', 'price_type', 'tax_percentage')
+        fields = ('id', 'type', 'name', 'description', 'pretax_price', 'tax_percentage', 'price', 'price_type')
 
 
 class OrderLineSerializerBase(serializers.ModelSerializer):
