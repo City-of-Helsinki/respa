@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from django.core.validators import MaxValueValidator
+from django.core.validators import MinValueValidator
 from django.db import models, transaction, IntegrityError
 from django.db.models import Max
 from django.utils.timezone import now, utc
@@ -36,7 +36,8 @@ class Product(models.Model):
 
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
 
-    # This ID is common to all versions of the same product.
+    # This ID is common to all versions of the same product, and is the one
+    # used as ID in the API.
     product_id = models.PositiveIntegerField(verbose_name=_('product ID'), editable=False, db_index=True)
 
     # archived_at determines when this version of the product has been either (soft)
@@ -47,13 +48,17 @@ class Product(models.Model):
     )
 
     type = models.CharField(max_length=32, verbose_name=_('type'), choices=TYPE_CHOICES, default=RENT)
-    code = models.CharField(max_length=255, verbose_name=_('code'))
+    sku = models.CharField(max_length=255, verbose_name=_('SKU'))
     name = models.CharField(max_length=100, verbose_name=_('name'), blank=True)
     description = models.TextField(verbose_name=_('description'), blank=True)
 
-    pretax_price = models.DecimalField(verbose_name=_('pretax price'), max_digits=14, decimal_places=2, default='0.00')
-    tax_percentage = models.PositiveSmallIntegerField(
-        verbose_name=_('tax percentage'), default=24, validators=[MaxValueValidator(100)]
+    pretax_price = models.DecimalField(
+        verbose_name=_('pretax price'), max_digits=14, decimal_places=2, default='0.00',
+        validators=[MinValueValidator(0)]
+    )
+    tax_percentage = models.DecimalField(
+        verbose_name=_('tax percentage'), max_digits=5, decimal_places=2, default='24.00',
+        choices=(('0.00', '0.00'), ('10.00', '10.00'), ('14.00', '14.00'), ('24.00', '24.00'))
     )
     price_type = models.CharField(
         max_length=32, verbose_name=_('price type'), choices=PRICE_TYPE_CHOICES, default=PER_HOUR
