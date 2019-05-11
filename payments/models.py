@@ -3,12 +3,12 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 from django.core.validators import MinValueValidator
-from django.db import models, transaction, IntegrityError
-from django.db.models import Max
+from django.db import models
 from django.utils.timezone import now, utc
 from django.utils.translation import ugettext_lazy as _
 
 from resources.models import Reservation, Resource
+from resources.models.utils import generate_id
 
 from .utils import round_price
 
@@ -38,7 +38,7 @@ class Product(models.Model):
 
     # This ID is common to all versions of the same product, and is the one
     # used as ID in the API.
-    product_id = models.PositiveIntegerField(verbose_name=_('product ID'), editable=False, db_index=True)
+    product_id = models.CharField(max_length=100, verbose_name=_('product ID'), editable=False, db_index=True)
 
     # archived_at determines when this version of the product has been either (soft)
     # deleted or replaced by a newer version. Value ARCHIVED_AT_NONE means this is the
@@ -79,46 +79,14 @@ class Product(models.Model):
 
     def save(self, *args, **kwargs):
         if self.id:
-            self._save_existing(*args, **kwargs)
+            Product.objects.filter(id=self.id).update(archived_at=now())
+            self.id = None
         else:
-            self._save_new(*args, **kwargs)
+            self.product_id = generate_id()
+        super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         Product.objects.filter(id=self.id).update(archived_at=now())
-
-    def _save_existing(self, *args, **kwargs):
-        """
-        Save an already existing product.
-
-        Marks the previous version archived and creates a new Product instance.
-        """
-        assert self.id
-        Product.objects.filter(id=self.id).update(archived_at=now())
-        self.id = None
-        super().save(*args, **kwargs)
-
-    def _save_new(self, *args, **kwargs):
-        """
-        Save a new product.
-
-        We need to generate a product_id for this new product, which is carried out by
-        optimistically trying out next free product_id value(s). Because there is a
-        chance of a race, we try several product_id values until a free one is found.
-        """
-        assert not self.id
-        current_product_id_max = Product.objects.aggregate(Max('product_id'))['product_id__max'] or 0
-        self.product_id = current_product_id_max + 1
-        for _i in range(11):  # 11 determined using the Stetson-Harrison method
-            with transaction.atomic():
-                try:
-                    super().save(*args, **kwargs)
-                    break
-                except IntegrityError:  # there was a race and someone beat us
-                    self.product_id += 1
-                    transaction.set_rollback(True)  # needed because of the IntegrityError
-                    continue
-        else:
-            raise Exception('Cannot obtain a new product ID for product {}.'.format(self))
 
     def get_price(self):
         return round_price(self.pretax_price * (1 + Decimal(self.tax_percentage) / 100))
