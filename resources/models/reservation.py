@@ -346,7 +346,9 @@ class Reservation(ModifiableModel):
                 'reserver_name': reserver_name,
                 'event_subject': self.event_subject,
                 'event_description': self.event_description,
-                'reserver_email_address': self.reserver_email_address, 
+                'reserver_email_address': self.reserver_email_address,
+                'reserver_phone_number': self.reserver_phone_number,
+                'authenticated_user_email': user.email
             }
             if self.resource.unit:
                 context['unit'] = self.resource.unit.name
