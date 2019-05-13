@@ -84,8 +84,8 @@ class EventAwaiterThread(threading.Thread):
                         log.info('Received ErrorSubscriptionNotFound for %s' % self.subscription_ids)
                         break
                     raise
-            except Exception:  # pragma: no cover
-                log.exception('Error in %s' % self)
+            except Exception as e:  # pragma: no cover
+                log.exception('Error in %s' % self, exc_info=e)
                 failures += 1
                 if failures >= 5:
                     log.warn('Killing off %s, too many failures', self)
@@ -328,8 +328,8 @@ class NotificationListener(object):
         for conn in connections.all():
             try:
                 conn.connect()
-            except Exception:
-                log.exception('Failed reconnecting %s', conn)
+            except Exception as e:
+                log.exception('Failed reconnecting %s' % conn, exc_info=e)
 
     def manage_subscriptions(self):
         for listener in self.listeners.values():

@@ -39,14 +39,6 @@ def configure_logging(logger="respa_exchange", level=logging.INFO, handler=None)
         datefmt=logging.Formatter.default_time_format
     ))
     logger.addHandler(handler)
-    if hasattr(settings, 'RAVEN_CONFIG') and 'dsn' in settings.RAVEN_CONFIG:
-        from raven.handlers.logging import SentryHandler
-        from raven.conf import setup_logging
-
-        sentry_handler = SentryHandler(settings.RAVEN_CONFIG['dsn'])
-        sentry_handler.setLevel(logging.ERROR)
-        logger.addHandler(sentry_handler)
-        setup_logging(sentry_handler)
 
 
 def select_resources(resources, selected_resources):
