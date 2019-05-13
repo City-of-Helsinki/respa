@@ -63,7 +63,7 @@ class BamboraPayformPayments(PaymentsBase):
         }
 
         self.payload_add_products(payload, order)
-        self.payload_add_customer(payload, order.reservation)
+        self.payload_add_customer(payload, order)
         self.payload_add_auth_code(payload)
 
         try:
@@ -113,19 +113,17 @@ class BamboraPayformPayments(PaymentsBase):
         payload['amount'] = price_as_sub_units(order.get_price())
         payload['products'] = items
 
-    def payload_add_customer(self, payload, reservation):
-        """Attach customer data to payload
-
-        TODO Somehow split reserver first and last name into separate fields"""
+    def payload_add_customer(self, payload, order):
+        """Attach customer data to payload"""
         payload.update({
-            'email': reservation.reserver_email_address,
+            'email': order.payer_email_address,
             'customer': {
-                'firstname': reservation.reserver_name,
-                'lastname': reservation.reserver_name,
-                'email': reservation.reserver_email_address,
-                'address_street': reservation.billing_address_street,
-                'address_zip': reservation.billing_address_zip,
-                'address_city': reservation.billing_address_city,
+                'firstname': order.payer_first_name,
+                'lastname': order.payer_last_name,
+                'email': order.payer_email_address,
+                'address_street': order.payer_address_street,
+                'address_zip': order.payer_address_zip,
+                'address_city': order.payer_address_city,
             }
         })
 

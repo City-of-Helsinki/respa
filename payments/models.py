@@ -137,6 +137,13 @@ class Order(models.Model):
         Reservation, verbose_name=_('reservation'), related_name='order', on_delete=models.PROTECT
     )
 
+    payer_first_name = models.CharField(max_length=100, verbose_name=_('payer first name'))
+    payer_last_name = models.CharField(max_length=100, verbose_name=_('payer last name'))
+    payer_email_address = models.EmailField(verbose_name=_('payer email address'))
+    payer_address_street = models.CharField(max_length=255, verbose_name=_('payer address street'))
+    payer_address_zip = models.CharField(max_length=16, verbose_name=_('payer address zip'))
+    payer_address_city = models.CharField(max_length=100, verbose_name=_('payer address city'))
+
     class Meta:
         verbose_name = _('order')
         verbose_name_plural = _('orders')
