@@ -90,7 +90,8 @@ class BerthReservation(models.Model):
 
     def cancel_reservation(self, user):
         if self.reservation.state != Reservation.CANCELLED:
-            self.reservation.set_state(Reservation.CANCELLED, user)
+            self.reservation.state = Reservation.CANCELLED
+            self.reservation.save()
             self.state_updated_at = timezone.now()
             self.parent = None
             self.save()
