@@ -8,7 +8,7 @@ from django.http import HttpResponseBadRequest, HttpResponse
 
 from ..models import Order, OrderLine
 from ..utils import price_as_sub_units
-from .payments_base import PaymentsBase, PaymentError
+from .base import PaymentError, PaymentProvider
 
 logger = logging.getLogger()
 
@@ -21,14 +21,14 @@ RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS = 'RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS
 UI_RETURN_URL_PARAM_NAME = 'RESPA_UI_RETURN_URL'
 
 
-class BamboraPayformPayments(PaymentsBase):
+class BamboraPayformProvider(PaymentProvider):
     """Bambora Payform specific integration utilities and configuration
     testing docs: https://payform.bambora.com/docs/web_payments/?page=testing
     api reference: https://payform.bambora.com/docs/web_payments/?page=full-api-reference
     """
 
     def __init__(self, **kwargs):
-        super(BamboraPayformPayments, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.url_payment_api = 'https://payform.bambora.com/pbwapi'
         self.url_payment_auth = '{}/auth_payment'.format(self.url_payment_api)
         self.url_payment_token = '{}/token/{{token}}'.format(self.url_payment_api)

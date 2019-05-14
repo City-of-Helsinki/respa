@@ -1,7 +1,7 @@
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from .integrations import get_payment_provider
+from .providers import get_payment_provider
 
 
 class SuccessView(View):
