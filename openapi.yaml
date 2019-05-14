@@ -194,7 +194,7 @@ paths:
       tags:
       - filter
       description: The type endpoint returns the possible resource types registered in the system. The optional parameter **page** 
-      allows specifying page number and **page_size** allows specifying more than the default 20 units per page.
+        allows specifying page number and **page_size** allows specifying more than the default 20 units per page.
       parameters:
       - name: resource_group
         in: query
