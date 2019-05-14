@@ -3,6 +3,9 @@ import environ
 from django.conf import settings
 from django.utils.module_loading import import_string
 
+# imported here so that we can refer to it like 'payments.providers.BamboraPayformProvider'
+from .bambora_payform import BamboraPayformProvider  # noqa
+
 _active_provider = None
 
 
