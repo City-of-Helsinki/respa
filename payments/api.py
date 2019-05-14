@@ -6,9 +6,9 @@ from rest_framework.response import Response
 from payments.models import Order, OrderLine, Product
 from resources.api.base import register_view, TranslatedModelSerializer
 from resources.api.resource import ResourceSerializer as OriginalResourceSerializer
-from .integrations import get_payment_provider
+from .providers import get_payment_provider
 
-from .integrations.bambora_payform import (
+from .providers.bambora_payform import (
     ServiceUnavailableError,
     PayloadValidationError,
     DuplicateOrderError,

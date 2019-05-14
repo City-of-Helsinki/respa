@@ -5,7 +5,7 @@ from django.urls import reverse
 PAYMENT_CONFIG = 'PAYMENT_CONFIG'
 
 
-class PaymentsBase(object):
+class PaymentProvider:
     """Common base for payment provider integrations"""
 
     def __init__(self, **kwargs):

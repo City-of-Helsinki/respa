@@ -1,8 +1,8 @@
 import json
 import pytest
 
-from payments.integrations.bambora_payform import (
-    BamboraPayformPayments,
+from payments.providers.bambora_payform import (
+    BamboraPayformProvider,
     PayloadValidationError,
     DuplicateOrderError,
     ServiceUnavailableError,
@@ -17,7 +17,7 @@ def payment_provider():
         'PAYMENT_BAMBORA_API_SECRET': 'dummy-secret',
         'PAYMENT_BAMBORA_METHODS_ENABLED': ['dummy-bank']
     }
-    return BamboraPayformPayments(PAYMENT_CONFIG=config)
+    return BamboraPayformProvider(PAYMENT_CONFIG=config)
 
 
 def test_handle_order_create_success(payment_provider):
