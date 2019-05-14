@@ -34,7 +34,7 @@ env = environ.Env(
     MAIL_MAILGUN_DOMAIN=(str, ''),
     MAIL_MAILGUN_API=(str, ''),
     RESPA_IMAGE_BASE_URL=(str, ''),
-    RESPA_PAYMENTS_PROVIDER=(str, '')
+    RESPA_PAYMENTS_PROVIDER_CLASS=(str, '')
 )
 environ.Env.read_env()
 
@@ -43,7 +43,7 @@ environ.Env.read_env()
 RESPA_IMAGE_BASE_URL = env('RESPA_IMAGE_BASE_URL')
 
 # Dotted path to the active payment provider class, see payments.providers init
-RESPA_PAYMENTS_PROVIDER = env('RESPA_PAYMENTS_PROVIDER')
+RESPA_PAYMENTS_PROVIDER_CLASS = env('RESPA_PAYMENTS_PROVIDER_CLASS')
 
 BASE_DIR = root()
 
