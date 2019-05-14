@@ -13,7 +13,7 @@ def get_payment_provider():
 
         # Provider path is the only thing loaded from env
         # in the global settings, the rest are added here
-        provider_path = getattr(settings, 'RESPA_PAYMENTS_PROVIDER')
+        provider_path = getattr(settings, 'RESPA_PAYMENTS_PROVIDER_CLASS')
         provider_class = import_string(provider_path)
 
         # Provider tells what keys and types it requires for configuration
