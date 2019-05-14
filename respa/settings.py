@@ -42,7 +42,8 @@ environ.Env.read_env()
 # reservation confirmation emails use this
 RESPA_IMAGE_BASE_URL = env('RESPA_IMAGE_BASE_URL')
 
-# Dotted path to the active payment provider class, see payments.providers init
+# Dotted path to the active payment provider class, see payments.providers init.
+# Example value: 'payments.providers.BamboraPayformProvider'
 RESPA_PAYMENTS_PROVIDER_CLASS = env('RESPA_PAYMENTS_PROVIDER_CLASS')
 
 BASE_DIR = root()
