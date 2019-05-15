@@ -34,6 +34,7 @@ env = environ.Env(
     MAIL_MAILGUN_DOMAIN=(str, ''),
     MAIL_MAILGUN_API=(str, ''),
     RESPA_IMAGE_BASE_URL=(str, ''),
+    RESPA_PAYMENTS_ENABLED=(bool, False),
     RESPA_PAYMENTS_PROVIDER_CLASS=(str, '')
 )
 environ.Env.read_env()
@@ -41,6 +42,8 @@ environ.Env.read_env()
 # used for generating links to images, when no request context is available
 # reservation confirmation emails use this
 RESPA_IMAGE_BASE_URL = env('RESPA_IMAGE_BASE_URL')
+
+RESPA_PAYMENTS_ENABLED = env('RESPA_PAYMENTS_ENABLED')
 
 # Dotted path to the active payment provider class, see payments.providers init.
 # Example value: 'payments.providers.BamboraPayformProvider'
@@ -294,8 +297,7 @@ if os.path.exists(local_settings_path):
         code = compile(fp.read(), local_settings_path, 'exec')
     exec(code, globals(), locals())
 
-
-if 'payments' in INSTALLED_APPS:
+if RESPA_PAYMENTS_ENABLED:
     RESPA_RESOURCE_SERIALIZER_CLASS = 'payments.api.ResourceSerializer'
     RESPA_RESOURCE_DETAILS_SERIALIZER_CLASS = 'payments.api.ResourceDetailsSerializer'
 
