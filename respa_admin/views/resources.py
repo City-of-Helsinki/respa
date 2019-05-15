@@ -1,10 +1,12 @@
-from django.db.models import FieldDoesNotExist
+from django.conf import settings
 from django.contrib import messages
+from django.db.models import FieldDoesNotExist
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, ListView
 from django.utils.translation import ugettext_lazy as _
+from respa_admin.views.base import ExtraContextMixin
 
 from resources.models import (
     Resource,
@@ -22,8 +24,10 @@ from respa_admin.forms import (
     ResourceForm,
 )
 
+from respa_admin import accessibility_api
 
-class ResourceListView(ListView):
+
+class ResourceListView(ExtraContextMixin, ListView):
     model = Resource
     paginate_by = 10
     context_object_name = 'resources'
@@ -86,7 +90,7 @@ def admin_office(request):
     return TemplateResponse(request, 'respa_admin/page_office.html')
 
 
-class SaveResourceView(CreateView):
+class SaveResourceView(ExtraContextMixin, CreateView):
     """
     View for saving new resources and updating existing resources.
     """
@@ -95,6 +99,14 @@ class SaveResourceView(CreateView):
     pk_url_kwarg = 'resource_id'
     form_class = ResourceForm
     template_name = 'respa_admin/resources/create_resource.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(SaveResourceView, self).get_context_data(**kwargs)
+        if settings.RESPA_ADMIN_VIEW_RESOURCE_URL and self.object:
+            context['RESPA_ADMIN_VIEW_RESOURCE_URL'] = settings.RESPA_ADMIN_VIEW_RESOURCE_URL + self.object.id
+        else:
+            context['RESPA_ADMIN_VIEW_RESOURCE_URL'] = ''
+        return context
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -128,14 +140,39 @@ class SaveResourceView(CreateView):
 
         trans_fields = forms.get_translated_field_count(resource_image_formset)
 
+        accessibility_data_link = self._get_accessibility_data_link(request)
+
         return self.render_to_response(
             self.get_context_data(
+                accessibility_data_link=accessibility_data_link,
                 form=form,
                 period_formset_with_days=period_formset_with_days,
                 resource_image_formset=resource_image_formset,
                 trans_fields=trans_fields,
                 page_headline=page_headline,
             )
+        )
+
+    def _get_accessibility_data_link(self, request):
+        if self.object is None or self.object.unit is None or not self.object.unit.is_admin(request.user):
+            return None
+        if self.object.type.id not in getattr(settings, 'RESPA_ADMIN_ACCESSIBILITY_VISIBILITY', []):
+            return None
+        if not getattr(settings, 'RESPA_ADMIN_ACCESSIBILITY_API_SECRET', None):
+            return None
+        api_url = getattr(settings, 'RESPA_ADMIN_ACCESSIBILITY_API_BASE_URL', '')
+        system_id = getattr(settings, 'RESPA_ADMIN_ACCESSIBILITY_API_SYSTEM_ID', '')
+        secret = getattr(settings, 'RESPA_ADMIN_ACCESSIBILITY_API_SECRET', '')
+        target_id = self.object.pk
+        target_name = self.object.name
+        user = request.user.email or request.user.username
+        return accessibility_api.generate_url(
+            api_url,
+            system_id,
+            target_id,
+            target_name,
+            user,
+            secret,
         )
 
     def post(self, request, *args, **kwargs):

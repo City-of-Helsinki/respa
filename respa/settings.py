@@ -34,8 +34,13 @@ env = environ.Env(
     MAIL_MAILGUN_DOMAIN=(str, ''),
     MAIL_MAILGUN_API=(str, ''),
     RESPA_IMAGE_BASE_URL=(str, ''),
-    RESPA_PAYMENTS_ENABLED=(bool, False),
-    RESPA_PAYMENTS_PROVIDER_CLASS=(str, '')
+    ACCESSIBILITY_API_BASE_URL=(str, 'https://asiointi.hel.fi/kapaesteettomyys/'),
+    ACCESSIBILITY_API_SYSTEM_ID=(str, ''),
+    ACCESSIBILITY_API_SECRET=(str, ''),
+    RESPA_ADMIN_INSTRUCTIONS_URL=(str, ''),
+    RESPA_ADMIN_VIEW_RESOURCE_URL=(str, ''),
+    RESPA_PAYMENTS_ENABLED = (bool, False),
+    RESPA_PAYMENTS_PROVIDER_CLASS = (str, '')
 )
 environ.Env.read_env()
 
@@ -277,6 +282,28 @@ RESPA_MAILS_FROM_ADDRESS = env('MAIL_DEFAULT_FROM')
 RESPA_CATERINGS_ENABLED = False
 RESPA_COMMENTS_ENABLED = False
 RESPA_DOCX_TEMPLATE = os.path.join(BASE_DIR, 'reports', 'data', 'default.docx')
+
+RESPA_ADMIN_VIEW_RESOURCE_URL = env('RESPA_ADMIN_VIEW_RESOURCE_URL')
+
+RESPA_ADMIN_ACCESSIBILITY_API_BASE_URL = env('ACCESSIBILITY_API_BASE_URL')
+RESPA_ADMIN_ACCESSIBILITY_API_SYSTEM_ID = env('ACCESSIBILITY_API_SYSTEM_ID')
+RESPA_ADMIN_ACCESSIBILITY_API_SECRET = env('ACCESSIBILITY_API_SECRET')
+# list of ResourceType ids for which accessibility data input link is shown for
+RESPA_ADMIN_ACCESSIBILITY_VISIBILITY = [
+    'art_studio',  # Ateljee
+    'avh553uaks6a',  # Soittohuone
+    'band_practice_space',  # Bändikämppä
+    'club_room',  # Kerhohuone
+    'event_space',  # Tapahtumatila
+    'game_space',  # Pelitila
+    'hall',  # Sali
+    'meeting_room',  # Kokoustila
+    'multipurpose_room',  # Monitoimihuone"
+    'studio',  # Studio
+    'workspace',  # Työtila
+]
+
+RESPA_ADMIN_INSTRUCTIONS_URL = env('RESPA_ADMIN_INSTRUCTIONS_URL')
 
 if env('MAIL_MAILGUN_KEY'):
     ANYMAIL = {

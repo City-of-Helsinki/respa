@@ -105,6 +105,7 @@ class Reservation(ModifiableModel):
     approver = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Approver'),
                                  related_name='approved_reservations', null=True, blank=True,
                                  on_delete=models.SET_NULL)
+    staff_event = models.BooleanField(verbose_name=_('Is staff event'), default=False)
 
     # access-related fields
     access_code = models.CharField(verbose_name=_('Access code'), max_length=32, null=True, blank=True)
@@ -312,8 +313,8 @@ class Reservation(ModifiableModel):
         for dt in (self.begin, self.end):
             days = opening_hours.get(dt.date(), [])
             day = next((day for day in days if day['opens'] is not None and day['opens'] <= dt <= day['closes']), None)
-            if day and not is_valid_time_slot(dt, self.resource.min_period, day['opens']):
-                raise ValidationError(_("Begin and end time must match time slots"))
+            if day and not is_valid_time_slot(dt, self.resource.slot_size, day['opens']):
+                raise ValidationError(_("Begin and end time must match time slots"), code='invalid_time_slot')
 
         original_reservation = self if self.pk else kwargs.get('original_reservation', None)
         if self.resource.check_reservation_collision(self.begin, self.end, original_reservation):
@@ -321,7 +322,7 @@ class Reservation(ModifiableModel):
 
         if (self.end - self.begin) < self.resource.min_period:
             raise ValidationError(_("The minimum reservation length is %(min_period)s") %
-                                  {'min_period': humanize_duration(self.min_period)})
+                                  {'min_period': humanize_duration(self.resource.min_period)})
 
         if self.access_code:
             validate_access_code(self.access_code, self.resource.access_code_type)

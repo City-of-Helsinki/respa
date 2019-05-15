@@ -1,0 +1,14 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block object-tools-items %}
+  {% if has_add_permission %}
+    <li>
+      <a href="{% url 'admin:tprek_import' %}" class="historylink">{% trans 'Import Service Map' %}</a>
+    </li>
+    <li>
+        <a href="{% url 'admin:libraries_import' %}" class="historylink">{% trans 'Import Kirkanta' %}</a>
+    </li>
+  {% endif %}
+  {{ block.super }}
+{% endblock %}

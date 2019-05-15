@@ -7,6 +7,7 @@
 export function toggleLanguage(language) {
   let $languageInputs = $('[name$="_' + language + '"]');
   let $languageLabels = $('[for$="_' + language + '"]');
+  let $languageButtons = $('[name$="language-' + language + '"]');
 
   $languageInputs.each(
     (i, input) =>
@@ -16,6 +17,11 @@ export function toggleLanguage(language) {
   $languageLabels.each(
     (i, input) =>
       (input.classList.contains('hidden')) ? input.classList.remove('hidden') : input.classList.add('hidden')
+  );
+
+  $languageButtons.each(
+    (i, input) =>
+      (input.classList.contains('language-item-selected')) ? input.classList.remove('language-item-selected') : input.classList.add('language-item-selected')
   );
 }
 
@@ -31,6 +37,8 @@ export function toggleCurrentLanguage(language = undefined, input = null) {
   if (language === undefined) { language = getCurrentLanguage(); }
   let languagesToHide = getLanguagesToHide(language);
   languagesToHide.forEach(language => hideLanguage(language, input));
+  let $languageButtons = $('[name$="language-' + language + '"]');
+  $languageButtons.each((i, input) => input.classList.add('language-item-selected'));
 }
 
 /*
@@ -52,7 +60,13 @@ export function calculateTranslatedFields() {
 
     const $languageButton = $('[name="language-' + language + '"]');
     const currentCountForLanguage = $languageButton.find('span').text();
-    $languageButton.find('span').text(currentCountForLanguage - languageCount);
+    const UNICODE_CHECKMARK = '\u2713'
+    if(currentCountForLanguage - languageCount === 0) {
+      $languageButton.find('span').css('background-color', '#23a000').text(UNICODE_CHECKMARK);
+    }
+    else {
+      $languageButton.find('span').text(currentCountForLanguage - languageCount);
+    }
   }
 }
 
@@ -65,7 +79,6 @@ export function calculateTranslatedFields() {
 function hideLanguage(language, input = null) {
   let $languageInputs = null;
   let $languageLabels = null;
-
   if (input) {
     $languageInputs = $(input).find('[name$="_' + language + '"]');
     $languageLabels = $(input).find('[for$="_' + language + '"]');
