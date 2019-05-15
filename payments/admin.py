@@ -1,11 +1,11 @@
+from django.conf import settings
 from django.contrib import admin
 from modeltranslation.admin import TranslationAdmin
 
 from payments.models import Order, OrderLine, Product
 
 
-@admin.register(Product)
-class Product(TranslationAdmin):
+class ProductAdmin(TranslationAdmin):
     list_display = ('product_id', 'name', 'type', 'pretax_price', 'price_type')
     readonly_fields = ('product_id',)
 
@@ -25,7 +25,11 @@ class OrderLineInline(admin.StackedInline):
     extra = 0
 
 
-@admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     raw_id_fields = ('reservation',)
     inlines = (OrderLineInline,)
+
+
+if settings.RESPA_PAYMENTS_ENABLED:
+    admin.site.register(Product, ProductAdmin)
+    admin.site.register(Order, OrderAdmin)
