@@ -36,10 +36,6 @@
         opacity: $static-opacity;
         align-self: center;
       }
-
-      .language-item-selected {
-        border: solid 1px black !important;
-      }
     
       .language-item {
         font-weight: bold;
@@ -47,7 +43,7 @@
         border-radius: 20px;
         line-height: $badge-line-height;
         background-color: #fff;
-        border: solid 1px #fff;
+        border: solid 1px transparent;
                 
         span.badge {
           background-color: #ff0000;
@@ -58,6 +54,11 @@
           font-size: 12px;
         }
       }
+
+      .language-item-selected {
+        border-color: black;
+      }
+
     }
   }
     
