@@ -5,7 +5,6 @@ Django settings for respa project.
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 import environ
-import raven
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ImproperlyConfigured
 
@@ -24,6 +23,7 @@ env = environ.Env(
     MEDIA_URL=(str, '/media/'),
     STATIC_URL=(str, '/static/'),
     SENTRY_DSN=(str, ''),
+    SENTRY_SEND_PII=(bool, False),  # Send personally identifiable information to Sentry
     COOKIE_PREFIX=(str, 'respa')
 )
 environ.Env.read_env()
@@ -86,12 +86,14 @@ INSTALLED_APPS = [
 ]
 
 if env('SENTRY_DSN'):
-    RAVEN_CONFIG = {
-        'dsn': env('SENTRY_DSN'),
-        'release': raven.fetch_git_sha(BASE_DIR),
-    }
-    INSTALLED_APPS.append('raven.contrib.django.raven_compat')
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
 
+    sentry_sdk.init(
+        dsn=env('SENTRY_DSN'),
+        integrations=[DjangoIntegration()],
+        send_default_pii=env('SENTRY_SEND_PII'),
+    )
 
 
 MIDDLEWARE = [
