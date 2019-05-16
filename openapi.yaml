@@ -395,7 +395,7 @@ paths:
           comma-separated values.
         schema:
           type: string
-        example: meeting_room
+        example: av5k4tflpjvq
       - name: search
         in: query
         description: Only return resources matching the specified string. Queries the resource name, description and unit name fields.
