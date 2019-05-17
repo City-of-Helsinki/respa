@@ -332,8 +332,11 @@ class Reservation(ModifiableModel):
             user = self.user
         with translation.override(language_code):
             reserver_name = self.reserver_name
+            reserver_email_address = self.reserver_email_address
             if not reserver_name and self.user and self.user.get_display_name():
                 reserver_name = self.user.get_display_name()
+            if not reserver_email_address and user and user.email:
+                reserver_email_address = user.email
             context = {
                 'resource': self.resource.name,
                 'begin': localize_datetime(self.begin),
@@ -346,9 +349,8 @@ class Reservation(ModifiableModel):
                 'reserver_name': reserver_name,
                 'event_subject': self.event_subject,
                 'event_description': self.event_description,
-                'reserver_email_address': self.reserver_email_address,
+                'reserver_email_address': reserver_email_address,
                 'reserver_phone_number': self.reserver_phone_number,
-                'authenticated_user_email': user.email
             }
             if self.resource.unit:
                 context['unit'] = self.resource.unit.name
