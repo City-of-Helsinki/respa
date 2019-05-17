@@ -231,7 +231,8 @@ class ExchangeListener(object):
         safe to call from wherever.
         """
         self.please_stop = True
-        self.listener_thread.stop()
+        if self.listener_thread:
+            self.listener_thread.stop()
         for resource in list(self.resource_to_subscription_map.keys()):
             self.unsubscribe_resource(resource)
 
