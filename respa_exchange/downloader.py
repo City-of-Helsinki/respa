@@ -41,6 +41,7 @@ def _populate_reservation(reservation, ex_resource, item_props):
         with push_scope() as scope:
             scope.level = 'warning'
             capture_message('Calendar item has empty subject')
+        subject = ''
     reservation.event_subject = item_props["subject"]
     organizer = item_props.get("organizer")
     if organizer:
@@ -102,11 +103,9 @@ def _determine_organizer(ex_resource, calendar_item, organizer):
     if user_name is not None:
         user_name = user_name.text
     if routing_type == "SMTP":
-        id_field = 'email_address'
-        id_search_field = id_field
+        id_search_field = 'email_address'
         user_identifier = user_identifier.lower()
     elif routing_type == "EX":
-        id_field = None
         id_search_field = 'x500_addresses__address__iexact'
     else:
         with push_scope() as scope:
