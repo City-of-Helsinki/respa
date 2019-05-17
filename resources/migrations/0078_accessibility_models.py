@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('resources', '0075_alter_resource_fields'),
+        ('resources', '0077_resource_slot_size'),
     ]
 
     operations = [
