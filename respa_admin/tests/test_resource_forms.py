@@ -59,6 +59,7 @@ def test_create_resource_with_invalid_data_returns_errors(admin_client, empty_re
         'authentication': ['Tämä kenttä vaaditaan.'],
         'equipment': ['Valitse oikea vaihtoehto.  ei ole vaihtoehtojen joukossa.'],
         'min_period': ['Tämä kenttä vaaditaan.'],
+        'slot_size': ['Tämä kenttä vaaditaan.'],
         'name_fi': ['Tämä kenttä vaaditaan.'],
         'purposes': ['Valitse oikea vaihtoehto.  ei ole vaihtoehtojen joukossa.'],
         'type': ['Tämä kenttä vaaditaan.'],
@@ -76,7 +77,7 @@ def test_create_resource_with_invalid_external_reservation_url_data(admin_client
     with translation.override('fi'):
         response = admin_client.post(NEW_RESOURCE_URL, data=data)
     assert response.context['form'].errors == {
-        'external_reservation_url': ['Syötä oikea URL-osoite.']
+        'external_reservation_url': ['Syötä oikea URL-osoite.'],
     }
 
 
