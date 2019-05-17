@@ -228,7 +228,6 @@ class ExchangeUser(models.Model):
         on_delete=models.PROTECT,
         related_name='users',
     )
-    x500_address = models.CharField(max_length=200, null=True, blank=True, db_index=True)
     email_address = models.CharField(max_length=200, db_index=True)
     name = models.CharField(max_length=100)
     given_name = models.CharField(max_length=100, null=True, blank=True)
@@ -236,8 +235,22 @@ class ExchangeUser(models.Model):
     user = models.OneToOneField(User, null=True, db_index=True, related_name='exchange_user',
                                 on_delete=models.SET_NULL)
 
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+
     def __str__(self):
         return self.name
 
     class Meta:
-        unique_together = (('exchange', 'x500_address'), ('exchange', 'email_address'))
+        unique_together = (('exchange', 'email_address'),)
+
+
+class ExchangeUserX500Address(models.Model):
+    exchange = models.ForeignKey(ExchangeConfiguration, on_delete=models.CASCADE, related_name='x500_addresses')
+    user = models.ForeignKey(ExchangeUser, on_delete=models.CASCADE, related_name='x500_addresses')
+    address = models.CharField(max_length=200, null=True, blank=True, db_index=True)
+
+    def __str__(self):
+        return self.address
+
+    class Meta:
+        unique_together = (('exchange', 'address'),)
