@@ -42,7 +42,7 @@ def _populate_reservation(reservation, ex_resource, item_props):
             scope.level = 'warning'
             capture_message("Calendar item has empty subject")
         subject = ''
-    reservation.event_subject = item_props['subject']
+    reservation.event_subject = subject
 
     organizer = item_props.get('organizer')
     if organizer is not None:
@@ -263,6 +263,8 @@ def _parse_item_props(ex_resource, item):
             reserver_name = display_to.text
             if ';' in reserver_name:
                 reserver_name = None
+        if reserver_name:
+            item_props['reserver_name'] = reserver_name
 
     item_props['organizer'] = organizer
 
@@ -307,6 +309,9 @@ def sync_from_exchange(ex_resource, future_days=365, no_op=False):
         return
     start_date = now().replace(hour=0, minute=0, second=0)
     end_date = start_date + datetime.timedelta(days=future_days)
+
+    with configure_scope() as scope:
+        scope.set_extra('resource', str(ex_resource))
 
     log.info(
         "%s: Requesting items between (%s..%s)",
@@ -358,19 +363,23 @@ def sync_from_exchange(ex_resource, future_days=365, no_op=False):
     }
 
     for item_id, item in calendar_items.items():
-        # Send the raw XML to Sentry for better debugging
-        with push_scope() as scope:
+        with configure_scope() as scope:
+            # Send the raw XML to Sentry for better debugging
             scope.set_extra('item_xml', element_to_string(item))
 
-            ex_reservation = extant_exchange_reservations.get(item_id.hash)
+        ex_reservation = extant_exchange_reservations.get(item_id.hash)
 
-            item_props = _parse_item_props(ex_resource, item)
+        item_props = _parse_item_props(ex_resource, item)
 
-            if not ex_reservation:  # It's a new one!
-                ex_reservation = _create_reservation_from_exchange(item_id, ex_resource, item_props)
-            else:
-                if ex_reservation._change_key != item_id.change_key:
-                    # Things changed, so edit the reservation
-                    _update_reservation_from_exchange(item_id, ex_reservation, ex_resource, item_props)
+        if not ex_reservation:  # It's a new one!
+            ex_reservation = _create_reservation_from_exchange(item_id, ex_resource, item_props)
+        else:
+            if ex_reservation._change_key != item_id.change_key:
+                # Things changed, so edit the reservation
+                _update_reservation_from_exchange(item_id, ex_reservation, ex_resource, item_props)
+
+    with configure_scope() as scope:
+        scope.remove_extra('item_xml')
+        scope.remove_extra('resource')
 
     log.info("%s: download processing complete", ex_resource.principal_email)
