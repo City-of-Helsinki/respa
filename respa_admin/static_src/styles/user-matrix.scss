@@ -1,0 +1,101 @@
+.inverse {
+  background: inherit;
+  color: black;
+}
+
+.small-text {
+  font-size: $font-size-small * 0.85;
+}
+
+.grey {
+  background-color: lightgray;
+  padding-bottom: 200px;
+}
+
+.matrix-title {
+  padding-top: 50px;
+  margin-bottom: 20px;
+
+  @media (min-width: 500px) {
+    display: flex;
+    align-items: center;
+  }
+
+
+  .button-wrapper {
+    display: flex;
+  }
+}
+
+.user-matrix {
+
+  .table-wrapper:not(:first-child) {
+    padding-bottom: 10px;
+    background-color: white;
+  }
+
+  .pad-left {
+    padding-left: 10px;
+  }
+
+  .table-wrapper {
+    display: flex;
+    padding-top: 10px;
+    flex-direction: row;
+    min-width: 650px;
+
+    // border: gray solid;
+    border-bottom: lightgray solid 1px;
+  }
+
+  .form-check-input {
+    margin: auto;
+  }
+
+  .table-big {
+    flex: 6;
+    display: flex;
+    align-items: center;
+    -ms-word-break: break-all;
+    word-break: break-all;
+  }
+
+  .table-small {
+    flex: 2;
+    display: flex;
+    align-items: center;
+    margin: 0px 10px 0px 10px;
+    text-align: center;
+  }
+
+  .table-medium {
+    flex: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .table-small-text {
+    text-align: left;
+    margin: 0;
+    font-size: $font-size-small * 0.8;
+  }
+
+  .table-title {
+    font-size: $font-size-small * 0.75;
+    line-height: 1.2;
+    color: dimgray;
+  }
+
+  .pointer {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .table-title-user {
+    font-size: $font-size-small;
+    line-height: 1;
+    margin-right: 10px;
+    color: dimgray;
+  }
+}

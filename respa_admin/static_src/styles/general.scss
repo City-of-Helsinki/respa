@@ -1,0 +1,44 @@
+// reuseable style
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+}
+
+span.glyphicon.icon-left {
+  padding-right: $padding-xs-horizontal;
+}
+
+span.glyphicon.icon-right {
+  padding-left: $padding-xs-horizontal;
+}
+
+@mixin shape($color, $size) {
+  display: inline-block;
+  width: $size;
+  height: $size;
+  border-radius: 50%;
+  background: $color;
+}
+
+.shape-success {
+  @include shape($theme-success, 10px);
+  margin-right: 5px;
+}
+
+.shape-warning {
+  margin-right: 5px;
+  @include shape($theme-warning, 10px);
+}
+
+.shape-danger {
+  margin-right: 5px;
+  @include shape($theme-danger, 10px);
+}
+
+.body {
+  padding: 20px;
+}
+
+.glyphicon::before {
+  font-weight: lighter;
+}

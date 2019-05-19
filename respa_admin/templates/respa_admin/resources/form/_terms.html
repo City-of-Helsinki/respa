@@ -1,0 +1,42 @@
+{% load i18n %}
+
+<div id="term-condition">
+    <div class="form-section-header">
+        <h2>{% trans "Authentication, terms and price" %}</h2>
+        <span class="pull-right">{% trans "*Mandatory fields" %}</span>
+    </div>
+    <div class="official-confirmation">
+        <span class="control-label input-label">{{ form.need_manual_confirmation.label }}</span>
+        {{ form.need_manual_confirmation }}
+    </div>
+    {% include "respa_admin/forms/_select.html" with field=form.authentication %}
+    {% include "respa_admin/forms/_select.html" with field=form.generic_terms %}
+    {% include "respa_admin/forms/_select.html" with field=form.reservation_metadata_set %}
+    {% include "respa_admin/forms/_select.html" with field=form.access_code_type %}
+
+    {% include "respa_admin/forms/_textarea_input.html" with field=form.specific_terms_fi %}
+    {% include "respa_admin/forms/_textarea_input.html" with field=form.specific_terms_en %}
+    {% include "respa_admin/forms/_textarea_input.html" with field=form.specific_terms_sv %}
+    <div class="pricing">
+        <h4>{% trans "Pricing" %}</h4>
+        <div class="price-confirm">
+            <span class="control-label input-label">{% trans "The space is free of charge" %}</span>
+            <div class="radio-group">
+                <div class="rdio rdio-primary radio-inline">
+                    <input name="radio" value="true" id="radio-pricing-true" type="radio" checked>
+                    <label for="radio-pricing-true">{% trans "Yes" %}</label>
+                </div>
+                <div class="rdio rdio-primary radio-inline">
+                    <input name="radio" value="2" id="radio-pricing-false" type="radio">
+                    <label for="radio-pricing-false">Ei</label>
+                </div>
+            </div>
+        </div>
+        <div class="price-range">
+            <div class="input-row">
+                {% include "respa_admin/forms/_input.html" with field=form.min_price_per_hour prefix_icon="euro" %}
+                {% include "respa_admin/forms/_input.html" with field=form.max_price_per_hour prefix_icon="euro" %}
+            </div>
+        </div>
+    </div>
+</div>

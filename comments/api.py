@@ -69,7 +69,7 @@ class CommentFilter(django_filters.rest_framework.FilterSet):
         fields = ('target_type', 'target_id')
 
     target_type = django_filters.CharFilter(method='filter_target_type')
-    target_id = django_filters.CharFilter(name='object_id')
+    target_id = django_filters.CharFilter(field_name='object_id')
 
     def filter_target_type(self, queryset, name, value):
         try:
@@ -86,7 +86,7 @@ class CommentViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.
     queryset = Comment.objects.select_related('created_by').prefetch_related('content_type')
     serializer_class = CommentSerializer
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
-    filter_class = CommentFilter
+    filterset_class = CommentFilter
 
     def get_queryset(self):
         user = self.request.user

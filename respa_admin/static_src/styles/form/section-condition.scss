@@ -1,0 +1,40 @@
+#term-condition {
+
+  .radio-description-label {
+    font-weight: bold;
+    display: inline-block;
+    max-width: 100%;
+    margin-bottom: 6px;
+  }
+
+  .official-confirmation {
+    padding-bottom: 24px;
+
+    span {
+      @extend .radio-description-label;
+    }
+  }
+
+  .select-with-label {
+
+    .select-dropdown {
+      display: block;
+      max-width: 350px;
+    }
+  }
+
+  .pricing {
+    margin-top: 36px;
+
+    h4 {
+      padding-bottom: 24px;
+    }
+
+    .price-confirm {
+
+      span {
+        @extend .radio-description-label;
+      }
+    }
+  }
+}

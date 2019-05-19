@@ -1,0 +1,28 @@
+#general-info {
+
+  & > * {
+    margin-top: 36px;
+  }
+
+  .description,
+  .external-calendar {
+
+    h4 {
+      padding-bottom: $padding-large-vertical;
+    }
+  }
+
+  .contact-person {
+
+    p {
+      padding: 16px 0;
+    }
+
+    .input-row {
+
+      .form-group {
+        width: 350px;
+      }
+    }
+  }
+}

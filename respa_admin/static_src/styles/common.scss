@@ -1,0 +1,152 @@
+.noti {
+  border-radius: 2px;
+  border: $panel-default-border;
+  color: $white;
+  height: 72px;
+  justify-content: center;
+  margin-bottom: 0;
+  padding: 24px;
+
+  .remove-click {
+    padding: 0;
+    border: $panel-default-border;
+    font-size: $font-size-small;
+    font-weight: lighter;
+    background-color: transparent;
+  }
+
+  &.error {
+    background-color: $hel-metro;
+  }
+
+  &.warning {
+    background-color: $hel-summer;
+  }
+
+  &.success {
+    background-color: $hel-tram;
+  }
+}
+
+.accordion-item {
+  margin-bottom: 2px;
+
+  .range-input {
+    padding: 0;
+    flex-wrap: nowrap;
+
+    span {
+      margin: 0;
+      padding: 16px $padding-large-horizontal;
+      transform: scaleY(0.5);
+      border-radius: 2px;
+      height: 72px;
+      border: $panel-default-border;
+      justify-content: center;
+
+      .remove-click {
+        padding: 0;
+        border: $panel-default-border;
+        font-size: $font-size-small;
+        font-weight: lighter;
+        background-color: transparent;
+      }
+
+      &.error {
+        background-color: $hel-metro;
+      }
+
+      &.success {
+        background-color: $hel-tram;
+      }
+    }
+
+    .accordion-item {
+      margin-bottom: 2px;
+
+      .range-input {
+        padding: 0;
+        flex-wrap: nowrap;
+
+        span {
+          margin: 0;
+          padding: 16px $padding-large-horizontal;
+          transform: scaleY(0.5);
+        }
+      }
+
+      .text-input {
+        margin: 0;
+        min-width: 120px;
+      }
+
+      .hours-table-header {
+
+        .schedule {
+          margin-right: 36px;
+        }
+      }
+    }
+  }
+}
+
+.weekday-row {
+  border-bottom: solid 1px $dark-gray;
+
+  .weekday-checkbox {
+    margin: auto 0;
+    padding: 0;
+
+    label {
+      font-size: $font-size-large;
+      padding-left: 32px;
+    }
+  }
+
+  .add-time {
+    padding-left: 32px;
+    font-weight: lighter;
+    background-color: transparent;
+    display: inline-flex;
+
+    span {
+      font-size: $font-size-large;
+    }
+  }
+
+  .copy-next {
+    background-color: $hel-copper;
+    margin: 5px 0;
+    color: $white;
+    height: 40px;
+  }
+}
+
+.footer-buttons {
+  padding-top: 24px;
+
+  .btn {
+    padding-left: $padding-large-horizontal;
+    padding-right: $padding-large-horizontal;
+  }
+
+  .save-time {
+    background-color: $hel-copper;
+    color: $white;
+  }
+
+  .cancel-time {
+    background-color: transparent;
+    color: $theme-danger;
+  }
+
+  .delete-time {
+    background-color: $theme-danger;
+    color: $white;
+  }
+
+  .remove-day {
+    background-color: $theme-danger;
+    color: $white;
+  }
+}

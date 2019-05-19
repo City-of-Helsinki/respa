@@ -1,0 +1,28 @@
+#add-accessibility-data {
+
+    padding-bottom: 36px;
+
+    p {
+        padding-bottom: 16px;
+    }
+
+    a.add-accessibility-data-button {
+        background-color: $hel-copper;
+        color: $white;
+        font-size: $font-size-base;
+        max-height: 60px;
+        min-width: 200px;
+        max-width: 300px;
+        line-height: 1;
+        padding: 20px;
+        text-align: center;
+        text-decoration: none;
+        -webkit-appearance: button;
+        cursor: pointer;
+
+        &:hover {
+            filter: brightness(0.9);
+        }
+    }
+
+}

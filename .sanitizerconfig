@@ -1,0 +1,646 @@
+config:
+  addons: []
+strategy:
+  account_emailaddress:
+    email: user.email
+    id: null
+    primary: null
+    user_id: null
+    verified: null
+  account_emailconfirmation:
+    created: times.random_past_timestamp
+    email_address_id: null
+    id: null
+    key: string.random
+    sent: null
+  auth_group:
+    id: null
+    name: null
+  auth_group_permissions:
+    group_id: null
+    id: null
+    permission_id: null
+  auth_permission:
+    codename: null
+    content_type_id: null
+    id: null
+    name: null
+  authtoken_token:
+    created: null
+    key: string.random
+    user_id: null
+  caterings_cateringorder:
+    created_at: null
+    id: null
+    invoicing_data: respa_string.replace_with_xxx
+    message: respa_string.replace_with_xxx
+    modified_at: null
+    provider_id: null
+    reservation_id: null
+    serving_time: null
+  caterings_cateringorderline:
+    id: null
+    order_id: null
+    product_id: null
+    quantity: null
+  caterings_cateringproduct:
+    category_id: null
+    created_at: null
+    description: null
+    description_en: null
+    description_fi: null
+    description_sv: null
+    id: null
+    modified_at: null
+    name: null
+    name_en: null
+    name_fi: null
+    name_sv: null
+  caterings_cateringproductcategory:
+    created_at: null
+    id: null
+    modified_at: null
+    name: null
+    name_en: null
+    name_fi: null
+    name_sv: null
+    provider_id: null
+  caterings_cateringprovider:
+    created_at: null
+    id: null
+    modified_at: null
+    name: null
+    notification_email: user.email
+    price_list_url: null
+    price_list_url_en: null
+    price_list_url_fi: null
+    price_list_url_sv: null
+  caterings_cateringprovider_units:
+    cateringprovider_id: null
+    id: null
+    unit_id: null
+  comments_comment:
+    content_type_id: null
+    created_at: null
+    created_by_id: null
+    id: null
+    object_id: null
+    text: respa_string.replace_with_xxx
+  django_admin_log:
+    action_flag: null
+    action_time: null
+    change_message: null
+    content_type_id: null
+    id: null
+    object_id: null
+    object_repr: string.empty
+    user_id: null
+  django_content_type:
+    app_label: null
+    id: null
+    model: null
+  django_session:
+    expire_date: null
+    session_data: string.empty
+    session_key: string.random
+  django_site:
+    domain: null
+    id: null
+    name: null
+  easy_thumbnails_source:
+    id: null
+    modified: null
+    name: null
+    storage_hash: null
+  easy_thumbnails_thumbnail:
+    id: null
+    modified: null
+    name: null
+    source_id: null
+    storage_hash: null
+  easy_thumbnails_thumbnaildimensions:
+    height: null
+    id: null
+    thumbnail_id: null
+    width: null
+  geometry_columns:
+    coord_dimension: null
+    f_geometry_column: null
+    f_table_catalog: null
+    f_table_name: null
+    f_table_schema: null
+    srid: null
+    type: null
+  guardian_groupobjectpermission:
+    content_type_id: null
+    group_id: null
+    id: null
+    object_pk: null
+    permission_id: null
+  guardian_userobjectpermission:
+    content_type_id: null
+    id: null
+    object_pk: null
+    permission_id: null
+    user_id: null
+  helusers_adgroup:
+    display_name: null
+    id: null
+    name: null
+  helusers_adgroupmapping:
+    ad_group_id: null
+    group_id: null
+    id: null
+  munigeo_address:
+    id: null
+    letter: null
+    location: null
+    modified_at: null
+    number: null
+    number_end: null
+    street_id: null
+  munigeo_administrativedivision:
+    end: null
+    id: null
+    level: null
+    lft: null
+    modified_at: null
+    municipality_id: null
+    name: null
+    name_en: null
+    name_fi: null
+    name_sv: null
+    ocd_id: null
+    origin_id: null
+    parent_id: null
+    rght: null
+    service_point_id: null
+    start: null
+    tree_id: null
+    type_id: null
+  munigeo_administrativedivisiongeometry:
+    boundary: null
+    division_id: null
+    id: null
+  munigeo_administrativedivisiontype:
+    id: null
+    name: null
+    type: null
+  munigeo_municipality:
+    division_id: null
+    id: null
+    name: null
+    name_en: null
+    name_fi: null
+    name_sv: null
+  munigeo_plan:
+    geometry: null
+    id: null
+    in_effect: null
+    municipality_id: null
+    origin_id: null
+  munigeo_poi:
+    category_id: null
+    description: null
+    id: null
+    location: null
+    municipality_id: null
+    name: null
+    origin_id: null
+    street_address: null
+    zip_code: null
+  munigeo_poicategory:
+    description: null
+    id: null
+    type: null
+  munigeo_street:
+    id: null
+    modified_at: null
+    municipality_id: null
+    name: null
+    name_en: null
+    name_fi: null
+    name_sv: null
+  notifications_notificationtemplate:
+    id: null
+    type: null
+  notifications_notificationtemplate_translation:
+    body: null
+    html_body: null
+    id: null
+    language_code: null
+    master_id: null
+    short_message: null
+    subject: null
+  resources_day:
+    closed: null
+    closes: null
+    description: null
+    id: null
+    length: null
+    opens: null
+    period_id: null
+    weekday: null
+  resources_equipment:
+    category_id: null
+    created_at: null
+    created_by_id: null
+    id: null
+    modified_at: null
+    modified_by_id: null
+    name: null
+    name_en: null
+    name_fi: null
+    name_sv: null
+  resources_equipmentalias:
+    created_at: null
+    created_by_id: null
+    equipment_id: null
+    id: null
+    language: null
+    modified_at: null
+    modified_by_id: null
+    name: null
+  resources_equipmentcategory:
+    created_at: null
+    created_by_id: null
+    id: null
+    modified_at: null
+    modified_by_id: null
+    name: null
+    name_en: null
+    name_fi: null
+    name_sv: null
+  resources_period:
+    closed: null
+    description: null
+    end: null
+    id: null
+    name: null
+    resource_id: null
+    start: null
+    unit_id: null
+  resources_purpose:
+    created_at: null
+    created_by_id: null
+    id: null
+    modified_at: null
+    modified_by_id: null
+    name: null
+    name_en: null
+    name_fi: null
+    name_sv: null
+    parent_id: null
+    public: null
+  resources_reservation:
+    access_code: respa_string.replace_with_xxx
+    approver_id: null
+    begin: null
+    billing_address_city: respa_string.replace_with_xxx
+    billing_address_street: respa_string.replace_with_xxx
+    billing_address_zip: respa_string.replace_with_xxx
+    comments: respa_string.replace_with_xxx
+    company: respa_string.replace_with_xxx
+    created_at: null
+    created_by_id: null
+    duration: null
+    end: null
+    event_description: respa_string.replace_with_xxx
+    event_subject: respa_string.replace_with_xxx
+    host_name: respa_string.replace_with_xxx
+    id: null
+    modified_at: null
+    modified_by_id: null
+    number_of_participants: null
+    origin_id: null
+    participants: respa_string.replace_with_xxx
+    reserver_address_city: respa_string.replace_with_xxx
+    reserver_address_street: respa_string.replace_with_xxx
+    reserver_address_zip: respa_string.replace_with_xxx
+    reserver_email_address: user.email
+    reserver_id: respa_string.replace_with_xxx
+    reserver_name: respa_string.replace_with_xxx
+    reserver_phone_number: respa_string.replace_with_xxx
+    resource_id: null
+    state: null
+    user_id: null
+  resources_reservationmetadatafield:
+    field_name: null
+    id: null
+  resources_reservationmetadataset:
+    created_at: null
+    created_by_id: null
+    id: null
+    modified_at: null
+    modified_by_id: null
+    name: null
+  resources_reservationmetadataset_required_fields:
+    id: null
+    reservationmetadatafield_id: null
+    reservationmetadataset_id: null
+  resources_reservationmetadataset_supported_fields:
+    id: null
+    reservationmetadatafield_id: null
+    reservationmetadataset_id: null
+  resources_resource:
+    access_code_type: null
+    area: null
+    authentication: null
+    created_at: null
+    created_by_id: null
+    description: null
+    description_en: null
+    description_fi: null
+    description_sv: null
+    generic_terms_id: null
+    id: null
+    location: null
+    max_period: null
+    max_price_per_hour: null
+    max_reservations_per_user: null
+    min_period: null
+    min_price_per_hour: null
+    modified_at: null
+    modified_by_id: null
+    name: null
+    name_en: null
+    name_fi: null
+    name_sv: null
+    need_manual_confirmation: null
+    people_capacity: null
+    public: null
+    reservable: null
+    reservable_days_in_advance: null
+    reservation_confirmed_notification_extra: null
+    reservation_confirmed_notification_extra_en: null
+    reservation_confirmed_notification_extra_fi: null
+    reservation_confirmed_notification_extra_sv: null
+    reservation_info: null
+    reservation_info_en: null
+    reservation_info_fi: null
+    reservation_info_sv: null
+    reservation_metadata_set_id: null
+    reservation_requested_notification_extra: null
+    responsible_contact_info: null
+    responsible_contact_info_en: null
+    responsible_contact_info_fi: null
+    responsible_contact_info_sv: null
+    specific_terms: null
+    specific_terms_en: null
+    specific_terms_fi: null
+    specific_terms_sv: null
+    type_id: null
+    unit_id: null
+  resources_resource_purposes:
+    id: null
+    purpose_id: null
+    resource_id: null
+  resources_resourcedailyopeninghours:
+    id: null
+    open_between: null
+    resource_id: null
+  resources_resourceequipment:
+    created_at: null
+    created_by_id: null
+    data: null
+    description: null
+    description_en: null
+    description_fi: null
+    description_sv: null
+    equipment_id: null
+    id: null
+    modified_at: null
+    modified_by_id: null
+    resource_id: null
+  resources_resourcegroup:
+    created_at: null
+    created_by_id: null
+    id: null
+    identifier: null
+    modified_at: null
+    modified_by_id: null
+    name: null
+  resources_resourcegroup_resources:
+    id: null
+    resource_id: null
+    resourcegroup_id: null
+  resources_resourceimage:
+    caption: null
+    caption_en: null
+    caption_fi: null
+    caption_sv: null
+    created_at: null
+    created_by_id: null
+    cropping: null
+    id: null
+    image: null
+    image_format: null
+    modified_at: null
+    modified_by_id: null
+    resource_id: null
+    sort_order: null
+    type: null
+  resources_resourcetype:
+    created_at: null
+    created_by_id: null
+    id: null
+    main_type: null
+    modified_at: null
+    modified_by_id: null
+    name: null
+    name_en: null
+    name_fi: null
+    name_sv: null
+  resources_termsofuse:
+    created_at: null
+    created_by_id: null
+    id: null
+    modified_at: null
+    modified_by_id: null
+    name: null
+    name_en: null
+    name_fi: null
+    name_sv: null
+    text: null
+    text_en: null
+    text_fi: null
+    text_sv: null
+  resources_unit:
+    address_postal_full: null
+    address_zip: null
+    created_at: null
+    created_by_id: null
+    description: null
+    description_en: null
+    description_fi: null
+    description_sv: null
+    email: null
+    id: null
+    location: null
+    manager_email: null
+    modified_at: null
+    modified_by_id: null
+    municipality_id: null
+    name: null
+    name_en: null
+    name_fi: null
+    name_sv: null
+    phone: null
+    picture_caption: null
+    picture_caption_en: null
+    picture_caption_fi: null
+    picture_caption_sv: null
+    picture_url: null
+    reservable_days_in_advance: null
+    street_address: null
+    street_address_en: null
+    street_address_fi: null
+    street_address_sv: null
+    time_zone: null
+    www_url: null
+    www_url_en: null
+    www_url_fi: null
+    www_url_sv: null
+  resources_unitauthorization:
+    authorized_id: null
+    id: null
+    level: null
+    subject_id: null
+  resources_unitgroup:
+    created_at: null
+    created_by_id: null
+    id: null
+    modified_at: null
+    modified_by_id: null
+    name: null
+    name_en: null
+    name_fi: null
+    name_sv: null
+  resources_unitgroup_members:
+    id: null
+    unit_id: null
+    unitgroup_id: null
+  resources_unitgroupauthorization:
+    authorized_id: null
+    id: null
+    level: null
+    subject_id: null
+  resources_unitidentifier:
+    id: null
+    namespace: null
+    unit_id: null
+    value: null
+  respa_exchange_exchangeconfiguration:
+    enabled: null
+    id: null
+    name: null
+    password: null
+    url: null
+    username: null
+  respa_exchange_exchangereservation:
+    change_key: string.random
+    created_at: null
+    exchange_id: null
+    id: null
+    item_id: null
+    item_id_hash: null
+    managed_in_exchange: null
+    modified_at: null
+    organizer_id: null
+    principal_email: user.email
+    reservation_id: null
+  respa_exchange_exchangeresource:
+    exchange_id: null
+    id: null
+    principal_email: user.email
+    resource_id: null
+    sync_from_respa: null
+    sync_to_respa: null
+  respa_exchange_exchangeuser:
+    email_address: user.email
+    exchange_id: null
+    given_name: user.given_name_en_gb
+    id: null
+    name: user.full_name_en_gb
+    surname: user.surname_en_gb
+    user_id: null
+    x500_address: string.empty
+  reversion_revision:
+    comment: null
+    date_created: null
+    id: null
+    user_id: null
+  reversion_version:
+    content_type_id: null
+    db: null
+    format: null
+    id: null
+    object_id: null
+    object_repr: string.empty
+    revision_id: null
+    serialized_data: string.empty
+  socialaccount_socialaccount:
+    date_joined: times.random_past_timestamp
+    extra_data: constant.empty_json_dict
+    id: null
+    last_login: times.random_past_timestamp
+    provider: null
+    uid: string.zfill
+    user_id: null
+  socialaccount_socialapp:
+    client_id: string.random
+    id: null
+    key: string.random
+    name: null
+    provider: null
+    secret: string.random
+  socialaccount_socialapp_sites:
+    id: null
+    site_id: null
+    socialapp_id: null
+  socialaccount_socialtoken:
+    account_id: null
+    app_id: null
+    expires_at: null
+    id: null
+    token: string.empty
+    token_secret: string.empty
+  spatial_ref_sys:
+    auth_name: null
+    auth_srid: null
+    proj4text: null
+    srid: null
+    srtext: null
+  users_user:
+    date_joined: times.random_past_timestamp
+    department_name: null
+    email: user.email
+    first_name: user.given_name_en_gb
+    ical_token: string.random
+    id: null
+    is_active: null
+    is_general_admin: null
+    is_staff: null
+    is_superuser: null
+    last_login: constant.null
+    last_name: user.surname_en_gb
+    password: constant.invalid_django_password
+    preferred_language: null
+    username: respa_user.username
+    uuid: derived.uuid4
+  users_user_ad_groups:
+    adgroup_id: null
+    id: null
+    user_id: null
+  users_user_favorite_resources:
+    id: null
+    resource_id: null
+    user_id: null
+  users_user_groups:
+    group_id: null
+    id: null
+    user_id: null
+  users_user_user_permissions:
+    id: null
+    permission_id: null
+    user_id: null

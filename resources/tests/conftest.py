@@ -7,7 +7,7 @@ from rest_framework.test import APIClient, APIRequestFactory
 
 from resources.models import Resource, ResourceType, Unit, Purpose, Day, Period
 from resources.models import Equipment, EquipmentAlias, ResourceEquipment, EquipmentCategory, TermsOfUse, ResourceGroup
-
+from munigeo.models import Municipality
 
 @pytest.fixture
 def api_client():
@@ -32,7 +32,7 @@ def user_api_client(user):
 def all_user_types_api_client(request):
     api_client = APIClient()
     if request.param:
-        api_client.force_authenticate(request.getfuncargvalue(request.param))
+        api_client.force_authenticate(request.getfixturevalue(request.param))
     return api_client
 
 
@@ -136,6 +136,7 @@ def resource_with_opening_hours(resource_in_unit):
                            opens=datetime.time(8, 0),
                            closes=datetime.time(18, 0))
     resource_in_unit.update_opening_hours()
+    return resource_in_unit
 
 
 @pytest.mark.django_db
@@ -233,6 +234,20 @@ def staff_user():
 
 @pytest.mark.django_db
 @pytest.fixture
+def general_admin():
+    return get_user_model().objects.create(
+        username='test_general_admin',
+        first_name='Genie',
+        last_name='Manager',
+        email='genie.manager@example.com',
+        is_staff=True,
+        is_general_admin=True,
+        preferred_language='en'
+    )
+
+
+@pytest.mark.django_db
+@pytest.fixture
 def group():
     return Group.objects.create(name='test group')
 
@@ -249,7 +264,7 @@ def resource_group(resource_in_unit):
         identifier='test_group',
         name='Test resource group'
     )
-    group.resources = [resource_in_unit]
+    group.resources.set([resource_in_unit])
     return group
 
 
@@ -259,5 +274,13 @@ def resource_group2(resource_in_unit2):
         identifier='test_group_2',
         name='Test resource group 2'
     )
-    group.resources = [resource_in_unit2]
+    group.resources.set([resource_in_unit2])
     return group
+
+@pytest.fixture
+def test_municipality():
+    municipality = Municipality.objects.create(
+        id='foo',
+        name='Foo'
+    )
+    return municipality

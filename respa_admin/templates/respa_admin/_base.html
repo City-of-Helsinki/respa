@@ -1,0 +1,67 @@
+{% load staticfiles %}
+{% load i18n %}
+{% get_available_languages as LANGUAGES %}
+{% get_current_language as LANGUAGE_CODE %}
+
+<!DOCTYPE html>
+
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Respa Admin - {% block page_title %}{% endblock page_title %}</title>
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+    <link rel="author" href="humans.txt"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'respa_admin/main.css' %}">
+
+</head>
+
+<body>
+    {% block body_content %}
+
+    <div class="hidden" id="all-languages">
+        {% for key, value in LANGUAGES %}
+            <data value="{{ key }}"></data>
+        {% endfor %}
+    </div>
+
+    <div class='header'>
+        {% include "respa_admin/_nav.html" %}
+
+        {% if messages %}
+            {% include "respa_admin/common/_notification.html" %}
+        {% endif %}
+
+        {% block form_nav %}
+
+        {% endblock form_nav %}
+    </div>
+
+    <main class='content'>
+        {% block koro_shape %}
+
+        {% endblock koro_shape %}
+
+
+        {% block body %}
+
+        {% endblock body %}
+    </main>
+
+    <div class="footer">
+        {% block footer %}
+
+        {% endblock footer %}
+    </div>
+
+    {% endblock body_content %}
+
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="{% static 'respa_admin/styles-bundle.js' %}"></script>
+    <script type="text/javascript" src="{% static 'respa_admin/base-bundle.js' %}"></script>
+    {% block js_extra %}
+    {% endblock js_extra %}
+</body>
+
+</html>

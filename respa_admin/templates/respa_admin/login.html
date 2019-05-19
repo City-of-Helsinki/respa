@@ -1,0 +1,77 @@
+{% extends "respa_admin/_base.html" %}
+{% load i18n %}
+
+{% block page_title %}{% trans "Log in" %}{% endblock page_title %}
+
+{% block body_content %}
+<main>
+    <section class="hero-section bg-light">
+        <div class="container">
+            <h1 class="h2">Respa Admin</h1>
+
+            {% if not_allowed_user %}
+            <p class="panel panel-default noti error">
+                {% trans "You are not allowed to use Respa Admin." %}
+            </p>
+            <p class="panel-default">
+                {% blocktrans %}
+                Sorry, but "{{ user }}" is not allowed to use Respa Admin.
+                Please log in with a different account.
+                {% endblocktrans %}
+            </p>
+            {% endif %}
+
+            {% if login_failed %}
+            <p class="panel panel-default noti error">
+                {% trans "Login failed" %}
+            </p>
+            {% endif %}
+
+            <h2 class="h3">{% trans "Log in" %}</h2>
+
+            {% if tunnistamo_login_url %}
+            <hr>
+            <a
+                href="{{ tunnistamo_login_url }}"
+                class="btn btn-primary"
+                type="button"
+            >
+                {% trans "Log in with Helsinki account" %}
+            </a>
+            {% endif %}
+
+            {% if show_login_form %}
+            <hr>
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="username">
+                        {% trans "Username" %}
+                    </label>
+                    <input
+                        type="text"
+                        id="username" name="username"
+                        class="form-control"
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="password">
+                        {% trans "Password" %}
+                    </label>
+                    <input
+                        type="password"
+                        id="password" name="password"
+                        class="form-control"
+                    >
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    {% trans "Log in" %}
+                </button>
+            </form>
+            {% endif %}
+
+            <hr>
+        </div>
+    </section>
+</main>
+{% endblock %}

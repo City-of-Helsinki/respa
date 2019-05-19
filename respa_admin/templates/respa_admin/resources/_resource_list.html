@@ -1,0 +1,128 @@
+{% load i18n %}
+{% load thumbnail %}
+
+<section class='resources'>
+    <div class='container'>
+
+        <div class='filter-bar container-fluid'>
+            <h2 class="pull-left">{% trans 'All resources' %}</h2>
+            <div class='filter pull-right'>
+                <span class="dropdowns-label">{% trans 'Filter' %}:</span>
+
+                <form name="filter-dropdowns" method="get">
+                    <div class='select-dropdown btn btn-primary'>
+                        <select id="type-selector" name="resource_type" onchange="this.form.submit();">
+                            <option
+                                {% if not selected_resource_type %}
+                                    selected="selected"
+                                {% endif %}
+                                    value="">
+                                {% trans "Filter by type" %}...
+                            </option>
+                            {% for type in types %}
+                                <option
+                                    {% if type.id == selected_resource_type %}
+                                        selected="selected"
+                                    {% endif %}
+                                        value="{{ type.id }}"
+                                >
+                                    {{ type.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+                    </div>
+
+                    <div class='select-dropdown btn btn-primary'>
+                        <select id="place-dropdown" name="resource_unit" onchange="this.form.submit();">
+                            <option
+                                {% if not selected_resource_unit %}
+                                    selected="selected"
+                                {% endif %}
+                                    value=""
+                            >
+                                {% trans "Filter by unit" %}...
+                            </option>
+                            {% for unit in units %}
+                                <option
+                                    {% if unit.id == selected_resource_unit %}
+                                        selected="selected"
+                                    {% endif %}
+                                        value="{{ unit.id }}"
+                                >
+                                    {{ unit.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class='resource-list container-fluid'>
+            <ul class='list-group'>
+                <li class="list-group-item sort-bar">
+                    <div class='pull-left empty-holder col-1'></div>
+                        <a class="col-2 btn order-by-link" href="?resource_type={{ selected_resource_type }}&resource_unit={{ selected_resource_unit }}&order_by={% if order_by == 'name' %}-name{% else %}name{% endif %}">
+                            {% trans 'Name' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
+                        </a>
+                        <a class="col-3 btn order-by-link" href="?resource_type={{ selected_resource_type }}&resource_unit={{ selected_resource_unit }}&order_by={% if order_by == 'reservable' %}-reservable{% else %}reservable{% endif %}">
+                            {% trans 'Availability' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
+                        </a>
+                        <a class="col-4 btn order-by-link" href="?resource_type={{ selected_resource_type }}&resource_unit={{ selected_resource_unit }}&order_by={% if order_by == 'public' %}-public{% else %}public{% endif %}">
+                            {% trans 'Visibility' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
+                        </a>
+                </li>
+                {% for resource in resources %}
+                    <li class="list-group-item">
+                        <div class='panel panel-default'>
+                            <img
+                                class="img-rounded pull-left"
+                                alt=""
+                                src={% if resource.main_image %}
+                                    "{% thumbnail resource.main_image 100x100 crop %}"
+                                {% else %}
+                                    ""
+                                {% endif %}
+                            >
+                            <div class="panel-body">
+                                <div class="col-2">
+                                    <a href="{% url 'respa_admin:edit-resource' resource_id=resource.id %}">
+                                        <span>{{ resource.unit.name }}</span>
+                                        <h4>{{ resource.name }}</h4>
+                                    </a>
+                                </div>
+
+                                <div class="col-3">
+                                    {% if resource.reservable %}
+                                        <h6> <div class='shape-success'></div> {% trans 'Bookable' %}</h6>
+                                    {% else %}
+                                        <h6> <div class='shape-danger'></div> {% trans 'Can not be reserved' %}</h6>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-4">
+                                    {% if resource.public %}
+                                        <h6> <div class='shape-success'></div> {% trans 'Published' %}</h6>
+                                    {% else %}
+                                        <h6> <div class='shape-warning'></div> {% trans 'Hidden' %}</h6>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-5">
+                                    <h6>
+                                        <span class='glyphicon glyphicon-pencil icon-left' aria-hidden="true"></span>
+                                        <a href="{% url 'respa_admin:edit-resource' resource_id=resource.id %}">{% trans 'Edit' %}</a>
+                                    </h6>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+
+            {% include "respa_admin/common/_pagination.html" %}
+        </div>
+    </div>
+</section>

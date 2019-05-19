@@ -1,0 +1,49 @@
+<div class="page-navigation">
+    <nav aria-label="page-navigation">
+        <ul class="pagination pagination-lg">
+            {% if page_obj.has_previous %}
+                <li>
+                    <a
+                        aria-label="Previous"
+                        class="btn previous"
+                        href="?page={{ page_obj.previous_page_number }}&resource_type={{ selected_resource_type }}&resource_unit={{ selected_resource_unit }}&order_by={{ order_by }}"
+                    >
+                        <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+                    </a>
+                </li>
+            {% endif %}
+            {% for page_no in paginator.page_range %}
+                {% if page_no > page_obj.number|add:"-3" and page_no < page_obj.number|add:"3" %}
+                    <li>
+                        <a
+                            class="btn {% if page_no == page_obj.number %}active-page{% endif %}"
+                            href="?page={{ page_no }}&resource_type={{ selected_resource_type }}&resource_unit={{ selected_resource_unit }}&order_by={{ order_by }}"
+                        >
+                            {{ page_no }}
+                        </a>
+                    </li>
+                {% elif page_no == page_obj.number|add:"-4" or page_no == page_obj.number|add:"4" %}
+                    <li>
+                        <a
+                            class="btn"
+                            href="?page={{ page_no }}&resource_type={{ selected_resource_type }}&resource_unit={{ selected_resource_unit }}&order_by={{ order_by }}"
+                        >
+                            ...
+                        </a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+                <li>
+                    <a
+                        aria-label="Next"
+                        class="btn next"
+                        href="?page={{ page_obj.next_page_number }}&resource_type={{ selected_resource_type }}&resource_unit={{ selected_resource_unit }}&order_by={{ order_by }}"
+                    >
+                        <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>

@@ -1,14 +1,15 @@
 import datetime
 import pytest
 from copy import deepcopy
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.gis.geos import Point
 from django.utils import timezone
 from freezegun import freeze_time
 from guardian.shortcuts import assign_perm, remove_perm
+from ..enums import UnitAuthorizationLevel, UnitGroupAuthorizationLevel
 
 from resources.models import (Day, Equipment, Period, Reservation, ReservationMetadataSet, ResourceEquipment,
-                              ResourceType)
+                              ResourceType, Unit, UnitAuthorization, UnitGroup)
 from .utils import assert_response_objects, check_only_safe_methods_allowed
 
 
@@ -69,13 +70,13 @@ def test_user_permissions_in_resource_endpoint(api_client, resource_in_unit, use
     _check_permissions_dict(api_client, resource_in_unit, is_admin=False,
                             can_make_reservations=False, can_ignore_opening_hours=False)
 
-    # staff member, reservable = False
-    user.is_staff = True
+    # admin, reservable = False
+    user.is_general_admin = True
     user.save()
     api_client.force_authenticate(user=user)
     _check_permissions_dict(api_client, resource_in_unit, is_admin=True,
                             can_make_reservations=True, can_ignore_opening_hours=True)
-    user.is_staff = False
+    user.is_general_admin = False
     user.save()
 
     # user has explicit permission to make reservation
@@ -99,7 +100,7 @@ def test_user_permissions_in_resource_endpoint(api_client, resource_in_unit, use
 
 
 @pytest.mark.django_db
-def test_non_public_resource_visibility(api_client, resource_in_unit, user):
+def test_non_public_resource_visibility(api_client, resource_in_unit, user, staff_user):
     """
     Tests that non-public resources are not returned for non-staff.
     """
@@ -123,16 +124,66 @@ def test_non_public_resource_visibility(api_client, resource_in_unit, user):
     assert response.status_code == 200
     assert response.data['count'] == 0
 
-    # Authenticated as staff
+    # Authenticated as non-admin staff
     user.is_staff = True
     user.save()
     response = api_client.get(url)
     assert response.status_code == 200
-    assert response.data['count'] == 1
+    assert response.data['count'] == 0
 
+    # Authenticated as admin
+    user.is_general_admin = True
+    user.save()
+    response = api_client.get(url)
+    assert response.status_code == 200
+    assert response.data['count'] == 1
     url = reverse('resource-detail', kwargs={'pk': resource_in_unit.pk})
     response = api_client.get(url)
     assert response.status_code == 200
+
+    # Authenticated as unit manager
+    user.is_general_admin = False
+    user.save()
+    user.unit_authorizations.create(
+        authorized=staff_user,
+        level=UnitAuthorizationLevel.manager,
+        subject=resource_in_unit.unit
+    )
+    user.save()
+    url = reverse('resource-list')
+    response = api_client.get(url)
+    assert response.status_code == 200
+    assert response.data['count'] == 1
+    assert Unit.objects.managed_by(user).values_list('id', flat=True)[0] == response.data['results'][0]['unit']
+
+    # Authenticated as unit admin
+    user.unit_authorizations.create(
+        authorized=staff_user,
+        level=UnitAuthorizationLevel.admin,
+        subject=resource_in_unit.unit
+    )
+    user.save()
+    url = reverse('resource-list')
+    response = api_client.get(url)
+    assert response.status_code == 200
+    assert response.data['count'] == 1
+    assert Unit.objects.managed_by(user).values_list('id', flat=True)[0] == response.data['results'][0]['unit']
+
+    # Authenticated as unit group admin
+    user.unit_authorizations.all().delete()
+    unit_group = UnitGroup.objects.create(name='foo')
+    unit_group.members.add(resource_in_unit.unit)
+    user.unit_group_authorizations.create(
+        authorized=staff_user,
+        level=UnitGroupAuthorizationLevel.admin,
+        subject=unit_group
+    )
+    user.save()
+    url = reverse('resource-list')
+    response = api_client.get(url)
+    assert response.status_code == 200
+    assert response.data['count'] == 1
+    assert Unit.objects.managed_by(user).values_list('id', flat=True)[0] == response.data['results'][0]['unit']
 
 
 @pytest.mark.django_db
@@ -320,28 +371,28 @@ def test_reservable_in_advance_fields(api_client, resource_in_unit, test_unit, d
     assert response.status_code == 200
 
     # the unit and the resource both have days None, so expect None in the fields
-    assert response.data['reservable_days_in_advance'] is None
+    assert response.data['reservable_max_days_in_advance'] is None
     assert response.data['reservable_before'] is None
 
-    test_unit.reservable_days_in_advance = 5
+    test_unit.reservable_max_days_in_advance = 5
     test_unit.save()
 
     response = api_client.get(detail_url)
     assert response.status_code == 200
 
     # only the unit has days set, expect those on the resource
-    assert response.data['reservable_days_in_advance'] == 5
+    assert response.data['reservable_max_days_in_advance'] == 5
     before = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + datetime.timedelta(days=6)
     assert response.data['reservable_before'] == before
 
-    resource_in_unit.reservable_days_in_advance = 10
+    resource_in_unit.reservable_max_days_in_advance = 10
     resource_in_unit.save()
 
     response = api_client.get(detail_url)
     assert response.status_code == 200
 
     # both the unit and the resource have days set, expect the resource's days to override the unit's days
-    assert response.data['reservable_days_in_advance'] == 10
+    assert response.data['reservable_max_days_in_advance'] == 10
     before = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + datetime.timedelta(days=11)
     assert response.data['reservable_before'] == before
 
@@ -369,6 +420,13 @@ def test_resource_group_filter(api_client, resource_in_unit, resource_in_unit2, 
     )
     assert response.status_code == 200
     assert set(r['id'] for r in response.data['results']) == {resource_in_unit.id, resource_in_unit2.id}
+
+
+@pytest.mark.django_db
+def test_include_unit_detail(api_client, resource_in_unit, list_url):
+    response = api_client.get(list_url + '?include=unit_detail')
+    assert response.status_code == 200
+    assert response.json()['results'][0]['unit']['id'] == resource_in_unit.unit.id
 
 
 @pytest.mark.django_db
@@ -430,7 +488,7 @@ def test_resource_equipment_filter(api_client, resource_in_unit, resource_in_uni
         resource=resource_in_unit2,
         description='resource equipment 2',
     )
-    resource_in_unit3.resource_equipment = [resource_equipment]
+    resource_in_unit3.resource_equipment.set([resource_equipment])
 
     response = api_client.get(list_url + '?equipment=%s' % equipment_1.id)
     assert response.status_code == 200
@@ -527,13 +585,31 @@ def test_resource_available_between_filter_constraints(user_api_client, list_url
         'available_between': '2115-04-08T00:00:00+02:00'
     })
     assert response.status_code == 400
-    assert 'available_between takes exactly two comma-separated values.' in str(response.data)
+    assert 'available_between takes two or three comma-separated values.' in str(response.data)
+
+    response = user_api_client.get(list_url, {
+        'available_between': '2115-04-08T00:00:00+02:00,100,100,100'
+    })
+    assert response.status_code == 400
+    assert 'available_between takes two or three comma-separated values.' in str(response.data)
 
     response = user_api_client.get(list_url, {
         'available_between': '2115-04-08T00:00:00+02:00,2115-04-09T00:00:00+02:00'
     })
     assert response.status_code == 400
     assert 'available_between timestamps must be on the same day.' in str(response.data)
+
+    response = user_api_client.get(list_url, {
+        'available_between': '2115-04-08T00:00:00+02:00,2115-04-09T00:00:00+02:00,60'
+    })
+    assert response.status_code == 400
+    assert 'available_between timestamps must be on the same day.' in str(response.data)
+
+    response = user_api_client.get(list_url, {
+        'available_between': '2115-04-08T00:00:00+02:00,2115-04-08T00:00:00+02:00,xyz'
+    })
+    assert response.status_code == 400
+    assert 'available_between period must be an integer.' in str(response.data)
 
 
 @pytest.mark.django_db
@@ -586,3 +662,278 @@ def test_resource_available_between_considers_inactive_reservations(user_api_cli
     response = user_api_client.get(list_url, params)
     assert response.status_code == 200
     assert_response_objects(response, [resource_in_unit])
+
+
+@pytest.mark.parametrize('start, end, period, expected', (
+    ('00:00', '00:30', 60, []),
+    ('06:00', '06:30', 60, []),
+    ('06:00', '06:30', 30, [1]),
+    ('06:00', '08:30', 60, [1]),
+    ('06:00', '08:30', 30, [0, 1]),
+    ('09:00', '11:00', 60, [0, 1]),
+    ('09:00', '11:00', 120, [1]),
+    ('10:00', '12:00', 60, [0, 1]),
+    ('10:00', '12:00', 120, [1]),
+    ('10:00', '12:00', 180, []),
+    ('10:00', '14:00', 120, [1]),
+    ('10:00', '15:00', 120, [0, 1]),
+    ('12:00', '17:00', 120, [0, 1]),
+    ('12:00', '17:00', 180, [0, 1]),
+    ('15:00', '17:00', 60, [0, 1]),
+    ('15:00', '17:00', 120, [1]),
+    ('17:00', '18:00', 60, [1]),
+    ('17:00', '18:00', 120, []),
+    ('00:00', '23:00', 180, [0, 1]),
+    ('00:00', '23:00', 240, [1]),
+))
+@pytest.mark.django_db
+def test_available_between_with_period(list_url, resource_in_unit, resource_in_unit2, resource_in_unit3, user,
+                                       user_api_client, start, end, period, expected):
+
+    # resource_in_unit is open 8-16, resource_in_unit2 00:00 - 23:59
+    p1 = Period.objects.create(start=datetime.date(2115, 4, 1),
+                               end=datetime.date(2115, 4, 8),
+                               resource=resource_in_unit)
+    p2 = Period.objects.create(start=datetime.date(2115, 4, 1),
+                               end=datetime.date(2115, 4, 8),
+                               resource=resource_in_unit2)
+    for weekday in range(0, 7):
+        Day.objects.create(period=p1, weekday=weekday,
+                           opens=datetime.time(8, 0),
+                           closes=datetime.time(16, 00))
+        Day.objects.create(period=p2, weekday=weekday,
+                           opens=datetime.time(0, 0),
+                           closes=datetime.time(23, 59))
+    resource_in_unit.update_opening_hours()
+    resource_in_unit2.update_opening_hours()
+
+    Reservation.objects.create(
+        resource=resource_in_unit,
+        begin='2115-04-08T10:00:00+02:00',
+        end='2115-04-08T11:00:00+02:00',
+        user=user,
+    ),
+    Reservation.objects.create(
+        resource=resource_in_unit,
+        begin='2115-04-08T12:00:00+02:00',
+        end='2115-04-08T13:00:00+02:00',
+        user=user,
+    )
+
+    params = {'available_between': '2115-04-08T{}:00+02:00,2115-04-08T{}:00+02:00,{}'.format(start, end, period)}
+    expected_resources = [r for i, r in enumerate([resource_in_unit, resource_in_unit2]) if i in expected]
+    response = user_api_client.get(list_url, params)
+    assert response.status_code == 200
+    assert_response_objects(response, expected_resources)
+
+
+@pytest.mark.django_db
+def test_filtering_free_of_charge(list_url, api_client, resource_in_unit,
+                                  resource_in_unit2, resource_in_unit3):
+    free_resource = resource_in_unit
+    free_resource2 = resource_in_unit2
+    not_free_resource = resource_in_unit3
+
+    free_resource.min_price_per_hour = 0
+    free_resource.save()
+    not_free_resource.min_price_per_hour = 9001
+    not_free_resource.save()
+
+    response = api_client.get('{0}?free_of_charge=true'.format(list_url))
+    assert response.status_code == 200
+    assert_response_objects(response, [free_resource, free_resource2])
+
+    response = api_client.get('{0}?free_of_charge=false'.format(list_url))
+    assert response.status_code == 200
+    assert_response_objects(response, not_free_resource)
+
+
+@pytest.mark.django_db
+def test_filtering_by_municipality(list_url, api_client, resource_in_unit, test_unit, test_municipality):
+    test_unit.municipality = test_municipality
+    test_unit.save()
+
+    response = api_client.get('%s?municipality=foo' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, resource_in_unit) 
+
+    response = api_client.get('%s?municipality=bar' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, []) 
+
+
+@pytest.mark.django_db
+def test_order_by_filter(list_url, api_client, resource_in_unit, resource_in_unit2):
+    # test resource_name_fi
+    resource_in_unit.name_fi, resource_in_unit.name_en, resource_in_unit.name_sv = 'aaa'
+    resource_in_unit.save()
+
+    resource_in_unit2.name_fi, resource_in_unit2.name_en, resource_in_unit2.name_sv = 'bbb'
+    resource_in_unit2.save()
+
+    response = api_client.get('%s?order_by=resource_name_fi' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][0]['name']['fi'] == resource_in_unit.name_fi
+    assert response.data['results'][1]['name']['fi'] == resource_in_unit2.name_fi
+
+    response = api_client.get('%s?order_by=-resource_name_fi' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][1]['name']['fi'] == resource_in_unit.name_fi
+    assert response.data['results'][0]['name']['fi'] == resource_in_unit2.name_fi
+
+    # test resource_name_en
+    response = api_client.get('%s?order_by=resource_name_en' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][0]['name']['en'] == resource_in_unit.name_en
+    assert response.data['results'][1]['name']['en'] == resource_in_unit2.name_en
+
+    response = api_client.get('%s?order_by=-resource_name_en' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][1]['name']['en'] == resource_in_unit.name_en
+    assert response.data['results'][0]['name']['en'] == resource_in_unit2.name_en
+
+    # test resource_name_sv
+    response = api_client.get('%s?order_by=resource_name_sv' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][0]['name']['sv'] == resource_in_unit.name_sv
+    assert response.data['results'][1]['name']['sv'] == resource_in_unit2.name_sv
+
+    response = api_client.get('%s?order_by=-resource_name_sv' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][1]['name']['sv'] == resource_in_unit.name_sv
+    assert response.data['results'][0]['name']['sv'] == resource_in_unit2.name_sv
+
+    # test unit_name_fi
+    resource_in_unit.unit.name_fi, resource_in_unit.unit.name_en, resource_in_unit.unit.name_sv = 'aaa'
+    resource_in_unit.unit.save()
+
+    resource_in_unit2.unit.name_fi, resource_in_unit2.unit.name_en, resource_in_unit2.unit.name_sv = 'bbb'
+    resource_in_unit2.unit.save()
+
+    response = api_client.get('%s?order_by=unit_name_fi' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][0]['unit'] == resource_in_unit.unit.id
+    assert response.data['results'][1]['unit'] == resource_in_unit2.unit.id
+
+    response = api_client.get('%s?order_by=-unit_name_fi' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][1]['unit'] == resource_in_unit.unit.id
+    assert response.data['results'][0]['unit'] == resource_in_unit2.unit.id
+
+    # test unit_name_en
+    response = api_client.get('%s?order_by=unit_name_en' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][0]['unit'] == resource_in_unit.unit.id
+    assert response.data['results'][1]['unit'] == resource_in_unit2.unit.id
+
+    response = api_client.get('%s?order_by=-unit_name_en' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][1]['unit'] == resource_in_unit.unit.id
+    assert response.data['results'][0]['unit'] == resource_in_unit2.unit.id
+
+    # test unit_name_sv
+    response = api_client.get('%s?order_by=unit_name_sv' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][0]['unit'] == resource_in_unit.unit.id
+    assert response.data['results'][1]['unit'] == resource_in_unit2.unit.id
+
+    response = api_client.get('%s?order_by=-unit_name_sv' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][1]['unit'] == resource_in_unit.unit.id
+    assert response.data['results'][0]['unit'] == resource_in_unit2.unit.id
+
+    # test resource type_fi
+    resource_in_unit.type = ResourceType(id='foo', main_type='foo', name_fi='aaaa')
+    resource_in_unit.type.save()
+    resource_in_unit.save()
+
+    resource_in_unit2.type = ResourceType(id='foo', main_type='foo', name_fi='bbbb')
+    resource_in_unit2.type.save()
+    resource_in_unit2.save()
+
+    response = api_client.get('%s?order_by=type_name_fi' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][0]['type']['id'] == resource_in_unit.type.id
+    assert response.data['results'][1]['type']['id'] == resource_in_unit2.type.id
+
+    response = api_client.get('%s?order_by=-type_name_fi' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][1]['type']['id'] == resource_in_unit.type.id
+    assert response.data['results'][0]['type']['id'] == resource_in_unit2.type.id
+
+
+    # test resource type_en
+    resource_in_unit.type = ResourceType(id='foo', main_type='foo', name_en='aaaa')
+    resource_in_unit.type.save()
+    resource_in_unit.save()
+
+    resource_in_unit2.type = ResourceType(id='foo', main_type='foo', name_en='bbbb')
+    resource_in_unit2.type.save()
+    resource_in_unit2.save()
+
+    response = api_client.get('%s?order_by=type_name_en' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][0]['type']['id'] == resource_in_unit.type.id
+    assert response.data['results'][1]['type']['id'] == resource_in_unit2.type.id
+
+    response = api_client.get('%s?order_by=-type_name_en' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][1]['type']['id'] == resource_in_unit.type.id
+    assert response.data['results'][0]['type']['id'] == resource_in_unit2.type.id
+
+
+    # test resource type_sv
+    resource_in_unit.type = ResourceType(id='foo', main_type='foo', name_sv='aaaa')
+    resource_in_unit.type.save()
+    resource_in_unit.save()
+
+    resource_in_unit2.type = ResourceType(id='foo', main_type='foo', name_sv='bbbb')
+    resource_in_unit2.type.save()
+    resource_in_unit2.save()
+
+    response = api_client.get('%s?order_by=type_name_sv' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][0]['type']['id'] == resource_in_unit.type.id
+    assert response.data['results'][1]['type']['id'] == resource_in_unit2.type.id
+
+    response = api_client.get('%s?order_by=-type_name_sv' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][1]['type']['id'] == resource_in_unit.type.id
+    assert response.data['results'][0]['type']['id'] == resource_in_unit2.type.id
+
+    # test resource people capacity
+    resource_in_unit.people_capacity = 1
+    resource_in_unit.save()
+
+    resource_in_unit2.people_capacity = 50
+    resource_in_unit2.save()
+
+    response = api_client.get('%s?order_by=people_capacity' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][0]['people_capacity'] == resource_in_unit.people_capacity
+    assert response.data['results'][1]['people_capacity'] == resource_in_unit2.people_capacity
+
+    response = api_client.get('%s?order_by=-people_capacity' % list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [resource_in_unit, resource_in_unit2])
+    assert response.data['results'][1]['people_capacity'] == resource_in_unit.people_capacity
+    assert response.data['results'][0]['people_capacity'] == resource_in_unit2.people_capacity

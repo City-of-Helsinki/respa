@@ -97,7 +97,7 @@ class ReservationDetailsReport(BaseReport, ReservationCacheMixin):
     serializer_class = ReservationSerializer
     renderer_classes = (ReservationDetailsDocxRenderer,)
     filter_backends = ReservationViewSet.filter_backends
-    filter_class = ReservationViewSet.filter_class
+    filterset_class = ReservationViewSet.filterset_class
 
     def get_queryset(self):
         queryset = super().get_queryset()

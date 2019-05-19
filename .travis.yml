@@ -1,9 +1,19 @@
-sudo: false
-dist: trusty
+sudo: required
+dist: xenial
+
+services:
+  - docker
 
 language: python
 python:
   - '3.6'
+  - '3.7'
+  - '3.8-dev'
+node_js: 'lts/*'
+
+matrix:
+  allow_failures:
+  - python: 3.8-dev
 
 cache: pip
 
@@ -16,16 +26,23 @@ addons:
   apt:
     packages:
       - libgdal-dev
-      - postgresql-9.6-postgis-2.3
+      - postgresql-9.6-postgis-2.4
 
-install: 'pip install codecov -r requirements.txt'
+before_install:
+  - psql template1 -c 'CREATE EXTENSION IF NOT EXISTS hstore;'
+  - psql template1 -c 'CREATE EXTENSION IF NOT EXISTS postgis;'
+  - pip install codecov -r requirements.txt
 
 before_script:
-  - psql template1 -c 'create extension hstore;'
+  - ./build-resources
+  - ls -l respa_admin/static/respa_admin/main.css  # Check main.css got built
+  - ./manage.py compilemessages
 
-script: pytest --cov . resources respa_exchange caterings
+script: pytest --cov . --doctest-modules
 
-after_success: codecov
+after_success:
+  - codecov
+  - ./deploy/containerize.sh
 
 notifications:
   slack:

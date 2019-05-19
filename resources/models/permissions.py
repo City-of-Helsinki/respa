@@ -11,3 +11,13 @@ RESOURCE_PERMISSIONS = (
     ('can_view_reservation_catering_orders', _('Can view reservation catering orders')),
     ('can_modify_reservation_catering_orders', _('Can modify reservation catering orders')),
 )
+
+UNIT_PERMISSIONS = [
+    ('unit:' + name, description)
+    for (name, description) in RESOURCE_PERMISSIONS
+]
+
+RESOURCE_GROUP_PERMISSIONS = [
+    ('group:' + name, description)
+    for (name, description) in RESOURCE_PERMISSIONS
+]

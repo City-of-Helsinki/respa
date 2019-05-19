@@ -1,7 +1,7 @@
 import datetime
 import pytest
 from django.test.utils import override_settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from parler.utils.context import switch_language
 from guardian.shortcuts import assign_perm
 from resources.tests.utils import assert_response_objects, check_disallowed_methods, check_keys

@@ -1,0 +1,22 @@
+#equipment {
+
+  .technical {
+    padding: 24px 0 32px;
+
+    .checkbox-row {
+
+      .custom-checkbox {
+        max-width: 25%;
+        min-width: 200px;
+                
+        label {
+          font-weight: bold;
+        }
+      }
+    }
+  }
+
+  .equipment-info {
+    margin-top: 24px;
+  }
+}

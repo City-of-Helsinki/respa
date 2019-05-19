@@ -14,8 +14,10 @@ from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.validators import MinValueValidator
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+from django.utils.functional import cached_property
 from django.utils.six import BytesIO
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import pgettext_lazy
@@ -27,19 +29,22 @@ from PIL import Image
 from guardian.shortcuts import get_objects_for_user, get_users_with_perms
 from guardian.core import ObjectPermissionChecker
 
-from resources.errors import InvalidImage
-
+from ..auth import is_authenticated_user, is_general_admin
+from ..errors import InvalidImage
+from ..fields import EquipmentField
 from .base import AutoIdentifiedModel, NameIdentifiedModel, ModifiableModel
-from .utils import create_reservable_before_datetime, get_translated, get_translated_name, humanize_duration
+from .utils import create_datetime_days_from_now, get_translated, get_translated_name, humanize_duration
 from .equipment import Equipment
 from .unit import Unit
 from .availability import get_opening_hours
-from .permissions import RESOURCE_PERMISSIONS
+from .permissions import RESOURCE_GROUP_PERMISSIONS
 
 
 def generate_access_code(access_code_type):
     if access_code_type == Resource.ACCESS_CODE_TYPE_NONE:
         return ''
+    elif access_code_type == Resource.ACCESS_CODE_TYPE_PIN4:
+        return get_random_string(4, '0123456789')
     elif access_code_type == Resource.ACCESS_CODE_TYPE_PIN6:
         return get_random_string(6, '0123456789')
     else:
@@ -49,6 +54,9 @@ def generate_access_code(access_code_type):
 def validate_access_code(access_code, access_code_type):
     if access_code_type == Resource.ACCESS_CODE_TYPE_NONE:
         return
+    elif access_code_type == Resource.ACCESS_CODE_TYPE_PIN4:
+        if not re.match('^[0-9]{4}$', access_code):
+            raise ValidationError(dict(access_code=_('Invalid value')))
     elif access_code_type == Resource.ACCESS_CODE_TYPE_PIN6:
         if not re.match('^[0-9]{6}$', access_code):
             raise ValidationError(dict(access_code=_('Invalid value')))
@@ -122,10 +130,21 @@ class TermsOfUse(ModifiableModel, AutoIdentifiedModel):
 
 class ResourceQuerySet(models.QuerySet):
     def visible_for(self, user):
-        if user.is_staff:
+        if is_general_admin(user):
             return self
-        else:
-            return self.filter(public=True)
+        is_in_managed_units = Q(unit__in=Unit.objects.managed_by(user))
+        is_public = Q(public=True)
+        return self.filter(is_in_managed_units | is_public)
+
+    def modifiable_by(self, user):
+        if not is_authenticated_user(user):
+            return self.none()
+
+        if is_general_admin(user):
+            return self
+
+        units = Unit.objects.managed_by(user)
+        return self.filter(unit__in=units)
 
     def with_perm(self, perm, user):
         units = get_objects_for_user(user, 'unit:%s' % perm, klass=Unit,
@@ -142,10 +161,12 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         ('strong', _('Strong'))
     )
     ACCESS_CODE_TYPE_NONE = 'none'
+    ACCESS_CODE_TYPE_PIN4 = 'pin4'
     ACCESS_CODE_TYPE_PIN6 = 'pin6'
     ACCESS_CODE_TYPES = (
         (ACCESS_CODE_TYPE_NONE, _('None')),
-        (ACCESS_CODE_TYPE_PIN6, _('6-digit pin code')),
+        (ACCESS_CODE_TYPE_PIN4, _('4-digit PIN code')),
+        (ACCESS_CODE_TYPE_PIN6, _('6-digit PIN code')),
     )
     id = models.CharField(primary_key=True, max_length=100)
     public = models.BooleanField(default=True, verbose_name=_('Public'))
@@ -159,8 +180,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     need_manual_confirmation = models.BooleanField(verbose_name=_('Need manual confirmation'), default=False)
     authentication = models.CharField(blank=False, verbose_name=_('Authentication'),
                                       max_length=20, choices=AUTHENTICATION_TYPES)
-    people_capacity = models.IntegerField(verbose_name=_('People capacity'), null=True, blank=True)
-    area = models.IntegerField(verbose_name=_('Area'), null=True, blank=True)
+    people_capacity = models.PositiveIntegerField(verbose_name=_('People capacity'), null=True, blank=True)
+    area = models.PositiveIntegerField(verbose_name=_('Area (m2)'), null=True, blank=True)
 
     # if not set, location is inherited from unit
     location = models.PointField(verbose_name=_('Location'), null=True, blank=True, srid=settings.DEFAULT_SRID)
@@ -168,28 +189,49 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     min_period = models.DurationField(verbose_name=_('Minimum reservation time'),
                                       default=datetime.timedelta(minutes=30))
     max_period = models.DurationField(verbose_name=_('Maximum reservation time'), null=True, blank=True)
+    slot_size = models.DurationField(verbose_name=_('Slot size for reservation time'),
+                                     default=datetime.timedelta(minutes=30))
 
-    equipment = models.ManyToManyField(Equipment, verbose_name=_('Equipment'), through='ResourceEquipment')
-    max_reservations_per_user = models.IntegerField(verbose_name=_('Maximum number of active reservations per user'),
-                                                    null=True, blank=True)
+    equipment = EquipmentField(Equipment, through='ResourceEquipment', verbose_name=_('Equipment'))
+    max_reservations_per_user = models.PositiveIntegerField(verbose_name=_('Maximum number of active reservations per user'),
+                                                            null=True, blank=True)
     reservable = models.BooleanField(verbose_name=_('Reservable'), default=False)
     reservation_info = models.TextField(verbose_name=_('Reservation info'), null=True, blank=True)
     responsible_contact_info = models.TextField(verbose_name=_('Responsible contact info'), blank=True)
     generic_terms = models.ForeignKey(TermsOfUse, verbose_name=_('Generic terms'), null=True, blank=True,
                                       on_delete=models.SET_NULL)
     specific_terms = models.TextField(verbose_name=_('Specific terms'), blank=True)
-    reservation_confirmed_notification_extra = models.TextField(verbose_name=_('Extra content to reservation confirmed '
-                                                                               'notification'), blank=True)
+    reservation_requested_notification_extra = models.TextField(verbose_name=_(
+        'Extra content to "reservation requested" notification'), blank=True)
+    reservation_confirmed_notification_extra = models.TextField(verbose_name=_(
+        'Extra content to "reservation confirmed" notification'), blank=True)
     min_price_per_hour = models.DecimalField(verbose_name=_('Min price per hour'), max_digits=8, decimal_places=2,
                                              blank=True, null=True, validators=[MinValueValidator(Decimal('0.00'))])
     max_price_per_hour = models.DecimalField(verbose_name=_('Max price per hour'), max_digits=8, decimal_places=2,
                                              blank=True, null=True, validators=[MinValueValidator(Decimal('0.00'))])
+
     access_code_type = models.CharField(verbose_name=_('Access code type'), max_length=20, choices=ACCESS_CODE_TYPES,
                                         default=ACCESS_CODE_TYPE_NONE)
-    reservable_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable days in advance'),
-                                                                  null=True, blank=True)
-    reservation_metadata_set = models.ForeignKey('resources.ReservationMetadataSet', null=True, blank=True,
-                                                 on_delete=models.SET_NULL)
+    # Access codes can be generated either by the general Respa code or
+    # the Kulkunen app. Kulkunen will set the `generate_access_codes`
+    # attribute by itself if special access code considerations are
+    # needed.
+    generate_access_codes = models.BooleanField(
+        verbose_name=_('Generate access codes'), default=True, editable=False,
+        help_text=_('Should access codes generated by the general system')
+    )
+    reservable_max_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable max. days in advance'),
+                                                                      null=True, blank=True)
+    reservable_min_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable min. days in advance'),
+                                                                      null=True, blank=True)
+    reservation_metadata_set = models.ForeignKey(
+        'resources.ReservationMetadataSet', verbose_name=_('Reservation metadata set'),
+        null=True, blank=True, on_delete=models.SET_NULL
+    )
+    external_reservation_url = models.URLField(
+        verbose_name=_('External reservation URL'),
+        help_text=_('A link to an external reservation system if this resource is managed elsewhere'),
+        null=True, blank=True)
 
     objects = ResourceQuerySet.as_manager()
 
@@ -200,6 +242,14 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
     def __str__(self):
         return "%s (%s)/%s" % (get_translated(self, 'name'), self.id, self.unit)
+
+    @cached_property
+    def main_image(self):
+        resource_image = next(
+            (image for image in self.images.all() if image.type == 'main'),
+            None)
+
+        return resource_image.image if resource_image else None
 
     def validate_reservation_period(self, reservation, user, data=None):
         """
@@ -459,15 +509,31 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             ResourceDailyOpeningHours.objects.bulk_create(add_objs)
 
     def is_admin(self, user):
-        # Currently all staff members are allowed to administrate
-        # all resources. Will be more finegrained in the future.
-        #
+        """
+        Check if the given user is an administrator of this resource.
+
+        :type user: users.models.User
+        :rtype: bool
+        """
         # UserFilterBackend and ReservationFilterSet in resources.api.reservation assume the same behaviour,
         # so if this is changed those need to be changed as well.
-        return user.is_staff
+        if not self.unit:
+            return is_general_admin(user)
+        return self.unit.is_admin(user)
+
+    def is_manager(self, user):
+        """
+        Check if the given user is a manager of this resource.
+
+        :type user: users.models.User
+        :rtype: bool
+        """
+        if not self.unit:
+            return is_general_admin(user)
+        return self.unit.is_manager(user)
 
     def _has_perm(self, user, perm, allow_admin=True):
-        if not (user and user.is_authenticated):
+        if not is_authenticated_user(user):
             return False
         # Admins are almighty.
         if self.is_admin(user) and allow_admin:
@@ -520,11 +586,17 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     def is_access_code_enabled(self):
         return self.access_code_type != Resource.ACCESS_CODE_TYPE_NONE
 
-    def get_reservable_days_in_advance(self):
-        return self.reservable_days_in_advance or self.unit.reservable_days_in_advance
+    def get_reservable_max_days_in_advance(self):
+        return self.reservable_max_days_in_advance or self.unit.reservable_max_days_in_advance
 
     def get_reservable_before(self):
-        return create_reservable_before_datetime(self.get_reservable_days_in_advance())
+        return create_datetime_days_from_now(self.get_reservable_max_days_in_advance())
+
+    def get_reservable_min_days_in_advance(self):
+        return self.reservable_min_days_in_advance or self.unit.reservable_min_days_in_advance
+
+    def get_reservable_after(self):
+        return create_datetime_days_from_now(self.get_reservable_min_days_in_advance())
 
     def get_supported_reservation_extra_field_names(self, cache=None):
         if not self.reservation_metadata_set_id:
@@ -550,6 +622,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                 raise ValidationError(
                     {'min_price_per_hour': _('This value cannot be greater than max price per hour')}
                 )
+        if self.min_period % self.slot_size != datetime.timedelta(0):
+            raise ValidationError({'min_period': _('This value must be a multiple of slot_size')})
 
 
 class ResourceImage(ModifiableModel):
@@ -629,7 +703,11 @@ class ResourceImage(ModifiableModel):
         else:  # All good -- keep the file as-is.
             self.image_format = img.format
 
-    # def get_upload_filename(image, filename): -- used to live here, but was dead code
+    def get_full_url(self):
+        base_url = getattr(settings, 'RESPA_IMAGE_BASE_URL', None)
+        if not base_url:
+            return None
+        return base_url.rstrip('/') + reverse('resource-image-view', args=[str(self.id)])
 
     def __str__(self):
         return "%s image for %s" % (self.get_type_display(), str(self.resource))
@@ -659,10 +737,6 @@ class ResourceEquipment(ModifiableModel):
         return "%s / %s" % (self.equipment, self.resource)
 
 
-def _generate_resource_group_permissions():
-    return [('group:%s' % p, t) for p, t in RESOURCE_PERMISSIONS]
-
-
 class ResourceGroup(ModifiableModel):
     identifier = models.CharField(verbose_name=_('Identifier'), max_length=100)
     name = models.CharField(verbose_name=_('Name'), max_length=200)
@@ -671,7 +745,7 @@ class ResourceGroup(ModifiableModel):
     class Meta:
         verbose_name = _('Resource group')
         verbose_name_plural = _('Resource groups')
-        permissions = _generate_resource_group_permissions()
+        permissions = RESOURCE_GROUP_PERMISSIONS
         ordering = ('name',)
 
     def __str__(self):

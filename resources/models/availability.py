@@ -10,7 +10,11 @@ from django.utils.translation import ugettext_lazy as _
 from psycopg2.extras import DateRange, NumericRange
 
 
-STATE_BOOLS = {False: _('open'), True: _('closed')}
+STATE_BOOLS = {
+    False: _('open'),
+    True: _('closed'),
+    None: _('-'),
+}
 
 
 def combine_datetime(date, time, tz):
@@ -142,14 +146,17 @@ class Period(models.Model):
     def clean(self, ignore_overlap=False):
         super(Period, self).clean()
 
+        if self.start is None or self.end is None:
+            raise ValidationError(_("You must set 'start' and 'end' fields."), code="empty_start_end")
+
         if self.start > self.end:
             raise ValidationError("Period must start before its end", code="invalid_date_range")
 
-        self._validate_belonging()
         self._check_closed()
 
     def save(self, *args, **kwargs):
         ignore_overlap = kwargs.pop('ignore_overlap', False)
+        self._validate_belonging()
         self.clean(ignore_overlap=ignore_overlap)
         self.duration = DateRange(self.start, self.end, '[]')
         return super(Period, self).save(*args, **kwargs)

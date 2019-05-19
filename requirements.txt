@@ -4,83 +4,93 @@
 #
 #    pip-compile
 #
-arrow==0.12.0
-asn1crypto==0.23.0        # via cryptography
-attrs==17.3.0             # via pytest
-babel==2.5.1              # via delorean
-certifi==2017.11.5        # via requests, sentry-sdk
-cffi==1.11.2              # via cryptography
+--no-binary psycopg2
+
+arrow==0.13.0
+asn1crypto==0.24.0        # via cryptography
+atomicwrites==1.2.1       # via pytest
+attrs==18.2.0             # via pytest
+babel==2.6.0              # via delorean
+certifi==2018.11.29       # via requests
+cffi==1.11.5              # via cryptography
 chardet==3.0.4            # via requests
-click==6.7                # via pip-tools
-coverage==4.4.2
-cryptography==2.1.4       # via requests-ntlm
-daemonize==2.4.7
+click==7.0                # via pip-tools
+coverage==4.5.2
+cryptography==2.5         # via requests-ntlm
+daemonize==2.5.0
+database-sanitizer==0.4.0
 defusedxml==0.5.0         # via python3-openid
-delorean==0.6.0
-django-allauth==0.34.0
-django-anymail==1.2
-django-appconf==1.0.1     # via django-image-cropping
-django-cors-headers==2.1.0
-django-environ==0.4.4
-django-filter==1.1.0
-django-grappelli==2.10.1
+delorean==1.0.0
+django-admin-json-editor==0.1.5
+django-allauth==0.38.0
+django-anymail==5.0
+django-appconf==1.0.2     # via django-image-cropping
+django-cors-headers==2.4.0
+django-enumfields==1.0.0
+django-environ==0.4.5
+django-filter==2.1.0
+django-grappelli==2.12.2
 django-guardian==1.4.9
 django-helusers==0.4.2
 django-hstore==1.4.2
-django-image-cropping==1.1.0
+django-image-cropping==1.2.0
 django-jinja==2.4.1
-django-modeltranslation==0.12.1
-django-mptt==0.8.7        # via django-munigeo
-django-munigeo==0.2.0
-django-parler==1.8.1
-django-reversion==2.0.11
-django==1.11.10
+django-js-asset==1.1.0    # via django-mptt
+django-modeltranslation==0.13b1
+django-mptt==0.9.1        # via django-munigeo
+django-munigeo==0.3.3
+django-parler-rest==2.0   # via django-munigeo
+django-parler==1.9.2
+django-reversion==3.0.2
+django-sanitized-dump==0.2.2
+django==2.1.7
 djangorestframework-jwt==1.11.0
-djangorestframework==3.7.3
+djangorestframework==3.9.1
 drf-oidc-auth==0.9        # via django-helusers
 easy-thumbnails==2.5
-fake-factory==9999.9.9
-first==2.0.1              # via pip-tools
-flake8==3.5.0
-freezegun==0.3.9
-future==0.16.0            # via pyjwkest
+faker==1.0.2
+flake8==3.6.0
+freezegun==0.3.11
+future==0.17.1            # via pyjwkest
 humanize==0.5.1           # via delorean
-icalendar==4.0.0
-idna==2.6                 # via cryptography, requests
+icalendar==4.0.3
+idna==2.8                 # via requests
 iso8601==0.1.12
 jinja2==2.10
-lxml==4.1.1
-markupsafe==1.0           # via jinja2
+jsonschema==2.6.0
+lxml==4.3.0
+markupsafe==1.1.0         # via jinja2
 mccabe==0.6.1             # via flake8
-ntlm-auth==1.0.6          # via requests-ntlm
-oauthlib==2.0.6           # via requests-oauthlib
-olefile==0.44             # via pillow
-pillow==4.3.0             # via easy-thumbnails
-pip-tools==1.11.0
-pluggy==0.6.0             # via pytest
-psycopg2==2.7.3.2
-py==1.5.2                 # via pytest
-pycodestyle==2.3.1        # via flake8
-pycparser==2.18           # via cffi
-pycryptodomex==3.4.7      # via pyjwkest
-pyflakes==1.6.0           # via flake8
+more-itertools==5.0.0     # via pytest
+ntlm-auth==1.2.0          # via requests-ntlm
+oauthlib==3.0.0           # via requests-oauthlib
+pillow==5.4.1             # via easy-thumbnails
+pip-tools==3.2.0
+pluggy==0.8.1             # via pytest
+psycopg2==2.7.6.1
+py==1.7.0                 # via pytest
+pycodestyle==2.4.0        # via flake8
+pycparser==2.19           # via cffi
+pycryptodomex==3.7.3      # via pyjwkest
+pyflakes==2.0.0           # via flake8
 pyjwkest==1.4.0           # via drf-oidc-auth
-pyjwt==1.5.3
-pytest-cov==2.5.1
-pytest-django==3.1.2
-pytest==3.3.0
-python-dateutil==2.6.1    # via arrow, delorean, freezegun, icalendar
-python-docx==0.8.6
+pyjwt==1.7.1
+pytest-cov==2.6.1
+pytest-django==3.4.5
+pytest==4.1.1
+python-dateutil==2.7.5    # via arrow, delorean, faker, freezegun, icalendar
+python-docx==0.8.10
 python3-openid==3.1.0     # via django-allauth
-pytz==2018.3
-pyyaml==3.12              # via django-munigeo
-raven==6.3.0
+pytz==2018.9
+pyyaml==5.1               # via database-sanitizer, django-munigeo, django-sanitized-dump
+raven==6.10.0
 requests-cache==0.4.13    # via django-munigeo
 requests-ntlm==1.1.0
-requests-oauthlib==0.8.0  # via django-allauth
-requests==2.18.4
+requests-oauthlib==1.2.0  # via django-allauth
+requests==2.21.0
 sentry-sdk==0.7.14
-six==1.11.0
+six==1.12.0
+text-unidecode==1.2       # via faker
 tzlocal==1.5.1            # via delorean
-urllib3==1.22             # via requests, sentry-sdk
-xlsxwriter==1.0.2
+urllib3==1.24.1           # via requests
+xlsxwriter==1.1.2

@@ -1,7 +1,13 @@
 from modeltranslation.translator import TranslationOptions, register
 
-from .models import Unit, Resource, ResourceType, ResourceImage, Purpose
-from .models import Equipment, ResourceEquipment, EquipmentCategory, TermsOfUse
+from .models import (
+    Equipment, EquipmentCategory, Purpose, Resource, ResourceEquipment,
+    ResourceImage, ResourceType, TermsOfUse, Unit, UnitGroup)
+
+
+@register(UnitGroup)
+class UnitGroupTranslationOptions(TranslationOptions):
+    fields = ['name']
 
 
 @register(Unit)
@@ -14,6 +20,7 @@ class UnitTranslationOptions(TranslationOptions):
 class ResourceTranslationOptions(TranslationOptions):
     fields = ('name', 'description', 'specific_terms',
               'reservation_confirmed_notification_extra',
+              'reservation_requested_notification_extra',
               'reservation_info', 'responsible_contact_info')
 
 

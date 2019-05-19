@@ -1,0 +1,63 @@
+.order-by-link {
+  background-color: #ebebeb;
+  &:hover {
+    background-color: #fff;
+  }
+}
+
+.headline {
+
+  & > * {
+    margin-top: 42px;
+  }
+
+  .resources-report {
+    display: flex;
+    flex-wrap: wrap;
+
+    .col-sm-6 {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    span.resources-count {
+      font-size: 24px;
+    }
+  }
+
+  .resources-search {
+    max-width: 700px;
+
+    .input-group > *, span.input-group-btn button {
+      height: $input-height-default;
+      background-color: $white;
+      margin: 0;
+    }
+
+    span.input-group-addon {
+      background-color: transparent;
+      border: 0;
+      padding-left: 0;
+      padding-right: 24px;
+      font-size: $font-size-h5;
+    }
+
+    span.input-group-btn button {
+      width: $input-height-default;
+
+      span {
+        transform: scale(1.5);
+      }
+    }
+
+    input {
+      border-right: 0;
+    }
+  }
+}
+
+.period-weekday select {
+  padding-right: 0;
+  pointer-events: none;
+}

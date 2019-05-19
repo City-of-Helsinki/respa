@@ -1,5 +1,6 @@
 Django
-django-modeltranslation
+django-modeltranslation>=0.13-beta1
+--no-binary psycopg2
 psycopg2
 django-munigeo
 djangorestframework
@@ -24,7 +25,7 @@ django-hstore
 XlsxWriter
 icalendar
 pip-tools
-fake-factory
+Faker
 django-guardian
 Jinja2
 django-jinja
@@ -42,3 +43,8 @@ django-reversion
 daemonize
 django-environ
 sentry-sdk
+django-enumfields
+django-sanitized-dump>=0.2.0
+database-sanitizer>=0.4.0
+jsonschema
+django-admin-json-editor

@@ -1,0 +1,39 @@
+{% load i18n %}
+
+<div id="add-picture">
+    <div class="form-section-header">
+        <h2>{% trans "Images" %}</h2>
+        <span class="pull-right">{% trans "*Mandatory fields" %}</span>
+    </div>
+
+    <p>{% trans "You can only choose one main image." %}</p>
+
+    <button id="image-picker" type="button" class="add-picture-button">
+        {% trans "Add image" %}
+    </button>
+
+    <div id="images-list" class="hidden">
+        {% for form in resource_image_formset %}
+            {% with forloop.counter0 as id %}
+                <div class="input-row dropdown-row" id="image-{{ id }}">
+
+                    {{ form.id }}
+                    {{ form.resource }}
+
+                    {% include "respa_admin/forms/_select.html" with field=form.type inline=True %}
+
+                    {% include "respa_admin/forms/_input.html" with field=form.caption_fi inline=True %}
+                    {% include "respa_admin/forms/_input.html" with field=form.caption_en inline=True %}
+                    {% include "respa_admin/forms/_input.html" with field=form.caption_sv inline=True %}
+
+                    {% if form.instance.image %}
+                        {% include "respa_admin/forms/_image.html" with field=form.image image=form.instance.image.url id=id %}
+                    {% else %}
+                        {% include "respa_admin/forms/_image.html" with field=form.image image=None id=id %}
+                    {% endif %}
+
+                </div>
+            {% endwith %}
+        {% endfor %}
+    </div>
+</div>

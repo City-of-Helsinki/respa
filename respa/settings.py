@@ -16,28 +16,53 @@ env = environ.Env(
     ALLOWED_HOSTS=(list, []),
     ADMINS=(list, []),
     DATABASE_URL=(str, 'postgis:///respa'),
-    JWT_SECRET_KEY=(str, ''),
-    JWT_AUDIENCE=(str, ''),
+    SECURE_PROXY_SSL_HEADER=(tuple, None),
+    TOKEN_AUTH_ACCEPTED_AUDIENCE=(str, ''),
+    TOKEN_AUTH_SHARED_SECRET=(str, ''),
     MEDIA_ROOT=(environ.Path(), root('media')),
     STATIC_ROOT=(environ.Path(), root('static')),
     MEDIA_URL=(str, '/media/'),
     STATIC_URL=(str, '/static/'),
     SENTRY_DSN=(str, ''),
+    SENTRY_ENVIRONMENT=(str, ''),
     SENTRY_SEND_PII=(bool, False),  # Send personally identifiable information to Sentry
-    COOKIE_PREFIX=(str, 'respa')
+    COOKIE_PREFIX=(str, 'respa'),
+    INTERNAL_IPS=(list, []),
+    MAIL_ENABLED=(bool, False),
+    MAIL_DEFAULT_FROM=(str, ''),
+    MAIL_MAILGUN_KEY=(str, ''),
+    MAIL_MAILGUN_DOMAIN=(str, ''),
+    MAIL_MAILGUN_API=(str, ''),
+    RESPA_IMAGE_BASE_URL=(str, ''),
+    ACCESSIBILITY_API_BASE_URL=(str, 'https://asiointi.hel.fi/kapaesteettomyys/'),
+    ACCESSIBILITY_API_SYSTEM_ID=(str, ''),
+    ACCESSIBILITY_API_SECRET=(str, ''),
+    RESPA_ADMIN_INSTRUCTIONS_URL=(str, ''),
+    RESPA_ADMIN_SUPPORT_EMAIL=(str, ''),
+    RESPA_ADMIN_VIEW_RESOURCE_URL=(str, ''),
 )
 environ.Env.read_env()
 
+# used for generating links to images, when no request context is available
+# reservation confirmation emails use this
+RESPA_IMAGE_BASE_URL = env('RESPA_IMAGE_BASE_URL')
+
 BASE_DIR = root()
 
+DEBUG_TOOLBAR_CONFIG = {
+    'RESULTS_CACHE_SIZE': 100,
+}
 DEBUG = env('DEBUG')
 ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 ADMINS = env('ADMINS')
-
+INTERNAL_IPS = env.list('INTERNAL_IPS',
+                        default=(['127.0.0.1'] if DEBUG else []))
 DATABASES = {
     'default': env.db()
 }
 DATABASES['default']['ATOMIC_REQUESTS'] = True
+
+SECURE_PROXY_SSL_HEADER = env('SECURE_PROXY_SSL_HEADER')
 
 SITE_ID = 1
 
@@ -47,6 +72,7 @@ INSTALLED_APPS = [
     'modeltranslation',
     'parler',
     'grappelli',
+    'django.forms',
     'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -67,6 +93,7 @@ INSTALLED_APPS = [
     'django_jinja',
     'anymail',
     'reversion',
+    'django_admin_json_editor',
 
     'allauth',
     'allauth.account',
@@ -81,8 +108,12 @@ INSTALLED_APPS = [
     'caterings',
     'comments',
     'notifications.apps.NotificationsConfig',
+    'kulkunen',
 
     'respa_exchange',
+    'respa_admin',
+
+    'sanitized_dump',
 ]
 
 if env('SENTRY_DSN'):
@@ -92,25 +123,24 @@ if env('SENTRY_DSN'):
     sentry_sdk.init(
         dsn=env('SENTRY_DSN'),
         integrations=[DjangoIntegration()],
+        environment=env('SENTRY_ENVIRONMENT'),
         send_default_pii=env('SENTRY_SEND_PII'),
     )
 
-
 MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
 ]
 
 ROOT_URLCONF = 'respa.urls'
-from django_jinja.builtins import DEFAULT_EXTENSIONS
+from django_jinja.builtins import DEFAULT_EXTENSIONS  # noqa
 
 TEMPLATES = [
     {
@@ -213,19 +243,22 @@ SOCIALACCOUNT_ADAPTER = 'helusers.adapter.SocialAccountAdapter'
 # http://www.django-rest-framework.org
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': (
+    'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-    ),
-    'DEFAULT_AUTHENTICATION_CLASSES': (
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
         'helusers.jwt.JWTAuthentication',
-    ),
+    ] + ([
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
+    ] if DEBUG else []),
     'DEFAULT_PAGINATION_CLASS': 'resources.pagination.DefaultPagination',
 }
 
 JWT_AUTH = {
     'JWT_PAYLOAD_GET_USER_ID_HANDLER': 'helusers.jwt.get_user_id_from_payload_handler',
-    'JWT_AUDIENCE': env.str('JWT_AUDIENCE'),
-    'JWT_SECRET_KEY': env.str('JWT_SECRET_KEY')
+    'JWT_AUDIENCE': env('TOKEN_AUTH_ACCEPTED_AUDIENCE'),
+    'JWT_SECRET_KEY': env('TOKEN_AUTH_SHARED_SECRET')
 }
 
 
@@ -233,18 +266,51 @@ CSRF_COOKIE_NAME = '%s-csrftoken' % env.str('COOKIE_PREFIX')
 SESSION_COOKIE_NAME = '%s-sessionid' % env.str('COOKIE_PREFIX')
 
 
-from easy_thumbnails.conf import Settings as thumbnail_settings
+from easy_thumbnails.conf import Settings as thumbnail_settings  # noqa
 THUMBNAIL_PROCESSORS = (
     'image_cropping.thumbnail_processors.crop_corners',
 ) + thumbnail_settings.THUMBNAIL_PROCESSORS
 
 
-RESPA_MAILS_ENABLED = False
-RESPA_MAILS_FROM_ADDRESS = ""
+RESPA_MAILS_ENABLED = env('MAIL_ENABLED')
+RESPA_MAILS_FROM_ADDRESS = env('MAIL_DEFAULT_FROM')
 RESPA_CATERINGS_ENABLED = False
 RESPA_COMMENTS_ENABLED = False
 RESPA_DOCX_TEMPLATE = os.path.join(BASE_DIR, 'reports', 'data', 'default.docx')
 
+RESPA_ADMIN_VIEW_RESOURCE_URL = env('RESPA_ADMIN_VIEW_RESOURCE_URL')
+
+RESPA_ADMIN_ACCESSIBILITY_API_BASE_URL = env('ACCESSIBILITY_API_BASE_URL')
+RESPA_ADMIN_ACCESSIBILITY_API_SYSTEM_ID = env('ACCESSIBILITY_API_SYSTEM_ID')
+RESPA_ADMIN_ACCESSIBILITY_API_SECRET = env('ACCESSIBILITY_API_SECRET')
+# list of ResourceType ids for which accessibility data input link is shown for
+RESPA_ADMIN_ACCESSIBILITY_VISIBILITY = [
+    'art_studio',  # Ateljee
+    'avh553uaks6a',  # Soittohuone
+    'band_practice_space',  # Bändikämppä
+    'club_room',  # Kerhohuone
+    'event_space',  # Tapahtumatila
+    'game_space',  # Pelitila
+    'hall',  # Sali
+    'meeting_room',  # Kokoustila
+    'multipurpose_room',  # Monitoimihuone"
+    'studio',  # Studio
+    'workspace',  # Työtila
+]
+
+RESPA_ADMIN_INSTRUCTIONS_URL = env('RESPA_ADMIN_INSTRUCTIONS_URL')
+RESPA_ADMIN_SUPPORT_EMAIL = env('RESPA_ADMIN_SUPPORT_EMAIL')
+
+if env('MAIL_MAILGUN_KEY'):
+    ANYMAIL = {
+        'MAILGUN_API_KEY': env('MAIL_MAILGUN_KEY'),
+        'MAILGUN_SENDER_DOMAIN': env('MAIL_MAILGUN_DOMAIN'),
+        'MAILGUN_API_URL': env('MAIL_MAILGUN_API'),
+    }
+    EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
+
+RESPA_ADMIN_USERNAME_LOGIN = env.bool(
+    'RESPA_ADMIN_USERNAME_LOGIN', default=True)
 
 # local_settings.py can be used to override environment-specific settings
 # like database and email that differ between development and production.

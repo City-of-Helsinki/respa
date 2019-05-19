@@ -16,6 +16,22 @@ class User(AbstractUser):
     favorite_resources = models.ManyToManyField(Resource, blank=True, verbose_name=_('Favorite resources'),
                                                 related_name='favorited_by')
 
+    # Duplicate the is staff field from the abstract base class to here
+    # so that we can override the verbose name and help text.
+    is_staff = models.BooleanField(
+        _("staff status"),
+        default=False,
+        help_text=_(
+            "Designates whether the user can log into "
+            "Django Admin or Respa Admin sites."))
+
+    is_general_admin = models.BooleanField(
+        default=False, verbose_name=_("general administrator status"),
+        help_text=_(
+            "Designates whether the user is a General Administrator "
+            "with special permissions to many objects within Respa. "
+            "This is almost as powerful as superuser."))
+
     class Meta:
         ordering = ('id',)
 

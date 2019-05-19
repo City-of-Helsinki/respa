@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from .utils import check_only_safe_methods_allowed
 
@@ -43,6 +43,13 @@ def test_non_public_purpose_visibility(api_client, purpose, user, list_url):
     assert resp.status_code == 200
     assert resp.data['count'] == 0
 
+    user.is_general_admin = True
+    user.save()
+    resp = api_client.get(list_url)
+    assert resp.status_code == 200
+    assert resp.data['count'] == 1
+
+    user.is_general_admin = False
     user.is_staff = True
     user.save()
     resp = api_client.get(list_url)

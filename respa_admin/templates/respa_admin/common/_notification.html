@@ -1,0 +1,8 @@
+{% for message in messages %}
+    <div class="panel panel-default noti closable-notification {% if message.tags %}{{ message.tags }}{% endif %}">
+        <h4 class="pull-left">{{ message }}</h4>
+        <button class="remove-click pull-right" type="button">
+            Sulje <span class="glyphicon glyphicon-remove icon-right" aria-hidden="true"></span>
+        </button>
+    </div>
+{% endfor %}

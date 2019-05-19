@@ -1,0 +1,169 @@
+@import "./form-utils";
+@import "./navbar-form";
+@import "./form-toolbar";
+@import "./section-add-picture";
+@import "./section-condition";
+@import "./section-detail-booking";
+@import "./section-info";
+@import "./section-equipment";
+@import "./section-hours";
+@import "./section-add-accessibility-data";
+
+.form-container {
+  padding-bottom: $input-height-default + $padding-large-vertical * 2;
+
+  .error, .success {
+    width: 100%;
+  }
+
+  .form-section-header {
+    display: flex;
+    position: relative;
+    padding-bottom: $padding-large-vertical;
+    border-bottom: solid 2px $hel-coat;
+    margin: 36px 0;
+
+    h2 {
+      color: $hel-coat;
+    }
+
+    span {
+      position: absolute;
+      right: 0;
+      align-self: flex-end;
+    }
+  }
+
+  .select-dropdown {
+
+    select {
+      font-weight: lighter;
+    }
+  }
+
+  .textarea-wrapper {
+    max-width: 600px;
+  }
+
+  .text-input {
+    max-width: 350px;
+  }
+
+  .input-row {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 16px 0;
+
+    .form-group {
+      margin-bottom: 0;
+    }
+
+    & > * {
+      margin-right: $padding-large-horizontal * 2 ;
+    }
+  }
+
+    .time-input-row {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 15px 0;
+        margin-left: 25px;
+
+        .text-input {
+            max-width: 100px;
+            min-width: 100px;
+            padding-left: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        & > * {
+            margin-right: $padding-large-horizontal * 2 ;
+        }
+    }
+
+  .dropdown-row {
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 0;
+    }
+  }
+
+  .input-unit-wrapper {
+    display: flex;
+    flex-wrap: nowrap;
+
+    span {
+      font-weight: bold;
+      font-size: $font-size-base;
+      align-self: center;
+      padding-left: $padding-base-horizontal;
+    }
+  }
+
+  .radio-inline + .radio-inline {
+    margin-left: 48px;
+  }
+
+  .rdio {
+
+    input[type="radio"]:checked + label:after {
+      width: 16px;
+      height: 16px;
+    }
+
+    label {
+      font-size: 18px;
+
+      &:before {
+        width: 24px;
+        height: 24px;
+      }
+    }
+  }
+
+  .checkbox-row {
+    padding-top: 24px;
+    padding-right: $padding-large-horizontal;
+
+    .custom-checkbox {
+      padding: 0;
+
+      .checkbox-custom-label:before {
+        margin-right: $padding-base-horizontal;
+      }
+
+      label {
+        font-weight: lighter;
+        padding-left: 28px;
+        padding-bottom: 0;
+      }
+    }
+  }
+
+  button {
+
+    &:hover {
+      filter: brightness(0.9);
+    }
+  }
+
+  .form-control {
+
+    &.is-invalid {
+      border: solid 2px $hel-metro;
+    }
+
+    &:active, &:focus {
+      border: solid 2px $hel-coat;
+    }
+  }
+
+  .invalid-feedback {
+    color: red;
+  }
+}

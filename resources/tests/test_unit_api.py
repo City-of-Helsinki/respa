@@ -2,7 +2,7 @@
 import datetime
 import pytest
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -35,16 +35,16 @@ def test_reservable_in_advance_fields(api_client, test_unit, detail_url):
     response = api_client.get(detail_url)
     assert response.status_code == 200
 
-    assert response.data['reservable_days_in_advance'] is None
+    assert response.data['reservable_max_days_in_advance'] is None
     assert response.data['reservable_before'] is None
 
-    test_unit.reservable_days_in_advance = 5
+    test_unit.reservable_max_days_in_advance = 5
     test_unit.save()
 
     response = api_client.get(detail_url)
     assert response.status_code == 200
 
-    assert response.data['reservable_days_in_advance'] == 5
+    assert response.data['reservable_max_days_in_advance'] == 5
     before = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + datetime.timedelta(days=6)
     assert response.data['reservable_before'] == before
 
@@ -57,11 +57,11 @@ def test_resource_group_filter(api_client, test_unit, test_unit2, test_unit3, re
     resource_in_unit3.save()
 
     group_1 = ResourceGroup.objects.create(name='test group 1', identifier='test_group_1')
-    resource_in_unit.groups = [group_1]
-    resource_in_unit3.groups = [group_1]
+    resource_in_unit.groups.set([group_1])
+    resource_in_unit3.groups.set([group_1])
 
     group_2 = ResourceGroup.objects.create(name='test group 2', identifier='test_group_2')
-    resource_in_unit2.groups = [group_1, group_2]
+    resource_in_unit2.groups.set([group_1, group_2])
 
     response = api_client.get(list_url)
     assert response.status_code == 200
@@ -82,3 +82,16 @@ def test_resource_group_filter(api_client, test_unit, test_unit2, test_unit3, re
     response = api_client.get(list_url + '?' + 'resource_group=foobar')
     assert response.status_code == 200
     assert len(response.data['results']) == 0
+
+
+@pytest.mark.django_db
+def test_unit_has_resource_filter(api_client, test_unit,
+                               resource_in_unit2, list_url):
+
+    response = api_client.get(list_url + '?' + 'unit_has_resource=True')
+    assert response.status_code == 200
+    assert_response_objects(response, (resource_in_unit2.unit))
+
+    response = api_client.get(list_url + '?' + 'unit_has_resource=False')
+    assert response.status_code == 200
+    assert_response_objects(response, (test_unit))

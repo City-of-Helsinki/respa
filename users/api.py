@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import permissions, serializers, generics, mixins, viewsets
 
-from resources.views.ical import build_ical_feed_url
+from resources.models.utils import build_ical_feed_url
 from resources.models import Unit
 
 

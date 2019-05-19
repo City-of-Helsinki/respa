@@ -13,9 +13,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 from psycopg2.extras import DateTimeTZRange
 
-from notifications.models import (
-    NotificationTemplateException, NotificationType, render_notification_template
-)
+from notifications.models import NotificationTemplate, NotificationTemplateException, NotificationType
 from resources.signals import (
     reservation_modified, reservation_confirmed, reservation_cancelled
 )
@@ -24,7 +22,7 @@ from .resource import generate_access_code, validate_access_code
 from .resource import Resource
 from .utils import (
     get_dt, save_dt, is_valid_time_slot, humanize_duration, send_respa_mail,
-    DEFAULT_LANG, localize_datetime, format_dt_range
+    DEFAULT_LANG, localize_datetime, format_dt_range, build_reservations_ical_file
 )
 
 DEFAULT_TZ = pytz.timezone(settings.TIME_ZONE)
@@ -103,10 +101,11 @@ class Reservation(ModifiableModel):
     comments = models.TextField(null=True, blank=True, verbose_name=_('Comments'))
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('User'), null=True,
                              blank=True, db_index=True, on_delete=models.PROTECT)
-    state = models.CharField(max_length=16, choices=STATE_CHOICES, verbose_name=_('State'), default=CONFIRMED)
+    state = models.CharField(max_length=16, choices=STATE_CHOICES, verbose_name=_('State'), default=CREATED)
     approver = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Approver'),
                                  related_name='approved_reservations', null=True, blank=True,
                                  on_delete=models.SET_NULL)
+    staff_event = models.BooleanField(verbose_name=_('Is staff event'), default=False)
 
     # access-related fields
     access_code = models.CharField(verbose_name=_('Access code'), max_length=32, null=True, blank=True)
@@ -230,6 +229,8 @@ class Reservation(ModifiableModel):
         elif old_state == Reservation.CONFIRMED:
             self.approver = None
 
+        user_is_staff = self.user is not None and self.user.is_staff
+
         # Notifications
         if new_state == Reservation.REQUESTED:
             self.send_reservation_requested_mail()
@@ -237,8 +238,12 @@ class Reservation(ModifiableModel):
         elif new_state == Reservation.CONFIRMED:
             if self.need_manual_confirmation():
                 self.send_reservation_confirmed_mail()
-            elif self.resource.is_access_code_enabled():
+            elif self.access_code:
                 self.send_reservation_created_with_access_code_mail()
+            else:
+                if not user_is_staff:
+                    # notifications are not sent from staff created reservations to avoid spam
+                    self.send_reservation_created_mail()
         elif new_state == Reservation.DENIED:
             self.send_reservation_denied_mail()
         elif new_state == Reservation.CANCELLED:
@@ -308,8 +313,8 @@ class Reservation(ModifiableModel):
         for dt in (self.begin, self.end):
             days = opening_hours.get(dt.date(), [])
             day = next((day for day in days if day['opens'] is not None and day['opens'] <= dt <= day['closes']), None)
-            if day and not is_valid_time_slot(dt, self.resource.min_period, day['opens']):
-                raise ValidationError(_("Begin and end time must match time slots"))
+            if day and not is_valid_time_slot(dt, self.resource.slot_size, day['opens']):
+                raise ValidationError(_("Begin and end time must match time slots"), code='invalid_time_slot')
 
         original_reservation = self if self.pk else kwargs.get('original_reservation', None)
         if self.resource.check_reservation_collision(self.begin, self.end, original_reservation):
@@ -317,12 +322,12 @@ class Reservation(ModifiableModel):
 
         if (self.end - self.begin) < self.resource.min_period:
             raise ValidationError(_("The minimum reservation length is %(min_period)s") %
-                                  {'min_period': humanize_duration(self.min_period)})
+                                  {'min_period': humanize_duration(self.resource.min_period)})
 
         if self.access_code:
             validate_access_code(self.access_code, self.resource.access_code_type)
 
-    def get_notification_context(self, language_code, user=None):
+    def get_notification_context(self, language_code, user=None, notification_type=None):
         if not user:
             user = self.user
         with translation.override(language_code):
@@ -343,18 +348,45 @@ class Reservation(ModifiableModel):
             }
             if self.resource.unit:
                 context['unit'] = self.resource.unit.name
+                context['unit_id'] = self.resource.unit.id
             if self.can_view_access_code(user) and self.access_code:
                 context['access_code'] = self.access_code
-            if self.resource.reservation_confirmed_notification_extra:
-                context['extra_content'] = self.resource.reservation_confirmed_notification_extra
+
+            if notification_type == NotificationType.RESERVATION_CONFIRMED:
+                if self.resource.reservation_confirmed_notification_extra:
+                    context['extra_content'] = self.resource.reservation_confirmed_notification_extra
+            elif notification_type == NotificationType.RESERVATION_REQUESTED:
+                if self.resource.reservation_requested_notification_extra:
+                    context['extra_content'] = self.resource.reservation_requested_notification_extra
+
+            # Get last main and ground plan images. Normally there shouldn't be more than one of each
+            # of those images.
+            images = self.resource.images.filter(type__in=('main', 'ground_plan')).order_by('-sort_order')
+            main_image = next((i for i in images if i.type == 'main'), None)
+            ground_plan_image = next((i for i in images if i.type == 'ground_plan'), None)
+
+            if main_image:
+                main_image_url = main_image.get_full_url()
+                if main_image_url:
+                    context['resource_main_image_url'] = main_image_url
+            if ground_plan_image:
+                ground_plan_image_url = ground_plan_image.get_full_url()
+                if ground_plan_image_url:
+                    context['resource_ground_plan_image_url'] = ground_plan_image_url
+
         return context
 
-    def send_reservation_mail(self, notification_type, user=None):
+    def send_reservation_mail(self, notification_type, user=None, attachments=None):
         """
         Stuff common to all reservation related mails.
 
         If user isn't given use self.user.
         """
+        try:
+            notification_template = NotificationTemplate.objects.get(type=notification_type)
+        except NotificationTemplate.DoesNotExist:
+            return
+
         if user:
             email_address = user.email
         else:
@@ -364,15 +396,21 @@ class Reservation(ModifiableModel):
             user = self.user
 
         language = user.get_preferred_language() if user else DEFAULT_LANG
-        context = self.get_notification_context(language)
+        context = self.get_notification_context(language, notification_type=notification_type)
 
         try:
-            rendered_notification = render_notification_template(notification_type, context, language)
+            rendered_notification = notification_template.render(context, language)
         except NotificationTemplateException as e:
             logger.error(e, exc_info=True, extra={'user': user.uuid})
             return
 
-        send_respa_mail(email_address, rendered_notification['subject'], rendered_notification['body'])
+        send_respa_mail(
+            email_address,
+            rendered_notification['subject'],
+            rendered_notification['body'],
+            rendered_notification['html_body'],
+            attachments
+        )
 
     def send_reservation_requested_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_REQUESTED)
@@ -388,22 +426,39 @@ class Reservation(ModifiableModel):
         self.send_reservation_mail(NotificationType.RESERVATION_DENIED)
 
     def send_reservation_confirmed_mail(self):
-        self.send_reservation_mail(NotificationType.RESERVATION_CONFIRMED)
+        reservations = [self]
+        ical_file = build_reservations_ical_file(reservations)
+        attachment = ('reservation.ics', ical_file, 'text/calendar')
+        self.send_reservation_mail(NotificationType.RESERVATION_CONFIRMED,
+                                   attachments=[attachment])
 
     def send_reservation_cancelled_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_CANCELLED)
 
+    def send_reservation_created_mail(self):
+        reservations = [self]
+        ical_file = build_reservations_ical_file(reservations)
+        attachment = 'reservation.ics', ical_file, 'text/calendar'
+        self.send_reservation_mail(NotificationType.RESERVATION_CREATED,
+                                   attachments=[attachment])
+
     def send_reservation_created_with_access_code_mail(self):
-        self.send_reservation_mail(NotificationType.RESERVATION_CREATED_WITH_ACCESS_CODE)
+        reservations = [self]
+        ical_file = build_reservations_ical_file(reservations)
+        attachment = 'reservation.ics', ical_file, 'text/calendar'
+        self.send_reservation_mail(NotificationType.RESERVATION_CREATED_WITH_ACCESS_CODE,
+                                   attachments=[attachment])
+
+    def send_access_code_created_mail(self):
+        self.send_reservation_mail(NotificationType.RESERVATION_ACCESS_CODE_CREATED)
 
     def save(self, *args, **kwargs):
         self.duration = DateTimeTZRange(self.begin, self.end, '[)')
 
-        access_code_type = self.resource.access_code_type
-        if not self.resource.is_access_code_enabled():
-            self.access_code = ''
-        elif not self.access_code:
-            self.access_code = generate_access_code(access_code_type)
+        if not self.access_code:
+            access_code_type = self.resource.access_code_type
+            if self.resource.is_access_code_enabled() and self.resource.generate_access_codes:
+                self.access_code = generate_access_code(access_code_type)
 
         return super().save(*args, **kwargs)
 

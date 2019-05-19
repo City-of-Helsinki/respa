@@ -7,13 +7,14 @@ import pytz
 from arrow.parser import ParserError
 
 from django import forms
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from django.urls import reverse
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
 from resources.pagination import PurposePagination
 from rest_framework import exceptions, filters, mixins, serializers, viewsets, response, status
-from rest_framework.decorators import detail_route
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.decorators import action
 from guardian.core import ObjectPermissionChecker
 
 from munigeo import api as munigeo_api
@@ -22,10 +23,13 @@ from resources.models import (
     TermsOfUse, Equipment, ReservationMetadataSet, ResourceDailyOpeningHours
 )
 from resources.models.resource import determine_hours_time_range
+
+from ..auth import is_general_admin, is_staff
 from .base import TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
 from .reservation import ReservationSerializer
 from .unit import UnitSerializer
 from .equipment import EquipmentSerializer
+from rest_framework.settings import api_settings as drf_settings
 
 
 def parse_query_time_range(params):
@@ -65,7 +69,7 @@ class PurposeViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = PurposePagination
 
     def get_queryset(self):
-        if self.request.user.is_staff:
+        if is_staff(self.request.user):
             return self.queryset
         else:
             return self.queryset.filter(public=True)
@@ -81,7 +85,7 @@ class ResourceTypeSerializer(TranslatedModelSerializer):
 
 
 class ResourceTypeFilterSet(django_filters.FilterSet):
-    resource_group = django_filters.Filter(name='resource__groups__identifier', lookup_expr='in',
+    resource_group = django_filters.Filter(field_name='resource__groups__identifier', lookup_expr='in',
                                            widget=django_filters.widgets.CSVWidget, distinct=True)
 
     class Meta:
@@ -93,7 +97,8 @@ class ResourceTypeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ResourceType.objects.all()
     serializer_class = ResourceTypeSerializer
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
-    filter_class = ResourceTypeFilterSet
+    filterset_class = ResourceTypeFilterSet
+
 
 register_view(ResourceTypeViewSet, 'type')
 
@@ -153,8 +158,12 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     required_reservation_extra_fields = serializers.ReadOnlyField(source='get_required_reservation_extra_field_names')
     is_favorite = serializers.SerializerMethodField()
     generic_terms = serializers.SerializerMethodField()
-    reservable_days_in_advance = serializers.ReadOnlyField(source='get_reservable_days_in_advance')
+    # deprecated, backwards compatibility
+    reservable_days_in_advance = serializers.ReadOnlyField(source='get_reservable_max_days_in_advance')
+    reservable_max_days_in_advance = serializers.ReadOnlyField(source='get_reservable_max_days_in_advance')
     reservable_before = serializers.SerializerMethodField()
+    reservable_min_days_in_advance = serializers.ReadOnlyField(source='get_reservable_min_days_in_advance')
+    reservable_after = serializers.SerializerMethodField()
 
     def get_user_permissions(self, obj):
         request = self.context.get('request', None)
@@ -180,6 +189,15 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
             return None
         else:
             return obj.get_reservable_before()
+
+    def get_reservable_after(self, obj):
+        request = self.context.get('request')
+        user = request.user if request else None
+
+        if user and obj.is_admin(user):
+            return None
+        else:
+            return obj.get_reservable_after()
 
     def to_representation(self, obj):
         # we must parse the time parameters before serializing
@@ -270,7 +288,8 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
 
     class Meta:
         model = Resource
-        exclude = ('reservation_confirmed_notification_extra', 'access_code_type', 'reservation_metadata_set')
+        exclude = ('reservation_requested_notification_extra', 'reservation_confirmed_notification_extra',
+                   'access_code_type', 'reservation_metadata_set')
 
 
 class ResourceDetailsSerializer(ResourceSerializer):
@@ -284,7 +303,7 @@ class ParentFilter(django_filters.Filter):
 
     def filter(self, qs, value):
         child_matches = super().filter(qs, value)
-        self.name = self.name.replace('__id', '__parent__id')
+        self.field_name = self.field_name.replace('__id', '__parent__id')
         parent_matches = super().filter(qs, value)
         return child_matches | parent_matches
 
@@ -298,22 +317,40 @@ class ResourceFilterSet(django_filters.FilterSet):
         self.user = kwargs.pop('user')
         super().__init__(*args, **kwargs)
 
-    purpose = ParentCharFilter(name='purposes__id', lookup_expr='iexact')
-    type = django_filters.Filter(name='type__id', lookup_expr='in', widget=django_filters.widgets.CSVWidget)
-    people = django_filters.NumberFilter(name='people_capacity', lookup_expr='gte')
-    need_manual_confirmation = django_filters.BooleanFilter(name='need_manual_confirmation',
+    purpose = ParentCharFilter(field_name='purposes__id', lookup_expr='iexact')
+    type = django_filters.Filter(field_name='type__id', lookup_expr='in', widget=django_filters.widgets.CSVWidget)
+    people = django_filters.NumberFilter(field_name='people_capacity', lookup_expr='gte')
+    need_manual_confirmation = django_filters.BooleanFilter(field_name='need_manual_confirmation',
                                                             widget=DRFFilterBooleanWidget)
     is_favorite = django_filters.BooleanFilter(method='filter_is_favorite', widget=DRFFilterBooleanWidget)
-    unit = django_filters.CharFilter(name='unit__id', lookup_expr='iexact')
-    resource_group = django_filters.Filter(name='groups__identifier', lookup_expr='in',
+    unit = django_filters.CharFilter(field_name='unit__id', lookup_expr='iexact')
+    resource_group = django_filters.Filter(field_name='groups__identifier', lookup_expr='in',
                                            widget=django_filters.widgets.CSVWidget, distinct=True)
-    equipment = django_filters.Filter(name='resource_equipment__equipment__id', lookup_expr='in',
+    equipment = django_filters.Filter(field_name='resource_equipment__equipment__id', lookup_expr='in',
                                       widget=django_filters.widgets.CSVWidget, distinct=True)
     available_between = django_filters.Filter(method='filter_available_between',
                                               widget=django_filters.widgets.CSVWidget)
+    free_of_charge = django_filters.BooleanFilter(method='filter_free_of_charge',
+                                                  widget=DRFFilterBooleanWidget)
+    municipality = django_filters.Filter(field_name='unit__municipality_id', lookup_expr='in',
+                                         widget=django_filters.widgets.CSVWidget, distinct=True)
+    order_by = django_filters.OrderingFilter(
+        fields=(
+            ('name_fi', 'resource_name_fi'),
+            ('name_en', 'resource_name_en'),
+            ('name_sv', 'resource_name_sv'),
+            ('unit__name_fi', 'unit_name_fi'),
+            ('unit__name_en', 'unit_name_en'),
+            ('unit__name_sv', 'unit_name_sv'),
+            ('type__name_fi', 'type_name_fi'),
+            ('type__name_en', 'type_name_en'),
+            ('type__name_sv', 'type_name_sv'),
+            ('people_capacity', 'people_capacity'),
+        ),
+    )
 
     def filter_is_favorite(self, queryset, name, value):
-        if not self.user.is_authenticated():
+        if not self.user.is_authenticated:
             if value:
                 return queryset.none()
             else:
@@ -324,13 +361,58 @@ class ResourceFilterSet(django_filters.FilterSet):
         else:
             return queryset.exclude(favorited_by=self.user)
 
+    def filter_free_of_charge(self, queryset, name, value):
+        qs = Q(min_price_per_hour__lte=0) | Q(min_price_per_hour__isnull=True)
+        if value:
+            return queryset.filter(qs)
+        else:
+            return queryset.exclude(qs)
+
     def _deserialize_datetime(self, value):
         try:
             return arrow.get(value).datetime
         except ParserError:
             raise exceptions.ParseError("'%s' must be a timestamp in ISO 8601 format" % value)
 
-    def _is_resource_open(self, resource, start, end):
+    def filter_available_between(self, queryset, name, value):
+        if len(value) < 2 or len(value) > 3:
+            raise exceptions.ParseError('available_between takes two or three comma-separated values.')
+
+        available_start = self._deserialize_datetime(value[0])
+        available_end = self._deserialize_datetime(value[1])
+
+        if available_start.date() != available_end.date():
+            raise exceptions.ParseError('available_between timestamps must be on the same day.')
+        overlapping_reservations = Reservation.objects.filter(
+            resource__in=queryset, end__gt=available_start, begin__lt=available_end
+        ).current()
+
+        if len(value) == 2:
+            return self._filter_available_between_whole_range(
+                queryset, overlapping_reservations, available_start, available_end
+            )
+        else:
+            try:
+                period = datetime.timedelta(minutes=int(value[2]))
+            except ValueError:
+                raise exceptions.ParseError('available_between period must be an integer.')
+            return self._filter_available_between_with_period(
+                queryset, overlapping_reservations, available_start, available_end, period
+            )
+
+    def _filter_available_between_whole_range(self, queryset, reservations, available_start, available_end):
+        # exclude resources that have reservation(s) overlapping with the available_between range
+        queryset = queryset.exclude(reservations__in=reservations)
+        closed_resource_ids = {
+            resource.id
+            for resource in queryset
+            if not self._is_resource_open(resource, available_start, available_end)
+        }
+
+        return queryset.exclude(id__in=closed_resource_ids)
+
+    @staticmethod
+    def _is_resource_open(resource, start, end):
         opening_hours = resource.get_opening_hours(start, end)
         if len(opening_hours) > 1:
             # range spans over multiple days, assume resources aren't open all night and skip the resource
@@ -347,32 +429,76 @@ class ResourceFilterSet(django_filters.FilterSet):
 
         return True
 
-    def filter_available_between(self, queryset, name, value):
-        if len(value) != 2:
-            raise exceptions.ParseError('available_between takes exactly two comma-separated values.')
+    def _filter_available_between_with_period(self, queryset, reservations, available_start, available_end, period):
+        reservations = reservations.order_by('begin').select_related('resource')
 
-        available_start = self._deserialize_datetime(value[0])
-        available_end = self._deserialize_datetime(value[1])
+        reservations_by_resource = collections.defaultdict(list)
+        for reservation in reservations:
+            reservations_by_resource[reservation.resource_id].append(reservation)
 
-        if available_start.date() != available_end.date():
-            raise exceptions.ParseError('available_between timestamps must be on the same day.')
+        available_resources = set()
 
-        # exclude resources that have reservation(s) overlapping with the available_between range
-        overlapping_reservations = Reservation.objects.filter(
-            resource__in=queryset, end__gt=available_start, begin__lt=available_end
-        ).current()
-        queryset = queryset.exclude(reservations__in=overlapping_reservations)
-        closed_resource_ids = {
-            resource.id
-            for resource in queryset
-            if not self._is_resource_open(resource, available_start, available_end)
-        }
+        hours_qs = ResourceDailyOpeningHours.objects.filter(
+            open_between__overlap=(available_start, available_end, '[)'))
 
-        return queryset.exclude(id__in=closed_resource_ids)
+        # check the resources one by one to determine which ones have open slots
+        for resource in queryset.prefetch_related(None).prefetch_related(
+                Prefetch('opening_hours', queryset=hours_qs, to_attr='prefetched_opening_hours')):
+            reservations = reservations_by_resource[resource.id]
+
+            if self._is_resource_available(resource, available_start, available_end, reservations, period):
+                available_resources.add(resource.id)
+
+        return queryset.filter(id__in=available_resources)
+
+    @staticmethod
+    def _is_resource_available(resource, available_start, available_end, reservations, period):
+        opening_hours = resource.get_opening_hours(available_start, available_end, resource.prefetched_opening_hours)
+        hours = next(iter(opening_hours.values()))[0]  # assume there is only one hours obj per day
+
+        if not (hours['opens'] or hours['closes']):
+            return False
+
+        current = max(available_start, hours['opens']) if hours['opens'] is not None else available_start
+        end = min(available_end, hours['closes']) if hours['closes'] is not None else available_end
+
+        if current >= end:
+            # the resource is already closed
+            return False
+
+        if not reservations:
+            # the resource has no reservations, just check if the period fits in the resource's opening times
+            if end - current >= period:
+                return True
+            return False
+
+        # try to find an open slot between reservations and opening / closing times.
+        # start from period start time or opening time depending on which one is earlier.
+        for reservation in reservations:
+            if reservation.end <= current:
+                # this reservation is in the past
+                continue
+            if reservation.begin - current >= period:
+                # found an open slot before the reservation currently being examined
+                return True
+            if reservation.end > end:
+                # the reservation currently being examined ends after the period or closing time,
+                # so no free slots
+                return False
+            # did not find an open slot before the reservation currently being examined,
+            # proceed to next reservation
+            current = reservation.end
+        else:
+            # all reservations checked and no free slot found, check if there is a free slot after the last
+            # reservation
+            if end - reservation.end >= period:
+                return True
+
+        return False
 
     class Meta:
         model = Resource
-        fields = ['purpose', 'type', 'people', 'need_manual_confirmation', 'is_favorite', 'unit', 'available_between']
+        fields = ['purpose', 'type', 'people', 'need_manual_confirmation', 'is_favorite', 'unit', 'available_between', 'min_price_per_hour']
 
 
 class ResourceFilterBackend(filters.BaseFilterBackend):
@@ -414,6 +540,7 @@ class LocationFilterBackend(filters.BaseFilterBackend):
             q = Q(location__distance_lte=(point, distance)) | Q(unit__location__distance_lte=(point, distance))
             queryset = queryset.filter(q)
         return queryset
+
 
 class ResourceCacheMixin:
     def _preload_opening_hours(self, times):
@@ -490,11 +617,19 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
     queryset = Resource.objects.select_related('generic_terms', 'unit', 'type', 'reservation_metadata_set')
     queryset = queryset.prefetch_related('favorited_by', 'resource_equipment', 'resource_equipment__equipment',
                                          'purposes', 'images', 'purposes', 'groups')
-    serializer_class = ResourceSerializer
     filter_backends = (filters.SearchFilter, ResourceFilterBackend, LocationFilterBackend)
     search_fields = ('name_fi', 'description_fi', 'unit__name_fi',
                      'name_sv', 'description_sv', 'unit__name_sv',
                      'name_en', 'description_en', 'unit__name_en')
+    authentication_classes = (
+        list(drf_settings.DEFAULT_AUTHENTICATION_CLASSES) +
+        [SessionAuthentication])
+
+    def get_serializer_class(self):
+        query_params = self.request.query_params
+        if query_params.get('include') == 'unit_detail':
+            return ResourceDetailsSerializer
+        return ResourceSerializer
 
     def get_serializer(self, page, *args, **kwargs):
         self._page = page
@@ -506,10 +641,7 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
         return context
 
     def get_queryset(self):
-        if self.request.user.is_staff:
-            return self.queryset
-        else:
-            return self.queryset.filter(public=True)
+        return self.queryset.visible_for(self.request.user)
 
 
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
@@ -527,17 +659,13 @@ class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
         return context
 
     def get_queryset(self):
-        if self.request.user.is_staff:
-            return self.queryset
-        else:
-            return self.queryset.filter(public=True)
+        return self.queryset.visible_for(self.request.user)
 
     def _set_favorite(self, request, value):
         resource = self.get_object()
         user = request.user
 
         exists = user.favorite_resources.filter(id=resource.id).exists()
-
         if value:
             if not exists:
                 user.favorite_resources.add(resource)
@@ -551,11 +679,11 @@ class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
             else:
                 return response.Response(status=status.HTTP_304_NOT_MODIFIED)
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def favorite(self, request, pk=None):
         return self._set_favorite(request, True)
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def unfavorite(self, request, pk=None):
         return self._set_favorite(request, False)
 

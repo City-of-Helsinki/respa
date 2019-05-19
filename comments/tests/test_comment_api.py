@@ -1,7 +1,8 @@
 import pytest
 from django.contrib.contenttypes.models import ContentType
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core import mail
+from django.test.utils import override_settings
 from guardian.shortcuts import assign_perm
 
 from caterings.models import CateringOrder
@@ -118,8 +119,11 @@ def test_comment_endpoints_get(user_api_client, user, catering_order_comment, en
     assert data['text'] == 'test catering order comment text'
 
 
+@override_settings(RESPA_MAILS_ENABLED=True)
 @pytest.mark.django_db
-def test_reservation_comment_create(user_api_client, user, staff_user, reservation, new_reservation_comment_data):
+def test_reservation_comment_create(
+        user_api_client, user, general_admin,
+        reservation, new_reservation_comment_data):
     COMMENT_CREATED_BODY = """Target type: {{ target_type }}
 Created by: {{ created_by.display_name }}
 Created at: {{ created_at|format_datetime }}
@@ -165,7 +169,7 @@ Reservation: {{ reservation|reservation_time }}
                                unit.manager_email, strings)
 
     # Next make sure that a comment by another user reaches the reserver
-    user_api_client.force_authenticate(user=staff_user)
+    user_api_client.force_authenticate(user=general_admin)
     response = user_api_client.post(LIST_URL, data=new_reservation_comment_data)
     assert response.status_code == 201
     assert Comment.objects.count() == 2
@@ -365,9 +369,11 @@ def test_non_commentable_model_comments_hidden(user_api_client, resource_group, 
     assert not response.data['results']
 
 
+@override_settings(RESPA_MAILS_ENABLED=True)
 @pytest.mark.django_db
-def test_catering_order_comment_create(user_api_client, user, staff_user, catering_order,
-                                       new_catering_order_comment_data):
+def test_catering_order_comment_create2(
+        user_api_client, user, general_admin, catering_order,
+        new_catering_order_comment_data):
     COMMENT_CREATED_BODY = """Target type: {{ target_type }}
 Created by: {{ created_by.display_name }}
 Created at: {{ created_at|format_datetime }}
@@ -412,7 +418,7 @@ Serving time: {{ catering_order.serving_time }}
                                provider.notification_email, strings)
 
     # Next make sure that a comment by another user reaches the reserver
-    user_api_client.force_authenticate(user=staff_user)
+    user_api_client.force_authenticate(user=general_admin)
     response = user_api_client.post(LIST_URL, data=new_catering_order_comment_data)
     assert response.status_code == 201
     assert Comment.objects.count() == 2

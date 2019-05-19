@@ -1,0 +1,16 @@
+{% load i18n %}
+
+<div class="checkbox-row ">
+    <div class="custom-checkbox checkbox-inline">
+        <input
+            class="custom-checkbox"
+            id="{{ widget.attrs.id }}"
+            type="checkbox"
+            name="{{ widget.name }}"
+            {% if widget.value != None %}value="{{ widget.value|stringformat:'s' }}"{% endif %}
+            {% include "django/forms/widgets/attrs.html" %}
+        >
+
+        <label for="{{ widget.attrs.id }}" class="checkbox-custom-label input-label">{% trans "Closed" %}</label>
+    </div>
+</div>

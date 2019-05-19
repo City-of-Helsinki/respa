@@ -2,7 +2,7 @@
 import pytest
 
 from resources.models import ResourceGroup, ResourceType
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from .utils import assert_response_objects, check_only_safe_methods_allowed
 
@@ -44,13 +44,13 @@ def test_resource_group_filter(api_client, resource_in_unit, resource_in_unit2, 
     space_resource_type.delete()
 
     group_1 = ResourceGroup.objects.create(name='test group 1', identifier='test_group_1')
-    resource_in_unit.groups = [group_1]
+    resource_in_unit.groups.set([group_1])
 
     group_2 = ResourceGroup.objects.create(name='test group 2', identifier='test_group_2')
-    resource_in_unit2.groups = [group_1, group_2]
+    resource_in_unit2.groups.set([group_1, group_2])
 
     group_3 = ResourceGroup.objects.create(name='test group 3', identifier='test_group_3')
-    resource_in_unit3.groups = [group_3]
+    resource_in_unit3.groups.set([group_3])
 
     response = api_client.get(list_url)
     assert response.status_code == 200

@@ -1,0 +1,37 @@
+{% load i18n %}
+
+<div id="general-info">
+    <div class="form-section-header">
+        <h2>{% trans "General information"  %}</h2>
+        <span class="pull-right">{% trans "*Mandatory Fields" %}</span>
+    </div>
+    <div class="input-row dropdown-row">
+        {% include "respa_admin/forms/_select.html" with field=form.unit inline=True %}
+        {% include "respa_admin/forms/_select.html" with field=form.type inline=True %}
+    </div>
+    <div class="usage">
+        <h4>{% trans "Purposes" %}</h4>
+        {% include "respa_admin/forms/_errors.html" with field=form.purposes %}
+        {{ form.purposes }}
+    </div>
+    <div class="description">
+        <h4>{% trans "Name and description" %}</h4>
+        {% include "respa_admin/forms/_input.html" with field=form.name_fi %}
+        {% include "respa_admin/forms/_input.html" with field=form.name_en %}
+        {% include "respa_admin/forms/_input.html" with field=form.name_sv %}
+
+        {% include "respa_admin/forms/_textarea_input.html" with field=form.description_fi %}
+        {% include "respa_admin/forms/_textarea_input.html" with field=form.description_en %}
+        {% include "respa_admin/forms/_textarea_input.html" with field=form.description_sv %}
+    </div>
+    <div class="contact-person">
+        <h4>{% trans "Contact person" %}</h4>
+        <p>{% trans "Contact person information is only for internal use." %}</p>
+        {% include "respa_admin/forms/_textarea_input.html" with field=form.responsible_contact_info_fi %}
+        {% include "respa_admin/forms/_textarea_input.html" with field=form.responsible_contact_info_en %}
+        {% include "respa_admin/forms/_textarea_input.html" with field=form.responsible_contact_info_sv %}
+    </div>
+    <div class="external-calendar">
+        <h4>{% trans "External calendar" %}</h4>
+        {% include "respa_admin/forms/_input.html" with field=form.external_reservation_url %}
+</div>

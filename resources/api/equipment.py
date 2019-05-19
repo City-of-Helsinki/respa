@@ -48,7 +48,7 @@ class EquipmentSerializer(TranslatedModelSerializer):
 
 
 class EquipmentFilterSet(django_filters.FilterSet):
-    resource_group = django_filters.Filter(name='resource_equipment__resource__groups__identifier', lookup_expr='in',
+    resource_group = django_filters.Filter(field_name='resource_equipment__resource__groups__identifier', lookup_expr='in',
                                            widget=django_filters.widgets.CSVWidget, distinct=True)
 
     class Meta:
@@ -60,7 +60,7 @@ class EquipmentViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Equipment.objects.all()
     serializer_class = EquipmentSerializer
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
-    filter_class = EquipmentFilterSet
+    filterset_class = EquipmentFilterSet
 
 
 register_view(EquipmentViewSet, 'equipment')
