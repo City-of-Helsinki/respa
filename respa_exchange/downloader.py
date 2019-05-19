@@ -62,7 +62,7 @@ def _populate_reservation(reservation, ex_resource, item_props, ex_reservation=N
         reservation.reserver_name = name or ''
         reservation.host_name = reservation.reserver_name
     else:
-        reserver_name = item_props.get('reserver_name', None) or ''
+        reserver_name = item_props.get('reserver_name') or ''
         reservation.reserver_name = reserver_name
         reservation.host_name = reserver_name
 
@@ -352,6 +352,8 @@ def sync_from_exchange(ex_resource, future_days=365, no_op=False):
     )
 
     if no_op:
+        with configure_scope() as scope:
+            scope.remove_extra('resource')
         return
 
     # First handle deletions . . .
