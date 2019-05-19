@@ -261,6 +261,10 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
             rv_list = get_resource_reservations_queryset(self.context['start'], self.context['end'])
             rv_list = rv_list.filter(resource=obj)
 
+        rv_list = list(rv_list)
+        if not rv_list:
+            return []
+
         rv_ser_list = ReservationSerializer(rv_list, many=True, context=self.context).data
         return rv_ser_list
 
