@@ -16,7 +16,8 @@ from respa_exchange.ews.calendar import GetCalendarItemsRequest, FindCalendarIte
 from respa_exchange.ews.user import ResolveNamesRequest
 from respa_exchange.ews.objs import ItemID
 from respa_exchange.ews.xml import NAMESPACES
-from respa_exchange.models import ExchangeReservation, ExchangeUser, ExchangeUserX500Address
+from respa_exchange.models import ExchangeReservation, ExchangeUser, \
+    ExchangeUserX500Address, ExchangeResource
 
 log = logging.getLogger(__name__)
 
@@ -313,6 +314,11 @@ def sync_from_exchange(ex_resource, future_days=365, no_op=False):
     :param no_op: If True, do not save the reservations
     :type no_op: bool
     """
+
+    # To avoid race conditions with the Respa API processes, we lock the
+    # resource on database level before starting sync.
+    ex_resource = ExchangeResource.objects.select_for_update().get(id=ex_resource.id)
+
     if not ex_resource.sync_to_respa and not no_op:
         return
     start_date = now().replace(hour=0, minute=0, second=0)
