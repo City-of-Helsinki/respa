@@ -25,7 +25,7 @@ def element_to_string(elem):
     return etree.tostring(elem, pretty_print=True, encoding=str)
 
 
-def _populate_reservation(reservation, ex_resource, item_props):
+def _populate_reservation(reservation, ex_resource, item_props, ex_reservation=None):
     """
     Populate a Reservation instance based on Exchange data
 
@@ -36,6 +36,13 @@ def _populate_reservation(reservation, ex_resource, item_props):
     """
     reservation.begin = item_props['start']
     reservation.end = item_props['end']
+    reservation._from_exchange = True  # Set a flag to prevent immediate re-upload
+
+    # If the reservation does not originate from Exchange, we don't
+    # allow editing anything else except the begin and end times.
+    if ex_reservation is not None and not ex_reservation.managed_in_exchange:
+        return
+
     subject = item_props['subject']
     if subject is None:
         with push_scope() as scope:
@@ -60,17 +67,15 @@ def _populate_reservation(reservation, ex_resource, item_props):
 
     comment_text = "Synchronized from Exchange %s" % ex_resource.exchange
     reservation.comments = comment_text
-    reservation._from_exchange = True  # Set a flag to prevent immediate re-upload
-
-    return reservation
 
 
 def _update_reservation_from_exchange(item_id, ex_reservation, ex_resource, item_props):
     reservation = ex_reservation.reservation
-    _populate_reservation(reservation, ex_resource, item_props)
+    _populate_reservation(reservation, ex_resource, item_props, ex_reservation)
     reservation.save()
     ex_reservation.item_id = item_id
-    ex_reservation.organizer = item_props.get("organizer")
+    if not ex_reservation.managed_in_exchange:
+        ex_reservation.organizer = item_props.get("organizer")
     ex_reservation.save()
 
     log.info("Updated: %s", ex_reservation)
