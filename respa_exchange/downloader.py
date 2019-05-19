@@ -291,6 +291,9 @@ def fetch_reservation_data(ex_reservation):
     )
     session = ex_reservation.exchange.get_ews_session()
     items = [item for item in gcir.send(session)]
+    if len(items) == 0:
+        return None
+
     assert len(items) == 1, "Exchange returned %d items instead of 1" % (len(items))
     return items[0]
 
