@@ -67,7 +67,7 @@ class Product(models.Model):
     )
     tax_percentage = models.DecimalField(
         verbose_name=_('tax percentage'), max_digits=5, decimal_places=2, default=DEFAULT_TAX_PERCENTAGE,
-        choices=[(tax, tax) for tax in TAX_PERCENTAGES]
+        choices=[(tax, str(tax)) for tax in TAX_PERCENTAGES]
     )
     price_type = models.CharField(
         max_length=32, verbose_name=_('price type'), choices=PRICE_TYPE_CHOICES, default=PER_HOUR

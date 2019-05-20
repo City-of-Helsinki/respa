@@ -30,6 +30,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='product',
             name='tax_percentage',
-            field=models.DecimalField(choices=[(Decimal('0.00'), Decimal('0.00')), (Decimal('10.00'), Decimal('10.00')), (Decimal('14.00'), Decimal('14.00')), (Decimal('24.00'), Decimal('24.00'))], decimal_places=2, default=Decimal('24.00'), max_digits=5, verbose_name='tax percentage'),
+            field=models.DecimalField(choices=[(Decimal('0.00'), '0.00'), (Decimal('10.00'), '10.00'), (Decimal('14.00'), '14.00'), (Decimal('24.00'), '24.00')], decimal_places=2, default=Decimal('24.00'), max_digits=5, verbose_name='tax percentage'),
         ),
     ]

@@ -19,6 +19,7 @@ from .providers.bambora_payform import (
 class ProductSerializer(TranslatedModelSerializer):
     id = serializers.CharField(source='product_id')
     price = serializers.CharField(source='get_price')
+    tax_percentage = serializers.CharField()
 
     class Meta:
         model = Product
