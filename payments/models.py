@@ -17,6 +17,15 @@ from .utils import round_price
 # benefits, so we use this sentinel value instead of None.
 ARCHIVED_AT_NONE = datetime(9999, 12, 31, tzinfo=utc)
 
+TAX_PERCENTAGES = [Decimal(x) for x in (
+    '0.00',
+    '10.00',
+    '14.00',
+    '24.00',
+)]
+
+DEFAULT_TAX_PERCENTAGE = Decimal('24.00')
+
 
 class ProductQuerySet(models.QuerySet):
     def current(self):
@@ -53,12 +62,12 @@ class Product(models.Model):
     description = models.TextField(verbose_name=_('description'), blank=True)
 
     pretax_price = models.DecimalField(
-        verbose_name=_('pretax price'), max_digits=14, decimal_places=2, default='0.00',
+        verbose_name=_('pretax price'), max_digits=14, decimal_places=2, default=Decimal('0.00'),
         validators=[MinValueValidator(0)]
     )
     tax_percentage = models.DecimalField(
-        verbose_name=_('tax percentage'), max_digits=5, decimal_places=2, default='24.00',
-        choices=(('0.00', '0.00'), ('10.00', '10.00'), ('14.00', '14.00'), ('24.00', '24.00'))
+        verbose_name=_('tax percentage'), max_digits=5, decimal_places=2, default=DEFAULT_TAX_PERCENTAGE,
+        choices=[(tax, tax) for tax in TAX_PERCENTAGES]
     )
     price_type = models.CharField(
         max_length=32, verbose_name=_('price type'), choices=PRICE_TYPE_CHOICES, default=PER_HOUR
