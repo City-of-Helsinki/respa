@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from payments.models import Order, OrderLine, Product
 from resources.api.base import register_view, TranslatedModelSerializer
 from resources.api.resource import ResourceSerializer as OriginalResourceSerializer
+from resources.api.resource import ResourceDetailsSerializer as OriginalResourceDetailsSerializer
 from .providers import get_payment_provider
 
 from .providers.bambora_payform import (
@@ -159,8 +160,8 @@ class ResourceSerializer(OriginalResourceSerializer):
     products = ProductSerializer(many=True)
 
 
-class ResourceDetailsSerializer(ResourceSerializer):
-    pass
+class ResourceDetailsSerializer(OriginalResourceDetailsSerializer):
+    products = ProductSerializer(many=True)
 
 
 def calculate_in_memory_order_line_price(order_line, begin, end):
