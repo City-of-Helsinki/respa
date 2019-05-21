@@ -47,3 +47,4 @@ django-sanitized-dump>=0.2.0
 database-sanitizer>=0.4.0
 jsonschema
 django-admin-json-editor
+factory_boy
