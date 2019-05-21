@@ -15,6 +15,7 @@ certifi==2018.11.29       # via requests
 cffi==1.11.5              # via cryptography
 chardet==3.0.4            # via requests
 click==7.0                # via pip-tools
+colorama==0.4.1           # via pytest
 coverage==4.5.2
 cryptography==2.5         # via requests-ntlm
 daemonize==2.5.0
@@ -48,6 +49,7 @@ djangorestframework-jwt==1.11.0
 djangorestframework==3.9.1
 drf-oidc-auth==0.9        # via django-helusers
 easy-thumbnails==2.5
+factory-boy==2.12.0
 faker==1.0.2
 flake8==3.6.0
 freezegun==0.3.11
