@@ -2,7 +2,9 @@ import logging
 
 import requests
 from lxml import etree
+from requests.packages.urllib3.util.retry import Retry
 from requests_ntlm import HttpNtlmAuth
+from requests.adapters import HTTPAdapter
 
 from .xml import NAMESPACES
 
@@ -45,6 +47,19 @@ class ExchangeSession(requests.Session):
         self.auth = HttpNtlmAuth(username, password)
         self.log = logging.getLogger("ExchangeSession")
 
+        # Retry the requests a couple of times in case of a connection error.
+        num_retries = 3
+        retry = Retry(
+            total=num_retries,
+            connect=num_retries,
+            read=0,
+            status=0,
+            backoff_factor=0.3,
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        self.mount('http://', adapter)
+        self.mount('https://', adapter)
+
     def _prepare_soap(self, request):
         envelope = request.envelop()
         body = etree.tostring(envelope, pretty_print=True, encoding=self.encoding)
@@ -67,7 +82,10 @@ class ExchangeSession(requests.Session):
         :type timeout: float|None|tuple[float, float]
         :rtype: lxml.etree.Element
         """
-        resp = self.post(self.url, timeout=timeout, **self._prepare_soap(request))
+
+        resp = self.post(
+            self.url, timeout=timeout, **self._prepare_soap(request)
+        )
         if resp.status_code == 500:
             try:
                 self._process_soap_response(resp.content)
