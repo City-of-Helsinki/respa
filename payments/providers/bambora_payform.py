@@ -166,32 +166,36 @@ class BamboraPayformProvider(PaymentProvider):
         if not self.check_new_payment_authcode(request):
             return self.ui_redirect_failure(return_url)
 
+        try:
+            order = Order.objects.get(order_number=request.GET['ORDER_NUMBER'])
+        except Order.DoesNotExist:
+            logger.warning('Order does not exist.')
+            return self.ui_redirect_failure(return_url)
+
         return_code = request.GET['RETURN_CODE']
         if return_code == '0':
             logger.debug('Payment completed successfully.')
-            order = Order.objects.get(order_number=request.GET['ORDER_NUMBER'])
             order.status = Order.CONFIRMED
             order.save()
-            return self.ui_redirect_success(return_url)
+            return self.ui_redirect_success(return_url, order)
         elif return_code == '1':
             logger.debug('Payment failed.')
-            order = Order.objects.get(order_number=request.GET['ORDER_NUMBER'])
             order.status = Order.REJECTED
             order.save()
-            return self.ui_redirect_failure(return_url)
+            return self.ui_redirect_failure(return_url, order)
         elif return_code == '4':
             logger.debug('Transaction status could not be updated.')
             # TODO what should we do here? description of the situation:
             # Transaction status could not be updated after customer returned from the web page of a bank.
             # Please use the merchant UI to resolve the payment status.
-            return self.ui_redirect_failure(return_url)
+            return self.ui_redirect_failure(return_url, order)
         elif return_code == '10':
             logger.debug('Maintenance break.')
             # TODO what now?
-            return self.ui_redirect_failure(return_url)
+            return self.ui_redirect_failure(return_url, order)
         else:
-            logger.debug('Incorrect RETURN_CODE "{}".'.format(return_code))
-            return self.ui_redirect_failure(return_url)
+            logger.warning('Incorrect RETURN_CODE "{}".'.format(return_code))
+            return self.ui_redirect_failure(return_url, order)
 
     def handle_notify_request(self, request):
         """Handle the asynchronous part of payform response

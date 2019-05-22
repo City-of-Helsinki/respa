@@ -1,6 +1,11 @@
+from typing import Optional
+from urllib.parse import urlencode
+
 from django.http import HttpRequest, HttpResponse, HttpResponseNotFound
 from django.shortcuts import redirect
 from django.urls import reverse
+
+from ..models import Order
 
 PAYMENT_CONFIG = 'PAYMENT_CONFIG'
 
@@ -42,22 +47,29 @@ class PaymentProvider:
         return request.build_absolute_uri(reverse('payments:notify'))
 
     @classmethod
-    def ui_redirect_success(cls, return_url: str) -> HttpResponse:
+    def ui_redirect_success(cls, return_url: str, order: Order = None) -> HttpResponse:
         """Redirect back to UI after a successful payment
 
         This should be used after a successful payment instead of the
         standard Django redirect.
         """
-        return redirect('{}?status=success'.format(return_url))
+        return cls._redirect_to_ui(return_url, 'success', order)
 
     @classmethod
-    def ui_redirect_failure(cls, return_url: str) -> HttpResponse:
+    def ui_redirect_failure(cls, return_url: str, order: Order = None) -> HttpResponse:
         """Redirect back to UI after a failed payment
 
         This should be used after a failed payment instead of the
         standard Django redirect.
         """
-        return redirect('{}?status=failure'.format(return_url))
+        return cls._redirect_to_ui(return_url, 'failure', order)
+
+    @classmethod
+    def _redirect_to_ui(cls, return_url: str, status: str, order: Optional[Order] = None):
+        params = {'payment_status': status}
+        if order:
+            params['order_id'] = order.id
+        return redirect('{}?{}'.format(return_url, urlencode(params)))
 
 
 class PaymentError(Exception):
