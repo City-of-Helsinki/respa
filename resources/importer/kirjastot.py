@@ -1,20 +1,20 @@
+import calendar
 import datetime
-from collections import namedtuple
-import calendar, datetime
-
-import requests
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from psycopg2.extras import DateRange
 import delorean
+import requests
+from collections import namedtuple
+from django.conf import settings
 from django.db import transaction
-from django.db.models import Q
-
-from resources.models import Unit, UnitIdentifier
+from raven import Client
+from resources.models import Unit
+from typing import Dict, List, Tuple
 from .base import Importer, register_importer
 
-from raven import Client
+CLOSED_HOURS = 0
+STAFFED_HOURS = 1
+SELF_SERVICE_HOURS = 2
 
-from django.conf import settings
+KIRKANTA_NAMESPACE = 'kirkanta'
 
 ProxyPeriod = namedtuple("ProxyPeriod",
                          ['start',
@@ -28,10 +28,9 @@ ProxyPeriod = namedtuple("ProxyPeriod",
 
 @register_importer
 class KirjastotImporter(Importer):
-    name = "kirjastot"
+    name = "kirjastot_v4"
 
     def import_units(self):
-        get_helmet_timetables()
         process_varaamo_libraries()
 
 
@@ -53,7 +52,8 @@ def process_varaamo_libraries():
 
     :return: None
     """
-    varaamo_units = Unit.objects.filter(identifiers__namespace="kirjastot.fi").exclude(resources__isnull=True)
+    varaamo_units = Unit.objects.filter(identifiers__namespace=KIRKANTA_NAMESPACE)
+    print(varaamo_units)
 
     start, end = get_time_range()
     problems = []
@@ -81,86 +81,6 @@ def process_varaamo_libraries():
         pass
 
 
-@transaction.atomic
-def get_helmet_timetables():
-    """
-    Old V2 API makes a return
-
-    :return:None
-    """
-    url = "https://api.kirjastot.fi/v2/search/libraries?consortium=helmet&with=periods"
-    resp = requests.get(url)
-    assert resp.status_code == 200
-    data = resp.json()  # ??
-
-    # data = [{'id': 'H53', 'periods': []}]
-
-    for unit_data in data:
-        try:
-            identifier = UnitIdentifier.objects.get(
-                namespace='helmet',
-                value=unit_data['identificator'])
-        except ObjectDoesNotExist:
-            continue
-
-        unit = identifier.unit
-        with transaction.atomic():
-            unit.periods.all().delete()
-            print("Processing periods for %s" % unit)
-            process_v2_periods(unit, unit_data)
-            unit.update_opening_hours()
-
-
-def process_v2_periods(unit, unit_data):
-
-    for period in unit_data['periods']:
-
-        if not period.get('start', False):
-            continue  # NOTE: period is supposed to have *at least* start
-
-        #  start = datetime.datetime.strptime(period['start'], '%Y-%m-%d')
-
-        start = period['start']
-
-        if not period['end']:
-            this_day = datetime.date.today()
-            end = str(datetime.date(this_day.year + 1, 12, 31))  # No end time goes to end of next year
-        else:
-            end = period['end']
-
-        active_period = unit.periods.create(
-            start=start,
-            end=end,
-            description=period['description']['fi'],
-            closed=period['closed'],
-            name=period['name']['fi']
-        )
-
-        if not period['days']:
-            continue
-
-        for day_id, day in period['days'].items():
-            try:
-                # TODO: check the data for inconsistencies
-                opens = day['opens'] or None
-                closes = day['closes'] or None
-                active_period.days.create(
-                    weekday=int(day['day']) - 1,
-                    opens=opens,
-                    closes=closes,
-                    closed=day['closed']
-                )
-            except ValidationError as e:
-                print(e)
-                print(day)
-                raise ValidationError(e)
-
-        # TODO: automagic closing checker
-        # One day equals one period and share same closing state
-        active_period.closed = period.get('closed')
-        active_period.save()
-
-
 def timetable_fetcher(unit, start='2016-07-01', end='2016-12-31'):
     """
     Fetch periods using kirjastot.fi's new v3 API
@@ -180,46 +100,38 @@ def timetable_fetcher(unit, start='2016-07-01', end='2016-12-31'):
     :return: dict|None
     """
 
-    base = "https://api.kirjastot.fi/v3/organisation"
+    base_url = "https://api.kirjastot.fi/v4/library"
+    #supported_namespaces = ("kirjastot.fi", "helmet")
+    supported_namespaces = ("kirkanta")
 
     for identificator in unit.identifiers.all():
 
-        if identificator.namespace == 'kirjastot.fi':
-            params = {
-                "id": identificator.value,
-                "with": "extra,schedules",
-                "period.start": start,
-                "period.end": end
-            }
-        elif identificator.namespace == 'helmet':
-            params = {
-                "identificator": identificator.value,
-                "consortium": "2093",  # TODO: Helmet consortium id in v3 API
-                "with": "extra,schedules",
-                "period.start": start,
-                "period.end": end
-            }
-        else:
-            # At this stage no support for other identifier namespaces
+        if identificator.namespace not in supported_namespaces:
             continue
 
-        resp = requests.get(base, params=params)
-
-        if resp.status_code == 200:
-            data = resp.json()
+        params = {
+            "with": "schedules",
+            "period.start": start,
+            "period.end": end
+        }
+        url = "{}/{}".format(base_url, identificator.value)
+        try:
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()
+            data = response.json()
             if data["total"] > 0:
-                return data
+                return data["data"]
             else:
                 # There's possibly other identificators that might work
                 continue
-        else:
-            return False
+        except requests.exceptions.RequestException:
+            continue
 
     # No timetables were found :(
     return False
 
 
-def process_periods(data, unit):
+def process_periods(library, unit):
     """
     Generate Period and Day objects into
     given Unit from kirjastot.fi v3 API data
@@ -232,48 +144,62 @@ def process_periods(data, unit):
     :param unit: Unit
     :return: None
     """
+    schedule_days = [parse_schedule(schedule_item) for schedule_item in library['schedules']]
 
-    periods = []
-    if data['total'] != 1:
-        for item in data['items']:
-            if item['name']['fi'] == unit.name_fi:
-                break
-        else:
-            raise Exception("No data found for %s" % unit.name_fi)
-    else:
-        item = data['items'][0]
-
-    for period in item['schedules']:
-        periods.append({
-            'date': period.get('date'),
-            'day': period.get('day'),
-            'opens': period.get('opens'),
-            'closes': period.get('closes'),
-            'closed': period['closed'],
-            'description': period['info']['fi']
-        })
-
-    for period in periods:
-        nper = unit.periods.create(
-            start=period.get('date'),
-            end=period.get('date'),
-            description=period.get('description'),
-            closed=period.get('closed') or False,
-            name=period.get('description') or ''
+    for day in schedule_days:
+        period = unit.periods.create(
+            start=day['date'],
+            end=day['date'],
+            description=day['info'],
+            closed=day['closed'],
+            name=day['date'].isoformat()
         )
 
-        nper.days.create(weekday=int(period.get('day')) - 1,
-                         opens=period.get('opens'),
-                         closes=period.get('closes'),
-                         closed=period.get('closed'))
+        # this is a hack and a workaround - libraries can have many sets of opening hours,
+        # such as 09:00-12:00 and 13:00-17:00, during the same day.
+        # currently respa can handle only one opening time and one closing time during the
+        # same day, so the earliest opening time and latest closing time are selected
+        staffed_opening_hours = merge_opening_hours(day['staffed_opening_hours'])
 
-        # TODO: automagic closing checker
-        # One day equals one period and share same closing state
-        nper.closed = period.get('closed')
-        nper.save()
+        period.days.create(weekday=day['weekday'],
+                           opens=staffed_opening_hours['from'],
+                           closes=staffed_opening_hours['to'],
+                           closed=day['closed'])
 
     print("Periods processed for ", unit)
     unit.update_opening_hours()
+
+
+def parse_schedule(day_schedule: Dict[str, any]) -> Dict[str, any]:
+    date = datetime.datetime.strptime(day_schedule.get('date'), '%Y-%m-%d').date()
+    closed = day_schedule.get('closed', False)
+    info = day_schedule.get('info', '')
+    # only normal staffed opening hours synced for now.
+    # support for staffless and during day closed hours to be added.
+    staffed_opening_hours = [hours for hours in day_schedule.get('times', []) if hours['status'] == STAFFED_HOURS]
+    return {
+        'date': date,
+        'weekday': date.weekday(),
+        'closed': closed,
+        'info': info,
+        'staffed_opening_hours': staffed_opening_hours,
+    }
+
+
+def merge_opening_hours(opening_hours: List) -> Dict[str, datetime.time]:
+    """ A workaround helper that combines a list of opening times to a single
+    pair with the earliest opening and the latest closing time. """
+    opening_times = [parse_time(times['from']) for times in opening_hours]
+    closing_times = [parse_time(times['to']) for times in opening_hours]
+    return {
+        'from': min(opening_times) if opening_times else None,
+        'to': max(closing_times) if closing_times else None,
+    }
+
+
+def parse_time(time: str) -> datetime.time:
+    hour, minute = [int(num) for num in time.split(':')]
+    return datetime.time(hour=hour, minute=minute)
 
 
 def get_time_range(start=None, back=1, forward=12):
