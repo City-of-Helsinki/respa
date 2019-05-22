@@ -1,6 +1,8 @@
 #!/bin/bash
 
-if [ -z "$DOCKER_USERNAME" ]; then
+# Travis does not set secret variables, if the pull request comes
+# from outside our own repository
+if [ -z "$DOCKER_PASSWORD" ]; then
     echo "Need Docker login credentials to proceed"
     exit 0
 fi
