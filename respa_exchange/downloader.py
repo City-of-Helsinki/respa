@@ -199,6 +199,10 @@ def _find_exchange_user_by_mailbox(ex_resource, mailbox, last_updated_at=None):
             except ExchangeUser.DoesNotExist:
                 pass
 
+    if ex_user is None and props.get('email_address'):
+        ex_user = ExchangeUser.objects.filter(email_address=props.get('email_address')).first()
+
+    # If no matches based on any identifiers are found, it is a new user.
     if ex_user is None:
         ex_user = ExchangeUser(exchange=ex_resource.exchange)
 
