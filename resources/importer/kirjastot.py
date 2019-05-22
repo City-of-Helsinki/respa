@@ -1,4 +1,3 @@
-import calendar
 import datetime
 import delorean
 import requests
@@ -7,7 +6,7 @@ from django.conf import settings
 from django.db import transaction
 from raven import Client
 from resources.models import Unit
-from typing import Dict, List, Tuple
+from typing import Dict, List
 from .base import Importer, register_importer
 
 CLOSED_HOURS = 0
@@ -28,7 +27,7 @@ ProxyPeriod = namedtuple("ProxyPeriod",
 
 @register_importer
 class KirjastotImporter(Importer):
-    name = "kirjastot_v4"
+    name = "kirjastot"
 
     def import_units(self):
         process_varaamo_libraries()
@@ -53,7 +52,6 @@ def process_varaamo_libraries():
     :return: None
     """
     varaamo_units = Unit.objects.filter(identifiers__namespace=KIRKANTA_NAMESPACE)
-    print(varaamo_units)
 
     start, end = get_time_range()
     problems = []
