@@ -267,7 +267,7 @@ def _parse_item_props(ex_resource, item):
         display_to = item.find('t:DisplayTo', namespaces=NAMESPACES)
         if display_to is not None:
             reserver_name = display_to.text
-            if ';' in reserver_name:
+            if reserver_name and ';' in reserver_name:
                 reserver_name = None
         if reserver_name:
             item_props['reserver_name'] = reserver_name
