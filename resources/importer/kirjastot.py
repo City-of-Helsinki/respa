@@ -81,16 +81,11 @@ def process_varaamo_libraries():
 
 def timetable_fetcher(unit, start='2016-07-01', end='2016-12-31'):
     """
-    Fetch periods using kirjastot.fi's new v3 API
+    Fetch periods using kirjastot.fi's v4 API
 
-    v3 gives opening for each day with period id
+    v4 gives opening for each day with period id
     it originated from, thus allowing creation of
     unique periods
-
-    Data is requested first on Unit's kirjastot.fi id,
-    then helmet identificator from tprek
-
-    TODO: helmet consortium's id permanency check
 
     :param unit: Unit object of the library
     :param start: start day for required opening hours
@@ -132,13 +127,13 @@ def timetable_fetcher(unit, start='2016-07-01', end='2016-12-31'):
 def process_periods(library, unit):
     """
     Generate Period and Day objects into
-    given Unit from kirjastot.fi v3 API data
+    given Unit from kirjastot.fi v4 API data
 
     Each day in data has its own Period and Day object
     resulting in as many Periods with one Day as there is
     items in data
 
-    :param data: kirjastot.fi v3 API data form /organisation endpoint
+    :param data: kirjastot.fi v4 API data form /library endpoint
     :param unit: Unit
     :return: None
     """
@@ -200,7 +195,7 @@ def parse_time(time: str) -> datetime.time:
     return datetime.time(hour=hour, minute=minute)
 
 
-def get_time_range(start=None, back=1, forward=12):
+def get_time_range(start=None, back: int = 1, forward: int = 12):
     """
     From a starting date from back and forward
     by given amount and return start of both months
