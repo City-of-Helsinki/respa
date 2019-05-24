@@ -4,7 +4,7 @@
     <div class="form-section-header">
         <h2>{% trans "Opening hours" %}</h2>
     </div>
-
+    {% if object.opening_hours_are_editable %}
     <div class="button-row">
         <button class="btn btn-primary" type="button" id="add-new-hour">{% trans "Add new time period" %}</button>
         <div class="select-dropdown btn btn-primary">
@@ -22,4 +22,7 @@
             {% endwith %}
         {% endfor %}
     </div>
+    {% else %}
+        <p>{% trans "Opening hours of this resource are imported from an external system. You can't edit them manually." %}</p>
+    {% endif %}
 </div>

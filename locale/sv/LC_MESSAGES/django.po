@@ -703,6 +703,9 @@ msgstr ""
 "En URL till ett externt bokningssystem om den här resursen hanteras "
 "annorstädes"
 
+msgid "Opening hours are editable"
+msgstr "Öppettider är regiderbar"
+
 msgid "resource"
 msgstr "resurs"
 
@@ -1064,6 +1067,12 @@ msgstr "Lägg till en ny tidsperiod"
 
 msgid "Add general time period"
 msgstr "Lägg till allmäm tidsperiod"
+
+msgid ""
+"Opening hours of this resource are imported from an external system. You "
+"can't edit them manually."
+msgstr "Öppettider för denna resurs har importerats från ett externt system. "
+"Du kan inte regidera dem manuellt."
 
 msgid "Pricing"
 msgstr "Pris"

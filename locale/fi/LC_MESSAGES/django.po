@@ -702,6 +702,9 @@ msgid ""
 msgstr ""
 "Ulkoisen varausjärjestelmän osoite jos tätä resurssia hallitaan muualla"
 
+msgid "Opening hours are editable"
+msgstr "Aukioloajat ovat muokattavissa"
+
 msgid "resource"
 msgstr "resurssi"
 
@@ -1062,6 +1065,12 @@ msgstr "Lisää uusi aikajakso"
 
 msgid "Add general time period"
 msgstr "Lisää yleinen kausi"
+
+msgid ""
+"Opening hours of this resource are imported from an external system. You "
+"can't edit them manually."
+msgstr "Tämän resurssin aukioloajat ovat tuotu ulkoisesta järjestelmästä. "
+"Et voi muokata niitä manuaalisesti."
 
 msgid "Pricing"
 msgstr "Hinnoittelu"

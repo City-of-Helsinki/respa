@@ -232,6 +232,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         verbose_name=_('External reservation URL'),
         help_text=_('A link to an external reservation system if this resource is managed elsewhere'),
         null=True, blank=True)
+    opening_hours_are_editable = models.BooleanField(default=True, verbose_name=_('Opening hours are editable'))
 
     objects = ResourceQuerySet.as_manager()
 
