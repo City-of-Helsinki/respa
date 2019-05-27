@@ -616,7 +616,7 @@ paths:
           type: integer
       - name: resource
         in: query
-        description: Resource id, for filtering reservations by resource
+        description: Resource id, for filtering reservations by resource. Accepts multiple comma-separated values.
         schema:
           type: string
       - name: all
