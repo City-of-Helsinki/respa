@@ -165,6 +165,7 @@ class SaveResourceView(ExtraContextMixin, CreateView):
         secret = getattr(settings, 'RESPA_ADMIN_ACCESSIBILITY_API_SECRET', '')
         target_id = self.object.pk
         target_name = self.object.name
+        location_id = str(self.object.unit.id).lstrip('tprek:')  # remove prefix, use bare tprek id
         user = request.user.email or request.user.username
         return accessibility_api.generate_url(
             api_url,
@@ -173,6 +174,7 @@ class SaveResourceView(ExtraContextMixin, CreateView):
             target_name,
             user,
             secret,
+            location_id=location_id
         )
 
     def post(self, request, *args, **kwargs):
