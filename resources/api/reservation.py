@@ -334,18 +334,6 @@ class ExcludePastFilterBackend(filters.BaseFilterBackend):
         return queryset
 
 
-class ResourceFilterBackend(filters.BaseFilterBackend):
-    """
-    Filter reservations by resource.
-    """
-
-    def filter_queryset(self, request, queryset, view):
-        resource = request.query_params.get('resource', None)
-        if resource:
-            return queryset.filter(resource__id=resource)
-        return queryset
-
-
 class ReservationFilterBackend(filters.BaseFilterBackend):
     """
     Filter reservations by time.
@@ -440,6 +428,7 @@ class ReservationFilterSet(django_filters.rest_framework.FilterSet):
                                            widget=django_filters.widgets.CSVWidget, distinct=True)
     unit = django_filters.CharFilter(field_name='resource__unit_id')
     has_catering_order = django_filters.BooleanFilter(method='filter_has_catering_order', widget=DRFFilterBooleanWidget)
+    resource = django_filters.Filter(lookup_expr='in', widget=django_filters.widgets.CSVWidget)
 
     def filter_is_favorite_resource(self, queryset, name, value):
         user = self.request.user
@@ -513,9 +502,8 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         .prefetch_related('catering_orders').prefetch_related('resource__groups').order_by('begin', 'resource__unit__name', 'resource__name')
 
     serializer_class = ReservationSerializer
-    filter_backends = (DjangoFilterBackend, filters.OrderingFilter, UserFilterBackend, ResourceFilterBackend,
-                       ReservationFilterBackend, NeedManualConfirmationFilterBackend, StateFilterBackend,
-                       CanApproveFilterBackend)
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter, UserFilterBackend, ReservationFilterBackend,
+                       NeedManualConfirmationFilterBackend, StateFilterBackend, CanApproveFilterBackend)
     filterset_class = ReservationFilterSet
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
     renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, ReservationExcelRenderer)
