@@ -56,7 +56,7 @@ humanize==0.5.1           # via delorean
 icalendar==4.0.3
 idna==2.8                 # via requests
 iso8601==0.1.12
-jinja2==2.10
+jinja2==2.10.1
 jsonschema==2.6.0
 lxml==4.3.0
 markupsafe==1.1.0         # via jinja2
@@ -91,5 +91,5 @@ requests==2.21.0
 six==1.12.0
 text-unidecode==1.2       # via faker
 tzlocal==1.5.1            # via delorean
-urllib3==1.24.1           # via requests
+urllib3==1.24.2           # via requests
 xlsxwriter==1.1.2
