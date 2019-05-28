@@ -48,3 +48,4 @@ database-sanitizer>=0.4.0
 jsonschema
 django-admin-json-editor
 factory_boy
+isort

@@ -15,7 +15,6 @@ certifi==2018.11.29       # via requests
 cffi==1.11.5              # via cryptography
 chardet==3.0.4            # via requests
 click==7.0                # via pip-tools
-colorama==0.4.1           # via pytest
 coverage==4.5.2
 cryptography==2.5         # via requests-ntlm
 daemonize==2.5.0
@@ -58,6 +57,7 @@ humanize==0.5.1           # via delorean
 icalendar==4.0.3
 idna==2.8                 # via requests
 iso8601==0.1.12
+isort==4.3.20
 jinja2==2.10
 jsonschema==2.6.0
 lxml==4.3.0
