@@ -1,7 +1,6 @@
 from django.urls import path
 
-from .views import FailureView, notify_view, SuccessView
-
+from .views import FailureView, SuccessView, notify_view
 
 app_name = 'payments'
 

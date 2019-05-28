@@ -2,7 +2,7 @@ from copy import deepcopy
 
 import pytest
 
-from payments.models import Product, ARCHIVED_AT_NONE
+from payments.models import ARCHIVED_AT_NONE, Product
 
 
 @pytest.fixture(autouse=True)

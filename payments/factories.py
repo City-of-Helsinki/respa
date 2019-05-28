@@ -1,11 +1,12 @@
 
+from random import randint
+
 import factory
 import factory.fuzzy
 
-from random import randint
-
-from .models import Product, TAX_PERCENTAGES, ARCHIVED_AT_NONE, Order, OrderLine
 from resources.models.utils import generate_id
+
+from .models import ARCHIVED_AT_NONE, TAX_PERCENTAGES, Order, OrderLine, Product
 
 
 class ProductFactory(factory.django.DjangoModelFactory):
