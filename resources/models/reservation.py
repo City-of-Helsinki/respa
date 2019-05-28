@@ -84,12 +84,14 @@ class Reservation(ModifiableModel):
     CONFIRMED = 'confirmed'
     DENIED = 'denied'
     REQUESTED = 'requested'
+    WAITING_FOR_PAYMENT = 'waiting_for_payment'
     STATE_CHOICES = (
         (CREATED, _('created')),
         (CANCELLED, _('cancelled')),
         (CONFIRMED, _('confirmed')),
         (DENIED, _('denied')),
         (REQUESTED, _('requested')),
+        (WAITING_FOR_PAYMENT, _('waiting for payment')),
     )
 
     resource = models.ForeignKey('Resource', verbose_name=_('Resource'), db_index=True, related_name='reservations',
@@ -101,7 +103,7 @@ class Reservation(ModifiableModel):
     comments = models.TextField(null=True, blank=True, verbose_name=_('Comments'))
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('User'), null=True,
                              blank=True, db_index=True, on_delete=models.PROTECT)
-    state = models.CharField(max_length=16, choices=STATE_CHOICES, verbose_name=_('State'), default=CREATED)
+    state = models.CharField(max_length=32, choices=STATE_CHOICES, verbose_name=_('State'), default=CREATED)
     approver = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Approver'),
                                  related_name='approved_reservations', null=True, blank=True,
                                  on_delete=models.SET_NULL)
@@ -212,7 +214,7 @@ class Reservation(ModifiableModel):
         # Make sure it is a known state
         assert new_state in (
             Reservation.REQUESTED, Reservation.CONFIRMED, Reservation.DENIED,
-            Reservation.CANCELLED
+            Reservation.CANCELLED, Reservation.WAITING_FOR_PAYMENT
         )
 
         old_state = self.state

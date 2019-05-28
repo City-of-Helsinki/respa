@@ -21,7 +21,7 @@ def two_hour_reservation(resource_in_unit, user):
         event_subject='some fancy event',
         host_name='esko',
         reserver_name='martta',
-        state=Reservation.CONFIRMED
+        state=Reservation.WAITING_FOR_PAYMENT
     )
 
 

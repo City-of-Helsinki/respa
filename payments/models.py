@@ -31,6 +31,9 @@ class ProductQuerySet(models.QuerySet):
     def current(self):
         return self.filter(archived_at=ARCHIVED_AT_NONE)
 
+    def rents(self):
+        return self.filter(type=Product.RENT)
+
 
 class Product(models.Model):
     RENT = 'rent'
@@ -172,6 +175,23 @@ class Order(models.Model):
 
     def get_price(self) -> Decimal:
         return sum(order_line.get_price() for order_line in self.order_lines.all())
+
+    def set_status(self, new_status: str, save: bool = True) -> None:
+        assert new_status in (Order.WAITING, Order.CONFIRMED, Order.REJECTED)
+
+        old_status = self.status
+        self.status = new_status
+
+        if new_status == old_status:
+            return
+
+        if new_status == Order.CONFIRMED:
+            self.reservation.set_state(Reservation.CONFIRMED, self.reservation.user)
+        elif new_status == Order.REJECTED:
+            self.reservation.set_state(Reservation.DENIED, self.reservation.user)
+
+        if save:
+            self.save()
 
 
 class OrderLine(models.Model):

@@ -2,6 +2,11 @@ from decimal import Decimal
 
 import pytest
 
+from resources.models import Reservation
+
+from ..factories import OrderFactory
+from ..models import Order
+
 
 @pytest.fixture(autouse=True)
 def auto_use_django_db(db):
@@ -23,3 +28,16 @@ def test_get_price_correct(order_with_products):
     individual product tax of 24% should equal 49.60"""
     price = order_with_products.get_price()
     assert price == Decimal('49.60')
+
+
+@pytest.mark.parametrize('order_status, expected_reservation_state', (
+    (Order.CONFIRMED, Reservation.CONFIRMED),
+    (Order.REJECTED, Reservation.DENIED),
+))
+def test_set_status_sets_reservation_state(two_hour_reservation, order_status, expected_reservation_state):
+    order = OrderFactory(reservation=two_hour_reservation, status=Order.WAITING)
+
+    order.set_status(order_status)
+
+    two_hour_reservation.refresh_from_db()
+    assert two_hour_reservation.state == expected_reservation_state
