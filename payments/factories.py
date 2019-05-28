@@ -28,8 +28,12 @@ class ProductFactory(factory.django.DjangoModelFactory):
     name = factory.Faker('catch_phrase')
     description = factory.Faker('text')
 
-    # Optional FKs
-    # resources
+    @factory.post_generation
+    def resources(self, create, extracted, **kwargs):
+        if not create:
+            return
+        if extracted:
+            self.resources.set(extracted)
 
     class Meta:
         model = Product

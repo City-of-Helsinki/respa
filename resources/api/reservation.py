@@ -560,7 +560,10 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         if resource.need_manual_confirmation and not is_resource_manager:
             new_state = Reservation.REQUESTED
         else:
-            new_state = Reservation.CONFIRMED
+            if resource.needs_payment():
+                new_state = Reservation.WAITING_FOR_PAYMENT
+            else:
+                new_state = Reservation.CONFIRMED
 
         instance.set_state(new_state, self.request.user)
 

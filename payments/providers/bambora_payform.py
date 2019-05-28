@@ -176,13 +176,11 @@ class BamboraPayformProvider(PaymentProvider):
         return_code = request.GET['RETURN_CODE']
         if return_code == '0':
             logger.debug('Payment completed successfully.')
-            order.status = Order.CONFIRMED
-            order.save()
+            order.set_status(Order.CONFIRMED)
             return self.ui_redirect_success(return_url, order)
         elif return_code == '1':
             logger.debug('Payment failed.')
-            order.status = Order.REJECTED
-            order.save()
+            order.set_status(Order.REJECTED)
             return self.ui_redirect_failure(return_url, order)
         elif return_code == '4':
             logger.debug('Transaction status could not be updated.')
