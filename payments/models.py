@@ -88,11 +88,17 @@ class Product(models.Model):
 
     def save(self, *args, **kwargs):
         if self.id:
+            resources = self.resources.all()
             Product.objects.filter(id=self.id).update(archived_at=now())
             self.id = None
         else:
+            resources = []
             self.product_id = generate_id()
+
         super().save(*args, **kwargs)
+
+        if resources:
+            self.resources.set(resources)
 
     def delete(self, *args, **kwargs):
         Product.objects.filter(id=self.id).update(archived_at=now())
