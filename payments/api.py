@@ -1,19 +1,16 @@
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import mixins, permissions, serializers, viewsets, status, exceptions
+from rest_framework import exceptions, mixins, permissions, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from payments.models import Order, OrderLine, Product
-from resources.api.base import register_view, TranslatedModelSerializer
-from resources.api.resource import ResourceSerializer as OriginalResourceSerializer
+from resources.api.base import TranslatedModelSerializer, register_view
 from resources.api.resource import ResourceDetailsSerializer as OriginalResourceDetailsSerializer
-from .providers import get_payment_provider
+from resources.api.resource import ResourceSerializer as OriginalResourceSerializer
 
+from .providers import get_payment_provider
 from .providers.bambora_payform import (
-    ServiceUnavailableError,
-    PayloadValidationError,
-    DuplicateOrderError,
-    UnknownReturnCodeError
+    DuplicateOrderError, PayloadValidationError, ServiceUnavailableError, UnknownReturnCodeError
 )
 
 

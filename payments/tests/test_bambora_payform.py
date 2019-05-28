@@ -1,11 +1,9 @@
 import json
+
 import pytest
 
 from payments.providers.bambora_payform import (
-    BamboraPayformProvider,
-    PayloadValidationError,
-    DuplicateOrderError,
-    ServiceUnavailableError,
+    BamboraPayformProvider, DuplicateOrderError, PayloadValidationError, ServiceUnavailableError,
     UnknownReturnCodeError
 )
 

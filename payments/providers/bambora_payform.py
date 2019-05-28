@@ -1,10 +1,11 @@
-import hmac
 import hashlib
+import hmac
 import logging
-import requests
-from requests.exceptions import RequestException
 from urllib.parse import urlencode
-from django.http import HttpResponseBadRequest, HttpResponse
+
+import requests
+from django.http import HttpResponse, HttpResponseBadRequest
+from requests.exceptions import RequestException
 
 from ..models import Order, OrderLine
 from ..utils import price_as_sub_units
