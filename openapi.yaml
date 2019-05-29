@@ -1,0 +1,1252 @@
+openapi: 3.0.1
+info:
+  title: Respa
+  description: The Respa API provides categorized data on resources available for reservation within a city or metropolitan area 
+    and enables the reservation of these resources. The API provides data in the JSON format, in a RESTful fashion.
+  version: v1
+servers:
+- url: https://api.hel.fi/respa/v1
+tags:
+- name: resource
+  description: Look for available resources
+- name: reservation
+  description: Make or change your reservations
+- name: unit
+  description: Places where resources are located
+- name: equipment
+  description: Equipment available for use in the resources
+- name: filter
+  description: Properties you can use in filtering resources
+- name: search
+  description: Typeahead suggestions for objects
+paths:
+  /search/:
+    get:
+      tags:
+      - search
+      description: |-
+        Get typeahead suggestions for objects based on an arbitrary user input (the `input` query parameter).
+        Currently supported are "resource" and "unit".
+      parameters:
+      - name: input
+        in: query
+        description: Query search parameter
+        required: true
+        schema:
+          type: string
+      - name: full
+        in: query
+        description: Return all properties with the objects
+        schema:
+          type: boolean
+      - name: types
+        in: query
+        description: Return only objects of the specified types
+        schema:
+          type: string
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  unit:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/unit'
+                  resource:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/resource'
+  /unit/:
+    get:
+      tags:
+      - unit
+      description: The unit endpoint returns units (libraries, youth centers etc.) listed in the reservation system. The optional 
+        parameter **page** allows specifying page number and **page_size** allows specifying more than the default 20 units per page.
+      parameters:
+      - name: resource_group
+        in: query
+        description: Only return units whose resources belong to the speficied resource
+          group(s). Accepts multiple comma-separated values.
+        schema:
+          type: string
+      - name: page
+        in: query
+        description: Result page number
+        schema:
+          type: integer
+      - name: page_size
+        in: query
+        description: Number of units per page
+        schema:
+          type: integer
+      - name: unit_has_resource
+        in: query
+        description: Only return units that either have or do not have related resources,
+          based on the boolean value given.
+        schema:
+          type: boolean
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  next:
+                    type: string
+                    description: URL for the next page
+                  prev:
+                    type: string
+                    description: URL for the previous page
+                  count:
+                    type: integer
+                    description: The total number of results
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/unit'
+  /unit/{id}/:
+    get:
+      tags:
+      - unit
+      description: The unit endpoint returns units (libraries, youth
+        centers etc.) listed in the reservation system.
+      parameters:
+      - name: id
+        in: path
+        description: Unique identifier for the unit in the service registry.
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/unit'
+  /purpose/:
+    get:
+      tags:
+      - filter
+      description: The purpose endpoint returns the possible resource usage purposes registered in the system. 
+        The optional parameter **page** allows specifying page number and **page_size** allows specifying more than the default 
+        50 purposes per page.
+      parameters:
+      - name: page
+        in: query
+        description: Result page number
+        schema:
+          type: integer
+      - name: page_size
+        in: query
+        description: Number of purposes per page
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  next:
+                    type: string
+                    description: URL for the next page
+                  prev:
+                    type: string
+                    description: URL for the previous page
+                  count:
+                    type: integer
+                    description: The total number of results
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/purpose'
+  /purpose/{id}/:
+    get:
+      tags:
+      - filter
+      description: The purpose endpoint returns the possible resource usage purposes
+        registered in the system.
+      parameters:
+      - name: id
+        in: path
+        description: Unique identifier of the usage purpose.
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/purpose'
+  /type/:
+    get:
+      tags:
+      - filter
+      description: The type endpoint returns the possible resource types registered in the system. The optional parameter **page** 
+        allows specifying page number and **page_size** allows specifying more than the default 20 units per page.
+      parameters:
+      - name: resource_group
+        in: query
+        description: Only return types for which there are resources that belong to
+          the speficied resource group(s). Accepts multiple comma-separated values.
+        schema:
+          type: string
+      - name: page
+        in: query
+        description: Result page number
+        schema:
+          type: integer
+      - name: page_size
+        in: query
+        description: Number of types per page
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  next:
+                    type: string
+                    description: URL for the next page
+                  prev:
+                    type: string
+                    description: URL for the previous page
+                  count:
+                    type: integer
+                    description: The total number of results
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/type'
+  /type/{id}/:
+    get:
+      tags:
+      - filter
+      description: The type endpoint returns the possible resource types registered
+        in the system.
+      parameters:
+      - name: id
+        in: path
+        description: Unique identifier of the resource type.
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/type'
+  /equipment/:
+    get:
+      tags:
+      - equipment
+      description: The equipment endpoint returns the pieces of equipment of the resources. The optional parameter **page** allows 
+        specifying page number and **page_size** allows specifying more than the default 20 pieces of equipment per page.
+      parameters:
+      - name: resource_group
+        in: query
+        description: Only return pieces of equipment that belong to the speficied
+          resource group(s). Accepts multiple comma-separated values. Use equipment ID.
+        schema:
+          type: string
+      - name: page
+        in: query
+        description: Result page number
+        schema:
+          type: integer
+      - name: page_size
+        in: query
+        description: Number of pieces of equipment per page
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  next:
+                    type: string
+                    description: URL for the next page
+                  prev:
+                    type: string
+                    description: URL for the previous page
+                  count:
+                    type: integer
+                    description: The total number of results
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/equipment'
+  /equipment/{id}/:
+    get:
+      tags:
+      - equipment
+      description: The equipment endpoint returns the pieces of equipment of the resources.
+      parameters:
+      - name: id
+        in: path
+        description: Unique identifier for the piece of equipment.
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/equipment'
+  /equipmentcategory/:
+    get:
+      tags:
+      - equipment
+      description: The equipment category endpoint returns the possible categories for the pieces of equipment. The optional parameter 
+        **page** allows specifying page number and **page_size** allows specifying more than the default 20 equipment categories per page.
+      parameters:
+      - name: page
+        in: query
+        description: Result page number
+        schema:
+          type: integer
+      - name: page_size
+        in: query
+        description: Number of equipment categories per page
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  next:
+                    type: string
+                    description: URL for the next page
+                  prev:
+                    type: string
+                    description: URL for the previous page
+                  count:
+                    type: integer
+                    description: The total number of results
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/equipmentcategory'
+  /equipmentcategory/{id}/:
+    get:
+      tags:
+      - equipment
+      description: The equipment category endpoint returns the possible categories
+        for the pieces of equipment.
+      parameters:
+      - name: id
+        in: path
+        description: Unique identifier for the equipment category in the service registry.
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/equipmentcategory'
+  /resource/:
+    get:
+      tags:
+      - resource
+      description: The resource endpoint returns resources (e.g. meeting rooms) listed in the reservation system, 
+        allowing queries based on resource purpose, type, name and availability. Availability can be specified for a desired 
+        duration in a desired time interval. This allows fetching only the resources that match a particular need at a particular time. 
+        The optional **page** parameter allows specifying page number and **page_size** allows specifying more than the default 20 units per page.
+      parameters:
+      - name: purpose
+        in: query
+        description: Only return resources that have the specified purpose(s)
+        schema:
+          type: string
+        example: meetings-and-working
+      - name: type
+        in: query
+        description: Only return resources of the specified type(s). Accepts multiple
+          comma-separated values.
+        schema:
+          type: string
+        example: av5k4tflpjvq
+      - name: search
+        in: query
+        description: Only return resources matching the specified string. Queries the resource name, description and unit name fields.
+        schema:
+          type: string
+      - name: start
+        in: query
+        description: Use together with `end`. Only return resources that are free
+          within the specified interval. Accepts ISO 8601 format.
+        schema:
+          type: string
+          format: date-time
+      - name: end
+        in: query
+        description: Use together with `start`. Only return resources that are free
+          within the specified interval. Accepts ISO 8601 format.
+        schema:
+          type: string
+          format: date-time
+      - name: duration
+        in: query
+        description: Use together with `start` and `end`. Only return resources that
+          are free for a consecutive period of `duration` minutes within the specified
+          interval.
+        schema:
+          type: number
+      - name: during_closing
+        in: query
+        description: Use together with `start` and `end`. Include resources that are
+          free but closed within the specified interval.
+        schema:
+          type: boolean
+      - name: people
+        in: query
+        description: Only return resources with greater or equal capacity
+        schema:
+          type: number
+        example: 2
+      - name: equipment
+        in: query
+        description: Only return resources that contain the specified piece(s) of
+          equipment. Accepts multiple comma-separated values of equipment ID.
+        schema:
+          type: string
+      - name: resource_group
+        in: query
+        description: Only return resources that belong to the speficied resource group(s).
+          Accepts multiple comma-separated values.
+        schema:
+          type: string
+      - name: unit
+        in: query
+        description: Only return resources that belong to the specified unit.
+        schema:
+          type: string
+        example: tprek:51342
+      - name: need_manual_confirmation
+        in: query
+        description: Only return resources that need or do not need manual confirmation,
+          based on the boolean value.
+        schema:
+          type: boolean
+      - name: is_favorite
+        in: query
+        description: Only return resources that are or are not favorited by authenticated
+          user, based on the boolean value.
+        schema:
+          type: boolean
+      - name: available_between
+        in: query
+        description: Only return resources that are open and free on the given datetime
+          range. Expects two comma-separated datetimes as start and end time. Accepts
+          also a third comma-separated value (period length in minutes), which can
+          be used to determine a minimum free slot length that must exists in the
+          main time range.
+        schema:
+          type: string
+      - name: page
+        in: query
+        description: Result page number
+        schema:
+          type: integer
+        example: 1
+      - name: page_size
+        in: query
+        description: Number of resources per page
+        schema:
+          type: integer
+        example: 10
+      - name: lat
+        in: query
+        description: Use together with `lon` and `distance`. Specifies latitude to
+          return only resources that are within the given `distance`.
+        schema:
+          type: number
+        example: 60.1695096
+      - name: lon
+        in: query
+        description: Use together with `lat` and `distance`. Specifies longitude to
+          return only resources that are within the given `distance`.
+        schema:
+          type: number
+        example: 24.9405559
+      - name: distance
+        in: query
+        description: Use together with `lat` and `long`. Returns only resources that
+          are within the given `distance` of the point which is calculated from `lat`
+          and `lon`.
+        schema:
+          type: number
+        example: 10000.2
+      - name: free_of_charge
+        in: query
+        description: If given boolean is `true`, returns only resources that have
+          their `min_price_per_hour` value of `0` or `None`. If given boolean is `false`,
+          returns resources that have their `min_price_per_hour` greater than 0.
+        schema:
+          type: boolean
+      - name: municipality
+        in: query
+        description: Only return resources that belong to units that are located in
+          the given municipality.
+        schema:
+          type: string
+        example: helsinki
+      - name: order_by
+        in: query
+        description: Order queryset by given resource fields, accepted values are
+          `resource_name_fi`, `resource_name_en`, `resource_name_sv`, `unit_name_fi`,
+          `unit_name_en`, `unit_name_sv`, `type`, `people_capacity`. Prefix parameter
+          value with `-` to get reverse ordering.
+        schema:
+          type: string
+        example: resource_name_fi
+      - name: include
+        in: query
+        description: Include extra data to queryset. Currently accepts value `unit_detail`.
+        schema:
+          type: string
+        example: unit_detail
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  next:
+                    type: string
+                    description: URL for the next page
+                  prev:
+                    type: string
+                    description: URL for the previous page
+                  count:
+                    type: integer
+                    description: The total number of results
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/resource'
+  /resource/{id}/:
+    get:
+      tags:
+      - resource
+      description: The resource endpoint returns resources (meeting rooms, workstations,
+        reservable spaces etc.) listed in the reservation system.
+      parameters:
+      - name: id
+        in: path
+        description: Unique identifier for the resource in the reservation system.
+        required: true
+        schema:
+          type: string
+      - name: start
+        in: query
+        description: Use together with `end`. Specifies starting time for reporting
+          opening hours, availability and reservations.
+        schema:
+          type: string
+          format: date-time
+      - name: end
+        in: query
+        description: Use together with `start`. Specifies ending time for reporting
+          opening hours, availability and reservations.
+        schema:
+          type: string
+          format: date-time
+      - name: duration
+        in: query
+        description: Use together with `start` and `end`. Specifies minimum free period
+          duration for resource availability.
+        schema:
+          type: number
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/resource'
+  /reservation/:
+    get:
+      tags:
+      - reservation
+      description: The reservation endpoint returns reservations listed in the reservation system. The optional parameter **page** 
+        allows specifying page number and **page_size** allows specifying more than the default 20 units per page.
+      parameters:
+      - name: page
+        in: query
+        description: Result page number
+        schema:
+          type: integer
+      - name: page_size
+        in: query
+        description: Number of reservations per page
+        schema:
+          type: integer
+      - name: resource
+        in: query
+        description: Resource id, for filtering reservations by resource. Accepts multiple comma-separated values.
+        schema:
+          type: string
+      - name: all
+        in: query
+        description: Display also past reservations. Default to false.
+        schema:
+          type: boolean
+      - name: need_manual_confirmation
+        in: query
+        description: Filter reservations based on their need of a manual confirmation
+          from unit personnel.
+        schema:
+          type: boolean
+      - name: state
+        in: query
+        description: 'Display only reservation(s) in given state(s). Possible values:
+          cancelled, confirmed, denied and requested.'
+        schema:
+          type: string
+      - name: can_approve
+        in: query
+        description: Display reservations that the request user has the right to approve.
+        schema:
+          type: boolean
+      - name: resource_group
+        in: query
+        description: Only return reservations for resources that belong to the speficied
+          resource group(s). Accepts multiple comma-separated values.
+        schema:
+          type: string
+      - name: event_subject
+        in: query
+        description: Only return reservations that has given parameter in the event
+          subject.
+        schema:
+          type: string
+      - name: host_name
+        in: query
+        description: Only return reservations that has given parameter in the host
+          name field.
+        schema:
+          type: string
+      - name: reserver_name
+        in: query
+        description: Only return reservations that has given parameter in the reserver
+          name field.
+        schema:
+          type: string
+      - name: resource_name
+        in: query
+        description: Only return reservations that has given parameter in the resource
+          name field.
+        schema:
+          type: string
+      - name: unit
+        in: query
+        description: Only return reservations for resources that belong to the specified
+          unit.
+        schema:
+          type: string
+      - name: start
+        in: query
+        description: The starting time of the reservation in ISO 8601 format.
+        schema:
+          type: string
+      - name: end
+        in: query
+        description: The ending time of the reservation in ISO 8601 format.
+        schema:
+          type: string
+      - name: has_catering_order
+        in: query
+        description: Return only reservations which either have or do not have related
+          catering orders based on the boolean value.
+        schema:
+          type: boolean
+      - name: is_favorite_resource
+        in: query
+        description: Return only reservations that are related to resource that either
+          is or is not favorited by user, based on the boolean value.
+        schema:
+          type: boolean
+      - name: user
+        in: query
+        description: Return only reservations that are related to given user. Expects
+          to recieve user's UUID.
+        schema:
+          type: string
+      - name: is_own
+        in: query
+        description: Return only own reservations
+        schema:
+          type: boolean
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  next:
+                    type: string
+                    description: URL for the next page
+                  prev:
+                    type: string
+                    description: URL for the previous page
+                  count:
+                    type: integer
+                    description: The total number of results
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/reservation'
+    post:
+      tags:
+      - reservation
+      description: The reservation endpoint accepts reservations.
+      requestBody:
+        description: The reservation you wish to make
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/reservation'
+        required: true
+      responses:
+        201:
+          description: Reservation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/reservation'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  non_field_errors:
+                    type: string
+                    description: The reason the reservation was not accepted
+  /reservation/{id}/:
+    get:
+      tags:
+      - reservation
+      description: The reservation endpoint returns reservations listed in the reservation
+        system.
+      parameters:
+      - name: id
+        in: path
+        description: Unique identifier of the reservation in the reservation system.
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/reservation'
+    put:
+      tags:
+      - reservation
+      description: The reservation endpoint allows editing existing reservations.
+      parameters:
+      - name: id
+        in: path
+        description: Unique identifier of the reservation in the reservation system.
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: The reservation data you wish to edit
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/reservation'
+        required: true
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/reservation'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  non_field_errors:
+                    type: string
+                    description: The reason the change was not accepted
+    delete:
+      tags:
+      - reservation
+      description: The reservation endpoint allows deleting existing reservations.
+      parameters:
+      - name: id
+        in: path
+        description: Unique identifier of the reservation in the reservation system.
+        required: true
+        schema:
+          type: string
+      responses:
+        204:
+          description: Reservation deleted
+          content: {}
+components:
+  schemas:
+    unit:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the unit in the service registry.
+        opening_hours_today:
+          type: object
+          properties: {}
+          description: ""
+        created_at:
+          type: string
+          description: ""
+        modified_at:
+          type: string
+          description: ""
+        name:
+          type: object
+          properties:
+            sv:
+              type: string
+              description: Swedish name for the unit
+            fi:
+              type: string
+              description: Finnish name for the unit
+            en:
+              type: string
+              description: English name for the unit
+        description:
+          type: string
+          description: ""
+        time_zone:
+          type: string
+          description: tz database name of the time zone used at the unit
+        street_address:
+          type: object
+          properties:
+            sv:
+              type: string
+              description: Swedish address for the unit
+            fi:
+              type: string
+              description: Finnish address for the unit
+            en:
+              type: string
+              description: English address for the unit
+        address_zip:
+          type: string
+          description: Zip code for the street address
+        phone:
+          type: string
+          description: Phone number
+        email:
+          type: string
+          description: Contact email address
+        www_url:
+          type: object
+          properties:
+            sv:
+              type: string
+              description: Swedish WWW URL for the unit
+            fi:
+              type: string
+              description: Finnish WWW URL for the unit
+            en:
+              type: string
+              description: English WWW URL for the unit
+        address_postal_full:
+          type: string
+          description: ""
+        picture_url:
+          type: string
+          description: URL of unit picture
+        picture_caption:
+          type: string
+          description: ""
+        created_by:
+          type: string
+          description: ""
+        modified_by:
+          type: string
+          description: ""
+        location:
+          $ref: '#/components/schemas/location'
+    purpose:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the usage purpose
+        parent:
+          type: string
+          description: The parent purpose of this purpose, or null, if this purpose
+            is main purpose type
+        name:
+          type: object
+          properties:
+            fi:
+              type: string
+              description: The purpose in Finnish
+            en:
+              type: string
+              description: The purpose in Finnish
+    resource:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the resource in the reservation system
+        purposes:
+          type: array
+          description: Usage purposes for this resource
+          items:
+            $ref: '#/components/schemas/purpose'
+        type:
+          $ref: '#/components/schemas/type'
+        available_hours:
+          type: array
+          description: The intervals when the resource is not reserved during the
+            queried period
+          items:
+            type: object
+            properties: {}
+        opening_hours:
+          type: array
+          description: The intervals when the resource is open during the queried
+            period
+          items:
+            type: object
+            properties: {}
+        reservable:
+          type: boolean
+          description: Is it possible to create or modify reservations for this resource
+            through the API. Even if this is false, reservations by other means (eg.
+            phone call) might still be possible.
+        reservable_max_days_in_advance:
+          minimum: 0
+          type: integer
+          description: Reservable max. days in advance, accepts null value
+        reservable_min_days_in_advance:
+          minimum: 0
+          type: integer
+          description: Reservable min. days in advance, accepts null value
+        reservations:
+          type: array
+          description: The reservations made for the resource during the queried period
+          items:
+            $ref: '#/components/schemas/reservation'
+        created_at:
+          type: string
+        modified_at:
+          type: string
+        name:
+          type: object
+          properties:
+            fi:
+              type: string
+              description: Resource name in Finnish
+        description:
+          type: object
+          properties:
+            fi:
+              type: string
+              description: Resource description in Finnish
+        photo:
+          type: string
+          description: URL of resource picture
+        need_manual_confirmation:
+          type: boolean
+          description: Does making a reservation require confirmation from the unit
+            personnel?
+        authentication:
+          type: string
+          description: The type of authentication required to reserve the resource
+        people_capacity:
+          type: number
+          description: The maximum number of people for the resource
+        area:
+          type: number
+          description: The floor area, in sq. m.
+        ground_plan:
+          type: string
+          description: URL of the floor plan
+        min_period:
+          type: string
+          description: The minimum duration of a reservation for the resource, in
+            hh:mm:ss
+        max_period:
+          type: string
+          description: The maximum duration of a reservation for the resource, in
+            hh:mm:ss
+        created_by:
+          type: string
+        modified_by:
+          type: string
+        unit:
+          type: string
+          description: Unique identifier for the unit where the resource is located
+        location:
+          $ref: '#/components/schemas/location'
+        equipment:
+          type: object
+          properties:
+            data:
+              type: object
+              additionalProperties:
+                type: string
+              description: Additional data related to the resource specific equipment
+                instance
+            name:
+              type: object
+              properties:
+                fi:
+                  type: string
+                  description: Finnish name for the piece of equipment
+                sv:
+                  type: string
+                  description: Swedish name for the piece of equipment
+                en:
+                  type: string
+                  description: English name for the piece of equipment
+            description:
+              type: string
+              description: Description of the resource specific equipment instance
+            id:
+              type: string
+              description: Unique identifier of the piece of equipment
+          description: The resource specific equipment instances
+        external_reservation_url:
+          type: string
+          description: URL to an external calendar for the resource.
+          format: uri
+    equipmentcategory:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the equipment category
+        name:
+          type: object
+          properties:
+            fi:
+              type: string
+              description: Finnish name for the equipment category
+            sv:
+              type: string
+              description: Swedish name for the equipment category
+            en:
+              type: string
+              description: English name for the equipment category
+        equipment:
+          type: array
+          description: The pieces of equipment that belong to the equipment category
+          items:
+            type: object
+            properties:
+              name:
+                type: object
+                properties:
+                  fi:
+                    type: string
+                    description: Finnish name for the piece of equipment
+                  sv:
+                    type: string
+                    description: Swedish name for the piece of equipment
+                  en:
+                    type: string
+                    description: English name for the piece of equipment
+              id:
+                type: string
+                description: Unique identifier of the piece of equipment
+    reservation:
+      type: object
+      properties:
+        url:
+          type: string
+          description: URL of the reservation
+        resource:
+          type: string
+          description: Unique identifier of the reserved resource
+        user:
+          type: string
+          description: Unique identifier of the user who made the reservation
+        begin:
+          type: string
+          description: The starting time of the reservation in ISO 8601 format
+        end:
+          type: string
+          description: The ending time of the reservation in ISO 8601 format
+        is_own:
+          type: boolean
+          description: Is the reservation is made by the current user.
+          readOnly: true
+        state:
+          type: string
+          description: The state the reservation is currently in.
+          enum:
+          - cancelled
+          - confirmed
+          - denied
+          - requested
+        need_manual_confirmation:
+          type: boolean
+          description: Does the reservation require a confirmation from the unit personnel?
+          readOnly: true
+        reserver_name:
+          type: string
+          description: Reserver name
+        reserver_phone_number:
+          type: string
+          description: Reserver phone number
+        reserver_address_street:
+          type: string
+          description: Reserver street address
+        reserver_address_zip:
+          type: string
+          description: Reserver address zip code
+        reserver_address_city:
+          type: string
+          description: Reserver address city
+        billing_address_street:
+          type: string
+          description: Billing street address
+        billing_address_zip:
+          type: string
+          description: Billing address zip code
+        billing_address_city:
+          type: string
+          description: Billing address city
+        company:
+          type: string
+          description: Reserver company
+        event_description:
+          type: string
+          description: Description of the event the reservation is for
+        business_id:
+          type: string
+          description: Business ID of the reserver company
+        number_of_participants:
+          type: integer
+          description: Number of participants in the reservation
+        reserver_email_address:
+          type: string
+          description: Reserver email address
+    equipment:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the piece of equipment
+        category:
+          type: object
+          properties:
+            name:
+              type: object
+              properties:
+                fi:
+                  type: string
+                  description: Finnish name for the equipment category
+                sv:
+                  type: string
+                  description: Swedish name for the equipment category
+                en:
+                  type: string
+                  description: English name for the equipment category
+            id:
+              type: string
+              description: Unique identifier of the equipment category
+          description: The equipment category the piece of equipment belongs to
+        name:
+          type: object
+          properties:
+            fi:
+              type: string
+              description: Finnish name for the piece of equipment
+            sv:
+              type: string
+              description: Swedish name for the piece of equipment
+            en:
+              type: string
+              description: English name for the piece of equipment
+        aliases:
+          type: array
+          description: Aliases for the piece of equipment
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: The name of the equipment alias
+              language:
+                type: string
+                description: The language of the equipment alias. "fi", "sv" or "en".
+    location:
+      type: object
+      properties:
+        type:
+          type: string
+          description: GeoJSON object geometry type
+        coordinates:
+          type: array
+          description: GeoJSON object coordinates
+          items:
+            type: number
+    type:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the resource type
+        main_type:
+          type: string
+          description: The main category of this resource type
+        name:
+          type: object
+          properties:
+            fi:
+              type: string
+              description: Resource type in Finnish

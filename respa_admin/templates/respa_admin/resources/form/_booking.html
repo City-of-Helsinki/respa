@@ -12,6 +12,7 @@
     <div class="input-row dropdown-row">
         {% include "respa_admin/forms/_select.html" with field=form.min_period inline=True %}
         {% include "respa_admin/forms/_select.html" with field=form.max_period inline=True %}
+        {% include "respa_admin/forms/_select.html" with field=form.slot_size inline=True %}
     </div>
     <div class="input-row">
         {% include "respa_admin/forms/_input.html" with field=form.reservable_max_days_in_advance %}

@@ -129,14 +129,17 @@ def generate_reservation_xlsx(reservations):
       * staff_event: is staff event bool
       * user: user email str (optional)
       * comments: comments str (optional)
+      * all of RESERVATION_EXTRA_FIELDS are optional as well
 
     :rtype: bytes
     """
+    from resources.models import Reservation, RESERVATION_EXTRA_FIELDS
+
     output = io.BytesIO()
     workbook = xlsxwriter.Workbook(output)
     worksheet = workbook.add_worksheet()
 
-    headers = (
+    headers = [
         ('Unit', 30),
         ('Resource', 30),
         ('Begin time', 15),
@@ -145,7 +148,11 @@ def generate_reservation_xlsx(reservations):
         ('User', 30),
         ('Comments', 30),
         ('Staff event', 10),
-    )
+    ]
+
+    for field in RESERVATION_EXTRA_FIELDS:
+        headers.append((Reservation._meta.get_field(field).verbose_name, 20))
+
     header_format = workbook.add_format({'bold': True})
     for column, header in enumerate(headers):
         worksheet.write(0, column, str(_(header[0])), header_format)
@@ -163,6 +170,9 @@ def generate_reservation_xlsx(reservations):
         if 'comments' in reservation:
             worksheet.write(row, 6, reservation['comments'])
         worksheet.write(row, 7, reservation['staff_event'])
+        for i, field in enumerate(RESERVATION_EXTRA_FIELDS, 8):
+            if field in reservation:
+                worksheet.write(row, i, reservation[field])
     workbook.close()
     return output.getvalue()
 
@@ -225,9 +235,11 @@ def build_reservations_ical_file(reservations):
     cal['name'] = vText('RESPA')
     for reservation in reservations:
         event = Event()
+        begin_utc = timezone.localtime(reservation.begin, timezone.utc)
+        end_utc = timezone.localtime(reservation.end, timezone.utc)
         event['uid'] = 'respa_reservation_{}'.format(reservation.id)
-        event['dtstart'] = vDatetime(reservation.begin)
-        event['dtend'] = vDatetime(reservation.end)
+        event['dtstart'] = vDatetime(begin_utc)
+        event['dtend'] = vDatetime(end_utc)
         unit = reservation.resource.unit
         event['location'] = vText('{} {} {}'.format(unit.name, unit.street_address, unit.address_zip))
         if unit.location:

@@ -1941,3 +1941,19 @@ def test_manager_can_make_staff_reservation(
     assert response.data.get('staff_event', False) is True
     reservation = Reservation.objects.get(id=response.data['id'])
     assert reservation.staff_event is True
+
+
+@pytest.mark.django_db
+def test_resource_filter(resource_in_unit, resource_in_unit2, other_resource, reservation, reservation2, reservation3,
+                         api_client, list_url):
+    # this should not be returned
+    reservation3.resource = other_resource
+    reservation3.save(update_fields=('resource',))
+
+    response = api_client.get(list_url + '?resource={}'.format(resource_in_unit.id))
+    assert response.status_code == 200
+    assert_response_objects(response, reservation)
+
+    response = api_client.get(list_url + '?resource={},{}'.format(resource_in_unit.id, resource_in_unit2.id))
+    assert response.status_code == 200
+    assert_response_objects(response, (reservation, reservation2))
