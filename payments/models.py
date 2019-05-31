@@ -65,8 +65,7 @@ class Product(models.Model):
     description = models.TextField(verbose_name=_('description'), blank=True)
 
     pretax_price = models.DecimalField(
-        verbose_name=_('pretax price'), max_digits=14, decimal_places=2, default=Decimal('0.00'),
-        validators=[MinValueValidator(0)]
+        verbose_name=_('pretax price'), max_digits=19, decimal_places=10, validators=[MinValueValidator(0)]
     )
     tax_percentage = models.DecimalField(
         verbose_name=_('tax percentage'), max_digits=5, decimal_places=2, default=DEFAULT_TAX_PERCENTAGE,
