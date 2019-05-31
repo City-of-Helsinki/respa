@@ -1,6 +1,9 @@
+import datetime
 from copy import deepcopy
+from decimal import Decimal
 
 import pytest
+from pytz import UTC
 
 from resources.tests.conftest import resource_in_unit  # noqa
 
@@ -17,6 +20,7 @@ def product_1(resource_in_unit):
     product = Product.objects.create(
         name_en='test product 1',
         sku='1',
+        pretax_price=Decimal('10.333')
     )
     product.resources.set([resource_in_unit])
     return product
@@ -27,6 +31,7 @@ def product_2():
     return Product.objects.create(
         name_en='test product 2',
         sku='2',
+        pretax_price=Decimal('0')
     )
 
 
@@ -64,3 +69,47 @@ def test_product_delete(product_1_v2, product_2):
 
     assert Product.objects.count() == 3
     assert set([p.id for p in Product.objects.current()]) == {product_2.id}
+
+
+def test_get_price_success(product_1):
+    """Test the price calculation logic is correct when retrieving product price
+
+    Includes tax and is rounded to two decimals"""
+    price = product_1.get_price()
+    assert price == Decimal('12.81')
+
+
+def test_get_price_for_time_range_success(product_1):
+    """Test the price calculation works correctly with timestamps"""
+    start = datetime.datetime(2119, 5, 5, 10, 0, 0, tzinfo=UTC)
+    end = datetime.datetime(2119, 5, 5, 13, 0, 0, tzinfo=UTC)
+    rounded = product_1.get_price_for_time_range(start, end)
+    not_rounded = product_1.get_price_for_time_range(start, end, rounded=False)
+    assert rounded == Decimal('38.44')
+    assert not_rounded == Decimal('38.43876')
+
+
+def test_get_pretax_price_for_time_range_success(product_1):
+    """Test the pretax price calculation works correctly with timestamps"""
+    start = datetime.datetime(2119, 5, 5, 10, 0, 0, tzinfo=UTC)
+    end = datetime.datetime(2119, 5, 5, 13, 0, 0, tzinfo=UTC)
+    rounded = product_1.get_pretax_price_for_time_range(start, end)
+    not_rounded = product_1.get_pretax_price_for_time_range(start, end, rounded=False)
+    assert rounded == Decimal('31.00')
+    assert not_rounded == Decimal('30.999')
+
+
+def test_get_price_for_reservation_success(product_1, two_hour_reservation):
+    """Test the time range is correctly extracted from reservation to use in price calculation with tax"""
+    rounded = product_1.get_price_for_reservation(two_hour_reservation)
+    not_rounded = product_1.get_price_for_reservation(two_hour_reservation, rounded=False)
+    assert rounded == Decimal('25.63')
+    assert not_rounded == Decimal('25.62584')
+
+
+def test_get_pretax_price_for_reservation_success(product_1, two_hour_reservation):
+    """Test the time range is correctly extracted from reservation to use in price calculation without tax"""
+    rounded = product_1.get_pretax_price_for_reservation(two_hour_reservation)
+    not_rounded = product_1.get_pretax_price_for_reservation(two_hour_reservation, rounded=False)
+    assert rounded == Decimal('20.67')
+    assert not_rounded == Decimal('20.666')
