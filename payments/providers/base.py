@@ -16,6 +16,12 @@ class PaymentProvider:
     def __init__(self, **kwargs):
         self.config = kwargs.get(PAYMENT_CONFIG)
 
+    def order_create(self, request: HttpRequest, ui_return_url: str, order: Order) -> str:
+        """Create a payment to the provider.
+
+        Implement this in your subclass. Should return a URL to which the user
+        is redirected to actually pay the order."""
+
     def handle_success_request(self, request: HttpRequest) -> HttpResponse:
         """Handle incoming payment success request from the payment provider.
 
