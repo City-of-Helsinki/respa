@@ -142,3 +142,11 @@ def test_order_product_must_match_resource(user_api_client, product, two_hour_re
 
     assert response.status_code == 400
     assert 'product' in response.data['order_lines'][1]
+
+
+def test_order_can_be_created_only_for_own_reservations(api_client, user2, order_data):
+    api_client.force_authenticate(user=user2)
+
+    response = api_client.post(LIST_URL, order_data)
+
+    assert response.status_code == 403
