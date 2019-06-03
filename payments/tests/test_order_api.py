@@ -132,3 +132,13 @@ def test_order_post(user_api_client, two_hour_reservation, product, product_2, m
     assert order_lines[0].quantity == 1
     assert order_lines[1].product == product_2
     assert order_lines[1].quantity == 5
+
+
+def test_order_product_must_match_resource(user_api_client, product, two_hour_reservation, resource_in_unit2):
+    product_with_another_resource = ProductFactory(resources=[resource_in_unit2])
+    order_data = build_order_data(two_hour_reservation, product=product, product_2=product_with_another_resource)
+
+    response = user_api_client.post(LIST_URL, order_data)
+
+    assert response.status_code == 400
+    assert 'product' in response.data['order_lines'][1]
