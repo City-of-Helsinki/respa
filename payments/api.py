@@ -7,6 +7,7 @@ from payments.models import Order, OrderLine, Product
 from resources.api.base import TranslatedModelSerializer, register_view
 from resources.api.resource import ResourceDetailsSerializer as OriginalResourceDetailsSerializer
 from resources.api.resource import ResourceSerializer as OriginalResourceSerializer
+from resources.models import Reservation
 
 from .providers import get_payment_provider
 from .providers.bambora_payform import (
@@ -37,6 +38,13 @@ class OrderLineSerializerBase(serializers.ModelSerializer):
         data['product'] = ProductSerializer(instance.product).data
         return data
 
+    def validate_product(self, product):
+        available_products = self.context.get('available_products')
+        if available_products is not None:
+            if product not in available_products:
+                raise serializers.ValidationError(_("This product isn't available on the resource of the reservation."))
+        return product
+
 
 class OrderLineSerializer(OrderLineSerializerBase):
     def get_price(self, obj):
@@ -55,6 +63,14 @@ class OrderSerializerBase(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        try:
+            reservation = Reservation.objects.get(id=self.get_initial()['reservation'])
+        except (KeyError, Reservation.DoesNotExist):
+            return
+        self.context.update({'available_products': reservation.resource.products.current()})
 
     def validate_order_lines(self, value):
         if not value:
