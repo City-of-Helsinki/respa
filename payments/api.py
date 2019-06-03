@@ -1,6 +1,7 @@
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import exceptions, mixins, permissions, serializers, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
 from payments.models import Order, OrderLine, Product
@@ -136,6 +137,11 @@ class OrderViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.Li
 
     # TODO We'll probably want something else here when going to production
     permission_classes = (permissions.AllowAny,)
+
+    def perform_create(self, serializer):
+        if not serializer.validated_data['reservation'].can_add_order(self.request.user):
+            raise PermissionDenied()
+        super().perform_create(serializer)
 
     @action(detail=False, methods=['POST'])
     def check_price(self, request):

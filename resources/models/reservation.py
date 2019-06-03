@@ -286,6 +286,9 @@ class Reservation(ModifiableModel):
             return True
         return self.resource.can_view_catering_orders(user)
 
+    def can_add_order(self, user):
+        return self.is_own(user)
+
     def format_time(self):
         tz = self.resource.unit.get_tz()
         begin = self.begin.astimezone(tz)
