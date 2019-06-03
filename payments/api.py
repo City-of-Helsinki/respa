@@ -175,12 +175,19 @@ class OrderViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.Li
 register_view(OrderViewSet, 'order')
 
 
-class ResourceSerializer(OriginalResourceSerializer):
-    products = ProductSerializer(many=True)
+class ResourceSerializerBase(serializers.ModelSerializer):
+    products = serializers.SerializerMethodField()
+
+    def get_products(self, obj):
+        return ProductSerializer(obj.products.current(), many=True).data
 
 
-class ResourceDetailsSerializer(OriginalResourceDetailsSerializer):
-    products = ProductSerializer(many=True)
+class ResourceSerializer(ResourceSerializerBase, OriginalResourceSerializer):
+    pass
+
+
+class ResourceDetailsSerializer(ResourceSerializerBase, OriginalResourceDetailsSerializer):
+    pass
 
 
 def calculate_in_memory_order_line_price(order_line, begin, end):
