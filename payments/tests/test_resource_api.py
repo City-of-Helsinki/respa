@@ -8,7 +8,7 @@ from ..models import Product
 
 LIST_URL = reverse('resource-list')
 
-PRODUCT_FIELDS = {'id', 'type', 'name', 'description', 'pretax_price', 'tax_percentage', 'price', 'price_type'}
+PRODUCT_FIELDS = {'id', 'type', 'name', 'description', 'tax_percentage', 'price', 'price_type'}
 
 
 def get_detail_url(resource):
@@ -55,5 +55,5 @@ def test_get_resource_list_check_products(endpoint, user_api_client, resource_in
     assert product_data['name'] == {'fi': product.name_fi}
     assert product_data['description'] == {'fi': product.description}
     assert product_data['price'] == '12.40'
-    for field in ('type', 'pretax_price', 'tax_percentage', 'price_type'):
+    for field in ('type', 'tax_percentage', 'price_type'):
         assert product_data[field] == str(getattr(product, field))
