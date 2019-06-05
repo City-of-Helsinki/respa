@@ -127,24 +127,29 @@ def process_periods(library, unit):
     schedule_days = [parse_schedule(schedule_item) for schedule_item in library['schedules']]
 
     for day in schedule_days:
-        period = unit.periods.create(
-            start=day['date'],
-            end=day['date'],
-            description=day['info'],
-            closed=day['closed'],
-            name=day['date'].isoformat()
-        )
-
         # this is a hack and a workaround - libraries can have many sets of opening hours,
         # such as 09:00-12:00 and 13:00-17:00, during the same day.
         # currently respa can handle only one opening time and one closing time during the
         # same day, so the earliest opening time and latest closing time are selected
         staffed_opening_hours = merge_opening_hours(day['staffed_opening_hours'])
+        # missing opening hours are not allowed on open day
+        if staffed_opening_hours['from'] is None or staffed_opening_hours['to'] is None:
+            day_closed = True
+        else:
+            day_closed = day['closed']
+
+        period = unit.periods.create(
+            start=day['date'],
+            end=day['date'],
+            description=day['info'],
+            closed=day_closed,
+            name=day['date'].isoformat()
+        )
 
         period.days.create(weekday=day['weekday'],
                            opens=staffed_opening_hours['from'],
                            closes=staffed_opening_hours['to'],
-                           closed=day['closed'])
+                           closed=day_closed)
 
     print("Periods processed for", unit)
     unit.update_opening_hours()
