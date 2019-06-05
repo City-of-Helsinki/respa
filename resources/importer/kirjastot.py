@@ -1,7 +1,6 @@
 import datetime
 import delorean
 import requests
-from collections import namedtuple
 from django.conf import settings
 from django.db import transaction
 from raven import Client
@@ -14,15 +13,7 @@ STAFFED_HOURS = 1
 SELF_SERVICE_HOURS = 2
 
 KIRKANTA_NAMESPACE = 'kirkanta'
-
-ProxyPeriod = namedtuple("ProxyPeriod",
-                         ['start',
-                          'end',
-                          'description',
-                          'closed',
-                          'name',
-                          'unit',
-                          'days'])
+REQUESTS_TIMEOUT = 10
 
 
 @register_importer
@@ -31,10 +22,6 @@ class KirjastotImporter(Importer):
 
     def import_units(self):
         process_varaamo_libraries()
-
-
-class ImportingException(Exception):
-    pass
 
 
 @transaction.atomic
@@ -64,7 +51,8 @@ def process_varaamo_libraries():
                     process_periods(data, varaamo_unit)
                     varaamo_unit.update_opening_hours()
             except Exception as e:
-                print("Problem in processing data of library ", varaamo_unit, e)
+                import traceback
+                print("Problem in processing data of library ", varaamo_unit, traceback.format_exc())
                 problems.append(" ".join(["Problem in processing data of library ", str(varaamo_unit), str(e)]))
         else:
             print("Failed data fetch on library: ", varaamo_unit)
@@ -94,8 +82,7 @@ def timetable_fetcher(unit, start='2016-07-01', end='2016-12-31'):
     """
 
     base_url = "https://api.kirjastot.fi/v4/library"
-    #supported_namespaces = ("kirjastot.fi", "helmet")
-    supported_namespaces = ("kirkanta")
+    supported_namespaces = (KIRKANTA_NAMESPACE,)
 
     for identificator in unit.identifiers.all():
 
@@ -109,7 +96,7 @@ def timetable_fetcher(unit, start='2016-07-01', end='2016-12-31'):
         }
         url = "{}/{}".format(base_url, identificator.value)
         try:
-            response = requests.get(url, params=params, timeout=10)
+            response = requests.get(url, params=params, timeout=REQUESTS_TIMEOUT)
             response.raise_for_status()
             data = response.json()
             if data["total"] > 0:
@@ -159,7 +146,7 @@ def process_periods(library, unit):
                            closes=staffed_opening_hours['to'],
                            closed=day['closed'])
 
-    print("Periods processed for ", unit)
+    print("Periods processed for", unit)
     unit.update_opening_hours()
 
 
