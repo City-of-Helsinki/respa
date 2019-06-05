@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, create_autospec, patch
 
 import pytest
+from guardian.shortcuts import assign_perm
 from rest_framework.reverse import reverse
 
 from ..factories import ProductFactory
@@ -150,3 +151,22 @@ def test_order_can_be_created_only_for_own_reservations(api_client, user2, order
     response = api_client.post(LIST_URL, order_data)
 
     assert response.status_code == 403
+
+
+def test_order_view_permissions(api_client, user2, order_with_products):
+    # unauthenticated user
+    response = api_client.get(LIST_URL)
+    assert response.status_code == 200
+    assert not response.data['results']
+
+    # not own reservation
+    api_client.force_authenticate(user=user2)
+    response = api_client.get(LIST_URL)
+    assert response.status_code == 200
+    assert not response.data['results']
+
+    # not own reservation but having the view permission
+    assign_perm('unit:can_view_reservation_product_orders', user2, order_with_products.reservation.resource.unit)
+    response = api_client.get(LIST_URL)
+    assert response.status_code == 200
+    assert len(response.data['results']) == 1

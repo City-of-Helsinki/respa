@@ -10,6 +10,7 @@ RESOURCE_PERMISSIONS = (
     ('can_access_reservation_comments', _('Can access reservation comments')),
     ('can_view_reservation_catering_orders', _('Can view reservation catering orders')),
     ('can_modify_reservation_catering_orders', _('Can modify reservation catering orders')),
+    ('can_view_reservation_product_orders', _('Can view reservation product orders')),
 )
 
 UNIT_PERMISSIONS = [
