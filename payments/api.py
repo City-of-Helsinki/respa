@@ -134,9 +134,10 @@ class PriceEndpointOrderSerializer(OrderSerializerBase):
 class OrderViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
-    # TODO We'll probably want something else here when going to production
-    permission_classes = (permissions.AllowAny,)
+    def get_queryset(self):
+        return super().get_queryset().can_view(self.request.user)
 
     def perform_create(self, serializer):
         if not serializer.validated_data['reservation'].can_add_order(self.request.user):

@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import Q
 from django.utils.timezone import now, utc
 from django.utils.translation import ugettext_lazy as _
 
@@ -137,6 +138,17 @@ class Product(models.Model):
         return self.get_price_for_time_range(reservation.begin, reservation.end, rounded)
 
 
+class OrderQuerySet(models.QuerySet):
+    def can_view(self, user):
+        if not user.is_authenticated:
+            return self.none()
+
+        allowed_resources = Resource.objects.with_perm('can_view_reservation_product_orders', user)
+        allowed_reservations = Reservation.objects.filter(Q(resource__in=allowed_resources) | Q(user=user))
+
+        return self.filter(reservation__in=allowed_reservations)
+
+
 class Order(models.Model):
     WAITING = 'waiting'
     CONFIRMED = 'confirmed'
@@ -160,6 +172,8 @@ class Order(models.Model):
     payer_address_street = models.CharField(max_length=255, verbose_name=_('payer address street'))
     payer_address_zip = models.CharField(max_length=16, verbose_name=_('payer address zip'))
     payer_address_city = models.CharField(max_length=100, verbose_name=_('payer address city'))
+
+    objects = OrderQuerySet.as_manager()
 
     class Meta:
         verbose_name = _('order')
