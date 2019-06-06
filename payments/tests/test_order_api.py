@@ -12,7 +12,7 @@ LIST_URL = reverse('order-list')
 
 ORDER_RESPONSE_FIELDS = {
     'reservation', 'payer_first_name', 'payer_last_name', 'payer_email_address', 'payer_address_street',
-    'payer_address_zip', 'payer_address_city', 'id', 'price', 'status', 'order_number', 'payment_url', 'order_lines'
+    'payer_address_zip', 'payer_address_city', 'id', 'price', 'state', 'order_number', 'payment_url', 'order_lines'
 }
 
 

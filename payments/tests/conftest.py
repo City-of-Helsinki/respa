@@ -29,7 +29,7 @@ def two_hour_reservation(resource_in_unit, user):
 def order_with_products(two_hour_reservation):
     order = OrderFactory.create(
         order_number='abc123',
-        status=Order.WAITING,
+        state=Order.WAITING,
         payer_first_name='Seppo',
         payer_last_name='Testi',
         payer_email_address='test@example.com',

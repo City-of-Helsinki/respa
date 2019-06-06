@@ -176,11 +176,11 @@ class BamboraPayformProvider(PaymentProvider):
         return_code = request.GET['RETURN_CODE']
         if return_code == '0':
             logger.debug('Payment completed successfully.')
-            order.set_status(Order.CONFIRMED)
+            order.set_state(Order.CONFIRMED)
             return self.ui_redirect_success(return_url, order)
         elif return_code == '1':
             logger.debug('Payment failed.')
-            order.set_status(Order.REJECTED)
+            order.set_state(Order.REJECTED)
             return self.ui_redirect_failure(return_url, order)
         elif return_code == '4':
             logger.debug('Transaction status could not be updated.')
@@ -208,22 +208,27 @@ class BamboraPayformProvider(PaymentProvider):
             order = Order.objects.get(order_number=request.GET['ORDER_NUMBER'])
         except Order.DoesNotExist:
             # Target order might be deleted after posting but before the notify arrives
-            logger.debug('Notify: Order not found.')
+            logger.warning('Notify: Order does not exist.')
+            return HttpResponse(status=204)
+
+        if order.state != Order.WAITING:
+            # Skip changing order state if it has been previously set.
+            # Although, according to bambora's documentation, there are some cases where
+            # payment state might change from failed to successful, the reservation has
+            # probably been cleaned up by then.
+            # TODO Maybe try recreating the reservation if the time slot is still available
+            logger.debug('Notify: Order state has been already set')
             return HttpResponse(status=204)
 
         return_code = request.GET['RETURN_CODE']
         if return_code == '0':
             logger.debug('Notify: Payment completed successfully.')
-            if order.status != Order.CONFIRMED:
-                order.status = Order.CONFIRMED
-                order.save()
+            order.set_state(Order.CONFIRMED)
         elif return_code == '1':
             logger.debug('Notify: Payment failed.')
-            if order.status != Order.REJECTED:
-                order.status = Order.REJECTED
-                order.save()
+            order.set_state(Order.REJECTED)
         else:
-            logger.debug('Incorrect RETURN_CODE "{}".'.format(return_code))
+            logger.debug('Notify: Incorrect RETURN_CODE "{}".'.format(return_code))
 
         return HttpResponse(status=204)
 

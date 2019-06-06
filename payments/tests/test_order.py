@@ -30,14 +30,15 @@ def test_get_price_correct(order_with_products):
     assert price == Decimal('49.60')
 
 
-@pytest.mark.parametrize('order_status, expected_reservation_state', (
+@pytest.mark.parametrize('order_state, expected_reservation_state', (
     (Order.CONFIRMED, Reservation.CONFIRMED),
-    (Order.REJECTED, Reservation.DENIED),
+    (Order.REJECTED, Reservation.CANCELLED),
+    (Order.EXPIRED, Reservation.CANCELLED),
 ))
-def test_set_status_sets_reservation_state(two_hour_reservation, order_status, expected_reservation_state):
-    order = OrderFactory(reservation=two_hour_reservation, status=Order.WAITING)
+def test_set_state_sets_reservation_state(two_hour_reservation, order_state, expected_reservation_state):
+    order = OrderFactory(reservation=two_hour_reservation, state=Order.WAITING)
 
-    order.set_status(order_status)
+    order.set_state(order_state)
 
     two_hour_reservation.refresh_from_db()
     assert two_hour_reservation.state == expected_reservation_state

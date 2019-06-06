@@ -211,7 +211,7 @@ def test_handle_success_request_success(payment_provider, order_with_products):
     request = rf.get('/payments/success/', params)
     returned = payment_provider.handle_success_request(request)
     order_after = Order.objects.get(order_number=params.get('ORDER_NUMBER'))
-    assert order_after.status == Order.CONFIRMED
+    assert order_after.state == Order.CONFIRMED
     assert isinstance(returned, HttpResponse)
     assert 'payment_status=success' in returned.url
     assert 'order_id={}'.format(order_after.id) in returned.url
@@ -230,7 +230,7 @@ def test_handle_success_request_payment_failed(payment_provider, order_with_prod
     request = rf.get('/payments/success/', params)
     returned = payment_provider.handle_success_request(request)
     order_after = Order.objects.get(order_number=params.get('ORDER_NUMBER'))
-    assert order_after.status == Order.REJECTED
+    assert order_after.state == Order.REJECTED
     assert isinstance(returned, HttpResponse)
     assert 'payment_status=failure' in returned.url
 
@@ -301,8 +301,14 @@ def test_handle_notify_request_order_not_found(payment_provider, order_with_prod
     assert returned.status_code == 204
 
 
-def test_handle_notify_request_success(payment_provider, order_with_products):
-    """Test request notify helper returns http 204 and order status changes when successful"""
+@pytest.mark.parametrize('order_state, expected_order_state', (
+    (Order.WAITING, Order.CONFIRMED),
+    (Order.CONFIRMED, Order.CONFIRMED),
+    (Order.EXPIRED, Order.EXPIRED),
+    (Order.REJECTED, Order.REJECTED),
+))
+def test_handle_notify_request_success(payment_provider, order_with_products, order_state, expected_order_state):
+    """Test request notify helper returns http 204 and order status is correct when successful"""
     params = {
         'RESPA_UI_RETURN_URL': 'http%3A%2F%2F127.0.0.1%3A8000%2Fv1',
         'AUTHCODE': '905EDAC01C9E6921250C21BE23CDC53633A4D66BE7241A3B5DA1D2372234D462',
@@ -310,17 +316,25 @@ def test_handle_notify_request_success(payment_provider, order_with_products):
         'ORDER_NUMBER': 'abc123',
         'SETTLED': '1'
     }
+    order_with_products.set_state(order_state)
+
     rf = RequestFactory()
     request = rf.get('/payments/notify/', params)
     returned = payment_provider.handle_notify_request(request)
     order_after = Order.objects.get(order_number=params.get('ORDER_NUMBER'))
-    assert order_after.status == Order.CONFIRMED
+    assert order_after.state == expected_order_state
     assert isinstance(returned, HttpResponse)
     assert returned.status_code == 204
 
 
-def test_handle_notify_request_payment_failed(payment_provider, order_with_products):
-    """Test request notify helper returns http 204 and order status changes when payment fails"""
+@pytest.mark.parametrize('order_state, expected_order_state', (
+    (Order.WAITING, Order.REJECTED),
+    (Order.REJECTED, Order.REJECTED),
+    (Order.EXPIRED, Order.EXPIRED),
+    (Order.CONFIRMED, Order.CONFIRMED),
+))
+def test_handle_notify_request_payment_failed(payment_provider, order_with_products, order_state, expected_order_state):
+    """Test request notify helper returns http 204 and order status is correct when payment fails"""
     params = {
         'RESPA_UI_RETURN_URL': 'http%3A%2F%2F127.0.0.1%3A8000%2Fv1',
         'AUTHCODE': 'ED754E8F2E7FE0CC269B9F6A1C197F19B8393F37A1B63BE1E889D53F87A5FCA1',
@@ -328,11 +342,13 @@ def test_handle_notify_request_payment_failed(payment_provider, order_with_produ
         'ORDER_NUMBER': 'abc123',
         'SETTLED': '1'
     }
+    order_with_products.set_state(order_state)
+
     rf = RequestFactory()
     request = rf.get('/payments/notify/', params)
     returned = payment_provider.handle_notify_request(request)
     order_after = Order.objects.get(order_number=params.get('ORDER_NUMBER'))
-    assert order_after.status == Order.REJECTED
+    assert order_after.state == expected_order_state
     assert isinstance(returned, HttpResponse)
     assert returned.status_code == 204
 
