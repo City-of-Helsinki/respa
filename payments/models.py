@@ -153,14 +153,16 @@ class Order(models.Model):
     WAITING = 'waiting'
     CONFIRMED = 'confirmed'
     REJECTED = 'rejected'
+    EXPIRED = 'expired'
 
-    STATUS_CHOICES = (
+    STATE_CHOICES = (
         (WAITING, _('waiting')),
         (CONFIRMED, _('confirmed')),
         (REJECTED, _('rejected')),
+        (EXPIRED, _('expired')),
     )
 
-    status = models.CharField(max_length=32, verbose_name=_('status'), choices=STATUS_CHOICES, default=WAITING)
+    state = models.CharField(max_length=32, verbose_name=_('state'), choices=STATE_CHOICES, default=WAITING)
     order_number = models.CharField(max_length=64, verbose_name=_('order number'), unique=True, default=uuid.uuid4)
     reservation = models.ForeignKey(
         Reservation, verbose_name=_('reservation'), related_name='orders', on_delete=models.PROTECT
@@ -189,19 +191,19 @@ class Order(models.Model):
     def get_price(self) -> Decimal:
         return sum(order_line.get_price() for order_line in self.order_lines.all())
 
-    def set_status(self, new_status: str, save: bool = True) -> None:
-        assert new_status in (Order.WAITING, Order.CONFIRMED, Order.REJECTED)
+    def set_state(self, new_state: str, save: bool = True) -> None:
+        assert new_state in (Order.WAITING, Order.CONFIRMED, Order.REJECTED, Order.EXPIRED)
 
-        old_status = self.status
-        self.status = new_status
+        old_state = self.state
+        self.state = new_state
 
-        if new_status == old_status:
+        if new_state == old_state:
             return
 
-        if new_status == Order.CONFIRMED:
+        if new_state == Order.CONFIRMED:
             self.reservation.set_state(Reservation.CONFIRMED, self.reservation.user)
-        elif new_status == Order.REJECTED:
-            self.reservation.set_state(Reservation.DENIED, self.reservation.user)
+        elif new_state in (Order.REJECTED, Order.EXPIRED):
+            self.reservation.set_state(Reservation.CANCELLED, self.reservation.user)
 
         if save:
             self.save()

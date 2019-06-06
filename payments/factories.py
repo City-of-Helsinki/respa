@@ -53,8 +53,8 @@ class OrderFactory(factory.django.DjangoModelFactory):
     payer_address_street = factory.Faker('street_address')
     payer_address_zip = factory.Faker('postcode')
     payer_address_city = factory.Faker('city')
-    status = factory.fuzzy.FuzzyChoice(Order.STATUS_CHOICES,
-                                       getter=lambda c: c[0])
+    state = factory.fuzzy.FuzzyChoice(Order.STATE_CHOICES,
+                                      getter=lambda c: c[0])
     order_number = generate_id()
 
     # Mandatory FKs
