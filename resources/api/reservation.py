@@ -538,8 +538,9 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         if is_general_admin(user):
             return queryset
 
-        # normal users can see only their own reservations and reservations that are confirmed or requested
-        filters = Q(state__in=(Reservation.CONFIRMED, Reservation.REQUESTED))
+        # normal users can see only their own reservations and reservations that are confirmed, requested or
+        # waiting for payment
+        filters = Q(state__in=(Reservation.CONFIRMED, Reservation.REQUESTED, Reservation.WAITING_FOR_PAYMENT))
         if user.is_authenticated:
             filters |= Q(user=user)
         queryset = queryset.filter(filters)
