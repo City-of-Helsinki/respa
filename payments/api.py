@@ -144,7 +144,7 @@ class OrderViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.Li
         return super().get_queryset().can_view(self.request.user)
 
     def perform_create(self, serializer):
-        if not serializer.validated_data['reservation'].can_add_order(self.request.user):
+        if not serializer.validated_data['reservation'].can_add_product_order(self.request.user):
             raise PermissionDenied()
         super().perform_create(serializer)
 
