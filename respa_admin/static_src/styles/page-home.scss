@@ -22,8 +22,13 @@ main {
       top: 0;
       bottom: 0;
       width: 100%;
-      @include koro("pulse", $hel-fog, 400);
+      background-color: $hel-fog;
       transform: rotate(180deg);
+    }
+
+    &.koro:before {
+      background-color: transparent;
+      @include koro("pulse", $hel-fog, 400);
     }
 
     .container {
