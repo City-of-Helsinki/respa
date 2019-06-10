@@ -14,6 +14,7 @@ from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
 from django.utils.module_loading import import_string
 
+from payments.api import ProductSerializer
 from resources.pagination import PurposePagination
 from rest_framework import exceptions, filters, mixins, serializers, viewsets, response, status
 from rest_framework.authentication import SessionAuthentication
@@ -611,13 +612,27 @@ class ResourceCacheMixin:
         return context
 
 
-ResourceSerializerInUse = import_string(
-    getattr(settings, 'RESPA_RESOURCE_SERIALIZER_CLASS', 'resources.api.resource.ResourceSerializer')
-)
+class PaymentsResourceSerializerMixin(serializers.ModelSerializer):
+    products = serializers.SerializerMethodField()
 
-ResourceDetailsSerializerInUse = import_string(
-    getattr(settings, 'RESPA_RESOURCE_DETAILS_SERIALIZER_CLASS', 'resources.api.resource.ResourceDetailsSerializer')
-)
+    def get_products(self, obj):
+        return ProductSerializer(obj.products.current(), many=True).data
+
+
+class PaymentsResourceSerializer(PaymentsResourceSerializerMixin, ResourceSerializer):
+    pass
+
+
+class PaymentsResourceDetailsSerializer(PaymentsResourceSerializerMixin, ResourceDetailsSerializer):
+    pass
+
+
+if settings.RESPA_PAYMENTS_ENABLED:
+    ResourceSerializerInUse = PaymentsResourceSerializer
+    ResourceDetailsSerializerInUse = PaymentsResourceDetailsSerializer
+else:
+    ResourceSerializerInUse = ResourceSerializer
+    ResourceDetailsSerializerInUse = ResourceDetailsSerializer
 
 
 class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,

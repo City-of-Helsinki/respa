@@ -6,8 +6,6 @@ from rest_framework.response import Response
 
 from payments.models import Order, OrderLine, Product
 from resources.api.base import TranslatedModelSerializer, register_view
-from resources.api.resource import ResourceDetailsSerializer as OriginalResourceDetailsSerializer
-from resources.api.resource import ResourceSerializer as OriginalResourceSerializer
 from resources.models import Reservation
 
 from .providers import get_payment_provider
@@ -174,21 +172,6 @@ class OrderViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.Li
 
 
 register_view(OrderViewSet, 'order')
-
-
-class ResourceSerializerBase(serializers.ModelSerializer):
-    products = serializers.SerializerMethodField()
-
-    def get_products(self, obj):
-        return ProductSerializer(obj.products.current(), many=True).data
-
-
-class ResourceSerializer(ResourceSerializerBase, OriginalResourceSerializer):
-    pass
-
-
-class ResourceDetailsSerializer(ResourceSerializerBase, OriginalResourceDetailsSerializer):
-    pass
 
 
 def calculate_in_memory_order_line_price(order_line, begin, end):

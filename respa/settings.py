@@ -327,11 +327,6 @@ if os.path.exists(local_settings_path):
         code = compile(fp.read(), local_settings_path, 'exec')
     exec(code, globals(), locals())
 
-if RESPA_PAYMENTS_ENABLED:
-    RESPA_RESOURCE_SERIALIZER_CLASS = 'payments.api.ResourceSerializer'
-    RESPA_RESOURCE_DETAILS_SERIALIZER_CLASS = 'payments.api.ResourceDetailsSerializer'
-
-
 # If a secret key was not supplied from elsewhere, generate a random one
 # and store it into a file called .django_secret.
 if 'SECRET_KEY' not in locals():
