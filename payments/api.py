@@ -61,7 +61,21 @@ class OrderSerializerBase(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = '__all__'
+        fields = (
+            'id', 'state', 'order_number', 'reservation', 'payer_first_name', 'payer_last_name', 'payer_email_address',
+            'payer_address_street', 'payer_address_zip', 'payer_address_city', 'price', 'order_lines'
+        )
+
+    def get_price(self, obj):
+        return str(obj.get_price())
+
+
+class OrderSerializer(OrderSerializerBase):
+    return_url = serializers.CharField(write_only=True)
+    payment_url = serializers.SerializerMethodField()
+
+    class Meta(OrderSerializerBase.Meta):
+        fields = OrderSerializerBase.Meta.fields + ('return_url', 'payment_url')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -70,16 +84,6 @@ class OrderSerializerBase(serializers.ModelSerializer):
         except (KeyError, Reservation.DoesNotExist):
             return
         self.context.update({'available_products': reservation.resource.products.current()})
-
-    def validate_order_lines(self, value):
-        if not value:
-            raise serializers.ValidationError(_('At least one order line required.'))
-        return value
-
-
-class OrderSerializer(OrderSerializerBase):
-    return_url = serializers.CharField(write_only=True)
-    payment_url = serializers.SerializerMethodField()
 
     def create(self, validated_data):
         order_lines_data = validated_data.pop('order_lines', [])
@@ -109,8 +113,10 @@ class OrderSerializer(OrderSerializerBase):
     def get_payment_url(self, obj):
         return self.context.get('payment_url', '')
 
-    def get_price(self, obj):
-        return str(obj.get_price())
+    def validate_order_lines(self, value):
+        if not value:
+            raise serializers.ValidationError(_('At least one order line required.'))
+        return value
 
 
 class PriceEndpointOrderSerializer(OrderSerializerBase):

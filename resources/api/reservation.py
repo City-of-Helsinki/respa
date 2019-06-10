@@ -2,6 +2,7 @@ import uuid
 import arrow
 import django_filters
 from arrow.parser import ParserError
+from django.conf import settings
 from guardian.core import ObjectPermissionChecker
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
@@ -19,6 +20,8 @@ from rest_framework.exceptions import NotAcceptable, ValidationError
 from rest_framework.settings import api_settings as drf_settings
 
 from munigeo import api as munigeo_api
+
+from payments.api import OrderSerializerBase
 from resources.models import Reservation, Resource, ReservationMetadataSet
 from resources.models.reservation import RESERVATION_EXTRA_FIELDS
 from resources.pagination import ReservationPagination
@@ -78,7 +81,7 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             'url', 'id', 'resource', 'user', 'begin', 'end', 'comments', 'is_own', 'state', 'need_manual_confirmation',
             'staff_event', 'access_code', 'user_permissions'
         ] + list(RESERVATION_EXTRA_FIELDS)
-        read_only_fields = RESERVATION_EXTRA_FIELDS
+        read_only_fields = list(RESERVATION_EXTRA_FIELDS)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -291,6 +294,28 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
         }
 
 
+class OrderSerializer(OrderSerializerBase):
+    class Meta(OrderSerializerBase.Meta):
+        fields = [f for f in OrderSerializerBase.Meta.fields if f != 'reservation']
+
+
+class PaymentsReservationSerializer(ReservationSerializer):
+    class Meta(ReservationSerializer.Meta):
+        fields = ReservationSerializer.Meta.fields + ['orders']
+        read_only_fields = ReservationSerializer.Meta.read_only_fields + ['orders']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'orders' in self.context.get('expanded', ()):
+            self.fields['orders'] = OrderSerializer(many=True, read_only=True)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if not instance.can_view_product_orders(self.context['request'].user):
+            data.pop('orders', None)
+        return data
+
+
 class UserFilterBackend(filters.BaseFilterBackend):
     """
     Filter by user uuid and by is_own.
@@ -501,7 +526,11 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
     queryset = Reservation.objects.select_related('user', 'resource', 'resource__unit')\
         .prefetch_related('catering_orders').prefetch_related('resource__groups').order_by('begin', 'resource__unit__name', 'resource__name')
 
-    serializer_class = ReservationSerializer
+    if settings.RESPA_PAYMENTS_ENABLED:
+        serializer_class = PaymentsReservationSerializer
+        queryset = queryset.prefetch_related('orders', 'orders__order_lines', 'orders__order_lines__product')
+    else:
+        serializer_class = ReservationSerializer
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter, UserFilterBackend, ReservationFilterBackend,
                        NeedManualConfirmationFilterBackend, StateFilterBackend, CanApproveFilterBackend)
     filterset_class = ReservationFilterSet
@@ -528,6 +557,7 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         context = super().get_serializer_context(*args, **kwargs)
         if hasattr(self, '_page'):
             context.update(self._get_cache_context())
+        context['expanded'] = self.request.GET.get('include', '').split(',')
         return context
 
     def get_queryset(self):
