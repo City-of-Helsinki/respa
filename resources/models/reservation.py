@@ -286,7 +286,7 @@ class Reservation(ModifiableModel):
             return True
         return self.resource.can_view_catering_orders(user)
 
-    def can_add_order(self, user):
+    def can_add_product_order(self, user):
         return self.is_own(user)
 
     def can_view_product_orders(self, user):
