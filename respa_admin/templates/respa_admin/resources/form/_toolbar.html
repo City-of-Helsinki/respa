@@ -11,7 +11,7 @@
             <div id='reservable-dropdown-icon'></div> {{ form.reservable }}
             <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
         </div>
-        <button class='btn btn-primary toolbar-save' type="submit">{% trans "Save" %}</button>
+        <button class='resources-button' type="submit">{% trans "Save" %}</button>
         {% if resource and RESPA_ADMIN_VIEW_RESOURCE_URL %}
             <a href="{{ RESPA_ADMIN_VIEW_RESOURCE_URL }}" target="_blank" rel="noopener noreferrer">
                 <button class='btn toolbar-preview' type='button'>
