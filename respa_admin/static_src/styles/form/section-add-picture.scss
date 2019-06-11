@@ -19,6 +19,11 @@
         color: #fd4f00;
         border: 2px solid #fd4f00;
         background-color: transparent;
+
+        &:hover {
+            color: #fd4f00;
+            filter: brightness(0.9);
+        }
     }
 
     img.preview-image {
