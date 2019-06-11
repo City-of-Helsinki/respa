@@ -42,6 +42,8 @@
 
   &:hover {
     filter: brightness(0.9);
+    text-decoration: none;
+    color: $white;
   }
 }
 

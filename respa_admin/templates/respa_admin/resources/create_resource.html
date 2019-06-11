@@ -24,9 +24,9 @@
             {% include "respa_admin/resources/form/_terms.html" %}
             {% include "respa_admin/resources/form/_equipment.html" %}
             {% include "respa_admin/resources/form/_periods.html" with formset=period_formset_with_days %}
-            {% if accessibility_data_link %}
+
               {% include "respa_admin/resources/form/_accessibility.html" %}
-            {% endif %}
+
 
             <div class="navbar-fixed-bottom">
                 {% include "respa_admin/resources/form/_toolbar.html" %}
