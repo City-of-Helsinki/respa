@@ -1,4 +1,4 @@
-from .accessibility import AccessibilityValue, AccessibilityViewpoint, ResourceAccessibility
+from .accessibility import AccessibilityValue, AccessibilityViewpoint, ResourceAccessibility, UnitAccessibility
 from .availability import Day, Period, get_opening_hours
 from .reservation import ReservationMetadataField, ReservationMetadataSet, Reservation, RESERVATION_EXTRA_FIELDS
 from .resource import (
@@ -31,6 +31,7 @@ __all__ = [
     'ResourceType',
     'TermsOfUse',
     'Unit',
+    'UnitAccessibility',
     'UnitAuthorization',
     'UnitGroup',
     'UnitGroupAuthorization',

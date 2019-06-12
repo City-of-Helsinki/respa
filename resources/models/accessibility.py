@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext as _
 from .base import AutoIdentifiedModel
-from .resource import Resource
+from .resource import Resource, Unit
 
 
 class AccessibilityViewpoint(AutoIdentifiedModel):
@@ -45,7 +45,7 @@ class AccessibilityValue(AutoIdentifiedModel):
 
 
 class ResourceAccessibility(AutoIdentifiedModel):
-    viewpoint = models.ForeignKey(AccessibilityViewpoint, related_name='accessibility_summaries',
+    viewpoint = models.ForeignKey(AccessibilityViewpoint, related_name='resource_accessibility_summaries',
                                   verbose_name=_('Resource Accessibility'), on_delete=models.CASCADE)
     resource = models.ForeignKey(Resource, related_name='accessibility_summaries', verbose_name=_('Resource'),
                                  db_index=True, on_delete=models.CASCADE)
@@ -67,3 +67,28 @@ class ResourceAccessibility(AutoIdentifiedModel):
 
     def __str__(self):
         return '{} / {}: {}'.format(self.resource, self.viewpoint, self.value)
+
+
+class UnitAccessibility(AutoIdentifiedModel):
+    viewpoint = models.ForeignKey(AccessibilityViewpoint, related_name='unit_accessibility_summaries',
+                                  verbose_name=_('Resource Accessibility'), on_delete=models.CASCADE)
+    unit = models.ForeignKey(Unit, related_name='accessibility_summaries', verbose_name=_('Resource'),
+                             db_index=True, on_delete=models.CASCADE)
+    value = models.ForeignKey(AccessibilityValue, verbose_name=_('Accessibility summary value'),
+                              on_delete=models.CASCADE)
+    order = models.IntegerField(verbose_name=_('Resource ordering priority'))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Time of creation'))
+    modified_at = models.DateTimeField(auto_now=True, verbose_name=_('Time of modification'))
+
+    class Meta:
+        ordering = ('id',)
+        unique_together = ('viewpoint', 'unit')
+        verbose_name = _('unit accessibility summary')
+        verbose_name_plural = _('unit accessibility summaries')
+
+    def save(self, *args, **kwargs):
+        self.order = self.value.order
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return '{} / {}: {}'.format(self.unit, self.viewpoint, self.value)

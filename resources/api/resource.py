@@ -9,7 +9,7 @@ from arrow.parser import ParserError
 
 from django import forms
 from django.db.models import OuterRef, Prefetch, Q, Subquery, Value
-from django.db.models.functions import Coalesce
+from django.db.models.functions import Coalesce, Least
 from django.urls import reverse
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
@@ -23,7 +23,7 @@ from munigeo import api as munigeo_api
 from resources.models import (
     AccessibilityValue, AccessibilityViewpoint, Purpose, Reservation, Resource, ResourceAccessibility,
     ResourceImage, ResourceType, ResourceEquipment, TermsOfUse, Equipment, ReservationMetadataSet,
-    ResourceDailyOpeningHours
+    ResourceDailyOpeningHours, UnitAccessibility
 )
 from resources.models.resource import determine_hours_time_range
 
@@ -366,12 +366,20 @@ class ResourceOrderingFilter(django_filters.OrderingFilter):
                 return super().filter(qs, value)
 
             # annotate the queryset with accessibility priority from selected viewpoint.
-            # resources with no accessibility data are considered same priority as UNKNOWN
-            accessibility_summary = ResourceAccessibility.objects.filter(
+            # use the worse value of the resource and unit accessibilities.
+            # missing accessibility data is considered same priority as UNKNOWN.
+            resource_accessibility_summary = ResourceAccessibility.objects.filter(
                 resource_id=OuterRef('pk'), viewpoint_id=accessibility_viewpoint.id)
+            resource_accessibility_order = Subquery(resource_accessibility_summary.values('order')[:1])
+            unit_accessibility_summary = UnitAccessibility.objects.filter(
+                unit_id=OuterRef('unit_id'), viewpoint_id=accessibility_viewpoint.id)
+            unit_accessibility_order = Subquery(unit_accessibility_summary.values('order')[:1])
             qs = qs.annotate(
                 accessibility_priority=Coalesce(
-                    Subquery(accessibility_summary.values('order')[:1]), Value(AccessibilityValue.UNKNOWN_ORDERING)))
+                    Least(resource_accessibility_order, unit_accessibility_order),
+                    Value(AccessibilityValue.UNKNOWN_ORDERING)
+                )
+            )
         return super().filter(qs, value)
 
 
