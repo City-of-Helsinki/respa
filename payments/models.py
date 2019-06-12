@@ -5,6 +5,7 @@ from decimal import Decimal
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
+from django.utils.functional import cached_property
 from django.utils.timezone import now, utc
 from django.utils.translation import ugettext_lazy as _
 
@@ -185,13 +186,25 @@ class Order(models.Model):
     def __str__(self):
         return '{} {}'.format(self.order_number, self.reservation)
 
+    @cached_property
+    def created_at(self):
+        first_log_entry = self.log_entries.first()
+        return first_log_entry.timestamp if first_log_entry else None
+
+    def save(self, *args, **kwargs):
+        is_new = not bool(self.id)
+        super().save(*args, **kwargs)
+
+        if is_new:
+            self.create_log_entry(state_change=self.state)
+
     def get_pretax_price(self) -> Decimal:
         return sum(order_line.get_pretax_price() for order_line in self.order_lines.all())
 
     def get_price(self) -> Decimal:
         return sum(order_line.get_price() for order_line in self.order_lines.all())
 
-    def set_state(self, new_state: str, save: bool = True) -> None:
+    def set_state(self, new_state: str, log_message: str = None, save: bool = True) -> None:
         assert new_state in (Order.WAITING, Order.CONFIRMED, Order.REJECTED, Order.EXPIRED)
 
         old_state = self.state
@@ -207,6 +220,11 @@ class Order(models.Model):
 
         if save:
             self.save()
+
+        self.create_log_entry(state_change=new_state, message=log_message)
+
+    def create_log_entry(self, message: str = None, state_change: str = None) -> None:
+        OrderLogEntry.objects.create(order=self, state_change=state_change or '', message=message or '')
 
 
 class OrderLine(models.Model):
@@ -230,3 +248,24 @@ class OrderLine(models.Model):
 
     def get_price(self) -> Decimal:
         return self.product.get_price_for_reservation(self.order.reservation) * self.quantity
+
+
+class OrderLogEntry(models.Model):
+    order = models.ForeignKey(
+        Order, verbose_name=_('order log entry'), related_name='log_entries', on_delete=models.CASCADE
+    )
+    timestamp = models.DateTimeField(auto_now_add=True)
+    state_change = models.CharField(
+        max_length=32, verbose_name=_('state change'), choices=Order.STATE_CHOICES, blank=True
+    )
+    message = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = _('order log entry')
+        verbose_name_plural = _('order log entries')
+        ordering = ('id',)
+
+    def __str__(self):
+        return '{} order {} state change {} message {}'.format(
+            self.timestamp, self.order_id, self.state_change or None, self.message or None
+        )
