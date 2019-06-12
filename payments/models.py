@@ -155,12 +155,14 @@ class Order(models.Model):
     CONFIRMED = 'confirmed'
     REJECTED = 'rejected'
     EXPIRED = 'expired'
+    CANCELLED = 'cancelled'
 
     STATE_CHOICES = (
         (WAITING, _('waiting')),
         (CONFIRMED, _('confirmed')),
         (REJECTED, _('rejected')),
         (EXPIRED, _('expired')),
+        (CANCELLED, _('cancelled')),
     )
 
     state = models.CharField(max_length=32, verbose_name=_('state'), choices=STATE_CHOICES, default=WAITING)
@@ -205,7 +207,7 @@ class Order(models.Model):
         return sum(order_line.get_price() for order_line in self.order_lines.all())
 
     def set_state(self, new_state: str, log_message: str = None, save: bool = True) -> None:
-        assert new_state in (Order.WAITING, Order.CONFIRMED, Order.REJECTED, Order.EXPIRED)
+        assert new_state in (Order.WAITING, Order.CONFIRMED, Order.REJECTED, Order.EXPIRED, Order.CANCELLED)
 
         old_state = self.state
         self.state = new_state
@@ -215,7 +217,7 @@ class Order(models.Model):
 
         if new_state == Order.CONFIRMED:
             self.reservation.set_state(Reservation.CONFIRMED, self.reservation.user)
-        elif new_state in (Order.REJECTED, Order.EXPIRED):
+        elif new_state in (Order.REJECTED, Order.EXPIRED, Order.CANCELLED):
             self.reservation.set_state(Reservation.CANCELLED, self.reservation.user)
 
         if save:

@@ -39,6 +39,10 @@ class OrderLineInline(admin.TabularInline):
     model = OrderLine
     extra = 0
     readonly_fields = ('price',)
+    can_delete = False
+
+    def has_add_permission(self, request, obj):
+        return False
 
     def price(self, obj):
         return obj.get_price()
@@ -62,11 +66,32 @@ class OrderLogEntryInline(admin.TabularInline):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('created_at', 'reservation', 'order_number', 'price')
+    list_display = ('created_at', 'state', 'reservation', 'order_number', 'price')
     raw_id_fields = ('reservation',)
     inlines = (OrderLineInline, OrderLogEntryInline)
-    readonly_fields = ('price',)
     ordering = ('-id',)
+
+    actions = None
+
+    def get_readonly_fields(self, request, obj=None):
+        return [f.name for f in self.model._meta.fields if f.name != 'id'] + ['price']
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        if obj and obj.state == Order.CONFIRMED:
+            return True
+        return False
+
+    def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['show_save_and_continue'] = False
+        extra_context['show_save'] = False
+        return super().changeform_view(request, object_id, extra_context=extra_context)
+
+    def delete_model(self, request, obj):
+        obj.set_state(Order.CANCELLED)
 
     def price(self, obj):
         return obj.get_price()
