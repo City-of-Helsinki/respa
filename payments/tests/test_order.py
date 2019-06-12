@@ -34,6 +34,7 @@ def test_get_price_correct(order_with_products):
     (Order.CONFIRMED, Reservation.CONFIRMED),
     (Order.REJECTED, Reservation.CANCELLED),
     (Order.EXPIRED, Reservation.CANCELLED),
+    (Order.CANCELLED, Reservation.CANCELLED),
 ))
 def test_set_state_sets_reservation_state(two_hour_reservation, order_state, expected_reservation_state):
     order = OrderFactory(reservation=two_hour_reservation, state=Order.WAITING)
