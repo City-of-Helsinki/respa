@@ -1,9 +1,16 @@
 from django.conf import settings
 from django.contrib import admin
+from django.utils.timezone import localtime
 from django.utils.translation import ugettext_lazy as _
 from modeltranslation.admin import TranslationAdmin
 
-from .models import Order, OrderLine, Product
+from .models import Order, OrderLine, OrderLogEntry, Product
+
+
+def get_datetime_in_localtime(dt):
+    if not dt:
+        return None
+    return localtime(dt).strftime('%d %b %Y %H:%M:%S')
 
 
 class ProductAdmin(TranslationAdmin):
@@ -39,10 +46,25 @@ class OrderLineInline(admin.TabularInline):
     price.short_description = _('price')
 
 
+class OrderLogEntryInline(admin.TabularInline):
+    model = OrderLogEntry
+    extra = 0
+    readonly_fields = ('timestamp_with_seconds', 'state_change', 'message')
+    can_delete = False
+
+    def has_add_permission(self, request, obj):
+        return False
+
+    def timestamp_with_seconds(self, obj):
+        return get_datetime_in_localtime(obj.timestamp)
+
+    timestamp_with_seconds.short_description = _('timestamp')
+
+
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('order_number', 'reservation', 'price')
+    list_display = ('created_at', 'reservation', 'order_number', 'price')
     raw_id_fields = ('reservation',)
-    inlines = (OrderLineInline,)
+    inlines = (OrderLineInline, OrderLogEntryInline)
     readonly_fields = ('price',)
     ordering = ('-id',)
 
@@ -50,6 +72,11 @@ class OrderAdmin(admin.ModelAdmin):
         return obj.get_price()
 
     price.short_description = _('price')
+
+    def created_at(self, obj):
+        return get_datetime_in_localtime(obj.created_at)
+
+    created_at.short_description = _('created at')
 
 
 if settings.RESPA_PAYMENTS_ENABLED:
