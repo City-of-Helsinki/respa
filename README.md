@@ -138,6 +138,8 @@ Settings are done either by setting environment variables named after the settin
 - `RESPA_ADMIN_INSTRUCTIONS_URL`: URL for the user instructions link visible in Respa Admin. Example value: `'https://cityofhelsinki.gitbook.io/varaamo/'`.
 - `RESPA_ADMIN_SUPPORT_EMAIL`: Email address for user support link visible in Respa Admin.
 - `RESPA_ADMIN_VIEW_RESOURCE_URL`: URL for a "view changes" link in Respa Admin through which the user can view changes made to a given resource. Example value: `'https://varaamo.hel.fi/resource/'`.
+- `RESPA_ADMIN_LOGO`: Name of the logo file to be displayed in Respa Admin UI. Logo file is assumed to be located in `respa_admin/static_src/img/`. Example value: `ra-logo.svg`.
+- `RESPA_ADMIN_KORO_STYLE`: Defines the style of koro-shape used in login page and resources page. Accepts values: `koro-basic`, `koro-pulse`, `koro-beat`, `koro-storm`, `koro-wave`.
 
 
 ### Setting up PostGIS/GEOS/GDAL on Windows (x64) / Python 3
