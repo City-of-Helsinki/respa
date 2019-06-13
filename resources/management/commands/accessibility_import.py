@@ -5,10 +5,12 @@ import requests
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from django.utils import timezone
 from django.utils.translation import override
 
-from resources.models import AccessibilityValue, AccessibilityViewpoint, Resource, ResourceAccessibility
+from resources.models import (
+    AccessibilityValue, AccessibilityViewpoint, Resource, ResourceAccessibility,
+    UnitAccessibility, UnitIdentifier
+)
 
 
 LOG = logging.getLogger(__name__)
@@ -34,6 +36,8 @@ class Command(BaseCommand):
             self.fetch_viewpoints(url)
         with override(default_language), transaction.atomic():
             self.fetch_resource_accessibility_data(url)
+        with override(default_language), transaction.atomic():
+            self.fetch_unit_accessibility_data(url)
         self.stdout.write('Finished.')
 
     def fetch_viewpoints(self, base_url):
@@ -104,6 +108,44 @@ class Command(BaseCommand):
                         str(resource_accessibility), ', '.join(dirty_fields)
                     ))
 
+    def fetch_unit_accessibility_data(self, base_url):
+        """ Populate unit accessibility data from the accessibility API.
+            Requests only servicepoints we have, the api contains lots of stuff we don't care about.
+        """
+        url = "{base_url}/api/v1/accessibility/servicepoints/{system_id}/{{servicepoint_id}}/summary".format(
+            base_url=base_url, system_id=settings.RESPA_ACCESSIBILITY_API_UNIT_SYSTEM_ID)
+
+        for unit_identifier in UnitIdentifier.objects.filter(namespace='internal').select_related('unit'):
+            unit = unit_identifier.unit
+            try:
+                data = self.make_request(url.format(servicepoint_id=unit_identifier.value))
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 404:
+                    # no accessibility data available
+                    continue
+                raise e
+
+            for viewpoint_data in data:
+                try:
+                    viewpoint = AccessibilityViewpoint.objects.get(id=viewpoint_data['viewpointId'])
+                except AccessibilityViewpoint.DoesNotExist:
+                    self.stdout.write('Received unknown Accessibility viewpoint id from API: {}. Skipping.'.format(
+                        viewpoint_data['viewpointId']))
+                    continue
+                value = self.get_or_create_value(viewpoint_data['isAccessible'])
+                unit_accessibility, created = UnitAccessibility.objects.get_or_create(
+                    unit=unit, viewpoint=viewpoint, defaults={'value': value}
+                )
+                if created:
+                    self.stdout.write('Created UnitAccessibility {}'.format(str(unit_accessibility)))
+                else:
+                    dirty_fields = self.update_model_attributes(unit_accessibility, {'value': value})
+                    if len(dirty_fields) > 0:
+                        unit_accessibility.save()
+                        self.stdout.write('Updated UnitAccessibility {}: {}'.format(
+                            str(unit_accessibility), ', '.join(dirty_fields)
+                        ))
+
     def make_request(self, url):
         try:
             response = requests.get(url, timeout=REQUESTS_TIMEOUT)
@@ -143,5 +185,3 @@ class Command(BaseCommand):
                 dirty_fields.append(key)
                 setattr(instance, key, val)
         return dirty_fields
-
-
