@@ -14,6 +14,7 @@ from .base import PaymentError, PaymentProvider
 logger = logging.getLogger()
 
 # Keys the provider expects to find in the config
+RESPA_PAYMENTS_BAMBORA_API_URL = 'RESPA_PAYMENTS_BAMBORA_API_URL'
 RESPA_PAYMENTS_BAMBORA_API_KEY = 'RESPA_PAYMENTS_BAMBORA_API_KEY'
 RESPA_PAYMENTS_BAMBORA_API_SECRET = 'RESPA_PAYMENTS_BAMBORA_API_SECRET'
 RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS = 'RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS'
@@ -30,7 +31,7 @@ class BamboraPayformProvider(PaymentProvider):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.url_payment_api = 'https://payform.bambora.com/pbwapi'
+        self.url_payment_api = self.config.get(RESPA_PAYMENTS_BAMBORA_API_URL)
         self.url_payment_auth = '{}/auth_payment'.format(self.url_payment_api)
         self.url_payment_token = '{}/token/{{token}}'.format(self.url_payment_api)
 
@@ -38,6 +39,7 @@ class BamboraPayformProvider(PaymentProvider):
     def get_config_template() -> dict:
         """Keys and value types what Bambora requires from environment"""
         return {
+            RESPA_PAYMENTS_BAMBORA_API_URL: (str, 'https://payform.bambora.com/pbwapi'),
             RESPA_PAYMENTS_BAMBORA_API_KEY: str,
             RESPA_PAYMENTS_BAMBORA_API_SECRET: str,
             RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS: list
