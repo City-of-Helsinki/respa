@@ -40,8 +40,8 @@ env = environ.Env(
     RESPA_ADMIN_INSTRUCTIONS_URL=(str, ''),
     RESPA_ADMIN_SUPPORT_EMAIL=(str, ''),
     RESPA_ADMIN_VIEW_RESOURCE_URL=(str, ''),
-    RESPA_PAYMENTS_ENABLED = (bool, False),
-    RESPA_PAYMENTS_PROVIDER_CLASS = (str, '')
+    RESPA_PAYMENTS_ENABLED=(bool, False),
+    RESPA_PAYMENTS_PROVIDER_CLASS=(str, '')
 )
 environ.Env.read_env()
 
