@@ -2,9 +2,10 @@ import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
 
+from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, OuterRef, Subquery
 from django.utils.functional import cached_property
 from django.utils.timezone import now, utc
 from django.utils.translation import ugettext_lazy as _
@@ -190,6 +191,24 @@ class Order(models.Model):
     def created_at(self):
         first_log_entry = self.log_entries.first()
         return first_log_entry.timestamp if first_log_entry else None
+
+    @classmethod
+    def update_expired(cls) -> int:
+        earliest_allowed_timestamp = now() - timedelta(minutes=settings.RESPA_PAYMENTS_ORDER_MAX_WAITING_TIME)
+        log_entry_timestamps = OrderLogEntry.objects.filter(order=OuterRef('pk')).order_by('id').values('timestamp')
+        too_old_waiting_orders = cls.objects.filter(
+            state=cls.WAITING
+        ).annotate(
+            created_at=Subquery(
+                log_entry_timestamps[:1]
+            )
+        ).filter(
+            created_at__lt=earliest_allowed_timestamp
+        )
+        for order in too_old_waiting_orders:
+            order.set_state(cls.EXPIRED)
+
+        return too_old_waiting_orders.count()
 
     def save(self, *args, **kwargs):
         is_new = not bool(self.id)
