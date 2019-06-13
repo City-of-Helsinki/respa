@@ -186,13 +186,13 @@ class BamboraPayformProvider(PaymentProvider):
             return self.ui_redirect_failure(return_url, order)
         elif return_code == '4':
             logger.debug('Transaction status could not be updated.')
-            # TODO what should we do here? description of the situation:
-            # Transaction status could not be updated after customer returned from the web page of a bank.
-            # Please use the merchant UI to resolve the payment status.
+            order.create_log_entry(
+                'Code 4: Transaction status could not be updated. Use the merchant UI to resolve.'
+            )
             return self.ui_redirect_failure(return_url, order)
         elif return_code == '10':
             logger.debug('Maintenance break.')
-            # TODO what now?
+            order.create_log_entry('Code 10: Bambora Payform maintenance break')
             return self.ui_redirect_failure(return_url, order)
         else:
             logger.warning('Incorrect RETURN_CODE "{}".'.format(return_code))
