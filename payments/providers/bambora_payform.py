@@ -11,7 +11,7 @@ from ..models import Order, OrderLine
 from ..utils import price_as_sub_units
 from .base import PaymentError, PaymentProvider
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 # Keys the provider expects to find in the config
 RESPA_PAYMENTS_BAMBORA_API_URL = 'RESPA_PAYMENTS_BAMBORA_API_URL'
@@ -156,7 +156,7 @@ class BamboraPayformProvider(PaymentProvider):
             is_valid = False
         return is_valid
 
-    def handle_success_request(self, request):
+    def handle_success_request(self, request):  # noqa: C901
         """Handle the payform response after user has completed the payment flow in normal fashion"""
         logger.debug('Handling Bambora user return request, params: {}.'.format(request.GET))
 
@@ -178,10 +178,22 @@ class BamboraPayformProvider(PaymentProvider):
         return_code = request.GET['RETURN_CODE']
         if return_code == '0':
             logger.debug('Payment completed successfully.')
+            if order.state != Order.WAITING:
+                logger.warning('Cannot set order {} confirmed, it is in invalid state "{}".'.format(
+                    order.id, order.state)
+                )
+                order.create_log_entry('Got "payment completed successfully" from Bambora Payform.')
+                return self.ui_redirect_failure(return_url, order)
             order.set_state(Order.CONFIRMED)
             return self.ui_redirect_success(return_url, order)
         elif return_code == '1':
             logger.debug('Payment failed.')
+            if order.state != Order.WAITING:
+                logger.warning('Cannot set order {} rejected, it is in invalid state "{}".'.format(
+                    order.id, order.state)
+                )
+                order.create_log_entry('Got "payment rejected" from Bambora Payform.')
+                return self.ui_redirect_failure(return_url, order)
             order.set_state(Order.REJECTED)
             return self.ui_redirect_failure(return_url, order)
         elif return_code == '4':
