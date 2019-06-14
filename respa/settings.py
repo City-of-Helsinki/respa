@@ -2,15 +2,22 @@
 Django settings for respa project.
 """
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import subprocess
 import environ
 import sentry_sdk
-import subprocess
+from sentry_sdk.integrations.django import DjangoIntegration
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ImproperlyConfigured
-from sentry_sdk.integrations.django import DjangoIntegration
 
+root = environ.Path(__file__) - 2  # two folders back
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+BASE_DIR = root()
+
+# Location of the fallback version file, used when no repository is available.
+# This is hardcoded as reading it from configuration does not really make
+# sense. It is supposed to be a fallback after all.
+VERSION_FILE = os.path.join(BASE_DIR, '../service_state/deployed_version')
 
 def get_git_revision_hash():
     """
@@ -31,7 +38,7 @@ def get_git_revision_hash():
         git_hash = "no_repository"
     return git_hash.rstrip()
 
-root = environ.Path(__file__) - 2  # two folders back
+
 env = environ.Env(
     DEBUG=(bool, False),
     SECRET_KEY=(str, ''),
@@ -67,8 +74,6 @@ environ.Env.read_env()
 # used for generating links to images, when no request context is available
 # reservation confirmation emails use this
 RESPA_IMAGE_BASE_URL = env('RESPA_IMAGE_BASE_URL')
-
-BASE_DIR = root()
 
 DEBUG_TOOLBAR_CONFIG = {
     'RESULTS_CACHE_SIZE': 100,
