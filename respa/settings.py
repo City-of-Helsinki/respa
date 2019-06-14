@@ -356,3 +356,28 @@ if 'SECRET_KEY' not in locals():
 #
 if DATABASES['default']['ENGINE'] != 'django.contrib.gis.db.backends.postgis':
     raise ImproperlyConfigured("Only postgis database backend is supported")
+
+
+# TODO TEMPORARY
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        'verbose': {
+            'format': '{levelname} {asctime} {process:d} {message}',
+            'style': '{',
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        }
+    },
+    "loggers": {
+        "payments": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+        }
+    },
+}
