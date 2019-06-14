@@ -22,20 +22,19 @@ VERSION_FILE = os.path.join(BASE_DIR, '../service_state/deployed_version')
 def get_git_revision_hash():
     """
     We need a way to retrieve git revision hash for sentry reports
-    I assume that if we have a git repository available we will
-    have git-the-command as well
     """
     try:
-        # We are not interested in gits complaints
-        git_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD'], stderr=subprocess.DEVNULL, encoding='utf8')
-    # ie. "git" was not found
-    # should we return a more generic meta hash here?
-    # like "undefined"?
-    except FileNotFoundError:
-        git_hash = "git_not_available"
-    # Ditto
-    except subprocess.CalledProcessError:
-        git_hash = "no_repository"
+        # We are not interested in gits complaints, stderr -> null
+        git_hash = subprocess.check_output(['git', 'describe', '--tags', '--long', '--always'], stderr=subprocess.DEVNULL, encoding='utf8')
+    # First is "git not found", second is most likely "no repository"
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        try:
+            # fall back to hardcoded file location
+            with open(VERSION_FILE) as f:
+                git_hash = f.readline()
+        except FileNotFoundError:
+            git_hash = "revision_not_available"
+
     return git_hash.rstrip()
 
 
