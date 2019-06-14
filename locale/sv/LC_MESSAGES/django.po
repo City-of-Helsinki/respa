@@ -703,6 +703,9 @@ msgstr ""
 "En URL till ett externt bokningssystem om den här resursen hanteras "
 "annorstädes"
 
+msgid "Reservation extra questions"
+msgstr "Extra frågor för bokning"
+
 msgid "resource"
 msgstr "resurs"
 
@@ -1019,6 +1022,12 @@ msgstr "E-post notifikationer"
 
 msgid "A notification will be sent when a space is booked."
 msgstr "Ett meddelande kommer att skickas då ett utrymme har bokats."
+
+msgid "Extra questions"
+msgstr "Extra frågor"
+
+msgid "Extra questions for reservation"
+msgstr "Extra frågor för bokning"
 
 msgid "Choose from the list below"
 msgstr "Välj från listan nedan"

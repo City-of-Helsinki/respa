@@ -42,4 +42,10 @@
             {% include "respa_admin/forms/_textarea_input.html" with field=form.reservation_confirmed_notification_extra_sv %}
         </div>
     </div>
+    <div class="form-group">
+        <div class="textarea-wrapper">
+            <h4>{% trans "Extra questions for reservation" %}</h4>
+            {% include "respa_admin/forms/_textarea_input.html" with field=form.reservation_extra_questions %}
+        </div>
+    </div>
 </div>
