@@ -375,9 +375,9 @@ class ResourceOrderingFilter(django_filters.OrderingFilter):
                 unit_id=OuterRef('unit_id'), viewpoint_id=accessibility_viewpoint.id)
             unit_accessibility_order = Subquery(unit_accessibility_summary.values('order')[:1])
             qs = qs.annotate(
-                accessibility_priority=Coalesce(
-                    Least(resource_accessibility_order, unit_accessibility_order),
-                    Value(AccessibilityValue.UNKNOWN_ORDERING)
+                accessibility_priority=Least(
+                    Coalesce(resource_accessibility_order, Value(AccessibilityValue.UNKNOWN_ORDERING)),
+                    Coalesce(unit_accessibility_order, Value(AccessibilityValue.UNKNOWN_ORDERING))
                 )
             )
         return super().filter(qs, value)
