@@ -56,13 +56,14 @@ class PriceEndpointOrderLineSerializer(OrderLineSerializerBase):
 
 
 class OrderSerializerBase(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source='order_number')
     order_lines = OrderLineSerializer(many=True)
     price = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = (
-            'id', 'state', 'order_number', 'reservation', 'payer_first_name', 'payer_last_name', 'payer_email_address',
+            'id', 'state', 'reservation', 'payer_first_name', 'payer_last_name', 'payer_email_address',
             'payer_address_street', 'payer_address_zip', 'payer_address_city', 'price', 'order_lines'
         )
 
@@ -154,6 +155,7 @@ class OrderViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.Li
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    lookup_field = 'order_number'
 
     def get_queryset(self):
         return super().get_queryset().can_view(self.request.user)

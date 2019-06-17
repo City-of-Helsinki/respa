@@ -12,12 +12,12 @@ LIST_URL = reverse('order-list')
 
 ORDER_RESPONSE_FIELDS = {
     'reservation', 'payer_first_name', 'payer_last_name', 'payer_email_address', 'payer_address_street',
-    'payer_address_zip', 'payer_address_city', 'id', 'price', 'state', 'order_number', 'payment_url', 'order_lines'
+    'payer_address_zip', 'payer_address_city', 'id', 'price', 'state', 'payment_url', 'order_lines'
 }
 
 
 def get_detail_url(order):
-    return reverse('order-detail', kwargs={'pk': order.pk})
+    return reverse('order-detail', kwargs={'order_number': order.order_number})
 
 
 def build_order_data(reservation, product, quantity=None, product_2=None, quantity_2=None):
