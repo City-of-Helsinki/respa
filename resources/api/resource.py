@@ -28,6 +28,7 @@ from resources.models import (
 from resources.models.resource import determine_hours_time_range
 
 from ..auth import is_general_admin, is_staff
+from .accessibility import ResourceAccessibilitySerializer
 from .base import ExtraDataMixin, TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
 from .reservation import ReservationSerializer
 from .unit import UnitSerializer
@@ -148,31 +149,6 @@ class TermsOfUseSerializer(TranslatedModelSerializer):
         fields = ('text',)
 
 
-class AccessibilityViewpointSerializer(TranslatedModelSerializer):
-    class Meta:
-        model = AccessibilityViewpoint
-        fields = ('id', 'name')
-
-
-class ResourceAccessibilitySerializer(TranslatedModelSerializer):
-    value = serializers.SerializerMethodField()
-    viewpoint_id = serializers.SerializerMethodField()
-    viewpoint_name = serializers.SerializerMethodField()
-
-    class Meta:
-        model = ResourceAccessibility
-        fields = ('viewpoint_id', 'viewpoint_name', 'value')
-
-    def get_value(self, obj):
-        return obj.value.value
-
-    def get_viewpoint_id(self, obj):
-        return obj.viewpoint_id
-
-    def get_viewpoint_name(self, obj):
-        return AccessibilityViewpointSerializer(obj.viewpoint).data['name']
-
-
 class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     purposes = PurposeSerializer(many=True)
     images = NestedResourceImageSerializer(many=True)
@@ -203,6 +179,8 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
             # TODO: think about populating "unknown" results here if no data is available
             extra_fields['accessibility_summaries'] = ResourceAccessibilitySerializer(
                 many=True, read_only=True, context=context)
+        if 'unit_detail' in includes:
+            extra_fields['unit'] = UnitSerializer(read_only=True, context=context)
         return extra_fields
 
     def get_user_permissions(self, obj):
@@ -699,15 +677,10 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
     search_fields = ('name_fi', 'description_fi', 'unit__name_fi',
                      'name_sv', 'description_sv', 'unit__name_sv',
                      'name_en', 'description_en', 'unit__name_en')
+    serializer_class = ResourceSerializer
     authentication_classes = (
         list(drf_settings.DEFAULT_AUTHENTICATION_CLASSES) +
         [SessionAuthentication])
-
-    def get_serializer_class(self):
-        query_params = self.request.query_params
-        if query_params.get('include') == 'unit_detail':
-            return ResourceDetailsSerializer
-        return ResourceSerializer
 
     def get_serializer(self, page, *args, **kwargs):
         self._page = page
