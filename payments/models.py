@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import Q, OuterRef, Subquery
+from django.db.models import OuterRef, Q, Subquery
 from django.utils.functional import cached_property
 from django.utils.timezone import now, utc
 from django.utils.translation import ugettext_lazy as _
