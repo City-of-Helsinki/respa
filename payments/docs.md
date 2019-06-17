@@ -71,7 +71,7 @@
 
     ```json
     {
-        "id": 59,
+        "id": "awemfcd2icdcd",
         "order_lines": [
             {
                 "product": {
@@ -94,7 +94,6 @@
         "price": "18.60",
         "payment_url": "https://payform.bambora.com/pbwapi/token/d02317692040937087a4c04c303dd0da14441f6f492346e40cea8e6a6c7ffc7c",
         "status": "waiting",
-        "order_number": "awemfcd2icdcd",
         "payer_first_name": "Ville",
         "payer_last_name": "Virtanen",
         "payer_email_address": "ville@virtanen.com",
@@ -166,7 +165,7 @@
     ```json
     ...
 
-    "orders": [67],
+    "orders": ["awemfcd2icdcd"],
 
     ...
     ```
@@ -180,9 +179,8 @@
 
     "orders": [
         {
-            "id": 67,
+            "id": "awemfcd2icdcd",
             "status": "waiting",
-            "order_number": "da7e806f-1f7b-4683-a6cb-a844748b7447",
             "payer_first_name": "Ville",
             "payer_last_name": "Virtanen",
             "payer_email_address": "ville@virtanen.com",

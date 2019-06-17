@@ -56,10 +56,10 @@ def test_reservation_orders_field(user_api_client, order_with_products, endpoint
     if include is not None and 'orders' in include:
         # orders should be nested data
         assert set(order_data.keys()) == ORDER_FIELDS
-        assert order_data['id'] == order_with_products.id
+        assert order_data['id'] == order_with_products.order_number
     else:
         # orders should be just IDs
-        assert order_data == order_with_products.id
+        assert order_data == order_with_products.order_number
 
 
 @pytest.mark.parametrize('endpoint', ('list', 'detail'))

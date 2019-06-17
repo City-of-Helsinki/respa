@@ -300,6 +300,8 @@ class OrderSerializer(OrderSerializerBase):
 
 
 class PaymentsReservationSerializer(ReservationSerializer):
+    orders = serializers.SlugRelatedField('order_number', many=True, read_only=True)
+
     class Meta(ReservationSerializer.Meta):
         fields = ReservationSerializer.Meta.fields + ['orders']
         read_only_fields = ReservationSerializer.Meta.read_only_fields + ['orders']
