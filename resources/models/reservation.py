@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street', 'reserver_address_zip',
                             'reserver_address_city', 'billing_address_street', 'billing_address_zip',
                             'billing_address_city', 'company', 'event_description', 'event_subject', 'reserver_id',
-                            'number_of_participants', 'participants', 'reserver_email_address', 'host_name', 
+                            'number_of_participants', 'participants', 'reserver_email_address', 'host_name',
                             'reservation_extra_questions')
 
 
