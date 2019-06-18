@@ -23,6 +23,7 @@ class AccessibilityViewpoint(AutoIdentifiedModel):
 
 class AccessibilityValue(AutoIdentifiedModel):
     UNKNOWN_ORDERING = 0
+    UNKNOWN_VALUE = 'unknown'
     value = models.CharField(max_length=128, unique=True, verbose_name=_('Accessibility summary value'))
     order = models.IntegerField(verbose_name=_('Ordering priority'), default=UNKNOWN_ORDERING)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Time of creation'))

@@ -176,12 +176,27 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
         """ Define extra fields that can be included via query parameters. Method from ExtraDataMixin."""
         extra_fields = {}
         if 'accessibility_summaries' in includes:
-            # TODO: think about populating "unknown" results here if no data is available
-            extra_fields['accessibility_summaries'] = ResourceAccessibilitySerializer(
-                many=True, read_only=True, context=context, source='get_accessibility_summaries')
+            extra_fields['accessibility_summaries'] = serializers.SerializerMethodField()
         if 'unit_detail' in includes:
             extra_fields['unit'] = UnitSerializer(read_only=True, context=context)
         return extra_fields
+
+    def get_accessibility_summaries(self, obj):
+        """ Get accessibility summaries for the resource. If data is missing for
+        any accessibility viewpoints, unknown values are returned for those.
+        """
+        if 'accessibility_viewpoint_cache' in self.context:
+            accessibility_viewpoints = self.context['accessibility_viewpoint_cache']
+        else:
+            accessibility_viewpoints = AccessibilityViewpoint.objects.all()
+        summaries_by_viewpoint = {acc_s.viewpoint_id: acc_s for acc_s in obj.accessibility_summaries.all()}
+        summaries = [
+            summaries_by_viewpoint.get(
+                vp.id,
+                ResourceAccessibility(
+                    viewpoint=vp, resource=obj, value=AccessibilityValue(value=AccessibilityValue.UNKNOWN_VALUE)))
+            for vp in accessibility_viewpoints]
+        return [ResourceAccessibilitySerializer(summary).data for summary in summaries]
 
     def get_user_permissions(self, obj):
         request = self.context.get('request', None)
@@ -662,6 +677,8 @@ class ResourceCacheMixin:
         if times:
             context['reservations_cache'] = self._preload_reservations(times)
         context['opening_hours_cache'] = self._preload_opening_hours(times)
+
+        context['accessibility_viewpoint_cache'] = AccessibilityViewpoint.objects.all()
 
         self._preload_permissions()
 

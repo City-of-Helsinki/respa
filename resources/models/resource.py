@@ -452,18 +452,6 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
         return opening_hours
 
-    def get_accessibility_summaries(self):
-        """ Get accessibility summary data for all known accessibility viewpoints.
-        If database data is missing, return unknown value for viewpoint. """
-        summaries_by_viewpoint = {acc_s.viewpoint_id: acc_s for acc_s in self.accessibility_summaries.all()}
-        accessibility_viewpoints = AccessibilityViewpoint.objects.all()
-        summaries = [
-            summaries_by_viewpoint.get(
-                vp.id,
-                ResourceAccessibility(viewpoint=vp, resource=self, value=AccessibilityValue(value='unknown')))
-            for vp in accessibility_viewpoints]
-        return summaries
-
     def update_opening_hours(self):
         hours = self.opening_hours.order_by('open_between')
         existing_hours = {}
