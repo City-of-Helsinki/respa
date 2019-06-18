@@ -283,6 +283,9 @@ RESPA_ADMIN_ACCESSIBILITY_API_SECRET = env('ACCESSIBILITY_API_SECRET')
 # list of ResourceType ids for which accessibility data input link is shown for
 RESPA_ADMIN_ACCESSIBILITY_VISIBILITY = [
     'art_studio',  # Ateljee
+    'av5k4tflpjvq',  # Ryhmätila
+    'av5k4tlzquea',  # Neuvotteluhuone
+    'av5k7g3nc47q',  # Oppimistila
     'avh553uaks6a',  # Soittohuone
     'band_practice_space',  # Bändikämppä
     'club_room',  # Kerhohuone
