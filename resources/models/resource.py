@@ -32,6 +32,7 @@ from guardian.core import ObjectPermissionChecker
 from ..auth import is_authenticated_user, is_general_admin
 from ..errors import InvalidImage
 from ..fields import EquipmentField
+from .accessibility import AccessibilityValue, AccessibilityViewpoint, ResourceAccessibility
 from .base import AutoIdentifiedModel, NameIdentifiedModel, ModifiableModel
 from .utils import create_datetime_days_from_now, get_translated, get_translated_name, humanize_duration
 from .equipment import Equipment
@@ -450,6 +451,18 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             date += datetime.timedelta(days=1)
 
         return opening_hours
+
+    def get_accessibility_summaries(self):
+        """ Get accessibility summary data for all known accessibility viewpoints.
+        If database data is missing, return unknown value for viewpoint. """
+        summaries_by_viewpoint = {acc_s.viewpoint_id: acc_s for acc_s in self.accessibility_summaries.all()}
+        accessibility_viewpoints = AccessibilityViewpoint.objects.all()
+        summaries = [
+            summaries_by_viewpoint.get(
+                vp.id,
+                ResourceAccessibility(viewpoint=vp, resource=self, value=AccessibilityValue(value='unknown')))
+            for vp in accessibility_viewpoints]
+        return summaries
 
     def update_opening_hours(self):
         hours = self.opening_hours.order_by('open_between')

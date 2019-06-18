@@ -178,7 +178,7 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
         if 'accessibility_summaries' in includes:
             # TODO: think about populating "unknown" results here if no data is available
             extra_fields['accessibility_summaries'] = ResourceAccessibilitySerializer(
-                many=True, read_only=True, context=context)
+                many=True, read_only=True, context=context, source='get_accessibility_summaries')
         if 'unit_detail' in includes:
             extra_fields['unit'] = UnitSerializer(read_only=True, context=context)
         return extra_fields
@@ -340,7 +340,7 @@ class ResourceOrderingFilter(django_filters.OrderingFilter):
                 accessibility_viewpoint = AccessibilityViewpoint.objects.first()
             if accessibility_viewpoint is None:
                 logging.error('Accessibility Viewpoints are not imported from Accessibility database')
-                value = [val for val in value if val != 'accessibility' or val != '-accessibility']
+                value = [val for val in value if val != 'accessibility' and val != '-accessibility']
                 return super().filter(qs, value)
 
             # annotate the queryset with accessibility priority from selected viewpoint.
@@ -357,7 +357,7 @@ class ResourceOrderingFilter(django_filters.OrderingFilter):
                     Coalesce(resource_accessibility_order, Value(AccessibilityValue.UNKNOWN_ORDERING)),
                     Coalesce(unit_accessibility_order, Value(AccessibilityValue.UNKNOWN_ORDERING))
                 )
-            )
+            ).prefetch_related('accessibility_summaries')
         return super().filter(qs, value)
 
 

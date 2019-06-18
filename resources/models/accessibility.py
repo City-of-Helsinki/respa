@@ -2,7 +2,6 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext as _
 from .base import AutoIdentifiedModel
-from .resource import Resource, Unit
 
 
 class AccessibilityViewpoint(AutoIdentifiedModel):
@@ -47,8 +46,8 @@ class AccessibilityValue(AutoIdentifiedModel):
 class ResourceAccessibility(AutoIdentifiedModel):
     viewpoint = models.ForeignKey(AccessibilityViewpoint, related_name='resource_accessibility_summaries',
                                   verbose_name=_('Resource Accessibility'), on_delete=models.CASCADE)
-    resource = models.ForeignKey(Resource, related_name='accessibility_summaries', verbose_name=_('Resource'),
-                                 db_index=True, on_delete=models.CASCADE)
+    resource = models.ForeignKey('resources.Resource', related_name='accessibility_summaries',
+                                 verbose_name=_('Resource'), db_index=True, on_delete=models.CASCADE)
     value = models.ForeignKey(AccessibilityValue, verbose_name=_('Accessibility summary value'),
                               on_delete=models.CASCADE)
     order = models.IntegerField(verbose_name=_('Resource ordering priority'))
@@ -72,8 +71,8 @@ class ResourceAccessibility(AutoIdentifiedModel):
 class UnitAccessibility(AutoIdentifiedModel):
     viewpoint = models.ForeignKey(AccessibilityViewpoint, related_name='unit_accessibility_summaries',
                                   verbose_name=_('Resource Accessibility'), on_delete=models.CASCADE)
-    unit = models.ForeignKey(Unit, related_name='accessibility_summaries', verbose_name=_('Resource'),
-                             db_index=True, on_delete=models.CASCADE)
+    unit = models.ForeignKey('resources.Unit', related_name='accessibility_summaries',
+                             verbose_name=_('Resource'), db_index=True, on_delete=models.CASCADE)
     value = models.ForeignKey(AccessibilityValue, verbose_name=_('Accessibility summary value'),
                               on_delete=models.CASCADE)
     order = models.IntegerField(verbose_name=_('Resource ordering priority'))
