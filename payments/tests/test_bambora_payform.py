@@ -85,7 +85,7 @@ def test_payload_add_products_success(payment_provider, order_with_products):
     payload = {}
     payment_provider.payload_add_products(payload, order_with_products)
     assert 'amount' in payload
-    assert payload.get('amount') == 4960
+    assert payload.get('amount') == 3720
 
     assert 'products' in payload
     products = payload.get('products')

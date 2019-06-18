@@ -43,9 +43,11 @@ class Product(models.Model):
         (RENT, _('rent')),
     )
 
-    PER_HOUR = 'per_hour'
+    PRICE_PER_HOUR = 'per_hour'
+    PRICE_FIXED = 'fixed'
     PRICE_TYPE_CHOICES = (
-        (PER_HOUR, _('per hour')),
+        (PRICE_PER_HOUR, _('per hour')),
+        (PRICE_FIXED, _('fixed')),
     )
 
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
@@ -74,7 +76,7 @@ class Product(models.Model):
         choices=[(tax, str(tax)) for tax in TAX_PERCENTAGES]
     )
     price_type = models.CharField(
-        max_length=32, verbose_name=_('price type'), choices=PRICE_TYPE_CHOICES, default=PER_HOUR
+        max_length=32, verbose_name=_('price type'), choices=PRICE_TYPE_CHOICES, default=PRICE_PER_HOUR
     )
 
     resources = models.ManyToManyField(Resource, verbose_name=_('resource'), related_name='products', blank=True)
@@ -113,8 +115,10 @@ class Product(models.Model):
     def get_pretax_price_for_time_range(self, begin: datetime, end: datetime, rounded: bool = True) -> Decimal:
         assert begin < end
 
-        if self.price_type == Product.PER_HOUR:
+        if self.price_type == Product.PRICE_PER_HOUR:
             price = self.pretax_price * Decimal((end - begin) / timedelta(hours=1))
+        elif self.price_type == Product.PRICE_FIXED:
+            price = self.pretax_price
         else:
             raise NotImplementedError('Cannot calculate price, unknown price type "{}".'.format(self.price_type))
 
