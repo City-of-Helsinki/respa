@@ -16,18 +16,20 @@ def auto_use_django_db(db):
 def test_get_pretax_price_correct(order_with_products):
     """Test price calculation returns the correct combined taxfree sum for products
 
-    Two hour reservation of two products with a price of 10 should equal 40"""
+    Two hour reservation of two products with a price of 10, where one product
+    has an hourly rate and one is with a fixed price, should equal 30"""
     pretax_price = order_with_products.get_pretax_price()
-    assert pretax_price == Decimal('40.00')
+    assert pretax_price == Decimal('30.00')
 
 
 def test_get_price_correct(order_with_products):
     """Test price calculation returns the correct combined sum for products
 
-    Two hour reservation of two order lines with a price of 10, plus
-    individual product tax of 24% should equal 49.60"""
+    Two hour reservation of two order lines with a price of 10, where one product
+    has an hourly rate and one is with a fixed price, plus individual product
+    tax of 24% should equal 37.20"""
     price = order_with_products.get_price()
-    assert price == Decimal('49.60')
+    assert price == Decimal('37.20')
 
 
 @pytest.mark.parametrize('order_state, expected_reservation_state', (

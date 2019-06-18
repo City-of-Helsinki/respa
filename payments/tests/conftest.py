@@ -5,7 +5,7 @@ import pytest
 from pytz import UTC
 
 from payments.factories import OrderFactory, OrderLineFactory
-from payments.models import Order
+from payments.models import Order, Product
 from resources.models import Reservation
 from resources.tests.conftest import *  # noqa
 
@@ -43,6 +43,7 @@ def order_with_products(two_hour_reservation):
         product__name="Test product",
         product__pretax_price=Decimal('10.00'),
         product__tax_percentage=Decimal('24.00'),
+        product__price_type=Product.PRICE_PER_HOUR,
         order=order
     )
     OrderLineFactory.create(
@@ -50,6 +51,7 @@ def order_with_products(two_hour_reservation):
         product__name="Test product 2",
         product__pretax_price=Decimal('10.00'),
         product__tax_percentage=Decimal('24.00'),
+        product__price_type=Product.PRICE_FIXED,
         order=order
     )
     return order

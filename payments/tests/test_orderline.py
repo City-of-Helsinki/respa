@@ -3,6 +3,7 @@ from decimal import Decimal
 import pytest
 
 from payments.factories import OrderLineFactory
+from payments.models import Product
 
 
 @pytest.fixture(autouse=True)
@@ -16,6 +17,7 @@ def order_line_price(two_hour_reservation):
         quantity=1,
         product__pretax_price=Decimal('10.00'),
         product__tax_percentage=Decimal('24.00'),
+        product__price_type=Product.PRICE_PER_HOUR,
         order__reservation=two_hour_reservation
     )
 
