@@ -8,6 +8,7 @@ import django.contrib.postgres.fields as pgfields
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.utils import translation
+from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -33,6 +34,9 @@ RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_
                             'reserver_address_city', 'billing_address_street', 'billing_address_zip',
                             'billing_address_city', 'company', 'event_description', 'event_subject', 'reserver_id',
                             'number_of_participants', 'participants', 'reserver_email_address', 'host_name')
+
+# after this time reservations in state "waiting_for_payment" without an order will be cancelled
+ORDER_WAITING_TIME = datetime.timedelta(seconds=30)
 
 
 class ReservationQuerySet(models.QuerySet):
@@ -477,6 +481,18 @@ class Reservation(ModifiableModel):
                 self.access_code = generate_access_code(access_code_type)
 
         return super().save(*args, **kwargs)
+
+    @classmethod
+    def cancel_too_old_reservations_without_orders(cls):
+        earliest_allowed = now() - ORDER_WAITING_TIME
+        reservations_to_cancel = cls.objects.filter(
+            state=cls.WAITING_FOR_PAYMENT,
+            orders=None,
+            created_at__lt=earliest_allowed,
+        )
+        for reservation in reservations_to_cancel:
+            reservation.set_state(cls.CANCELLED, None)
+        return reservations_to_cancel.count()
 
 
 class ReservationMetadataField(models.Model):

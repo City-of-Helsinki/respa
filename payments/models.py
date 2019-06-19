@@ -198,8 +198,8 @@ class Order(models.Model):
         return first_log_entry.timestamp if first_log_entry else None
 
     @classmethod
-    def update_expired(cls) -> int:
-        earliest_allowed_timestamp = now() - timedelta(minutes=settings.RESPA_PAYMENTS_ORDER_MAX_WAITING_TIME)
+    def update_expired_orders(cls) -> int:
+        earliest_allowed_timestamp = now() - timedelta(minutes=settings.RESPA_PAYMENTS_PAYMENT_WAITING_TIME)
         log_entry_timestamps = OrderLogEntry.objects.filter(order=OuterRef('pk')).order_by('id').values('timestamp')
         too_old_waiting_orders = cls.objects.filter(
             state=cls.WAITING
