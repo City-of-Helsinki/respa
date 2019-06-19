@@ -5,7 +5,8 @@ from django.db import migrations, models
 
 def create_db_entry_for_extra_questions(apps, schema_editor):
     ReservationMetadataField = apps.get_model('resources', 'ReservationMetadataField')
-    ReservationMetadataField.objects.create(field_name='reservation_extra_questions')
+    if not ReservationMetadataField.objects.filter(field_name='reservation_extra_questions').exists():
+        ReservationMetadataField.objects.create(field_name='reservation_extra_questions')
 
 
 class Migration(migrations.Migration):
@@ -25,5 +26,5 @@ class Migration(migrations.Migration):
             name='reservation_extra_questions',
             field=models.TextField(blank=True, verbose_name='Reservation extra questions'),
         ),
-        migrations.RunPython(create_db_entry_for_extra_questions),
+        migrations.RunPython(create_db_entry_for_extra_questions, migrations.RunPython.noop),
     ]
