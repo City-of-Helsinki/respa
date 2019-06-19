@@ -4,6 +4,8 @@ import django_filters
 from munigeo import api as munigeo_api
 from resources.api.base import NullableDateTimeField, TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
 from resources.models import Unit
+from .accessibility import UnitAccessibilitySerializer
+from .base import ExtraDataMixin
 
 
 class UnitFilterSet(django_filters.FilterSet):
@@ -19,7 +21,7 @@ class UnitFilterSet(django_filters.FilterSet):
         fields = ('resource_group',)
 
 
-class UnitSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
+class UnitSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     opening_hours_today = serializers.DictField(
         source='get_opening_hours',
         child=serializers.ListField(
@@ -33,6 +35,15 @@ class UnitSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     reservable_before = serializers.SerializerMethodField()
     reservable_min_days_in_advance = serializers.ReadOnlyField()
     reservable_after = serializers.SerializerMethodField()
+
+    def get_extra_fields(self, includes, context):
+        """ Define extra fields that can be included via query parameters. Method from ExtraDataMixin."""
+        extra_fields = {}
+        if 'accessibility_summaries' in includes:
+            # TODO: think about populating "unknown" results here if no data is available
+            extra_fields['accessibility_summaries'] = UnitAccessibilitySerializer(
+                many=True, read_only=True, context=context)
+        return extra_fields
 
     def get_reservable_before(self, obj):
         request = self.context.get('request')

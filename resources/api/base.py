@@ -85,3 +85,28 @@ class DRFFilterBooleanWidget(django_filters.widgets.BooleanWidget):
     """
     def render(self, *args, **kwargs):
         return None
+
+
+class ExtraDataMixin():
+    """ Mixin for serializers that provides conditionally included extra fields """
+    INCLUDE_PARAMETER_NAME = 'include'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if 'context' in kwargs and 'request' in kwargs['context']:
+            request = kwargs['context']['request']
+            includes = request.GET.getlist(self.INCLUDE_PARAMETER_NAME)
+            self.fields.update(self.get_extra_fields(includes, context=kwargs['context']))
+
+    def get_extra_fields(self, includes, context):
+        """ Return a dictionary of extra serializer fields.
+        includes is a list of requested extra data.
+
+        Example:
+            fields = {}
+            if 'user' in includes:
+                fields['user'] = UserSerializer(read_only=True, context=context)
+            return fields
+        """
+        return {}

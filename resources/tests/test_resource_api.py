@@ -10,7 +10,7 @@ from ..enums import UnitAuthorizationLevel, UnitGroupAuthorizationLevel
 
 from resources.models import (Day, Equipment, Period, Reservation, ReservationMetadataSet, ResourceEquipment,
                               ResourceType, Unit, UnitAuthorization, UnitGroup)
-from .utils import assert_response_objects, check_only_safe_methods_allowed
+from .utils import assert_response_objects, check_only_safe_methods_allowed, is_partial_dict_in_list
 
 
 @pytest.fixture
@@ -755,11 +755,11 @@ def test_filtering_by_municipality(list_url, api_client, resource_in_unit, test_
 
     response = api_client.get('%s?municipality=foo' % list_url)
     assert response.status_code == 200
-    assert_response_objects(response, resource_in_unit) 
+    assert_response_objects(response, resource_in_unit)
 
     response = api_client.get('%s?municipality=bar' % list_url)
     assert response.status_code == 200
-    assert_response_objects(response, []) 
+    assert_response_objects(response, [])
 
 
 @pytest.mark.django_db
@@ -937,3 +937,78 @@ def test_order_by_filter(list_url, api_client, resource_in_unit, resource_in_uni
     assert_response_objects(response, [resource_in_unit, resource_in_unit2])
     assert response.data['results'][1]['people_capacity'] == resource_in_unit.people_capacity
     assert response.data['results'][0]['people_capacity'] == resource_in_unit2.people_capacity
+
+
+@pytest.mark.django_db
+def test_order_by_accessibility_no_viewpoint(list_url, api_client, resource_with_accessibility_data,
+                                             resource_with_accessibility_data2):
+    """ Ordering by accessibility requires that the desired accessibility viewpoint for ordering
+    is provided
+    """
+    response = api_client.get('%s?order_by=accessibility' % list_url)
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_order_by_accessibility(list_url, api_client, resource_with_accessibility_data,
+                                resource_with_accessibility_data2, accessibility_viewpoint_wheelchair,
+                                accessibility_viewpoint_hearing):
+    """ resource_with_accessibility_data should rank higher in wheelchair accessibility
+    resource_with_accessibility_data2 should rank higher in hearing accessibility
+    """
+    response = api_client.get('{}?order_by=-accessibility&accessibility_viewpoint={}'.format(
+        list_url, accessibility_viewpoint_wheelchair.id
+    ))
+    assert response.status_code == 200
+
+    assert_response_objects(response, [resource_with_accessibility_data, resource_with_accessibility_data2])
+    assert response.data['results'][0]['name']['fi'] == resource_with_accessibility_data.name_fi
+    assert response.data['results'][1]['name']['fi'] == resource_with_accessibility_data2.name_fi
+
+    response = api_client.get('{}?order_by=-accessibility&accessibility_viewpoint={}'.format(
+        list_url, accessibility_viewpoint_hearing.id
+    ))
+    assert response.status_code == 200
+
+    assert_response_objects(response, [resource_with_accessibility_data, resource_with_accessibility_data2])
+    assert response.data['results'][0]['name']['fi'] == resource_with_accessibility_data2.name_fi
+    assert response.data['results'][1]['name']['fi'] == resource_with_accessibility_data.name_fi
+
+
+@pytest.mark.django_db
+def test_order_by_accessibility_inaccessible_unit(list_url, api_client, resource_with_accessibility_data,
+                                                  resource_with_accessibility_data3,
+                                                  accessibility_viewpoint_wheelchair):
+    """ resource_with_accessibility_data should rank higher in wheelchair accessibility.
+    resource_with_accessibility_data3 is wheelchair accessible, but
+    resource_with_accessibility_data3.unit is not wheelchair accessible
+    """
+    response = api_client.get('{}?order_by=-accessibility&accessibility_viewpoint={}'.format(
+        list_url, accessibility_viewpoint_wheelchair.id
+    ))
+    assert response.status_code == 200
+
+    assert_response_objects(response, [resource_with_accessibility_data, resource_with_accessibility_data3])
+    assert response.data['results'][0]['name']['fi'] == resource_with_accessibility_data.name_fi
+    assert response.data['results'][1]['name']['fi'] == resource_with_accessibility_data3.name_fi
+
+
+@pytest.mark.django_db
+def test_resource_with_accessibility_data_no_include(api_client, resource_with_accessibility_data, detail_url):
+    """ Resource endpoint should not include accessibility data when not explicitly included """
+    response = api_client.get(detail_url)
+    assert response.status_code == 200
+    assert 'accessibility_summaries' not in response.data
+
+
+@pytest.mark.django_db
+def test_resource_with_accessibility_data(api_client, resource_with_accessibility_data, detail_url):
+    """ Resource endpoint should include accessibility data when include-parameter is used """
+    url = "{}?include=accessibility_summaries".format(detail_url)
+    response = api_client.get(url)
+    assert response.status_code == 200
+    assert 'accessibility_summaries' in response.data
+    for acc in resource_with_accessibility_data.accessibility_summaries.all():
+        assert is_partial_dict_in_list(
+            {'value': acc.value.value, 'viewpoint_id': acc.viewpoint_id},
+            response.data['accessibility_summaries'])
