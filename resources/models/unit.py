@@ -177,3 +177,8 @@ class UnitIdentifier(models.Model):
         verbose_name = _("unit identifier")
         verbose_name_plural = _("unit identifiers")
         unique_together = (('namespace', 'value'), ('namespace', 'unit'))
+
+    def __str__(self):
+        return '{namespace}: {value}'.format(
+            namespace=self.namespace, value=self.value
+        )

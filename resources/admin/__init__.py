@@ -24,7 +24,7 @@ from ..models import (
     AccessibilityValue, AccessibilityViewpoint, Day, Equipment, EquipmentAlias, EquipmentCategory, Purpose,
     Reservation, ReservationMetadataField, ReservationMetadataSet, Resource, ResourceAccessibility,
     ResourceEquipment, ResourceGroup, ResourceImage, ResourceType, TermsOfUse,
-    Unit, UnitAuthorization, UnitGroup, UnitGroupAuthorization)
+    Unit, UnitAuthorization, UnitIdentifier, UnitGroup, UnitGroupAuthorization)
 from munigeo.models import Municipality
 
 logger = logging.getLogger(__name__)
@@ -88,6 +88,12 @@ class ResourceGroupInline(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, a
     extra = 0
 
 
+class UnitIdentifierInline(admin.StackedInline):
+    model = UnitIdentifier
+    fields = ('namespace', 'value')
+    extra = 0
+
+
 class ResourceAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin, HttpsFriendlyGeoAdmin):
     inlines = [
         PeriodInline,
@@ -112,7 +118,8 @@ class ResourceAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Transla
 class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, FixedGuardedModelAdminMixin,
                 TranslationAdmin, HttpsFriendlyGeoAdmin):
     inlines = [
-        PeriodInline
+        UnitIdentifierInline,
+        PeriodInline,
     ]
     change_list_template = 'admin/units/import_buttons.html'
     import_template = 'admin/units/import_template.html'
