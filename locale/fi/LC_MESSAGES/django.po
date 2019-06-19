@@ -702,6 +702,9 @@ msgid ""
 msgstr ""
 "Ulkoisen varausjärjestelmän osoite jos tätä resurssia hallitaan muualla"
 
+msgid "Reservation extra questions"
+msgstr "Varauksen lisäkysymykset"
+
 msgid "resource"
 msgstr "resurssi"
 
@@ -1017,6 +1020,12 @@ msgstr "Sähköposti-ilmoitukset"
 
 msgid "A notification will be sent when a space is booked."
 msgstr "Ilmoitus lähetetään, kun tilaa varataan."
+
+msgid "Extra questions"
+msgstr "Lisäkysymykset"
+
+msgid "Extra questions for reservation"
+msgstr "Varauksen lisäkysymykset"
 
 msgid "Choose from the list below"
 msgstr "Valitse allaolevasta listasta"

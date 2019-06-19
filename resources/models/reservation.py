@@ -32,7 +32,8 @@ logger = logging.getLogger(__name__)
 RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street', 'reserver_address_zip',
                             'reserver_address_city', 'billing_address_street', 'billing_address_zip',
                             'billing_address_city', 'company', 'event_description', 'event_subject', 'reserver_id',
-                            'number_of_participants', 'participants', 'reserver_email_address', 'host_name')
+                            'number_of_participants', 'participants', 'reserver_email_address', 'host_name',
+                            'reservation_extra_questions')
 
 
 class ReservationQuerySet(models.QuerySet):
@@ -118,6 +119,7 @@ class Reservation(ModifiableModel):
                                                               null=True)
     participants = models.TextField(verbose_name=_('Participants'), blank=True)
     host_name = models.CharField(verbose_name=_('Host name'), max_length=100, blank=True)
+    reservation_extra_questions = models.TextField(verbose_name=_('Reservation extra questions'), blank=True)
 
     # extra detail fields for manually confirmed reservations
     reserver_name = models.CharField(verbose_name=_('Reserver name'), max_length=100, blank=True)
