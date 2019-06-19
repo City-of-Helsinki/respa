@@ -9,16 +9,9 @@
         min-width: 100px;
     }
 
-    .button-row {
-
-        button {
-            height: $input-height-default;
-            padding: $padding-large-vertical 24px;
-            margin-right: 10px;
-            background-color: $hel-copper;
-            border: 0;
-        }
-    }
+    .select-dropdown {
+        margin-left: 10px;
+      }
 
     .dropdown-time {
         background-color: rgba($light-gray, 0.5);
