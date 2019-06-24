@@ -12,7 +12,7 @@ def create_db_entry_for_extra_questions(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('resources', '0077_resource_slot_size'),
+        ('resources', '0078_accessibility_models'),
     ]
 
     operations = [
