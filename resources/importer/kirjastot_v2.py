@@ -12,7 +12,7 @@ from django.db.models import Q
 from resources.models import Unit, UnitIdentifier
 from .base import Importer, register_importer
 
-from raven import Client
+from sentry_sdk import capture_message
 
 from django.conf import settings
 
@@ -72,13 +72,9 @@ def process_varaamo_libraries():
             print("Failed data fetch on library: ", varaamo_unit)
             problems.append(" ".join(["Failed data fetch on library: ", str(varaamo_unit)]))
 
-    try:
-        if problems and settings.RAVEN_DSN:
-            # Report problems to Raven/Sentry
-            client = Client(settings.RAVEN_DSN)
-            client.captureMessage("\n".join(problems))
-    except AttributeError:
-        pass
+    # report problems to Sentry (will fail silently if not available)
+    if problems:
+        capture_message("\n".join(problems))
 
 
 @transaction.atomic

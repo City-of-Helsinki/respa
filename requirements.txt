@@ -11,7 +11,7 @@ asn1crypto==0.24.0        # via cryptography
 atomicwrites==1.2.1       # via pytest
 attrs==18.2.0             # via pytest
 babel==2.6.0              # via delorean
-certifi==2018.11.29       # via requests
+certifi==2018.11.29       # via requests, sentry-sdk
 cffi==1.11.5              # via cryptography
 chardet==3.0.4            # via requests
 click==7.0                # via pip-tools
@@ -83,13 +83,13 @@ python-docx==0.8.10
 python3-openid==3.1.0     # via django-allauth
 pytz==2018.9
 pyyaml==5.1               # via database-sanitizer, django-munigeo, django-sanitized-dump
-raven==6.10.0
 requests-cache==0.4.13    # via django-munigeo
 requests-ntlm==1.1.0
 requests-oauthlib==1.2.0  # via django-allauth
 requests==2.21.0
+sentry-sdk==0.9.0
 six==1.12.0
 text-unidecode==1.2       # via faker
 tzlocal==1.5.1            # via delorean
-urllib3==1.24.2           # via requests
+urllib3==1.24.2           # via requests, sentry-sdk
 xlsxwriter==1.1.2

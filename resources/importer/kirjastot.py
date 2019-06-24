@@ -3,7 +3,7 @@ import delorean
 import requests
 from django.conf import settings
 from django.db import transaction
-from raven import Client
+from sentry_sdk import capture_message
 from resources.models import Unit
 from typing import Dict, List
 from .base import Importer, register_importer
@@ -59,10 +59,9 @@ def process_varaamo_libraries():
             problems.append(" ".join(["Failed data fetch on library: ", str(varaamo_unit)]))
 
     try:
-        if problems and settings.RAVEN_DSN:
-            # Report problems to Raven/Sentry
-            client = Client(settings.RAVEN_DSN)
-            client.captureMessage("\n".join(problems))
+        if problems:
+            # without Sentry, this will gracefully file the message to /dev/null
+            capture_message("\n".join(problems))
     except AttributeError:
         pass
 

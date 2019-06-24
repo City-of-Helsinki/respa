@@ -2,15 +2,42 @@
 Django settings for respa project.
 """
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import subprocess
 import environ
-import raven
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ImproperlyConfigured
 
-
 root = environ.Path(__file__) - 2  # two folders back
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+BASE_DIR = root()
+
+# Location of the fallback version file, used when no repository is available.
+# This is hardcoded as reading it from configuration does not really make
+# sense. It is supposed to be a fallback after all.
+VERSION_FILE = os.path.join(BASE_DIR, '../service_state/deployed_version')
+
+def get_git_revision_hash():
+    """
+    We need a way to retrieve git revision hash for sentry reports
+    """
+    try:
+        # We are not interested in gits complaints, stderr -> null
+        git_hash = subprocess.check_output(['git', 'describe', '--tags', '--long', '--always'], stderr=subprocess.DEVNULL, encoding='utf8')
+    # First is "git not found", second is most likely "no repository"
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        try:
+            # fall back to hardcoded file location
+            with open(VERSION_FILE) as f:
+                git_hash = f.readline()
+        except FileNotFoundError:
+            git_hash = "revision_not_available"
+
+    return git_hash.rstrip()
+
+
 env = environ.Env(
     DEBUG=(bool, False),
     SECRET_KEY=(str, ''),
@@ -48,8 +75,6 @@ environ.Env.read_env()
 # used for generating links to images, when no request context is available
 # reservation confirmation emails use this
 RESPA_IMAGE_BASE_URL = env('RESPA_IMAGE_BASE_URL')
-
-BASE_DIR = root()
 
 DEBUG_TOOLBAR_CONFIG = {
     'RESULTS_CACHE_SIZE': 100,
@@ -119,12 +144,12 @@ INSTALLED_APPS = [
 ]
 
 if env('SENTRY_DSN'):
-    RAVEN_CONFIG = {
-        'dsn': env('SENTRY_DSN'),
-        'environment': env('SENTRY_ENVIRONMENT'),
-        'release': raven.fetch_git_sha(BASE_DIR),
-    }
-    INSTALLED_APPS.append('raven.contrib.django.raven_compat')
+    sentry_sdk.init(
+        dsn=env('SENTRY_DSN'),
+        environment=env('SENTRY_ENVIRONMENT'),
+        release=get_git_revision_hash(),
+        integrations=[DjangoIntegration()]
+    )
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
