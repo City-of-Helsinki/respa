@@ -27,7 +27,7 @@ def test_order_log_entry_created_on_order_creation(order_with_products):
     assert order_log_entry.state_change == Order.WAITING
 
 
-@pytest.mark.parametrize('new_state', (Order.REJECTED, Order.CONFIRMED, Order.EXPIRED))
+@pytest.mark.parametrize('new_state', (Order.REJECTED, Order.CONFIRMED, Order.EXPIRED, Order.CANCELLED))
 def test_order_log_entry_created_on_order_set_state(order_with_products, new_state):
     order_with_products.set_state(new_state)
 
@@ -36,11 +36,10 @@ def test_order_log_entry_created_on_order_set_state(order_with_products, new_sta
     assert order_log_entry.state_change == new_state
 
 
-@pytest.mark.parametrize('state', (Order.WAITING, Order.REJECTED, Order.CONFIRMED, Order.EXPIRED))
-def test_order_log_entry_not_created_on_order_set_state_when_state_stays_same(two_hour_reservation, state):
-    order = OrderFactory(reservation=two_hour_reservation, state=state)
+def test_order_log_entry_not_created_on_order_set_state_when_state_stays_same(two_hour_reservation):
+    order = OrderFactory(reservation=two_hour_reservation, state=Order.WAITING)
     assert OrderLogEntry.objects.count() == 1
 
-    order.set_state(state)
+    order.set_state(Order.WAITING)
 
     assert OrderLogEntry.objects.count() == 1

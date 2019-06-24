@@ -7,9 +7,13 @@ import requests
 from django.http import HttpResponse, HttpResponseBadRequest
 from requests.exceptions import RequestException
 
+from ..exceptions import (
+    DuplicateOrderError, OrderStateTransitionError, PayloadValidationError, ServiceUnavailableError,
+    UnknownReturnCodeError
+)
 from ..models import Order, OrderLine
 from ..utils import price_as_sub_units
-from .base import PaymentError, PaymentProvider
+from .base import PaymentProvider
 
 logger = logging.getLogger(__name__)
 
@@ -178,24 +182,22 @@ class BamboraPayformProvider(PaymentProvider):
         return_code = request.GET['RETURN_CODE']
         if return_code == '0':
             logger.debug('Payment completed successfully.')
-            if order.state != Order.WAITING:
-                logger.warning('Cannot set order {} confirmed, it is in invalid state "{}".'.format(
-                    order.id, order.state)
-                )
-                order.create_log_entry('Got "payment completed successfully" from Bambora Payform.')
+            try:
+                order.set_state(Order.CONFIRMED, 'Code 0 (payment succeeded) in Bambora Payform success request.')
+                return self.ui_redirect_success(return_url, order)
+            except OrderStateTransitionError as oste:
+                logger.warning(oste)
+                order.create_log_entry('Code 0 (payment succeeded) in Bambora Payform success request.')
                 return self.ui_redirect_failure(return_url, order)
-            order.set_state(Order.CONFIRMED)
-            return self.ui_redirect_success(return_url, order)
         elif return_code == '1':
             logger.debug('Payment failed.')
-            if order.state != Order.WAITING:
-                logger.warning('Cannot set order {} rejected, it is in invalid state "{}".'.format(
-                    order.id, order.state)
-                )
-                order.create_log_entry('Got "payment rejected" from Bambora Payform.')
+            try:
+                order.set_state(Order.REJECTED, 'Code 1 (payment rejected) in Bambora Payform success request.')
                 return self.ui_redirect_failure(return_url, order)
-            order.set_state(Order.REJECTED)
-            return self.ui_redirect_failure(return_url, order)
+            except OrderStateTransitionError as oste:
+                logger.warning(oste)
+                order.create_log_entry('Code 1 (payment rejected) in Bambora Payform success request.')
+                return self.ui_redirect_failure(return_url, order)
         elif return_code == '4':
             logger.debug('Transaction status could not be updated.')
             order.create_log_entry(
@@ -214,7 +216,14 @@ class BamboraPayformProvider(PaymentProvider):
         """Handle the asynchronous part of payform response
 
         Arrives some time after user has completed the payment flow or stopped it abruptly.
+        Skips changing order state if it has been previously set. Although, according to
+        Bambora's documentation, there are some cases where payment state might change
+        from failed to successful, the reservation has probably been soft-cleaned up by then.
+        TODO Maybe try recreating the reservation if the time slot is still available
+
         Bambora expects 20x response to acknowledge the notify was received"""
+        logger.debug('Handling Bambora notify request, params: {}.'.format(request.GET))
+
         if not self.check_new_payment_authcode(request):
             return HttpResponse(status=204)
 
@@ -225,39 +234,20 @@ class BamboraPayformProvider(PaymentProvider):
             logger.warning('Notify: Order does not exist.')
             return HttpResponse(status=204)
 
-        if order.state != Order.WAITING:
-            # Skip changing order state if it has been previously set.
-            # Although, according to bambora's documentation, there are some cases where
-            # payment state might change from failed to successful, the reservation has
-            # probably been cleaned up by then.
-            # TODO Maybe try recreating the reservation if the time slot is still available
-            logger.debug('Notify: Order state has been already set')
-            return HttpResponse(status=204)
-
         return_code = request.GET['RETURN_CODE']
         if return_code == '0':
             logger.debug('Notify: Payment completed successfully.')
-            order.set_state(Order.CONFIRMED)
+            try:
+                order.set_state(Order.CONFIRMED, 'Code 0 (payment succeeded) in Bambora Payform notify request.')
+            except OrderStateTransitionError as oste:
+                logger.warning(oste)
         elif return_code == '1':
             logger.debug('Notify: Payment failed.')
-            order.set_state(Order.REJECTED)
+            try:
+                order.set_state(Order.REJECTED, 'Code 1 (payment rejected) in Bambora Payform notify request.')
+            except OrderStateTransitionError as oste:
+                logger.warning(oste)
         else:
             logger.debug('Notify: Incorrect RETURN_CODE "{}".'.format(return_code))
 
         return HttpResponse(status=204)
-
-
-class ServiceUnavailableError(PaymentError):
-    """When payment service is unreachable, offline for maintenance etc"""
-
-
-class PayloadValidationError(PaymentError):
-    """When something is wrong or missing in the posted payload data"""
-
-
-class DuplicateOrderError(PaymentError):
-    """If order with the same ID has already been previously posted"""
-
-
-class UnknownReturnCodeError(PaymentError):
-    """If service returns a status code that is not recognized by the handler"""
