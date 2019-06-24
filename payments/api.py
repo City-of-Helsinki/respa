@@ -4,14 +4,14 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
+from payments.exceptions import (
+    DuplicateOrderError, PayloadValidationError, RespaPaymentError, ServiceUnavailableError, UnknownReturnCodeError
+)
 from payments.models import Order, OrderLine, Product
 from resources.api.base import TranslatedModelSerializer, register_view
 from resources.models import Reservation
 
 from .providers import get_payment_provider
-from .providers.bambora_payform import (
-    DuplicateOrderError, PayloadValidationError, ServiceUnavailableError, UnknownReturnCodeError
-)
 
 
 class ProductSerializer(TranslatedModelSerializer):
@@ -108,6 +108,9 @@ class OrderSerializer(OrderSerializerBase):
         except ServiceUnavailableError as sue:
             raise exceptions.APIException(detail=str(sue),
                                           code=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except RespaPaymentError as pe:
+            raise exceptions.APIException(detail=str(pe),
+                                          code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return order
 

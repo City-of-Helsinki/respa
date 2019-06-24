@@ -76,7 +76,3 @@ class PaymentProvider:
         if order:
             params['order_id'] = order.id
         return redirect('{}?{}'.format(return_url, urlencode(params)))
-
-
-class PaymentError(Exception):
-    """Base for payment specific exceptions"""

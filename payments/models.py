@@ -12,6 +12,7 @@ from django.utils.translation import ugettext_lazy as _
 from resources.models import Reservation, Resource
 from resources.models.utils import generate_id
 
+from .exceptions import OrderStateTransitionError
 from .utils import round_price
 
 # The best way for representing non existing archived_at would be using None for it,
@@ -232,10 +233,14 @@ class Order(models.Model):
         assert new_state in (Order.WAITING, Order.CONFIRMED, Order.REJECTED, Order.EXPIRED, Order.CANCELLED)
 
         old_state = self.state
-        self.state = new_state
-
         if new_state == old_state:
             return
+
+        if old_state != Order.WAITING:
+            raise OrderStateTransitionError('Cannot set order {} state, it is in an invalid state "{}".',
+                                            self.order_number, old_state)
+
+        self.state = new_state
 
         if new_state == Order.CONFIRMED:
             self.reservation.set_state(Reservation.CONFIRMED, self.reservation.user)

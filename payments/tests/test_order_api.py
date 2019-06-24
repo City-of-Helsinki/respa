@@ -7,6 +7,7 @@ from rest_framework.reverse import reverse
 from ..factories import ProductFactory
 from ..models import Order
 from ..providers.base import PaymentProvider
+from resources.models import Reservation
 
 LIST_URL = reverse('order-list')
 
@@ -143,6 +144,24 @@ def test_order_product_must_match_resource(user_api_client, product, two_hour_re
 
     assert response.status_code == 400
     assert 'product' in response.data['order_lines'][1]
+
+
+@pytest.mark.parametrize('reservation_state', (
+    Reservation.CREATED,
+    Reservation.CANCELLED,
+    Reservation.CONFIRMED,
+    Reservation.DENIED,
+    Reservation.REQUESTED,
+))
+def test_order_create_restricted_reservation_states(user_api_client, product, two_hour_reservation, reservation_state):
+    """Test it is restricted to create orders for reservations that are not waiting for payment"""
+    Reservation.objects.filter(id=two_hour_reservation.id).update(state=reservation_state)
+    two_hour_reservation.refresh_from_db()
+
+    order_data = build_order_data(two_hour_reservation, product=product, quantity=1)
+    response = user_api_client.post(LIST_URL, order_data)
+
+    assert response.status_code == 400
 
 
 def test_order_can_be_created_only_for_own_reservations(api_client, user2, order_data):
