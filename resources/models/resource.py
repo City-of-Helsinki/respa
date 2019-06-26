@@ -580,6 +580,9 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     def can_view_product_orders(self, user):
         return self._has_perm(user, 'can_view_reservation_product_orders', allow_admin=False)
 
+    def can_modify_paid_reservations(self, user):
+        return self._has_perm(user, 'can_modify_paid_reservations', allow_admin=False)
+
     def can_approve_reservations(self, user):
         return self._has_perm(user, 'can_approve_reservation', allow_admin=False)
 

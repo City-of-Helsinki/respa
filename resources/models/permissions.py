@@ -11,6 +11,7 @@ RESOURCE_PERMISSIONS = (
     ('can_view_reservation_catering_orders', _('Can view reservation catering orders')),
     ('can_modify_reservation_catering_orders', _('Can modify reservation catering orders')),
     ('can_view_reservation_product_orders', _('Can view reservation product orders')),
+    ('can_modify_paid_reservations', _('Can modify paid reservations')),
 )
 
 UNIT_PERMISSIONS = [
