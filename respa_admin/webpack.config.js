@@ -29,7 +29,7 @@ module.exports = {
       {
         test: /\.(woff(2)?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
         use: [{
-        loader: 'file-loader',
+          loader: 'file-loader',
           options: {
             name: '[name].[ext]',
             outputPath: 'fonts/'
@@ -44,7 +44,14 @@ module.exports = {
       chunkFilename: "[id].css"
     }),
     new CopyPlugin([
-      { from: './static_src/img/', to: './img/'}
+      { from: './static_src/img/', to: './img/' }
     ])
-  ]
+  ],
+  resolve: {
+    alias: {
+      // For some reason there are multiple jQuery versions, leading to datepicker events not working properly
+      // added this to force all modules to use the same jQuery version
+      'jquery': path.join(__dirname, 'node_modules/jquery/src/jquery')
+    }
+  }
 };
