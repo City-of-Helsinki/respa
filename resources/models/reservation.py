@@ -265,6 +265,12 @@ class Reservation(ModifiableModel):
         if not user:
             return False
 
+        if self.state == Reservation.WAITING_FOR_PAYMENT:
+            return False
+
+        if self.orders.exists():
+            return self.resource.can_modify_paid_reservations(user)
+
         # reservations that need manual confirmation and are confirmed cannot be
         # modified or cancelled without reservation approve permission
         cannot_approve = not self.resource.can_approve_reservations(user)

@@ -7,7 +7,7 @@ from resources.tests.conftest import resource_in_unit, user_api_client  # noqa
 from resources.tests.test_reservation_api import day_and_period  # noqa
 
 from ..factories import ProductFactory
-from ..models import Product
+from ..models import Order, Product
 from ..tests.test_order_api import ORDER_RESPONSE_FIELDS
 
 LIST_URL = reverse('reservation-list')
@@ -19,21 +19,28 @@ def get_detail_url(reservation):
     return reverse('reservation-detail', kwargs={'pk': reservation.pk})
 
 
-@pytest.mark.parametrize('has_rent_product, expected_state', (
-    (False, Reservation.CONFIRMED),
-    (True, Reservation.WAITING_FOR_PAYMENT),
-))
-@pytest.mark.django_db
-def test_reservation_creation_state(user_api_client, resource_in_unit, has_rent_product, expected_state):
-    if has_rent_product:
-        ProductFactory(type=Product.RENT, resources=[resource_in_unit])
-    data = {
-        'resource': resource_in_unit.pk,
+def get_data(resource):
+    return {
+        'resource': resource.pk,
         'begin': '2115-04-04T11:00:00+02:00',
         'end': '2115-04-04T12:00:00+02:00'
     }
 
-    response = user_api_client.post(LIST_URL, data)
+
+@pytest.fixture(autouse=True)
+def auto_use_django_db(db):
+    pass
+
+
+@pytest.mark.parametrize('has_rent_product, expected_state', (
+    (False, Reservation.CONFIRMED),
+    (True, Reservation.WAITING_FOR_PAYMENT),
+))
+def test_reservation_creation_state(user_api_client, resource_in_unit, has_rent_product, expected_state):
+    if has_rent_product:
+        ProductFactory(type=Product.RENT, resources=[resource_in_unit])
+
+    response = user_api_client.post(LIST_URL, get_data(resource_in_unit))
     assert response.status_code == 201, response.data
     new_reservation = Reservation.objects.last()
     assert new_reservation.state == expected_state
@@ -41,7 +48,6 @@ def test_reservation_creation_state(user_api_client, resource_in_unit, has_rent_
 
 @pytest.mark.parametrize('endpoint', ('list', 'detail'))
 @pytest.mark.parametrize('include', (None, '', 'foo', 'foo,bar', 'orders', 'foo,orders'))
-@pytest.mark.django_db
 def test_reservation_orders_field(user_api_client, order_with_products, endpoint, include):
     url = LIST_URL if endpoint == 'list' else get_detail_url(order_with_products.reservation)
     if include is not None:
@@ -69,7 +75,6 @@ def test_reservation_orders_field(user_api_client, order_with_products, endpoint
     ('other', False),
     ('other_with_perm', True),
 ))
-@pytest.mark.django_db
 def test_reservation_orders_field_visibility(api_client, order_with_products, user2, request_user, endpoint, expected):
     url = LIST_URL if endpoint == 'list' else get_detail_url(order_with_products.reservation)
 
@@ -86,3 +91,27 @@ def test_reservation_orders_field_visibility(api_client, order_with_products, us
 
     reservation_data = response.data['results'][0] if endpoint == 'list' else response.data
     assert ('orders' in reservation_data) is expected
+
+
+def test_reservation_in_state_waiting_for_payment_cannot_be_modified_or_deleted(user_api_client, two_hour_reservation):
+    response = user_api_client.put(get_detail_url(two_hour_reservation), data=get_data(two_hour_reservation.resource))
+    assert response.status_code == 403
+
+    response = user_api_client.delete(get_detail_url(two_hour_reservation))
+    assert response.status_code == 403
+
+
+@pytest.mark.parametrize('has_perm', (False, True))
+def test_reservation_that_has_order_cannot_be_modified_without_permission(user_api_client, order_with_products, user,
+                                                                          has_perm):
+    order_with_products.set_state(Order.CONFIRMED)
+    if has_perm:
+        assign_perm('unit:can_modify_paid_reservations', user, order_with_products.reservation.resource.unit)
+
+    response = user_api_client.put(
+        get_detail_url(order_with_products.reservation), data=get_data(order_with_products.reservation.resource)
+    )
+    assert response.status_code == 200 if has_perm else 403
+
+    response = user_api_client.delete(get_detail_url(order_with_products.reservation))
+    assert response.status_code == 204 if has_perm else 403
