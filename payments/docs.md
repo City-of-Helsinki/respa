@@ -165,7 +165,7 @@
     ```json
     ...
 
-    "orders": ["awemfcd2icdcd"],
+    "order": "awemfcd2icdcd",
 
     ...
     ```
@@ -177,38 +177,36 @@
     ```json
     ...
 
-    "orders": [
-        {
-            "id": "awemfcd2icdcd",
-            "status": "waiting",
-            "payer_first_name": "Ville",
-            "payer_last_name": "Virtanen",
-            "payer_email_address": "ville@virtanen.com",
-            "payer_address_street": "Virtatie 5",
-            "payer_address_zip": "55555",
-            "payer_address_city": "Virtala",
-            "price": "17.10",
-            "order_lines": [
-                {
-                    "product": {
-                        "id": "awemfcd2iqlq",
-                        "type": "rent",
-                        "name": {
-                            "fi": "testivuokra"
-                        },
-                        "description": {
-                            "fi": "testikuvaus"
-                        },
-                        "tax_percentage": "14.00",
-                        "price": "11.40",
-                        "price_type": "per_hour"
+    "order": {
+        "id": "awemfcd2icdcd",
+        "status": "waiting",
+        "payer_first_name": "Ville",
+        "payer_last_name": "Virtanen",
+        "payer_email_address": "ville@virtanen.com",
+        "payer_address_street": "Virtatie 5",
+        "payer_address_zip": "55555",
+        "payer_address_city": "Virtala",
+        "price": "17.10",
+        "order_lines": [
+            {
+                "product": {
+                    "id": "awemfcd2iqlq",
+                    "type": "rent",
+                    "name": {
+                        "fi": "testivuokra"
                     },
-                    "quantity": 1,
-                    "price": "17.10"
-                }
-            ]
-        }
-    ],
+                    "description": {
+                        "fi": "testikuvaus"
+                    },
+                    "tax_percentage": "14.00",
+                    "price": "11.40",
+                    "price_type": "per_hour"
+                },
+                "quantity": 1,
+                "price": "17.10"
+            }
+        ]
+    },
 
     ...
     ```

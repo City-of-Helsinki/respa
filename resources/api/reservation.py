@@ -300,21 +300,21 @@ class OrderSerializer(OrderSerializerBase):
 
 
 class PaymentsReservationSerializer(ReservationSerializer):
-    orders = serializers.SlugRelatedField('order_number', many=True, read_only=True)
+    order = serializers.SlugRelatedField('order_number', read_only=True)
 
     class Meta(ReservationSerializer.Meta):
-        fields = ReservationSerializer.Meta.fields + ['orders']
-        read_only_fields = ReservationSerializer.Meta.read_only_fields + ['orders']
+        fields = ReservationSerializer.Meta.fields + ['order']
+        read_only_fields = ReservationSerializer.Meta.read_only_fields + ['order']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if 'orders' in self.context.get('expanded', ()):
-            self.fields['orders'] = OrderSerializer(many=True, read_only=True)
+        if 'order' in self.context.get('expanded', ()):
+            self.fields['order'] = OrderSerializer(read_only=True)
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
         if not instance.can_view_product_orders(self.context['request'].user):
-            data.pop('orders', None)
+            data.pop('order', None)
         return data
 
 
@@ -530,7 +530,7 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
 
     if settings.RESPA_PAYMENTS_ENABLED:
         serializer_class = PaymentsReservationSerializer
-        queryset = queryset.prefetch_related('orders', 'orders__order_lines', 'orders__order_lines__product')
+        queryset = queryset.prefetch_related('order', 'order__order_lines', 'order__order_lines__product')
     else:
         serializer_class = ReservationSerializer
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter, UserFilterBackend, ReservationFilterBackend,

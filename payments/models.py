@@ -172,8 +172,8 @@ class Order(models.Model):
 
     state = models.CharField(max_length=32, verbose_name=_('state'), choices=STATE_CHOICES, default=WAITING)
     order_number = models.CharField(max_length=64, verbose_name=_('order number'), unique=True, default=generate_id)
-    reservation = models.ForeignKey(
-        Reservation, verbose_name=_('reservation'), related_name='orders', on_delete=models.PROTECT
+    reservation = models.OneToOneField(
+        Reservation, verbose_name=_('reservation'), related_name='order', on_delete=models.PROTECT
     )
 
     payer_first_name = models.CharField(max_length=100, verbose_name=_('payer first name'))
