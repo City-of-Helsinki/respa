@@ -268,7 +268,7 @@ class Reservation(ModifiableModel):
         if self.state == Reservation.WAITING_FOR_PAYMENT:
             return False
 
-        if self.orders.exists():
+        if self.has_order():
             return self.resource.can_modify_paid_reservations(user)
 
         # reservations that need manual confirmation and are confirmed cannot be
@@ -303,6 +303,9 @@ class Reservation(ModifiableModel):
         if self.is_own(user):
             return True
         return self.resource.can_view_product_orders(user)
+
+    def has_order(self):
+        return hasattr(self, 'order')
 
     def format_time(self):
         tz = self.resource.unit.get_tz()
@@ -493,7 +496,7 @@ class Reservation(ModifiableModel):
         earliest_allowed = now() - ORDER_WAITING_TIME
         reservations_to_cancel = cls.objects.filter(
             state=cls.WAITING_FOR_PAYMENT,
-            orders=None,
+            order=None,
             created_at__lt=earliest_allowed,
         )
         for reservation in reservations_to_cancel:

@@ -127,14 +127,6 @@ class OrderSerializer(OrderSerializerBase):
             raise serializers.ValidationError(
                 _('Cannot create an order for a reservation that is not in state "waiting_for_payment".')
             )
-
-        # TODO there is a theoretical possibility of a race condition here. Once specs about multiple orders
-        # per reservation are clear, we can probably replace this by changing order - reservation relation to
-        # one to one.
-        if reservation.orders.exists():
-            raise serializers.ValidationError(
-                _('The reservation already has an order.')
-            )
         return reservation
 
 

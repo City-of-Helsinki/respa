@@ -47,7 +47,7 @@ def test_reservation_creation_state(user_api_client, resource_in_unit, has_rent_
 
 
 @pytest.mark.parametrize('endpoint', ('list', 'detail'))
-@pytest.mark.parametrize('include', (None, '', 'foo', 'foo,bar', 'orders', 'foo,orders'))
+@pytest.mark.parametrize('include', (None, '', 'foo', 'foo,bar', 'order', 'foo,order'))
 def test_reservation_orders_field(user_api_client, order_with_products, endpoint, include):
     url = LIST_URL if endpoint == 'list' else get_detail_url(order_with_products.reservation)
     if include is not None:
@@ -58,13 +58,13 @@ def test_reservation_orders_field(user_api_client, order_with_products, endpoint
 
     reservation_data = response.data['results'][0] if endpoint == 'list' else response.data
 
-    order_data = reservation_data['orders'][0]
-    if include is not None and 'orders' in include:
-        # orders should be nested data
+    order_data = reservation_data['order']
+    if include is not None and 'order' in include:
+        # order should be nested data
         assert set(order_data.keys()) == ORDER_FIELDS
         assert order_data['id'] == order_with_products.order_number
     else:
-        # orders should be just IDs
+        # order should be just ID
         assert order_data == order_with_products.order_number
 
 
@@ -90,7 +90,7 @@ def test_reservation_orders_field_visibility(api_client, order_with_products, us
     assert response.status_code == 200
 
     reservation_data = response.data['results'][0] if endpoint == 'list' else response.data
-    assert ('orders' in reservation_data) is expected
+    assert ('order' in reservation_data) is expected
 
 
 def test_reservation_in_state_waiting_for_payment_cannot_be_modified_or_deleted(user_api_client, two_hour_reservation):
