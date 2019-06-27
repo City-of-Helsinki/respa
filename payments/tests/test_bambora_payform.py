@@ -1,15 +1,22 @@
 import hmac
 import json
+from unittest import mock
 
 import pytest
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.test.client import RequestFactory
+from requests.exceptions import RequestException
+from rest_framework.reverse import reverse
 
 from payments.models import Order
 from payments.providers.bambora_payform import (
     RESPA_PAYMENTS_BAMBORA_API_KEY, BamboraPayformProvider, DuplicateOrderError, PayloadValidationError,
     ServiceUnavailableError, UnknownReturnCodeError
 )
+
+FAKE_BAMBORA_API_URL = "https://fake-bambora-api-url/api"
+UI_RETURN_URL = 'https://front-end-url'
+ORDER_LIST_URL = reverse('order-list')
 
 
 @pytest.fixture(autouse=True)
@@ -18,13 +25,68 @@ def auto_use_django_db(db):
 
 
 @pytest.fixture()
-def payment_provider():
-    config = {
+def provider_base_config():
+    return {
+        'RESPA_PAYMENTS_BAMBORA_API_URL': 'https://real-bambora-api-url/api',
         'RESPA_PAYMENTS_BAMBORA_API_KEY': 'dummy-key',
         'RESPA_PAYMENTS_BAMBORA_API_SECRET': 'dummy-secret',
         'RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS': ['dummy-bank']
     }
-    return BamboraPayformProvider(PAYMENT_CONFIG=config)
+
+
+@pytest.fixture()
+def payment_provider(provider_base_config):
+    return BamboraPayformProvider(PAYMENT_CONFIG=provider_base_config)
+
+
+def mocked_response_create(*args, **kwargs):
+    """Mock Bambora auth token responses based on provider url"""
+    class MockResponse:
+        def __init__(self, data, status_code=200):
+            self.json_data = data
+            self.status_code = status_code
+
+        def json(self):
+            return self.json_data
+
+        def raise_for_status(self):
+            if self.status_code != 200:
+                raise RequestException("Mock request error with status_code {}.".format(self.status_code))
+            pass
+
+    if args[0].startswith(FAKE_BAMBORA_API_URL):
+        return MockResponse(data={}, status_code=500)
+    else:
+        return MockResponse(data={
+            "result": 0,
+            "token": "abc123",
+            "type": "e-payment"
+        })
+
+
+def test_order_create_success(payment_provider, order_with_products):
+    """Test the request creator constructs the payload base and returns a url that contains a token"""
+    rf = RequestFactory()
+    request = rf.post(ORDER_LIST_URL)
+
+    with mock.patch('payments.providers.bambora_payform.requests.post', side_effect=mocked_response_create):
+        url = payment_provider.order_create(request, UI_RETURN_URL, order_with_products)
+        assert url.startswith(payment_provider.url_payment_api)
+        assert 'token' in url
+        assert 'abc123' in url
+
+
+def test_order_create_error_unavailable(provider_base_config, order_with_products):
+    """Test the request creator raises service unavailable if request doesn't go through"""
+    provider_base_config['RESPA_PAYMENTS_BAMBORA_API_URL'] = FAKE_BAMBORA_API_URL
+    unavailable_payment_provider = BamboraPayformProvider(PAYMENT_CONFIG=provider_base_config)
+
+    rf = RequestFactory()
+    request = rf.post(ORDER_LIST_URL)
+
+    with mock.patch('payments.providers.bambora_payform.requests.post', side_effect=mocked_response_create):
+        with pytest.raises(ServiceUnavailableError):
+            unavailable_payment_provider.order_create(request, UI_RETURN_URL, order_with_products)
 
 
 def test_handle_order_create_success(payment_provider):

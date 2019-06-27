@@ -1,11 +1,10 @@
 from datetime import timedelta
 
 import pytest
-
 from django.core import management
 from django.utils.timezone import now
 
-from payments.models import OrderLogEntry, Order
+from payments.models import Order, OrderLogEntry
 from resources.models import Reservation
 from resources.models.reservation import ORDER_WAITING_TIME
 
