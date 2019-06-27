@@ -4,12 +4,14 @@ import pytest
 from guardian.shortcuts import assign_perm
 from rest_framework.reverse import reverse
 
+from resources.models import Reservation
+
 from ..factories import ProductFactory
 from ..models import Order
 from ..providers.base import PaymentProvider
-from resources.models import Reservation
 
 LIST_URL = reverse('order-list')
+CHECK_PRICE_URL = reverse('order-check-price')
 
 ORDER_RESPONSE_FIELDS = {
     'reservation', 'payer_first_name', 'payer_last_name', 'payer_email_address', 'payer_address_street',
@@ -189,3 +191,26 @@ def test_order_view_permissions(api_client, user2, order_with_products):
     response = api_client.get(LIST_URL)
     assert response.status_code == 200
     assert len(response.data['results']) == 1
+
+
+def test_order_price_check_success(user_api_client, product, two_hour_reservation):
+    """Test the endpoint returns price calculations for given product without persisting anything"""
+
+    order_count_before = Order.objects.count()
+
+    price_check_data = {
+        "order_lines": [
+            {
+                "product": product.product_id,
+            }
+        ],
+        "begin": str(two_hour_reservation.begin),
+        "end": str(two_hour_reservation.end)
+    }
+
+    response = user_api_client.post(CHECK_PRICE_URL, price_check_data)
+    assert response.status_code == 200
+    assert len(response.data['order_lines']) == 1
+    assert set(response.data.keys()) == {'order_lines', 'price', 'begin', 'end'}
+    # Check order count didn't change
+    assert order_count_before == Order.objects.count()
