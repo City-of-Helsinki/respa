@@ -17,6 +17,8 @@ from django.template.response import TemplateResponse
 from guardian import admin as guardian_admin
 from image_cropping import ImageCroppingMixin
 from modeltranslation.admin import TranslationAdmin, TranslationStackedInline
+
+from resources.models import RESERVATION_EXTRA_FIELDS
 from .base import ExtraReadonlyFieldsOnUpdateMixin, CommonExcludeMixin, PopulateCreatedAndModifiedMixin
 from resources.admin.period_inline import PeriodInline
 
@@ -315,6 +317,33 @@ class MunicipalityAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, adm
         return TemplateResponse(request, self.import_template, context)
 
 
+class ReservationMetadataFieldForm(forms.ModelForm):
+    class Meta:
+        model = ReservationMetadataField
+        fields = ('field_name',)
+        widgets = {
+            'field_name': forms.Select()
+        }
+
+
+class ReservationMetadataFieldAdmin(admin.ModelAdmin):
+    form = ReservationMetadataFieldForm
+    ordering = ('field_name',)
+
+    def get_label(self, obj):
+        return str(obj.field_name)
+
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        if db_field.name == 'field_name':
+            # limit choices to valid field names that are not yet in use
+            all_choices = [(f, str(f)) for f in sorted(RESERVATION_EXTRA_FIELDS)]
+            kwargs['widget'].choices = [
+                c for c in all_choices
+                if c[0] not in ReservationMetadataField.objects.values_list('field_name', flat=True)
+            ]
+        return super().formfield_for_dbfield(db_field, **kwargs)
+
+
 admin_site.register(ResourceImage, ResourceImageAdmin)
 admin_site.register(Resource, ResourceAdmin)
 admin_site.register(Reservation, ReservationAdmin)
@@ -326,7 +355,7 @@ admin_site.register(Equipment, EquipmentAdmin)
 admin_site.register(ResourceEquipment, ResourceEquipmentAdmin)
 admin_site.register(EquipmentCategory, EquipmentCategoryAdmin)
 admin_site.register(TermsOfUse, TermsOfUseAdmin)
-admin_site.register(ReservationMetadataField)
+admin_site.register(ReservationMetadataField, ReservationMetadataFieldAdmin)
 admin_site.register(ReservationMetadataSet, ReservationMetadataSetAdmin)
 admin.site.register(ResourceGroup, ResourceGroupAdmin)
 if admin.site.is_registered(Municipality):
