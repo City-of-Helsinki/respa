@@ -53,12 +53,6 @@
                 "quantity": 1
             }
         ],
-        "payer_first_name": "Ville",
-        "payer_last_name": "Virtanen",
-        "payer_email_address": "ville@virtanen.com",
-        "payer_address_street": "Virtatie 5",
-        "payer_address_zip": "55555",
-        "payer_address_city": "Virtala",
         "return_url": "https://varaamo.hel.fi/payment-return-url/"
     }
     ```
@@ -94,12 +88,6 @@
         "price": "18.60",
         "payment_url": "https://payform.bambora.com/pbwapi/token/d02317692040937087a4c04c303dd0da14441f6f492346e40cea8e6a6c7ffc7c",
         "status": "waiting",
-        "payer_first_name": "Ville",
-        "payer_last_name": "Virtanen",
-        "payer_email_address": "ville@virtanen.com",
-        "payer_address_street": "Virtatie 5",
-        "payer_address_zip": "55555",
-        "payer_address_city": "Virtala",
         "reservation": 191999
     }
     ```
@@ -180,12 +168,6 @@
     "order": {
         "id": "awemfcd2icdcd",
         "status": "waiting",
-        "payer_first_name": "Ville",
-        "payer_last_name": "Virtanen",
-        "payer_email_address": "ville@virtanen.com",
-        "payer_address_street": "Virtatie 5",
-        "payer_address_zip": "55555",
-        "payer_address_city": "Virtala",
         "price": "17.10",
         "order_lines": [
             {

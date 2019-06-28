@@ -21,7 +21,13 @@ def two_hour_reservation(resource_in_unit, user):
         event_subject='some fancy event',
         host_name='esko',
         reserver_name='martta',
-        state=Reservation.WAITING_FOR_PAYMENT
+        state=Reservation.WAITING_FOR_PAYMENT,
+        billing_first_name='Seppo',
+        billing_last_name='Testi',
+        billing_email_address='test@example.com',
+        billing_address_street='Test street 1',
+        billing_address_zip='12345',
+        billing_address_city='Testcity',
     )
 
 
@@ -30,12 +36,6 @@ def order_with_products(two_hour_reservation):
     order = OrderFactory.create(
         order_number='abc123',
         state=Order.WAITING,
-        payer_first_name='Seppo',
-        payer_last_name='Testi',
-        payer_email_address='test@example.com',
-        payer_address_street='Test street 1',
-        payer_address_zip='12345',
-        payer_address_city='Testcity',
         reservation=two_hour_reservation
     )
     OrderLineFactory.create(

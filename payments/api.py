@@ -63,8 +63,7 @@ class OrderSerializerBase(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = (
-            'id', 'state', 'reservation', 'payer_first_name', 'payer_last_name', 'payer_email_address',
-            'payer_address_street', 'payer_address_zip', 'payer_address_city', 'price', 'order_lines'
+            'id', 'state', 'reservation', 'price', 'order_lines'
         )
 
     def get_price(self, obj):
