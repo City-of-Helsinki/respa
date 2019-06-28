@@ -31,9 +31,11 @@ DEFAULT_TZ = pytz.timezone(settings.TIME_ZONE)
 logger = logging.getLogger(__name__)
 
 RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street', 'reserver_address_zip',
-                            'reserver_address_city', 'billing_address_street', 'billing_address_zip',
+                            'reserver_address_city', 'billing_first_name', 'billing_last_name', 'billing_phone_number',
+                            'billing_email_address', 'billing_address_street', 'billing_address_zip',
                             'billing_address_city', 'company', 'event_description', 'event_subject', 'reserver_id',
-                            'number_of_participants', 'participants', 'reserver_email_address', 'host_name')
+                            'number_of_participants', 'participants', 'reserver_email_address', 'host_name'
+                            )
 
 # after this time reservations in state "waiting_for_payment" without an order will be cancelled
 ORDER_WAITING_TIME = datetime.timedelta(seconds=30)
@@ -125,7 +127,6 @@ class Reservation(ModifiableModel):
     participants = models.TextField(verbose_name=_('Participants'), blank=True)
     host_name = models.CharField(verbose_name=_('Host name'), max_length=100, blank=True)
 
-    # extra detail fields for manually confirmed reservations
     reserver_name = models.CharField(verbose_name=_('Reserver name'), max_length=100, blank=True)
     reserver_id = models.CharField(verbose_name=_('Reserver ID (business or person)'), max_length=30, blank=True)
     reserver_email_address = models.EmailField(verbose_name=_('Reserver email address'), blank=True)
@@ -134,6 +135,10 @@ class Reservation(ModifiableModel):
     reserver_address_zip = models.CharField(verbose_name=_('Reserver address zip'), max_length=30, blank=True)
     reserver_address_city = models.CharField(verbose_name=_('Reserver address city'), max_length=100, blank=True)
     company = models.CharField(verbose_name=_('Company'), max_length=100, blank=True)
+    billing_first_name = models.CharField(verbose_name=_('Billing first name'), max_length=100, blank=True)
+    billing_last_name = models.CharField(verbose_name=_('Billing last name'), max_length=100, blank=True)
+    billing_email_address = models.EmailField(verbose_name=_('Billing email address'), blank=True)
+    billing_phone_number = models.CharField(verbose_name=_('Billing phone number'), max_length=30, blank=True)
     billing_address_street = models.CharField(verbose_name=_('Billing address street'), max_length=100, blank=True)
     billing_address_zip = models.CharField(verbose_name=_('Billing address zip'), max_length=30, blank=True)
     billing_address_city = models.CharField(verbose_name=_('Billing address city'), max_length=100, blank=True)
