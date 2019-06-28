@@ -122,15 +122,16 @@ class BamboraPayformProvider(PaymentProvider):
 
     def payload_add_customer(self, payload, order):
         """Attach customer data to payload"""
+        reservation = order.reservation
         payload.update({
-            'email': order.payer_email_address,
+            'email': reservation.billing_email_address,
             'customer': {
-                'firstname': order.payer_first_name,
-                'lastname': order.payer_last_name,
-                'email': order.payer_email_address,
-                'address_street': order.payer_address_street,
-                'address_zip': order.payer_address_zip,
-                'address_city': order.payer_address_city,
+                'firstname': reservation.billing_first_name,
+                'lastname': reservation.billing_last_name,
+                'email': reservation.billing_email_address,
+                'address_street': reservation.billing_address_street,
+                'address_zip': reservation.billing_address_zip,
+                'address_city': reservation.billing_address_city,
             }
         })
 

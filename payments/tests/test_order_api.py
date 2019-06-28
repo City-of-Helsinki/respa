@@ -14,8 +14,7 @@ LIST_URL = reverse('order-list')
 CHECK_PRICE_URL = reverse('order-check-price')
 
 ORDER_RESPONSE_FIELDS = {
-    'reservation', 'payer_first_name', 'payer_last_name', 'payer_email_address', 'payer_address_street',
-    'payer_address_zip', 'payer_address_city', 'id', 'price', 'state', 'payment_url', 'order_lines'
+    'reservation', 'id', 'price', 'state', 'payment_url', 'order_lines'
 }
 
 
@@ -32,12 +31,6 @@ def build_order_data(reservation, product, quantity=None, product_2=None, quanti
             }
         ],
         "return_url": "https://varauspalvelu.com/payment_return_url/",
-        "payer_first_name": "Kalle",
-        "payer_last_name": "Nieminen",
-        "payer_email_address": "Kalle@nieminen.com",
-        "payer_address_street": "Niemitie 5",
-        "payer_address_zip": "66666",
-        "payer_address_city": "Niemelä"
     }
 
     if quantity:
@@ -119,14 +112,8 @@ def test_order_post(user_api_client, two_hour_reservation, product, product_2, m
     assert set(response.data.keys()) == order_create_response_fields
     assert response.data['payment_url'].startswith('https://mocked-payment-url.com')
 
-    # check created object's data
+    # check created object
     new_order = Order.objects.last()
-    order_fields = {
-        'payer_first_name', 'payer_last_name', 'payer_email_address', 'payer_address_street',
-        'payer_address_zip', 'payer_address_city'
-    }
-    for field in order_fields:
-        assert getattr(new_order, field) == order_data[field]
     assert new_order.reservation_id == order_data['reservation']
 
     # check order lines

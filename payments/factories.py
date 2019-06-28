@@ -47,12 +47,6 @@ class OrderFactory(factory.django.DjangoModelFactory):
     """
 
     # Mandatory fields
-    payer_first_name = factory.Faker('first_name')
-    payer_last_name = factory.Faker('last_name')
-    payer_email_address = factory.Faker('email')
-    payer_address_street = factory.Faker('street_address')
-    payer_address_zip = factory.Faker('postcode')
-    payer_address_city = factory.Faker('city')
     state = factory.fuzzy.FuzzyChoice(Order.STATE_CHOICES,
                                       getter=lambda c: c[0])
     order_number = generate_id()
