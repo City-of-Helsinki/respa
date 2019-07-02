@@ -5,9 +5,12 @@ from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import OuterRef, Q, Subquery
+from django.utils import translation
+from django.utils.formats import localize
 from django.utils.functional import cached_property
 from django.utils.timezone import now, utc
 from django.utils.translation import ugettext_lazy as _
+from rest_framework import serializers
 
 from resources.models import Reservation, Resource
 from resources.models.utils import generate_id
@@ -112,8 +115,17 @@ class Product(models.Model):
     def delete(self, *args, **kwargs):
         Product.objects.filter(id=self.id).update(archived_at=now())
 
-    def get_price(self):
-        return round_price(self.pretax_price * (1 + Decimal(self.tax_percentage) / 100))
+    def get_price(self, rounded: bool = True) -> Decimal:
+        price = self.pretax_price * (1 + Decimal(self.tax_percentage) / 100)
+        if rounded:
+            price = round_price(price)
+        return price
+
+    def get_tax_amount(self, rounded: bool = True) -> Decimal:
+        tax_amount = self.get_price(rounded=rounded) - self.pretax_price
+        if rounded:
+            tax_amount = round_price(tax_amount)
+        return tax_amount
 
     def get_pretax_price_for_time_range(self, begin: datetime, end: datetime, rounded: bool = True) -> Decimal:
         assert begin < end
@@ -224,6 +236,10 @@ class Order(models.Model):
     def get_price(self) -> Decimal:
         return sum(order_line.get_price() for order_line in self.order_lines.all())
 
+    def get_tax_amount(self) -> Decimal:
+        tax_amount = self.get_price() - self.get_pretax_price()
+        return tax_amount
+
     def set_state(self, new_state: str, log_message: str = None, save: bool = True) -> None:
         assert new_state in (Order.WAITING, Order.CONFIRMED, Order.REJECTED, Order.EXPIRED, Order.CANCELLED)
 
@@ -250,6 +266,10 @@ class Order(models.Model):
     def create_log_entry(self, message: str = None, state_change: str = None) -> None:
         OrderLogEntry.objects.create(order=self, state_change=state_change or '', message=message or '')
 
+    def get_notification_context(self, language_code):
+        with translation.override(language_code):
+            return NotificationOrderSerializer(self).data
+
 
 class OrderLine(models.Model):
     order = models.ForeignKey(Order, verbose_name=_('order'), related_name='order_lines', on_delete=models.CASCADE)
@@ -273,6 +293,10 @@ class OrderLine(models.Model):
     def get_price(self) -> Decimal:
         return self.product.get_price_for_reservation(self.order.reservation) * self.quantity
 
+    def get_tax_amount(self) -> Decimal:
+        tax_amount = self.get_price() - self.get_pretax_price()
+        return tax_amount
+
 
 class OrderLogEntry(models.Model):
     order = models.ForeignKey(
@@ -293,3 +317,47 @@ class OrderLogEntry(models.Model):
         return '{} order {} state change {} message {}'.format(
             self.timestamp, self.order_id, self.state_change or None, self.message or None
         )
+
+
+class LocalizedSerializerField(serializers.Field):
+    def __init__(self, *args, **kwargs):
+        kwargs['read_only'] = True
+        super().__init__(*args, **kwargs)
+
+    def to_representation(self, value):
+        return localize(value)
+
+
+class NotificationProductSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source='product_id')
+    tax_percentage = LocalizedSerializerField()
+    price = LocalizedSerializerField(source='get_price')
+    type_display = serializers.ReadOnlyField(source='get_type_display')
+    price_type_display = serializers.ReadOnlyField(source='get_price_type_display')
+
+    class Meta:
+        model = Product
+        fields = ('id', 'name', 'description', 'type', 'type_display', 'price_type', 'price_type_display',
+                  'tax_percentage', 'price')
+
+
+class NotificationOrderLineSerializer(serializers.ModelSerializer):
+    product = NotificationProductSerializer()
+    price = LocalizedSerializerField(source='get_price')
+    tax_amount = LocalizedSerializerField(source='get_tax_amount')
+
+    class Meta:
+        model = OrderLine
+        fields = ('product', 'quantity', 'price', 'tax_amount')
+
+
+class NotificationOrderSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source='order_number')
+    created_at = LocalizedSerializerField()
+    order_lines = NotificationOrderLineSerializer(many=True)
+    price = LocalizedSerializerField(source='get_price')
+    tax_amount = LocalizedSerializerField(source='get_tax_amount')
+
+    class Meta:
+        model = Order
+        fields = ('id', 'order_lines', 'price', 'tax_amount', 'created_at')

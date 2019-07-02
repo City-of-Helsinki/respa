@@ -408,6 +408,10 @@ class Reservation(ModifiableModel):
                 if ground_plan_image_url:
                     context['resource_ground_plan_image_url'] = ground_plan_image_url
 
+            order = getattr(self, 'order', None)
+            if order:
+                context['order'] = order.get_notification_context(language_code)
+
         return context
 
     def send_reservation_mail(self, notification_type, user=None, attachments=None):
