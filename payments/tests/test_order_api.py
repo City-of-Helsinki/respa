@@ -135,6 +135,14 @@ def test_order_product_must_match_resource(user_api_client, product, two_hour_re
     assert 'product' in response.data['order_lines'][1]
 
 
+def test_order_line_products_are_unique(user_api_client, two_hour_reservation, product):
+    """Test order validator enforces that order lines cannot contain duplicates of the same product"""
+    order_data = build_order_data(two_hour_reservation, product, quantity=2, product_2=product, quantity_2=2)
+    response = user_api_client.post(LIST_URL, order_data)
+
+    assert response.status_code == 400
+
+
 @pytest.mark.parametrize('reservation_state', (
     Reservation.CREATED,
     Reservation.CANCELLED,
