@@ -247,9 +247,12 @@ class Order(models.Model):
         if new_state == old_state:
             return
 
-        if old_state != Order.WAITING:
-            raise OrderStateTransitionError('Cannot set order {} state, it is in an invalid state "{}".',
-                                            self.order_number, old_state)
+        if old_state != Order.WAITING and not (old_state == Order.CONFIRMED and new_state == Order.CANCELLED):
+            raise OrderStateTransitionError(
+                'Cannot set order {} state to "{}", it is in an invalid state "{}".'.format(
+                    self.order_number, new_state, old_state
+                )
+            )
 
         self.state = new_state
 
