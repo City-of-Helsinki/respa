@@ -117,10 +117,17 @@ class OrderSerializer(OrderSerializerBase):
     def get_payment_url(self, obj):
         return self.context.get('payment_url', '')
 
-    def validate_order_lines(self, value):
-        if not value:
+    def validate_order_lines(self, order_lines):
+        # Check order contains order lines
+        if not order_lines:
             raise serializers.ValidationError(_('At least one order line required.'))
-        return value
+
+        # Check products in order lines are unique
+        product_ids = [ol['product'].product_id for ol in order_lines]
+        if len(product_ids) > len(set(product_ids)):
+            raise serializers.ValidationError(_('Order lines cannot contain duplicate products.'))
+
+        return order_lines
 
     def validate_reservation(self, reservation):
         if reservation.state != Reservation.WAITING_FOR_PAYMENT:
