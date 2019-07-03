@@ -54,7 +54,6 @@ def test_set_state_sets_reservation_state(two_hour_reservation, order_state, exp
     (Order.REJECTED, Order.CANCELLED),
     (Order.CONFIRMED, Order.REJECTED),
     (Order.CONFIRMED, Order.EXPIRED),
-    (Order.CONFIRMED, Order.CANCELLED),
     (Order.EXPIRED, Order.REJECTED),
     (Order.EXPIRED, Order.CONFIRMED),
     (Order.EXPIRED, Order.CANCELLED),
@@ -66,3 +65,16 @@ def test_set_state_denied_transitions(two_hour_reservation, state, new_state):
     order = OrderFactory(reservation=two_hour_reservation, state=state)
     with pytest.raises(OrderStateTransitionError):
         order.set_state(new_state)
+
+
+@pytest.mark.parametrize('state, new_state', (
+    (Order.WAITING, Order.CONFIRMED),
+    (Order.WAITING, Order.EXPIRED),
+    (Order.WAITING, Order.CANCELLED),
+    (Order.WAITING, Order.REJECTED),
+    (Order.CONFIRMED, Order.CANCELLED),
+))
+def test_set_state_allowed_transitions(two_hour_reservation, state, new_state):
+    order = OrderFactory(reservation=two_hour_reservation, state=state)
+    order.set_state(new_state)
+    assert order.state == new_state
