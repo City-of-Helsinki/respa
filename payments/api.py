@@ -37,6 +37,11 @@ class OrderLineSerializerBase(serializers.ModelSerializer):
         data['product'] = ProductSerializer(instance.product).data
         return data
 
+    def validate(self, order_line):
+        if order_line.get('quantity', 1) > order_line['product'].max_quantity:
+            raise serializers.ValidationError({'quantity': _('Cannot exceed max product quantity')})
+        return order_line
+
     def validate_product(self, product):
         available_products = self.context.get('available_products')
         if available_products is not None:

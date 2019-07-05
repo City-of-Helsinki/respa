@@ -27,6 +27,7 @@ class ProductFactory(factory.django.DjangoModelFactory):
     # Optional fields
     name = factory.Faker('catch_phrase')
     description = factory.Faker('text')
+    max_quantity = factory.fuzzy.FuzzyInteger(1, 100)
 
     @factory.post_generation
     def resources(self, create, extracted, **kwargs):
