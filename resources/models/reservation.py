@@ -377,14 +377,25 @@ class Reservation(ModifiableModel):
                 'begin_dt': self.begin,
                 'end_dt': self.end,
                 'time_range': self.format_time(),
-                'number_of_participants': self.number_of_participants,
-                'host_name': self.host_name,
                 'reserver_name': reserver_name,
-                'event_subject': self.event_subject,
-                'event_description': self.event_description,
                 'reserver_email_address': reserver_email_address,
-                'reserver_phone_number': self.reserver_phone_number,
             }
+            directly_included_fields = (
+                'number_of_participants',
+                'host_name',
+                'event_subject',
+                'event_description',
+                'reserver_phone_number',
+                'billing_first_name',
+                'billing_last_name',
+                'billing_email_address',
+                'billing_phone_number',
+                'billing_address_street',
+                'billing_address_zip',
+                'billing_address_city',
+            )
+            for field in directly_included_fields:
+                context[field] = getattr(self, field)
             if self.resource.unit:
                 context['unit'] = self.resource.unit.name
                 context['unit_id'] = self.resource.unit.id
