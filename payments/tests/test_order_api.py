@@ -60,12 +60,12 @@ def mock_provider():
 
 @pytest.fixture
 def product(resource_in_unit):
-    return ProductFactory(resources=[resource_in_unit])
+    return ProductFactory(resources=[resource_in_unit], max_quantity=5)
 
 
 @pytest.fixture
 def product_2(resource_in_unit):
-    return ProductFactory(resources=[resource_in_unit])
+    return ProductFactory(resources=[resource_in_unit], max_quantity=5)
 
 
 @pytest.fixture
@@ -141,6 +141,22 @@ def test_order_line_products_are_unique(user_api_client, two_hour_reservation, p
     response = user_api_client.post(LIST_URL, order_data)
 
     assert response.status_code == 400
+
+
+@pytest.mark.parametrize('quantity, expected_status', (
+    (1, 201),
+    (2, 201),
+    (3, 400),
+))
+def test_order_line_product_quantity_limitation(user_api_client, two_hour_reservation, resource_in_unit,
+                                                quantity, expected_status):
+    """Test order validator order line quantity is within product max quantity limitation"""
+    product_with_quantity = ProductFactory(resources=[resource_in_unit], max_quantity=2)
+    order_data = build_order_data(two_hour_reservation, product_with_quantity, quantity=quantity)
+
+    response = user_api_client.post(LIST_URL, order_data)
+
+    assert response.status_code == expected_status
 
 
 @pytest.mark.parametrize('reservation_state', (

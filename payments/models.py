@@ -79,6 +79,8 @@ class Product(models.Model):
     price_type = models.CharField(
         max_length=32, verbose_name=_('price type'), choices=PRICE_TYPE_CHOICES, default=PRICE_PER_HOUR
     )
+    max_quantity = models.PositiveSmallIntegerField(verbose_name=_('max quantity'),
+                                                    default=1, validators=[MinValueValidator(1)])
 
     resources = models.ManyToManyField(Resource, verbose_name=_('resource'), related_name='products', blank=True)
 
