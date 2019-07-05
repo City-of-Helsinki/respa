@@ -258,8 +258,13 @@ class Reservation(ModifiableModel):
         elif new_state == Reservation.DENIED:
             self.send_reservation_denied_mail()
         elif new_state == Reservation.CANCELLED:
-            if user != self.user:
-                self.send_reservation_cancelled_mail()
+            order = self.get_order()
+            if order:
+                if order.state == order.CANCELLED:
+                    self.send_reservation_cancelled_mail()
+            else:
+                if user != self.user:
+                    self.send_reservation_cancelled_mail()
             reservation_cancelled.send(sender=self.__class__, instance=self,
                                        user=user)
 
@@ -273,7 +278,7 @@ class Reservation(ModifiableModel):
         if self.state == Reservation.WAITING_FOR_PAYMENT:
             return False
 
-        if self.has_order():
+        if self.get_order():
             return self.resource.can_modify_paid_reservations(user)
 
         # reservations that need manual confirmation and are confirmed cannot be
@@ -309,8 +314,8 @@ class Reservation(ModifiableModel):
             return True
         return self.resource.can_view_product_orders(user)
 
-    def has_order(self):
-        return hasattr(self, 'order')
+    def get_order(self):
+        return getattr(self, 'order', None)
 
     def format_time(self):
         tz = self.resource.unit.get_tz()
