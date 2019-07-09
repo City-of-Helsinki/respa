@@ -97,11 +97,10 @@ class OrderSerializer(OrderSerializerBase):
         for order_line_data in order_lines_data:
             OrderLine.objects.create(order=order, **order_line_data)
 
-        payments = get_payment_provider()
+        payments = get_payment_provider(request=self.context['request'],
+                                        return_url=return_url)
         try:
-            self.context['payment_url'] = payments.order_create(
-                self.context['request'], return_url, order
-            )
+            self.context['payment_url'] = payments.initiate_payment(order)
         except DuplicateOrderError as doe:
             raise exceptions.APIException(detail=str(doe),
                                           code=status.HTTP_409_CONFLICT)
