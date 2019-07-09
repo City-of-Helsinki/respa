@@ -21,7 +21,6 @@ from rest_framework.settings import api_settings as drf_settings
 
 from munigeo import api as munigeo_api
 
-from payments.api import OrderSerializerBase
 from resources.models import Reservation, Resource, ReservationMetadataSet
 from resources.models.reservation import RESERVATION_EXTRA_FIELDS
 from resources.pagination import ReservationPagination
@@ -117,6 +116,8 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
 
             for field_name in required:
                 self.fields[field_name].required = True
+
+        self.context.update({'resource': resource})
 
     def validate_state(self, value):
         instance = self.instance
@@ -218,7 +219,6 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             for key, value in exc.error_dict.items():
                 error_dict[key] = [error.message for error in value]
             raise ValidationError(error_dict)
-
         return data
 
     def to_internal_value(self, data):
@@ -292,30 +292,6 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
             'can_modify': can_modify_and_delete,
             'can_delete': can_modify_and_delete,
         }
-
-
-class OrderSerializer(OrderSerializerBase):
-    class Meta(OrderSerializerBase.Meta):
-        fields = [f for f in OrderSerializerBase.Meta.fields if f != 'reservation']
-
-
-class PaymentsReservationSerializer(ReservationSerializer):
-    order = serializers.SlugRelatedField('order_number', read_only=True)
-
-    class Meta(ReservationSerializer.Meta):
-        fields = ReservationSerializer.Meta.fields + ['order']
-        read_only_fields = ReservationSerializer.Meta.read_only_fields + ['order']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if 'order' in self.context.get('expanded', ()):
-            self.fields['order'] = OrderSerializer(read_only=True)
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        if not instance.can_view_product_orders(self.context['request'].user):
-            data.pop('order', None)
-        return data
 
 
 class UserFilterBackend(filters.BaseFilterBackend):
@@ -527,12 +503,8 @@ class ReservationCacheMixin:
 class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, ReservationCacheMixin):
     queryset = Reservation.objects.select_related('user', 'resource', 'resource__unit')\
         .prefetch_related('catering_orders').prefetch_related('resource__groups').order_by('begin', 'resource__unit__name', 'resource__name')
-
     if settings.RESPA_PAYMENTS_ENABLED:
-        serializer_class = PaymentsReservationSerializer
         queryset = queryset.prefetch_related('order', 'order__order_lines', 'order__order_lines__product')
-    else:
-        serializer_class = ReservationSerializer
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter, UserFilterBackend, ReservationFilterBackend,
                        NeedManualConfirmationFilterBackend, StateFilterBackend, CanApproveFilterBackend)
     filterset_class = ReservationFilterSet
@@ -543,6 +515,13 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         list(drf_settings.DEFAULT_AUTHENTICATION_CLASSES) +
         [TokenAuthentication, SessionAuthentication])
     ordering_fields = ('begin',)
+
+    def get_serializer_class(self):
+        if settings.RESPA_PAYMENTS_ENABLED:
+            from payments.api.reservation import PaymentsReservationSerializer  # noqa
+            return PaymentsReservationSerializer
+        else:
+            return ReservationSerializer
 
     def get_serializer(self, *args, **kwargs):
         if 'data' not in kwargs and len(args) == 1:
@@ -593,7 +572,7 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         if resource.need_manual_confirmation and not is_resource_manager:
             new_state = Reservation.REQUESTED
         else:
-            if resource.needs_payment():
+            if instance.get_order():
                 new_state = Reservation.WAITING_FOR_PAYMENT
             else:
                 new_state = Reservation.CONFIRMED

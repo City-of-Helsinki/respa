@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock, create_autospec, patch
+
 import pytest
 from guardian.shortcuts import assign_perm
 from rest_framework.reverse import reverse
@@ -8,18 +10,18 @@ from resources.tests.test_reservation_api import day_and_period  # noqa
 
 from ..factories import ProductFactory
 from ..models import Order, Product
-from ..tests.test_order_api import ORDER_RESPONSE_FIELDS
+from ..providers.base import PaymentProvider
 
 LIST_URL = reverse('reservation-list')
 
-ORDER_FIELDS = ORDER_RESPONSE_FIELDS - {'reservation', 'payment_url'}
+ORDER_FIELDS = {'id', 'price', 'state', 'order_lines'}
 
 
 def get_detail_url(reservation):
     return reverse('reservation-detail', kwargs={'pk': reservation.pk})
 
 
-def get_data(resource):
+def build_reservation_data(resource):
     return {
         'resource': resource.pk,
         'begin': '2115-04-04T11:00:00+02:00',
@@ -27,21 +29,64 @@ def get_data(resource):
     }
 
 
+def build_order_data(product, quantity=None, product_2=None, quantity_2=None):
+    data = {
+        "order_lines": [
+            {
+                "product": product.product_id,
+            }
+        ],
+        "return_url": "https://varauspalvelu.com/payment_return_url/",
+    }
+
+    if quantity:
+        data['order_lines'][0]['quantity'] = quantity
+
+    if product_2:
+        order_line_data = {'product': product_2.product_id}
+        if quantity_2:
+            order_line_data['quantity'] = quantity_2
+        data['order_lines'].append(order_line_data)
+
+    return data
+
+
 @pytest.fixture(autouse=True)
 def auto_use_django_db(db):
     pass
 
 
-@pytest.mark.parametrize('has_rent_product, expected_state', (
+@pytest.fixture
+def product(resource_in_unit):
+    return ProductFactory(resources=[resource_in_unit])
+
+
+@pytest.fixture
+def product_2(resource_in_unit):
+    return ProductFactory(resources=[resource_in_unit])
+
+
+@pytest.fixture(autouse=True)
+def mock_provider():
+    mocked_provider = create_autospec(PaymentProvider)
+    mocked_provider.initiate_payment = MagicMock(return_value='https://mocked-payment-url.com')
+    with patch('payments.api.reservation.get_payment_provider', return_value=mocked_provider):
+        yield mocked_provider
+
+
+@pytest.mark.parametrize('has_order, expected_state', (
     (False, Reservation.CONFIRMED),
     (True, Reservation.WAITING_FOR_PAYMENT),
 ))
-def test_reservation_creation_state(user_api_client, resource_in_unit, has_rent_product, expected_state):
-    if has_rent_product:
-        ProductFactory(type=Product.RENT, resources=[resource_in_unit])
+def test_reservation_creation_state(user_api_client, resource_in_unit, has_order, expected_state):
+    reservation_data = build_reservation_data(resource_in_unit)
+    if has_order:
+        product = ProductFactory(type=Product.RENT, resources=[resource_in_unit])
+        reservation_data['order'] = build_order_data(product)
 
-    response = user_api_client.post(LIST_URL, get_data(resource_in_unit))
-    assert response.status_code == 201, response.data
+    response = user_api_client.post(LIST_URL, reservation_data)
+
+    assert response.status_code == 201
     new_reservation = Reservation.objects.last()
     assert new_reservation.state == expected_state
 
@@ -75,7 +120,7 @@ def test_reservation_orders_field(user_api_client, order_with_products, endpoint
     ('other', False),
     ('other_with_perm', True),
 ))
-def test_reservation_orders_field_visibility(api_client, order_with_products, user2, request_user, endpoint, expected):
+def test_reservation_order_field_visibility(api_client, order_with_products, user2, request_user, endpoint, expected):
     url = LIST_URL if endpoint == 'list' else get_detail_url(order_with_products.reservation)
 
     if request_user == 'owner':
@@ -93,11 +138,12 @@ def test_reservation_orders_field_visibility(api_client, order_with_products, us
     assert ('order' in reservation_data) is expected
 
 
-def test_reservation_in_state_waiting_for_payment_cannot_be_modified_or_deleted(user_api_client, two_hour_reservation):
-    response = user_api_client.put(get_detail_url(two_hour_reservation), data=get_data(two_hour_reservation.resource))
+def test_reservation_in_state_waiting_for_payment_cannot_be_modified_or_deleted(user_api_client, order_with_products):
+    reservation = order_with_products.reservation
+    response = user_api_client.put(get_detail_url(reservation), data=build_reservation_data(reservation.resource))
     assert response.status_code == 403
 
-    response = user_api_client.delete(get_detail_url(two_hour_reservation))
+    response = user_api_client.delete(get_detail_url(reservation))
     assert response.status_code == 403
 
 
@@ -108,10 +154,112 @@ def test_reservation_that_has_order_cannot_be_modified_without_permission(user_a
     if has_perm:
         assign_perm('unit:can_modify_paid_reservations', user, order_with_products.reservation.resource.unit)
 
-    response = user_api_client.put(
-        get_detail_url(order_with_products.reservation), data=get_data(order_with_products.reservation.resource)
-    )
+    data = build_reservation_data(order_with_products.reservation.resource)
+    response = user_api_client.put(get_detail_url(order_with_products.reservation), data=data)
     assert response.status_code == 200 if has_perm else 403
 
     response = user_api_client.delete(get_detail_url(order_with_products.reservation))
     assert response.status_code == 204 if has_perm else 403
+
+
+def test_order_post(user_api_client, resource_in_unit, product, product_2, mock_provider):
+    reservation_data = build_reservation_data(resource_in_unit)
+    reservation_data['order'] = build_order_data(product=product, product_2=product_2, quantity_2=5)
+
+    response = user_api_client.post(LIST_URL, reservation_data)
+
+    assert response.status_code == 201
+    mock_provider.initiate_payment.assert_called()
+
+    # check response fields
+    order_create_response_fields = ORDER_FIELDS.copy() | {'payment_url'}
+    order_data = response.data['order']
+    assert set(order_data.keys()) == order_create_response_fields
+    assert order_data['payment_url'].startswith('https://mocked-payment-url.com')
+
+    # check created object
+    new_order = Order.objects.last()
+    assert new_order.reservation == Reservation.objects.last()
+
+    # check order lines
+    order_lines = new_order.order_lines.all()
+    assert order_lines.count() == 2
+    assert order_lines[0].product == product
+    assert order_lines[0].quantity == 1
+    assert order_lines[1].product == product_2
+    assert order_lines[1].quantity == 5
+
+
+def test_order_product_must_match_resource(user_api_client, product, resource_in_unit, resource_in_unit2):
+    product_with_another_resource = ProductFactory(resources=[resource_in_unit2])
+    data = build_reservation_data(resource_in_unit)
+    data['order'] = build_order_data(product=product, product_2=product_with_another_resource)
+
+    response = user_api_client.post(LIST_URL, data)
+
+    assert response.status_code == 400
+    assert 'product' in response.data['order']['order_lines'][1]
+
+
+def test_order_line_products_are_unique(user_api_client, resource_in_unit, product):
+    """Test order validator enforces that order lines cannot contain duplicates of the same product"""
+    reservation_data = build_reservation_data(resource_in_unit)
+    reservation_data['order'] = build_order_data(product, quantity=2, product_2=product, quantity_2=2)
+    response = user_api_client.post(LIST_URL, reservation_data)
+
+    assert response.status_code == 400
+
+
+@pytest.mark.parametrize('quantity, expected_status', (
+    (1, 201),
+    (2, 201),
+    (3, 400),
+))
+def test_order_line_product_quantity_limitation(user_api_client, resource_in_unit, quantity, expected_status):
+    """Test order validator order line quantity is within product max quantity limitation"""
+    reservation_data = build_reservation_data(resource_in_unit)
+    product_with_quantity = ProductFactory(resources=[resource_in_unit], max_quantity=2)
+    order_data = build_order_data(product=product_with_quantity, quantity=quantity)
+    reservation_data['order'] = order_data
+
+    response = user_api_client.post(LIST_URL, reservation_data)
+
+    assert response.status_code == expected_status, response.data
+
+
+@pytest.mark.parametrize('has_product', (True, False))
+def test_order_mandatoriness(user_api_client, resource_in_unit, has_product):
+    reservation_data = build_reservation_data(resource_in_unit)
+    if has_product:
+        ProductFactory(type=Product.RENT, resources=[resource_in_unit])
+
+    response = user_api_client.post(LIST_URL, reservation_data)
+
+    if has_product:
+        assert response.status_code == 400
+        assert 'order' in response.data
+    else:
+        assert response.status_code == 201
+
+
+def test_order_cannot_be_modified(user_api_client, order_with_products, user):
+    order_with_products.set_state(Order.CONFIRMED)
+    assert order_with_products.reservation.state == Reservation.CONFIRMED
+    new_product = ProductFactory(resources=[order_with_products.reservation.resource])
+    reservation_data = build_reservation_data(order_with_products.reservation.resource)
+    reservation_data['order'] = {
+        'order_lines': [{
+            'product': new_product.product_id,
+            'quantity': 777
+        }],
+        'return_url': 'https://foo'
+    }
+    assign_perm('unit:can_modify_paid_reservations', user, order_with_products.reservation.resource.unit)
+
+    response = user_api_client.put(get_detail_url(order_with_products.reservation), reservation_data)
+
+    assert response.status_code == 200, response.data
+    order_with_products.refresh_from_db()
+    assert order_with_products.order_lines.first().product != new_product
+    assert order_with_products.order_lines.first().quantity != 777
+    assert order_with_products.order_lines.count() > 1

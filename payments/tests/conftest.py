@@ -33,6 +33,7 @@ def two_hour_reservation(resource_in_unit, user):
 
 @pytest.fixture()
 def order_with_products(two_hour_reservation):
+    Reservation.objects.filter(id=two_hour_reservation.id).update(state=Reservation.WAITING_FOR_PAYMENT)
     order = OrderFactory.create(
         order_number='abc123',
         state=Order.WAITING,

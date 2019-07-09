@@ -12,9 +12,7 @@ from django.db.models import Prefetch, Q
 from django.urls import reverse
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
-from django.utils.module_loading import import_string
 
-from payments.api import ProductSerializer
 from resources.pagination import PurposePagination
 from rest_framework import exceptions, filters, mixins, serializers, viewsets, response, status
 from rest_framework.authentication import SessionAuthentication
@@ -612,29 +610,6 @@ class ResourceCacheMixin:
         return context
 
 
-class PaymentsResourceSerializerMixin(serializers.ModelSerializer):
-    products = serializers.SerializerMethodField()
-
-    def get_products(self, obj):
-        return ProductSerializer(obj.products.current(), many=True).data
-
-
-class PaymentsResourceSerializer(PaymentsResourceSerializerMixin, ResourceSerializer):
-    pass
-
-
-class PaymentsResourceDetailsSerializer(PaymentsResourceSerializerMixin, ResourceDetailsSerializer):
-    pass
-
-
-if settings.RESPA_PAYMENTS_ENABLED:
-    ResourceSerializerInUse = PaymentsResourceSerializer
-    ResourceDetailsSerializerInUse = PaymentsResourceDetailsSerializer
-else:
-    ResourceSerializerInUse = ResourceSerializer
-    ResourceDetailsSerializerInUse = ResourceDetailsSerializer
-
-
 class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
                           viewsets.GenericViewSet, ResourceCacheMixin):
     queryset = Resource.objects.select_related('generic_terms', 'unit', 'type', 'reservation_metadata_set')
@@ -651,8 +626,8 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
     def get_serializer_class(self):
         query_params = self.request.query_params
         if query_params.get('include') == 'unit_detail':
-            return ResourceDetailsSerializerInUse
-        return ResourceSerializerInUse
+            return get_resource_detail_serializer()
+        return get_resource_list_serializer()
 
     def get_serializer(self, page, *args, **kwargs):
         self._page = page
@@ -669,8 +644,10 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
 
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
                       viewsets.GenericViewSet, ResourceCacheMixin):
-    serializer_class = ResourceDetailsSerializerInUse
     queryset = ResourceListViewSet.queryset
+
+    def get_serializer_class(self):
+        return get_resource_detail_serializer()
 
     def get_serializer(self, page, *args, **kwargs):
         self._page = [page]
@@ -713,3 +690,19 @@ class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
 
 register_view(ResourceListViewSet, 'resource')
 register_view(ResourceViewSet, 'resource')
+
+
+def get_resource_list_serializer():
+    if settings.RESPA_PAYMENTS_ENABLED:
+        from payments.api.resource import PaymentsResourceSerializer  # noqa
+        return PaymentsResourceSerializer
+    else:
+        return ResourceSerializer
+
+
+def get_resource_detail_serializer():
+    if settings.RESPA_PAYMENTS_ENABLED:
+        from payments.api.resource import PaymentsResourceDetailsSerializer  # noqa
+        return PaymentsResourceDetailsSerializer
+    else:
+        return ResourceDetailsSerializer
