@@ -53,7 +53,7 @@ def auto_use_django_db(db):
 @pytest.fixture(autouse=True)
 def mock_provider():
     mocked_provider = create_autospec(PaymentProvider)
-    mocked_provider.order_create = MagicMock(return_value='https://mocked-payment-url.com')
+    mocked_provider.initiate_payment = MagicMock(return_value='https://mocked-payment-url.com')
     with patch('payments.api.get_payment_provider', return_value=mocked_provider):
         yield mocked_provider
 
@@ -105,11 +105,11 @@ def test_order_post(user_api_client, two_hour_reservation, product, product_2, m
     response = user_api_client.post(LIST_URL, order_data)
 
     assert response.status_code == 201
-    mock_provider.order_create.assert_called()
+    mock_provider.initiate_payment.assert_called()
 
     # check response fields
-    order_create_response_fields = ORDER_RESPONSE_FIELDS.copy() | {'payment_url'}
-    assert set(response.data.keys()) == order_create_response_fields
+    initiate_payment_response_fields = ORDER_RESPONSE_FIELDS.copy() | {'payment_url'}
+    assert set(response.data.keys()) == initiate_payment_response_fields
     assert response.data['payment_url'].startswith('https://mocked-payment-url.com')
 
     # check created object

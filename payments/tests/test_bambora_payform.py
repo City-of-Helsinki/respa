@@ -3,7 +3,7 @@ import json
 from unittest import mock
 
 import pytest
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseServerError
 from django.test.client import RequestFactory
 from requests.exceptions import RequestException
 from rest_framework.reverse import reverse
@@ -36,7 +36,15 @@ def provider_base_config():
 
 @pytest.fixture()
 def payment_provider(provider_base_config):
-    return BamboraPayformProvider(PAYMENT_CONFIG=provider_base_config)
+    """When it doesn't matter if request is contained within provider the fixture can still be used"""
+    return BamboraPayformProvider(config=provider_base_config)
+
+
+def create_bambora_provider(provider_base_config, request, return_url=None):
+    """Helper for creating a new instance of provider with request and optional return_url contained within"""
+    return BamboraPayformProvider(config=provider_base_config,
+                                  request=request,
+                                  return_url=return_url)
 
 
 def mocked_response_create(*args, **kwargs):
@@ -64,43 +72,45 @@ def mocked_response_create(*args, **kwargs):
         })
 
 
-def test_order_create_success(payment_provider, order_with_products):
+def test_initiate_payment_success(provider_base_config, order_with_products):
     """Test the request creator constructs the payload base and returns a url that contains a token"""
     rf = RequestFactory()
     request = rf.post(ORDER_LIST_URL)
 
+    payment_provider = create_bambora_provider(provider_base_config, request, UI_RETURN_URL)
     with mock.patch('payments.providers.bambora_payform.requests.post', side_effect=mocked_response_create):
-        url = payment_provider.order_create(request, UI_RETURN_URL, order_with_products)
+        url = payment_provider.initiate_payment(order_with_products)
         assert url.startswith(payment_provider.url_payment_api)
         assert 'token' in url
         assert 'abc123' in url
 
 
-def test_order_create_error_unavailable(provider_base_config, order_with_products):
+def test_initiate_payment_error_unavailable(provider_base_config, order_with_products):
     """Test the request creator raises service unavailable if request doesn't go through"""
-    provider_base_config['RESPA_PAYMENTS_BAMBORA_API_URL'] = FAKE_BAMBORA_API_URL
-    unavailable_payment_provider = BamboraPayformProvider(PAYMENT_CONFIG=provider_base_config)
-
     rf = RequestFactory()
     request = rf.post(ORDER_LIST_URL)
 
+    provider_base_config['RESPA_PAYMENTS_BAMBORA_API_URL'] = FAKE_BAMBORA_API_URL
+    unavailable_payment_provider = create_bambora_provider(provider_base_config,
+                                                           request, UI_RETURN_URL)
+
     with mock.patch('payments.providers.bambora_payform.requests.post', side_effect=mocked_response_create):
         with pytest.raises(ServiceUnavailableError):
-            unavailable_payment_provider.order_create(request, UI_RETURN_URL, order_with_products)
+            unavailable_payment_provider.initiate_payment(order_with_products)
 
 
-def test_handle_order_create_success(payment_provider):
+def test_handle_initiate_payment_success(payment_provider):
     """Test the response handler recognizes success and adds token as part of the returned url"""
     r = json.loads("""{
         "result": 0,
         "token": "abc123",
         "type": "e-payment"
     }""")
-    return_value = payment_provider.handle_order_create(r)
+    return_value = payment_provider.handle_initiate_payment(r)
     assert r['token'] in return_value
 
 
-def test_handle_order_create_error_validation(payment_provider):
+def test_handle_initiate_payment_error_validation(payment_provider):
     """Test the response handler raises PayloadValidationError as expected"""
     r = json.loads("""{
         "result": 1,
@@ -108,30 +118,30 @@ def test_handle_order_create_error_validation(payment_provider):
         "errors": ["Invalid auth code"]
     }""")
     with pytest.raises(PayloadValidationError):
-        payment_provider.handle_order_create(r)
+        payment_provider.handle_initiate_payment(r)
 
 
-def test_handle_order_create_error_duplicate(payment_provider):
+def test_handle_initiate_payment_error_duplicate(payment_provider):
     """Test the response handler raises DuplicateOrderError as expected"""
     r = json.loads("""{
         "result": 2,
         "type": "e-payment"
     }""")
     with pytest.raises(DuplicateOrderError):
-        payment_provider.handle_order_create(r)
+        payment_provider.handle_initiate_payment(r)
 
 
-def test_handle_order_create_error_unavailable(payment_provider):
+def test_handle_initiate_payment_error_unavailable(payment_provider):
     """Test the response handler raises ServiceUnavailableError as expected"""
     r = json.loads("""{
         "result": 10,
         "type": "e-payment"
     }""")
     with pytest.raises(ServiceUnavailableError):
-        payment_provider.handle_order_create(r)
+        payment_provider.handle_initiate_payment(r)
 
 
-def test_handle_order_create_error_unknown_code(payment_provider):
+def test_handle_initiate_payment_error_unknown_code(payment_provider):
     """Test the response handler raises UnknownReturnCodeError as expected"""
     r = json.loads("""{
         "result": 15,
@@ -139,7 +149,7 @@ def test_handle_order_create_error_unknown_code(payment_provider):
         "test": "unrecognized extra stuff"
     }""")
     with pytest.raises(UnknownReturnCodeError):
-        payment_provider.handle_order_create(r)
+        payment_provider.handle_initiate_payment(r)
 
 
 def test_payload_add_products_success(payment_provider, order_with_products):
@@ -227,7 +237,7 @@ def test_check_new_payment_authcode_invalid(payment_provider):
     assert not payment_provider.check_new_payment_authcode(request)
 
 
-def test_handle_success_request_return_url_missing(payment_provider, order_with_products):
+def test_handle_success_request_return_url_missing(provider_base_config, order_with_products):
     """Test the handler returns a bad request object if return URL is missing from params"""
     params = {
         'AUTHCODE': '905EDAC01C9E6921250C21BE23CDC53633A4D66BE7241A3B5DA1D2372234D462',
@@ -237,12 +247,14 @@ def test_handle_success_request_return_url_missing(payment_provider, order_with_
     }
     rf = RequestFactory()
     request = rf.get('/payments/success/', params)
+    payment_provider = create_bambora_provider(provider_base_config, request, UI_RETURN_URL)
+
     returned = payment_provider.handle_success_request(request)
-    assert isinstance(returned, HttpResponseBadRequest)
-    assert returned.status_code == 400
+    assert isinstance(returned, HttpResponseServerError)
+    assert returned.status_code == 500
 
 
-def test_handle_success_request_order_not_found(payment_provider, order_with_products):
+def test_handle_success_request_order_not_found(provider_base_config, order_with_products):
     """Test request helper returns a failure url when order can't be found"""
     params = {
         'RESPA_UI_RETURN_URL': 'http%3A%2F%2F127.0.0.1%3A8000%2Fv1',
@@ -253,12 +265,13 @@ def test_handle_success_request_order_not_found(payment_provider, order_with_pro
     }
     rf = RequestFactory()
     request = rf.get('/payments/success/', params)
+    payment_provider = create_bambora_provider(provider_base_config, request, UI_RETURN_URL)
     returned = payment_provider.handle_success_request(request)
     assert isinstance(returned, HttpResponse)
     assert 'payment_status=failure' in returned.url
 
 
-def test_handle_success_request_success(payment_provider, order_with_products):
+def test_handle_success_request_success(provider_base_config, order_with_products):
     """Test request helper changes the order status to confirmed
 
     Also check it returns a success url with order number"""
@@ -271,6 +284,7 @@ def test_handle_success_request_success(payment_provider, order_with_products):
     }
     rf = RequestFactory()
     request = rf.get('/payments/success/', params)
+    payment_provider = create_bambora_provider(provider_base_config, request, UI_RETURN_URL)
     returned = payment_provider.handle_success_request(request)
     order_after = Order.objects.get(order_number=params.get('ORDER_NUMBER'))
     assert order_after.state == Order.CONFIRMED
@@ -279,7 +293,7 @@ def test_handle_success_request_success(payment_provider, order_with_products):
     assert 'order_id={}'.format(order_after.id) in returned.url
 
 
-def test_handle_success_request_payment_failed(payment_provider, order_with_products):
+def test_handle_success_request_payment_failed(provider_base_config, order_with_products):
     """Test request helper changes the order status to rejected and returns a failure url"""
     params = {
         'RESPA_UI_RETURN_URL': 'http%3A%2F%2F127.0.0.1%3A8000%2Fv1',
@@ -290,6 +304,7 @@ def test_handle_success_request_payment_failed(payment_provider, order_with_prod
     }
     rf = RequestFactory()
     request = rf.get('/payments/success/', params)
+    payment_provider = create_bambora_provider(provider_base_config, request, UI_RETURN_URL)
     returned = payment_provider.handle_success_request(request)
     order_after = Order.objects.get(order_number=params.get('ORDER_NUMBER'))
     assert order_after.state == Order.REJECTED
@@ -297,7 +312,7 @@ def test_handle_success_request_payment_failed(payment_provider, order_with_prod
     assert 'payment_status=failure' in returned.url
 
 
-def test_handle_success_request_status_not_updated(payment_provider, order_with_products):
+def test_handle_success_request_status_not_updated(provider_base_config, order_with_products):
     """Test request helper reacts to transaction status update error by returning a failure url"""
     params = {
         'RESPA_UI_RETURN_URL': 'http%3A%2F%2F127.0.0.1%3A8000%2Fv1',
@@ -308,13 +323,14 @@ def test_handle_success_request_status_not_updated(payment_provider, order_with_
     }
     rf = RequestFactory()
     request = rf.get('/payments/success/', params)
+    payment_provider = create_bambora_provider(provider_base_config, request, UI_RETURN_URL)
     returned = payment_provider.handle_success_request(request)
     # TODO Handling isn't final yet so there might be something extra that needs to be tested here
     assert isinstance(returned, HttpResponse)
     assert 'payment_status=failure' in returned.url
 
 
-def test_handle_success_request_maintenance_break(payment_provider, order_with_products):
+def test_handle_success_request_maintenance_break(provider_base_config, order_with_products):
     """Test request helper reacts to maintenance break error by returning a failure url"""
     params = {
         'RESPA_UI_RETURN_URL': 'http%3A%2F%2F127.0.0.1%3A8000%2Fv1',
@@ -325,13 +341,14 @@ def test_handle_success_request_maintenance_break(payment_provider, order_with_p
     }
     rf = RequestFactory()
     request = rf.get('/payments/success/', params)
+    payment_provider = create_bambora_provider(provider_base_config, request, UI_RETURN_URL)
     returned = payment_provider.handle_success_request(request)
     # TODO Handling isn't final yet so there might be something extra that needs to be tested here
     assert isinstance(returned, HttpResponse)
     assert 'payment_status=failure' in returned.url
 
 
-def test_handle_success_request_unknown_error(payment_provider, order_with_products):
+def test_handle_success_request_unknown_error(provider_base_config, order_with_products):
     """Test request helper returns a failure url when status code is unknown"""
     params = {
         'RESPA_UI_RETURN_URL': 'http%3A%2F%2F127.0.0.1%3A8000%2Fv1',
@@ -342,12 +359,13 @@ def test_handle_success_request_unknown_error(payment_provider, order_with_produ
     }
     rf = RequestFactory()
     request = rf.get('/payments/success/', params)
+    payment_provider = create_bambora_provider(provider_base_config, request, UI_RETURN_URL)
     returned = payment_provider.handle_success_request(request)
     assert isinstance(returned, HttpResponse)
     assert 'payment_status=failure' in returned.url
 
 
-def test_handle_notify_request_order_not_found(payment_provider, order_with_products):
+def test_handle_notify_request_order_not_found(provider_base_config, order_with_products):
     """Test request notify helper returns http 204 when order can't be found"""
     params = {
         'RESPA_UI_RETURN_URL': 'http%3A%2F%2F127.0.0.1%3A8000%2Fv1',
@@ -358,6 +376,7 @@ def test_handle_notify_request_order_not_found(payment_provider, order_with_prod
     }
     rf = RequestFactory()
     request = rf.get('/payments/notify/', params)
+    payment_provider = create_bambora_provider(provider_base_config, request, UI_RETURN_URL)
     returned = payment_provider.handle_notify_request(request)
     assert isinstance(returned, HttpResponse)
     assert returned.status_code == 204
@@ -369,7 +388,7 @@ def test_handle_notify_request_order_not_found(payment_provider, order_with_prod
     (Order.EXPIRED, Order.EXPIRED),
     (Order.REJECTED, Order.REJECTED),
 ))
-def test_handle_notify_request_success(payment_provider, order_with_products, order_state, expected_order_state):
+def test_handle_notify_request_success(provider_base_config, order_with_products, order_state, expected_order_state):
     """Test request notify helper returns http 204 and order status is correct when successful"""
     params = {
         'RESPA_UI_RETURN_URL': 'http%3A%2F%2F127.0.0.1%3A8000%2Fv1',
@@ -382,6 +401,7 @@ def test_handle_notify_request_success(payment_provider, order_with_products, or
 
     rf = RequestFactory()
     request = rf.get('/payments/notify/', params)
+    payment_provider = create_bambora_provider(provider_base_config, request, UI_RETURN_URL)
     returned = payment_provider.handle_notify_request(request)
     order_after = Order.objects.get(order_number=params.get('ORDER_NUMBER'))
     assert order_after.state == expected_order_state
@@ -395,7 +415,8 @@ def test_handle_notify_request_success(payment_provider, order_with_products, or
     (Order.EXPIRED, Order.EXPIRED),
     (Order.CONFIRMED, Order.CONFIRMED),
 ))
-def test_handle_notify_request_payment_failed(payment_provider, order_with_products, order_state, expected_order_state):
+def test_handle_notify_request_payment_failed(provider_base_config, order_with_products, order_state,
+                                              expected_order_state):
     """Test request notify helper returns http 204 and order status is correct when payment fails"""
     params = {
         'RESPA_UI_RETURN_URL': 'http%3A%2F%2F127.0.0.1%3A8000%2Fv1',
@@ -408,6 +429,7 @@ def test_handle_notify_request_payment_failed(payment_provider, order_with_produ
 
     rf = RequestFactory()
     request = rf.get('/payments/notify/', params)
+    payment_provider = create_bambora_provider(provider_base_config, request, UI_RETURN_URL)
     returned = payment_provider.handle_notify_request(request)
     order_after = Order.objects.get(order_number=params.get('ORDER_NUMBER'))
     assert order_after.state == expected_order_state
@@ -415,7 +437,7 @@ def test_handle_notify_request_payment_failed(payment_provider, order_with_produ
     assert returned.status_code == 204
 
 
-def test_handle_notify_request_unknown_error(payment_provider, order_with_products):
+def test_handle_notify_request_unknown_error(provider_base_config, order_with_products):
     """Test request notify helper returns http 204 when status code is unknown"""
     params = {
         'RESPA_UI_RETURN_URL': 'http%3A%2F%2F127.0.0.1%3A8000%2Fv1',
@@ -426,6 +448,7 @@ def test_handle_notify_request_unknown_error(payment_provider, order_with_produc
     }
     rf = RequestFactory()
     request = rf.get('/payments/notify/', params)
+    payment_provider = create_bambora_provider(provider_base_config, request, UI_RETURN_URL)
     returned = payment_provider.handle_notify_request(request)
     assert isinstance(returned, HttpResponse)
     assert returned.status_code == 204

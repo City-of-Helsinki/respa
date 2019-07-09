@@ -1,10 +1,9 @@
 import hashlib
 import hmac
 import logging
-from urllib.parse import urlencode
 
 import requests
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseServerError
 from requests.exceptions import RequestException
 
 from ..exceptions import (
@@ -22,9 +21,6 @@ RESPA_PAYMENTS_BAMBORA_API_URL = 'RESPA_PAYMENTS_BAMBORA_API_URL'
 RESPA_PAYMENTS_BAMBORA_API_KEY = 'RESPA_PAYMENTS_BAMBORA_API_KEY'
 RESPA_PAYMENTS_BAMBORA_API_SECRET = 'RESPA_PAYMENTS_BAMBORA_API_SECRET'
 RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS = 'RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS'
-
-# Param for respa redirect
-UI_RETURN_URL_PARAM_NAME = 'RESPA_UI_RETURN_URL'
 
 
 class BamboraPayformProvider(PaymentProvider):
@@ -49,12 +45,10 @@ class BamboraPayformProvider(PaymentProvider):
             RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS: list
         }
 
-    def order_create(self, request, ui_return_url, order) -> str:
+    def initiate_payment(self, order) -> str:
         """Initiate payment by constructing the payload with necessary items"""
 
-        respa_return_url = self.get_success_url(request)
-        query_params = urlencode({UI_RETURN_URL_PARAM_NAME: ui_return_url})
-        full_return_url = '{}?{}'.format(respa_return_url, query_params)
+        full_return_url = super().create_full_return_url()
 
         payload = {
             'version': 'w3.1',
@@ -62,7 +56,7 @@ class BamboraPayformProvider(PaymentProvider):
             'payment_method': {
                 'type': 'e-payment',
                 'return_url': full_return_url,
-                'notify_url': self.get_notify_url(request),
+                'notify_url': self.get_notify_url(),
                 'selected': self.config.get(RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS)
             },
             'currency': 'EUR',
@@ -76,11 +70,11 @@ class BamboraPayformProvider(PaymentProvider):
         try:
             r = requests.post(self.url_payment_auth, json=payload)
             r.raise_for_status()
-            return self.handle_order_create(r.json())
+            return self.handle_initiate_payment(r.json())
         except RequestException as e:
             raise ServiceUnavailableError("Payment service is unreachable") from e
 
-    def handle_order_create(self, response) -> str:
+    def handle_initiate_payment(self, response) -> str:
         """Handling the Bambora payment auth response"""
         result = response['result']
         if result == 0:
@@ -165,11 +159,7 @@ class BamboraPayformProvider(PaymentProvider):
         """Handle the payform response after user has completed the payment flow in normal fashion"""
         logger.debug('Handling Bambora user return request, params: {}.'.format(request.GET))
 
-        return_url = request.GET.get(UI_RETURN_URL_PARAM_NAME)
-        if not return_url:
-            # TODO should we actually make the whole thing fail here?
-            logger.warning('Return URL missing.')
-            return HttpResponseBadRequest()
+        return_url = super().extract_ui_return_url()
 
         if not self.check_new_payment_authcode(request):
             return self.ui_redirect_failure(return_url)
