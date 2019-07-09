@@ -156,6 +156,23 @@ class OrderQuerySet(models.QuerySet):
 
         return self.filter(reservation__in=allowed_reservations)
 
+    def update_expired(self) -> int:
+        earliest_allowed_timestamp = now() - timedelta(minutes=settings.RESPA_PAYMENTS_PAYMENT_WAITING_TIME)
+        log_entry_timestamps = OrderLogEntry.objects.filter(order=OuterRef('pk')).order_by('id').values('timestamp')
+        too_old_waiting_orders = self.filter(
+            state=Order.WAITING
+        ).annotate(
+            created_at=Subquery(
+                log_entry_timestamps[:1]
+            )
+        ).filter(
+            created_at__lt=earliest_allowed_timestamp
+        )
+        for order in too_old_waiting_orders:
+            order.set_state(Order.EXPIRED)
+
+        return too_old_waiting_orders.count()
+
 
 class Order(models.Model):
     WAITING = 'waiting'
@@ -192,24 +209,6 @@ class Order(models.Model):
     def created_at(self):
         first_log_entry = self.log_entries.first()
         return first_log_entry.timestamp if first_log_entry else None
-
-    @classmethod
-    def update_expired_orders(cls) -> int:
-        earliest_allowed_timestamp = now() - timedelta(minutes=settings.RESPA_PAYMENTS_PAYMENT_WAITING_TIME)
-        log_entry_timestamps = OrderLogEntry.objects.filter(order=OuterRef('pk')).order_by('id').values('timestamp')
-        too_old_waiting_orders = cls.objects.filter(
-            state=cls.WAITING
-        ).annotate(
-            created_at=Subquery(
-                log_entry_timestamps[:1]
-            )
-        ).filter(
-            created_at__lt=earliest_allowed_timestamp
-        )
-        for order in too_old_waiting_orders:
-            order.set_state(cls.EXPIRED)
-
-        return too_old_waiting_orders.count()
 
     def save(self, *args, **kwargs):
         is_new = not bool(self.id)

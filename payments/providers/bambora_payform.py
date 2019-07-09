@@ -3,7 +3,7 @@ import hmac
 import logging
 
 import requests
-from django.http import HttpResponse, HttpResponseServerError
+from django.http import HttpResponse
 from requests.exceptions import RequestException
 
 from ..exceptions import (
