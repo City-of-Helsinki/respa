@@ -30,7 +30,7 @@ def test_get_resource_list_check_products(endpoint, user_api_client, resource_in
     # assert here to make sure the "feature" isn't fixed.
     product = ProductFactory.create(
         tax_percentage=Decimal('24.00'),
-        pretax_price=Decimal('10.00'),
+        price=Decimal('10.00'),
         resources=[resource_in_unit],
     )
     assert Product.objects.count() == 2
@@ -54,6 +54,6 @@ def test_get_resource_list_check_products(endpoint, user_api_client, resource_in
     assert product_data['id'] == product.product_id
     assert product_data['name'] == {'fi': product.name_fi}
     assert product_data['description'] == {'fi': product.description}
-    assert product_data['price'] == '12.40'
+    assert product_data['price'] == '10.00'
     for field in ('type', 'tax_percentage', 'price_type'):
         assert product_data[field] == str(getattr(product, field))

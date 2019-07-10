@@ -16,7 +16,6 @@ from .providers import get_payment_provider
 
 class ProductSerializer(TranslatedModelSerializer):
     id = serializers.CharField(source='product_id')
-    price = serializers.CharField(source='get_price')
     tax_percentage = serializers.CharField()
 
     class Meta:

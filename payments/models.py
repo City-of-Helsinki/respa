@@ -16,7 +16,7 @@ from resources.models import Reservation, Resource
 from resources.models.utils import generate_id
 
 from .exceptions import OrderStateTransitionError
-from .utils import round_price
+from .utils import convert_aftertax_to_pretax, get_tax_amount_from_aftertax, round_price, rounded
 
 # The best way for representing non existing archived_at would be using None for it,
 # but that would not work with the unique_together constraint, which brings many
@@ -72,8 +72,9 @@ class Product(models.Model):
     name = models.CharField(max_length=100, verbose_name=_('name'), blank=True)
     description = models.TextField(verbose_name=_('description'), blank=True)
 
-    pretax_price = models.DecimalField(
-        verbose_name=_('pretax price'), max_digits=19, decimal_places=10, validators=[MinValueValidator(0)]
+    price = models.DecimalField(
+        verbose_name=_('price including VAT'), max_digits=10, decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))]
     )
     tax_percentage = models.DecimalField(
         verbose_name=_('tax percentage'), max_digits=5, decimal_places=2, default=DEFAULT_TAX_PERCENTAGE,
@@ -96,7 +97,7 @@ class Product(models.Model):
         unique_together = ('archived_at', 'product_id')
 
     def __str__(self):
-        return self.name
+        return '{} ({})'.format(self.name, self.product_id)
 
     def save(self, *args, **kwargs):
         if self.id:
@@ -115,47 +116,34 @@ class Product(models.Model):
     def delete(self, *args, **kwargs):
         Product.objects.filter(id=self.id).update(archived_at=now())
 
-    def get_price(self, rounded: bool = True) -> Decimal:
-        price = self.pretax_price * (1 + Decimal(self.tax_percentage) / 100)
-        if rounded:
-            price = round_price(price)
-        return price
+    @rounded
+    def get_pretax_price(self) -> Decimal:
+        return convert_aftertax_to_pretax(self.price, self.tax_percentage)
 
-    def get_tax_amount(self, rounded: bool = True) -> Decimal:
-        tax_amount = self.get_price(rounded=rounded) - self.pretax_price
-        if rounded:
-            tax_amount = round_price(tax_amount)
-        return tax_amount
+    @rounded
+    def get_tax_amount(self) -> Decimal:
+        return get_tax_amount_from_aftertax(self.price, self.tax_percentage)
 
-    def get_pretax_price_for_time_range(self, begin: datetime, end: datetime, rounded: bool = True) -> Decimal:
+    @rounded
+    def get_pretax_price_for_time_range(self, begin: datetime, end: datetime) -> Decimal:
+        return convert_aftertax_to_pretax(self.get_price_for_time_range(begin, end), self.tax_percentage)
+
+    @rounded
+    def get_price_for_time_range(self, begin: datetime, end: datetime) -> Decimal:
         assert begin < end
 
         if self.price_type == Product.PRICE_PER_HOUR:
-            price = self.pretax_price * Decimal((end - begin) / timedelta(hours=1))
+            return self.price * Decimal((end - begin) / timedelta(hours=1))
         elif self.price_type == Product.PRICE_FIXED:
-            price = self.pretax_price
+            return self.price
         else:
             raise NotImplementedError('Cannot calculate price, unknown price type "{}".'.format(self.price_type))
 
-        if rounded:
-            price = round_price(price)
-
-        return price
-
-    def get_price_for_time_range(self, begin: datetime, end: datetime, rounded: bool = True) -> Decimal:
-        pretax_price = self.get_pretax_price_for_time_range(begin, end, rounded=False)
-        price = pretax_price * (1 + Decimal(self.tax_percentage) / 100)
-
-        if rounded:
-            price = round_price(price)
-
-        return price
-
     def get_pretax_price_for_reservation(self, reservation: Reservation, rounded: bool = True) -> Decimal:
-        return self.get_pretax_price_for_time_range(reservation.begin, reservation.end, rounded)
+        return self.get_pretax_price_for_time_range(reservation.begin, reservation.end, rounded=rounded)
 
     def get_price_for_reservation(self, reservation: Reservation, rounded: bool = True) -> Decimal:
-        return self.get_price_for_time_range(reservation.begin, reservation.end, rounded)
+        return self.get_price_for_time_range(reservation.begin, reservation.end, rounded=rounded)
 
 
 class OrderQuerySet(models.QuerySet):
@@ -198,7 +186,7 @@ class Order(models.Model):
         ordering = ('id',)
 
     def __str__(self):
-        return '{} {}'.format(self.order_number, self.reservation)
+        return '({}) {}'.format(self.order_number, self.reservation)
 
     @cached_property
     def created_at(self):
@@ -237,8 +225,7 @@ class Order(models.Model):
         return sum(order_line.get_price() for order_line in self.order_lines.all())
 
     def get_tax_amount(self) -> Decimal:
-        tax_amount = self.get_price() - self.get_pretax_price()
-        return tax_amount
+        return self.get_price() - self.get_pretax_price()
 
     def set_state(self, new_state: str, log_message: str = None, save: bool = True) -> None:
         assert new_state in (Order.WAITING, Order.CONFIRMED, Order.REJECTED, Order.EXPIRED, Order.CANCELLED)
@@ -291,14 +278,16 @@ class OrderLine(models.Model):
         return str(self.product)
 
     def get_pretax_price(self) -> Decimal:
-        return self.product.get_pretax_price_for_reservation(self.order.reservation) * self.quantity
+        return round_price(convert_aftertax_to_pretax(self.get_price(), self.product.tax_percentage))
+
+    def get_unit_price(self) -> Decimal:
+        return self.product.get_price_for_reservation(self.order.reservation)
 
     def get_price(self) -> Decimal:
         return self.product.get_price_for_reservation(self.order.reservation) * self.quantity
 
     def get_tax_amount(self) -> Decimal:
-        tax_amount = self.get_price() - self.get_pretax_price()
-        return tax_amount
+        return self.get_price() - self.get_pretax_price()
 
 
 class OrderLogEntry(models.Model):

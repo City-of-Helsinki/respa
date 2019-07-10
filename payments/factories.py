@@ -17,7 +17,7 @@ class ProductFactory(factory.django.DjangoModelFactory):
     sku = factory.Faker('uuid4')
     type = factory.fuzzy.FuzzyChoice(Product.TYPE_CHOICES,
                                      getter=lambda c: c[0])
-    pretax_price = factory.fuzzy.FuzzyDecimal(5.00, 100.00)
+    price = factory.fuzzy.FuzzyDecimal(5.00, 100.00)
     price_type = factory.fuzzy.FuzzyChoice(Product.PRICE_TYPE_CHOICES,
                                            getter=lambda c: c[0])
     tax_percentage = factory.fuzzy.FuzzyChoice(TAX_PERCENTAGES)
