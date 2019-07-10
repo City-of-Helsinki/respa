@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Sets too old orders from state "waiting" to state "expired."'
+    help = 'Sets too old orders from state "waiting" to state "expired".'
 
     @atomic
     def handle(self, *args, **options):
