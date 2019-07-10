@@ -58,7 +58,7 @@ class Product(models.Model):
 
     # This ID is common to all versions of the same product, and is the one
     # used as ID in the API.
-    product_id = models.CharField(max_length=100, verbose_name=_('product ID'), editable=False, db_index=True)
+    product_id = models.CharField(max_length=100, verbose_name=_('internal product ID'), editable=False, db_index=True)
 
     # archived_at determines when this version of the product has been either (soft)
     # deleted or replaced by a newer version. Value ARCHIVED_AT_NONE means this is the
@@ -86,14 +86,14 @@ class Product(models.Model):
     max_quantity = models.PositiveSmallIntegerField(verbose_name=_('max quantity'),
                                                     default=1, validators=[MinValueValidator(1)])
 
-    resources = models.ManyToManyField(Resource, verbose_name=_('resource'), related_name='products', blank=True)
+    resources = models.ManyToManyField(Resource, verbose_name=_('resources'), related_name='products', blank=True)
 
     objects = ProductQuerySet.as_manager()
 
     class Meta:
         verbose_name = _('product')
         verbose_name_plural = _('products')
-        ordering = ('id',)
+        ordering = ('product_id',)
         unique_together = ('archived_at', 'product_id')
 
     def __str__(self):
