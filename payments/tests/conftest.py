@@ -41,7 +41,7 @@ def order_with_products(two_hour_reservation):
     OrderLineFactory.create(
         quantity=1,
         product__name="Test product",
-        product__pretax_price=Decimal('10.00'),
+        product__price=Decimal('12.40'),
         product__tax_percentage=Decimal('24.00'),
         product__price_type=Product.PRICE_PER_HOUR,
         order=order
@@ -49,7 +49,7 @@ def order_with_products(two_hour_reservation):
     OrderLineFactory.create(
         quantity=1,
         product__name="Test product 2",
-        product__pretax_price=Decimal('10.00'),
+        product__price=Decimal('12.40'),
         product__tax_percentage=Decimal('24.00'),
         product__price_type=Product.PRICE_FIXED,
         order=order
