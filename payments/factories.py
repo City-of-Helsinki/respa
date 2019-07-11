@@ -1,8 +1,9 @@
-
+from datetime import timedelta
 from random import randint
 
 import factory
 import factory.fuzzy
+import factory.random
 
 from resources.models import Reservation
 from resources.models.utils import generate_id
@@ -21,6 +22,12 @@ class ProductFactory(factory.django.DjangoModelFactory):
     price = factory.fuzzy.FuzzyDecimal(5.00, 100.00)
     price_type = factory.fuzzy.FuzzyChoice(Product.PRICE_TYPE_CHOICES,
                                            getter=lambda c: c[0])
+    price_period = factory.lazy_attribute(
+        lambda obj:
+            timedelta(hours=factory.random.randgen.randrange(1, 10))
+            if obj.price_type == Product.PRICE_PER_PERIOD
+            else None
+    )
     tax_percentage = factory.fuzzy.FuzzyChoice(TAX_PERCENTAGES)
     # created_at, defaults to now()
     archived_at = ARCHIVED_AT_NONE

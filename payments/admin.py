@@ -5,6 +5,8 @@ from django.utils.timezone import localtime
 from django.utils.translation import ugettext_lazy as _
 from modeltranslation.admin import TranslationAdmin
 
+from payments.utils import get_price_period_display
+
 from .models import Order, OrderLine, OrderLogEntry, Product
 
 
@@ -16,8 +18,8 @@ def get_datetime_in_localtime(dt):
 
 class ProductAdmin(TranslationAdmin):
     list_display = (
-        'product_id', 'sku', 'name', 'type', 'price', 'price_type', 'tax_percentage', 'max_quantity', 'get_resources',
-        'get_created_at', 'get_modified_at'
+        'product_id', 'sku', 'name', 'type', 'price', 'price_type', 'get_price_period', 'tax_percentage',
+        'max_quantity', 'get_resources', 'get_created_at', 'get_modified_at'
     )
     readonly_fields = ('product_id',)
     fieldsets = (
@@ -25,7 +27,7 @@ class ProductAdmin(TranslationAdmin):
             'fields': ('sku', 'type', 'name', 'description', 'max_quantity')
         }),
         (_('price').capitalize(), {
-            'fields': ('price', 'price_type', 'tax_percentage'),
+            'fields': ('price', 'price_type', 'price_period', 'tax_percentage'),
         }),
         ('resources'.capitalize(), {
             'fields': ('resources',)
@@ -57,6 +59,11 @@ class ProductAdmin(TranslationAdmin):
         extra_context = extra_context or {}
         extra_context['show_save_and_continue'] = False
         return super().change_view(request, object_id, form_url, extra_context=extra_context)
+
+    def get_price_period(self, obj):
+        return get_price_period_display(obj.price_period)
+
+    get_price_period.short_description = _('price period')
 
 
 class OrderLineInline(admin.TabularInline):

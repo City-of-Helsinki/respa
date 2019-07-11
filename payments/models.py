@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import OuterRef, Q, Subquery
@@ -16,7 +17,7 @@ from resources.models import Reservation, Resource
 from resources.models.utils import generate_id
 
 from .exceptions import OrderStateTransitionError
-from .utils import convert_aftertax_to_pretax, rounded
+from .utils import convert_aftertax_to_pretax, get_price_period_display, rounded
 
 # The best way for representing non existing archived_at would be using None for it,
 # but that would not work with the unique_together constraint, which brings many
@@ -49,10 +50,10 @@ class Product(models.Model):
         (EXTRA, _('extra')),
     )
 
-    PRICE_PER_HOUR = 'per_hour'
+    PRICE_PER_PERIOD = 'per_period'
     PRICE_FIXED = 'fixed'
     PRICE_TYPE_CHOICES = (
-        (PRICE_PER_HOUR, _('per hour')),
+        (PRICE_PER_PERIOD, _('per period')),
         (PRICE_FIXED, _('fixed')),
     )
 
@@ -83,8 +84,12 @@ class Product(models.Model):
         choices=[(tax, str(tax)) for tax in TAX_PERCENTAGES]
     )
     price_type = models.CharField(
-        max_length=32, verbose_name=_('price type'), choices=PRICE_TYPE_CHOICES, default=PRICE_PER_HOUR
+        max_length=32, verbose_name=_('price type'), choices=PRICE_TYPE_CHOICES, default=PRICE_PER_PERIOD
     )
+    price_period = models.DurationField(
+        verbose_name=_('price period'), null=True, blank=True, default=timedelta(hours=1),
+    )
+
     max_quantity = models.PositiveSmallIntegerField(verbose_name=_('max quantity'),
                                                     default=1, validators=[MinValueValidator(1)])
 
@@ -100,6 +105,15 @@ class Product(models.Model):
 
     def __str__(self):
         return '{} ({})'.format(self.name, self.product_id)
+
+    def clean(self):
+        if self.price_type == Product.PRICE_PER_PERIOD:
+            if not self.price_period:
+                raise ValidationError(
+                    {'price_period': _('This field requires a non-zero value when price type is "per period".')}
+                )
+        else:
+            self.price_period = None
 
     def save(self, *args, **kwargs):
         if self.id:
@@ -130,10 +144,11 @@ class Product(models.Model):
     def get_price_for_time_range(self, begin: datetime, end: datetime) -> Decimal:
         assert begin < end
 
-        if self.price_type == Product.PRICE_PER_HOUR:
-            return self.price * Decimal((end - begin) / timedelta(hours=1))
-        elif self.price_type == Product.PRICE_FIXED:
+        if self.price_type == Product.PRICE_FIXED:
             return self.price
+        elif self.price_type == Product.PRICE_PER_PERIOD:
+            assert self.price_period, '{} {}'.format(self, self.price_period)
+            return self.price * Decimal((end - begin) / self.price_period)
         else:
             raise NotImplementedError('Cannot calculate price, unknown price type "{}".'.format(self.price_type))
 
@@ -319,14 +334,18 @@ class LocalizedSerializerField(serializers.Field):
 class NotificationProductSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='product_id')
     tax_percentage = LocalizedSerializerField()
-    price = LocalizedSerializerField(source='get_price')
+    price = LocalizedSerializerField()
     type_display = serializers.ReadOnlyField(source='get_type_display')
     price_type_display = serializers.ReadOnlyField(source='get_price_type_display')
+    price_period_display = serializers.SerializerMethodField()
+
+    def get_price_period_display(self, obj):
+        return get_price_period_display(obj.price_period)
 
     class Meta:
         model = Product
         fields = ('id', 'name', 'description', 'type', 'type_display', 'price_type', 'price_type_display',
-                  'tax_percentage', 'price')
+                  'tax_percentage', 'price', 'price_period', 'price_period_display')
 
 
 class NotificationOrderLineSerializer(serializers.ModelSerializer):
