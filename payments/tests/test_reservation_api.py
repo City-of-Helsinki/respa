@@ -231,15 +231,15 @@ def test_order_line_product_quantity_limitation(user_api_client, resource_in_uni
     assert response.status_code == expected_status, response.data
 
 
-@pytest.mark.parametrize('has_product', (True, False))
-def test_order_mandatoriness(user_api_client, resource_in_unit, has_product):
+@pytest.mark.parametrize('has_rent', (True, False))
+def test_rent_product_makes_order_required_(user_api_client, resource_in_unit, has_rent):
     reservation_data = build_reservation_data(resource_in_unit)
-    if has_product:
+    if has_rent:
         ProductFactory(type=Product.RENT, resources=[resource_in_unit])
 
     response = user_api_client.post(LIST_URL, reservation_data)
 
-    if has_product:
+    if has_rent:
         assert response.status_code == 400
         assert 'order' in response.data
     else:
@@ -267,3 +267,22 @@ def test_order_cannot_be_modified(user_api_client, order_with_products, user):
     assert order_with_products.order_lines.first().product != new_product
     assert order_with_products.order_lines.first().quantity != 777
     assert order_with_products.order_lines.count() > 1
+
+
+def test_extra_product_doesnt_make_order_required(user_api_client, resource_in_unit):
+    reservation_data = build_reservation_data(resource_in_unit)
+    ProductFactory(type=Product.EXTRA, resources=[resource_in_unit])
+
+    response = user_api_client.post(LIST_URL, reservation_data)
+
+    assert response.status_code == 201
+
+
+def test_order_must_include_rent_if_one_exists(user_api_client, resource_in_unit):
+    reservation_data = build_reservation_data(resource_in_unit)
+    ProductFactory(type=Product.RENT, resources=[resource_in_unit])
+    extra = ProductFactory(type=Product.EXTRA, resources=[resource_in_unit])
+    reservation_data['order'] = build_order_data(product=extra)
+
+    response = user_api_client.post(LIST_URL, reservation_data)
+    assert response.status_code == 400

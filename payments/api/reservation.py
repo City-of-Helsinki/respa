@@ -7,7 +7,7 @@ from payments.exceptions import (
 )
 from resources.api.reservation import ReservationSerializer
 
-from ..models import OrderLine
+from ..models import OrderLine, Product
 from ..providers import get_payment_provider
 from .base import OrderSerializerBase
 
@@ -60,6 +60,11 @@ class ReservationEndpointOrderSerializer(OrderSerializerBase):
         if len(product_ids) > len(set(product_ids)):
             raise serializers.ValidationError(_('Order lines cannot contain duplicate products.'))
 
+        resource = self.context.get('resource')
+        if resource and resource.has_rent():
+            if not any(ol['product'].type == Product.RENT for ol in order_lines):
+                raise serializers.ValidationError(_('The order must contain at least one product of type "rent".'))
+
         return order_lines
 
     def to_internal_value(self, data):
@@ -85,7 +90,7 @@ class PaymentsReservationSerializer(ReservationSerializer):
 
         if self.context['view'].action == 'create':
             resource = self.context.get('resource')
-            order_required = resource.needs_payment() if resource else True
+            order_required = resource.has_rent() if resource else True
             self.fields['order'] = ReservationEndpointOrderSerializer(required=order_required)
         elif 'order' in self.context.get('expanded', ()):
             self.fields['order'] = ReservationEndpointOrderSerializer(read_only=True)
