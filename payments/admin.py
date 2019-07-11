@@ -162,7 +162,7 @@ class OrderAdmin(admin.ModelAdmin):
         return super().changeform_view(request, object_id, extra_context=extra_context)
 
     def delete_model(self, request, obj):
-        obj.set_state(Order.CANCELLED)
+        obj.set_state(Order.CANCELLED, log_message='Cancelled using the Django admin UI.')
 
     def user(self, obj):
         return obj.reservation.user
