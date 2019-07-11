@@ -217,11 +217,16 @@ class Order(models.Model):
         if is_new:
             self.create_log_entry(state_change=self.state)
 
+    def get_order_lines(self):
+        # This allows us to do price calculations using order line objects that
+        # don't exist in the db. That is needed in the price check endpoint.
+        return self._in_memory_order_lines if hasattr(self, '_in_memory_order_lines') else self.order_lines.all()
+
     def get_pretax_price(self) -> Decimal:
-        return sum(order_line.get_pretax_price() for order_line in self.order_lines.all())
+        return sum(order_line.get_pretax_price() for order_line in self.get_order_lines())
 
     def get_price(self) -> Decimal:
-        return sum(order_line.get_price() for order_line in self.order_lines.all())
+        return sum(order_line.get_price() for order_line in self.get_order_lines())
 
     def get_tax_amount(self) -> Decimal:
         return self.get_price() - self.get_pretax_price()
