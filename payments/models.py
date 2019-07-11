@@ -43,8 +43,10 @@ class ProductQuerySet(models.QuerySet):
 
 class Product(models.Model):
     RENT = 'rent'
+    EXTRA = 'extra'
     TYPE_CHOICES = (
         (RENT, _('rent')),
+        (EXTRA, _('extra')),
     )
 
     PRICE_PER_HOUR = 'per_hour'
