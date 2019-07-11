@@ -8,8 +8,20 @@ from ..models import Order
 LIST_URL = reverse('order-list')
 CHECK_PRICE_URL = reverse('order-check-price')
 
-ORDER_RESPONSE_FIELDS = {
+ORDER_FIELDS = {
     'reservation', 'id', 'price', 'state', 'order_lines'
+}
+
+PRICE_ENDPOINT_ORDER_FIELDS = {
+    'order_lines', 'price', 'begin', 'end'
+}
+
+ORDER_LINE_FIELDS = {
+    'product', 'quantity', 'price', 'unit_price'
+}
+
+PRODUCT_FIELDS = {
+    'id', 'type', 'name', 'description', 'tax_percentage', 'price', 'price_type', 'tax_percentage', 'max_quantity'
 }
 
 
@@ -38,14 +50,20 @@ def test_order_get_list(user_api_client, order_with_products):
     assert response.status_code == 200
     results = response.data['results']
     assert len(results) == 1
-    assert set(results[0].keys()) == ORDER_RESPONSE_FIELDS
+    assert set(results[0].keys()) == ORDER_FIELDS
+    for ol in results[0]['order_lines']:
+        assert set(ol.keys()) == ORDER_LINE_FIELDS
+        assert set(ol['product']) == PRODUCT_FIELDS
 
 
 def test_order_get_detail(user_api_client, order_with_products):
     response = user_api_client.get(get_detail_url(order_with_products))
 
     assert response.status_code == 200
-    assert set(response.data.keys()) == ORDER_RESPONSE_FIELDS
+    assert set(response.data.keys()) == ORDER_FIELDS
+    for ol in response.data['order_lines']:
+        assert set(ol.keys()) == ORDER_LINE_FIELDS
+        assert set(ol['product']) == PRODUCT_FIELDS
 
 
 def test_order_put_forbidden(user_api_client, order_with_products):
@@ -100,6 +118,10 @@ def test_order_price_check_success(user_api_client, product, two_hour_reservatio
     response = user_api_client.post(CHECK_PRICE_URL, price_check_data)
     assert response.status_code == 200
     assert len(response.data['order_lines']) == 1
-    assert set(response.data.keys()) == {'order_lines', 'price', 'begin', 'end'}
+    assert set(response.data.keys()) == PRICE_ENDPOINT_ORDER_FIELDS
+    for ol in response.data['order_lines']:
+        assert set(ol.keys()) == ORDER_LINE_FIELDS
+        assert set(ol['product']) == PRODUCT_FIELDS
+
     # Check order count didn't change
     assert order_count_before == Order.objects.count()
