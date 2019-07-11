@@ -40,7 +40,8 @@ def test_get_price_correct(order_with_products):
     (Order.CANCELLED, Reservation.CANCELLED),
 ))
 def test_set_state_sets_reservation_state(two_hour_reservation, order_state, expected_reservation_state):
-    order = OrderFactory(reservation=two_hour_reservation, state=Order.WAITING)
+    old_order_state = Order.CONFIRMED if order_state == Order.CANCELLED else Order.WAITING
+    order = OrderFactory(reservation=two_hour_reservation, state=old_order_state)
 
     order.set_state(order_state)
 
@@ -60,6 +61,7 @@ def test_set_state_sets_reservation_state(two_hour_reservation, order_state, exp
     (Order.CANCELLED, Order.REJECTED),
     (Order.CANCELLED, Order.CONFIRMED),
     (Order.CANCELLED, Order.EXPIRED),
+    (Order.WAITING, Order.CANCELLED),
 ))
 def test_set_state_denied_transitions(two_hour_reservation, state, new_state):
     order = OrderFactory(reservation=two_hour_reservation, state=state)
@@ -70,7 +72,6 @@ def test_set_state_denied_transitions(two_hour_reservation, state, new_state):
 @pytest.mark.parametrize('state, new_state', (
     (Order.WAITING, Order.CONFIRMED),
     (Order.WAITING, Order.EXPIRED),
-    (Order.WAITING, Order.CANCELLED),
     (Order.WAITING, Order.REJECTED),
     (Order.CONFIRMED, Order.CANCELLED),
 ))

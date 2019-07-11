@@ -27,7 +27,7 @@ def test_order_log_entry_created_on_order_creation(order_with_products):
     assert order_log_entry.state_change == Order.WAITING
 
 
-@pytest.mark.parametrize('new_state', (Order.REJECTED, Order.CONFIRMED, Order.EXPIRED, Order.CANCELLED))
+@pytest.mark.parametrize('new_state', (Order.REJECTED, Order.CONFIRMED, Order.EXPIRED))
 def test_order_log_entry_created_on_order_set_state(order_with_products, new_state):
     order_with_products.set_state(new_state)
 

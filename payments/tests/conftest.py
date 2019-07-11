@@ -21,7 +21,7 @@ def two_hour_reservation(resource_in_unit, user):
         event_subject='some fancy event',
         host_name='esko',
         reserver_name='martta',
-        state=Reservation.WAITING_FOR_PAYMENT,
+        state=Reservation.CONFIRMED,
         billing_first_name='Seppo',
         billing_last_name='Testi',
         billing_email_address='test@example.com',
@@ -34,6 +34,8 @@ def two_hour_reservation(resource_in_unit, user):
 @pytest.fixture()
 def order_with_products(two_hour_reservation):
     Reservation.objects.filter(id=two_hour_reservation.id).update(state=Reservation.WAITING_FOR_PAYMENT)
+    two_hour_reservation.refresh_from_db()
+
     order = OrderFactory.create(
         order_number='abc123',
         state=Order.WAITING,
