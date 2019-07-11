@@ -7,7 +7,6 @@ from notifications.models import NotificationTemplate, NotificationType
 from notifications.tests.utils import check_received_mail_exists
 from resources.models import Reservation
 
-from ..factories import OrderWithOrderLinesFactory
 from ..models import Order
 
 
@@ -113,6 +112,8 @@ def test_reservation_cancelled_notification(order_with_products, order_state, no
     user.save()
     if order_state == Order.CANCELLED:
         Reservation.objects.filter(id=order_with_products.reservation.id).update(state=Reservation.CONFIRMED)
+        Order.objects.filter(id=order_with_products.id).update(state=Order.CONFIRMED)
+        order_with_products.refresh_from_db()
 
     order_with_products.set_state(order_state)
 

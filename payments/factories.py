@@ -4,6 +4,7 @@ from random import randint
 import factory
 import factory.fuzzy
 
+from resources.models import Reservation
 from resources.models.utils import generate_id
 
 from .models import ARCHIVED_AT_NONE, TAX_PERCENTAGES, Order, OrderLine, Product
@@ -57,6 +58,20 @@ class OrderFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Order
+
+    @factory.post_generation
+    def reservation_state(obj, create, extracted, **kwargs):
+        if extracted:
+            state = extracted
+        else:
+            if obj.state == Order.CONFIRMED:
+                state = Reservation.CONFIRMED
+            elif obj.state in (Order.CANCELLED, Order.REJECTED, Order.EXPIRED):
+                state = Reservation.CANCELLED
+            else:
+                state = Reservation.WAITING_FOR_PAYMENT
+        Reservation.objects.filter(id=obj.reservation.id).update(state=state)
+        obj.reservation.refresh_from_db()
 
 
 class OrderWithOrderLinesFactory(OrderFactory):

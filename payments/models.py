@@ -238,7 +238,13 @@ class Order(models.Model):
         if new_state == old_state:
             return
 
-        if old_state != Order.WAITING and not (old_state == Order.CONFIRMED and new_state == Order.CANCELLED):
+        valid_state_changes = {
+            Order.WAITING: (Order.CONFIRMED, Order.REJECTED, Order.EXPIRED),
+            Order.CONFIRMED: (Order.CANCELLED,),
+        }
+        valid_new_states = valid_state_changes.get(old_state, ())
+
+        if new_state not in valid_new_states:
             raise OrderStateTransitionError(
                 'Cannot set order {} state to "{}", it is in an invalid state "{}".'.format(
                     self.order_number, new_state, old_state
@@ -248,9 +254,9 @@ class Order(models.Model):
         self.state = new_state
 
         if new_state == Order.CONFIRMED:
-            self.reservation.set_state(Reservation.CONFIRMED, self.reservation.user)
+            self.reservation.set_state(Reservation.CONFIRMED, None)
         elif new_state in (Order.REJECTED, Order.EXPIRED, Order.CANCELLED):
-            self.reservation.set_state(Reservation.CANCELLED, self.reservation.user)
+            self.reservation.set_state(Reservation.CANCELLED, None)
 
         if save:
             self.save()

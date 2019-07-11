@@ -54,11 +54,12 @@ def test_orders_get_expired(two_hour_reservation, order_with_products):
 @pytest.mark.parametrize('order_state', (Order.CANCELLED, Order.REJECTED, Order.CONFIRMED))
 def test_other_than_waiting_order_wont_get_expired(two_hour_reservation, order_state):
     order = OrderFactory(reservation=two_hour_reservation, state=order_state)
+    reservation_state = order.reservation.state
     set_order_created_at(order, get_order_expired_time())
 
     management.call_command(COMMAND_NAME)
 
     two_hour_reservation.refresh_from_db()
     order.refresh_from_db()
-    assert two_hour_reservation.state == Reservation.WAITING_FOR_PAYMENT
+    assert two_hour_reservation.state == reservation_state
     assert order.state == order_state
