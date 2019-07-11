@@ -11,10 +11,11 @@ from resources.tests.test_reservation_api import day_and_period  # noqa
 from ..factories import ProductFactory
 from ..models import Order, Product
 from ..providers.base import PaymentProvider
+from .test_order_api import ORDER_LINE_FIELDS, PRODUCT_FIELDS
 
 LIST_URL = reverse('reservation-list')
 
-ORDER_FIELDS = {'id', 'price', 'state', 'order_lines'}
+ORDER_FIELDS = {'id', 'state', 'price', 'order_lines'}
 
 
 def get_detail_url(reservation):
@@ -108,6 +109,9 @@ def test_reservation_orders_field(user_api_client, order_with_products, endpoint
         # order should be nested data
         assert set(order_data.keys()) == ORDER_FIELDS
         assert order_data['id'] == order_with_products.order_number
+        for ol in order_data['order_lines']:
+            assert set(ol.keys()) == ORDER_LINE_FIELDS
+            assert set(ol['product']) == PRODUCT_FIELDS
     else:
         # order should be just ID
         assert order_data == order_with_products.order_number
