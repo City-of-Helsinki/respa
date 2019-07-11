@@ -5,6 +5,7 @@ from django.utils import translation
 
 from notifications.models import NotificationTemplate, NotificationType
 from notifications.tests.utils import check_received_mail_exists
+from payments.utils import get_price_period_display
 from resources.models import Reservation
 
 from ..models import Order
@@ -28,6 +29,8 @@ def get_body_with_all_template_vars():
         'product.type_display',
         'product.price_type',
         'product.price_type_display',
+        'product.price_period',
+        'product.price_period_display',
     )
     body = '{% set order_line=order.order_lines[0] %}{% set product=order_line.product %}\n'
     for template_var in template_vars:
@@ -51,6 +54,8 @@ def get_expected_strings(order):
         product.get_type_display(),
         product.price_type,
         product.get_price_type_display(),
+        str(product.price_period),
+        str(get_price_period_display(product.price_period)),
     )
 
 

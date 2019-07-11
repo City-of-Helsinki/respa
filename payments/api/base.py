@@ -12,7 +12,9 @@ class ProductSerializer(TranslatedModelSerializer):
 
     class Meta:
         model = Product
-        fields = ('id', 'type', 'name', 'description', 'tax_percentage', 'price', 'price_type', 'max_quantity')
+        fields = (
+            'id', 'type', 'name', 'description', 'tax_percentage', 'price', 'price_type', 'price_period', 'max_quantity'
+        )
 
 
 class OrderLineSerializer(serializers.ModelSerializer):

@@ -46,7 +46,8 @@ def order_with_products(two_hour_reservation):
         product__name="Test product",
         product__price=Decimal('12.40'),
         product__tax_percentage=Decimal('24.00'),
-        product__price_type=Product.PRICE_PER_HOUR,
+        product__price_type=Product.PRICE_PER_PERIOD,
+        product__price_period=datetime.timedelta(hours=1),
         order=order
     )
     OrderLineFactory.create(

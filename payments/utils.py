@@ -1,5 +1,8 @@
+from datetime import timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from functools import wraps
+
+from django.utils.translation import ugettext_lazy as _
 
 
 def price_as_sub_units(price: Decimal) -> int:
@@ -34,3 +37,14 @@ def convert_pretax_to_aftertax(pretax_price: Decimal, tax_percentage: Decimal) -
 
 def convert_aftertax_to_pretax(aftertax_price: Decimal, tax_percentage: Decimal) -> Decimal:
     return aftertax_price / (1 + tax_percentage / 100)
+
+
+def get_price_period_display(price_period):
+    if not price_period:
+        return None
+
+    hours = Decimal(price_period / timedelta(hours=1)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP).normalize()
+    if hours == 1:
+        return _('hour')
+    else:
+        return _('{hours} hours'.format(hours=hours))

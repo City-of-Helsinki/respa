@@ -5,10 +5,9 @@ from rest_framework.reverse import reverse
 
 from ..factories import ProductFactory
 from ..models import Product
+from .test_order_api import PRODUCT_FIELDS
 
 LIST_URL = reverse('resource-list')
-
-PRODUCT_FIELDS = {'id', 'type', 'name', 'description', 'tax_percentage', 'price', 'price_type', 'max_quantity'}
 
 
 def get_detail_url(resource):
