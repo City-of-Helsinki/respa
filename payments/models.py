@@ -215,7 +215,7 @@ class Order(models.Model):
         super().save(*args, **kwargs)
 
         if is_new:
-            self.create_log_entry(state_change=self.state)
+            self.create_log_entry(state_change=self.state, message='Created.')
 
     def get_order_lines(self):
         # This allows us to do price calculations using order line objects that
