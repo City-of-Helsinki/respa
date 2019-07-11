@@ -12,16 +12,17 @@ class ProductSerializer(TranslatedModelSerializer):
 
     class Meta:
         model = Product
-        fields = ('id', 'type', 'name', 'description', 'tax_percentage', 'price', 'price_type')
+        fields = ('id', 'type', 'name', 'description', 'tax_percentage', 'price', 'price_type', 'max_quantity')
 
 
-class OrderLineSerializerBase(serializers.ModelSerializer):
-    price = serializers.SerializerMethodField()
+class OrderLineSerializer(serializers.ModelSerializer):
     product = serializers.SlugRelatedField(queryset=Product.objects.current(), slug_field='product_id')
+    price = serializers.CharField(source='get_price', read_only=True)
+    unit_price = serializers.CharField(source='get_unit_price', read_only=True)
 
     class Meta:
         model = OrderLine
-        fields = ('product', 'quantity', 'price')
+        fields = ('product', 'quantity', 'unit_price', 'price')
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -41,18 +42,10 @@ class OrderLineSerializerBase(serializers.ModelSerializer):
         return product
 
 
-class OrderLineSerializer(OrderLineSerializerBase):
-    def get_price(self, obj):
-        return str(obj.get_price())
-
-
 class OrderSerializerBase(serializers.ModelSerializer):
     order_lines = OrderLineSerializer(many=True)
-    price = serializers.SerializerMethodField()
+    price = serializers.CharField(source='get_price', read_only=True)
 
     class Meta:
         model = Order
-        fields = ('state', 'price', 'order_lines')
-
-    def get_price(self, obj):
-        return str(obj.get_price())
+        fields = ('state', 'order_lines', 'price')
