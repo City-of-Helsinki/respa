@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='product',
             name='price',
-            field=models.DecimalField(decimal_places=2, max_digits=10, validators=[django.core.validators.MinValueValidator(Decimal('0.01'))], verbose_name='price including VAT'),
+            field=models.DecimalField(decimal_places=2, max_digits=10, validators=[django.core.validators.MinValueValidator(Decimal('0.01'))], verbose_name='price including VAT', default=Decimal('0.01')),
             preserve_default=False,
         ),
         migrations.RunPython(convert_pretax_prices_to_taxful_prices, convert_taxful_prices_to_pretax_prices),
