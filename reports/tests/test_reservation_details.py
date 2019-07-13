@@ -3,7 +3,8 @@ from resources.models import Reservation
 from resources.tests.conftest import *
 
 
-list_url = '/reports/reservation_details/'
+reservation_details_report_url = '/reports/reservation_details/'
+reservation_list_report_url = '/reports/reservation_list/'
 
 
 @pytest.fixture
@@ -39,7 +40,7 @@ def check_valid_response(response):
 
 @pytest.mark.django_db
 def test_get_reservation_details_report(api_client, reservation):
-    response = api_client.get(list_url + '?reservation=%s' % reservation.id)
+    response = api_client.get(reservation_details_report_url + '?reservation=%s' % reservation.id)
     assert response.status_code == 200
 
     check_valid_response(response)
@@ -47,10 +48,25 @@ def test_get_reservation_details_report(api_client, reservation):
 
 @pytest.mark.django_db
 def test_daily_reservations_filter_errors(api_client, test_unit, reservation, resource_in_unit):
-    response = api_client.get(list_url + '?reservation=592843752987', HTTP_ACCEPT_LANGUAGE='en')
+    response = api_client.get(reservation_details_report_url + '?reservation=592843752987', HTTP_ACCEPT_LANGUAGE='en')
     assert response.status_code == 404
     assert 'does not exist' in str(response.data)
 
-    response = api_client.get(list_url + '?start=abc', HTTP_ACCEPT_LANGUAGE='en')
+    response = api_client.get(reservation_details_report_url + '?start=abc', HTTP_ACCEPT_LANGUAGE='en')
+    assert response.status_code == 400
+    assert 'must be a timestamp in ISO' in str(response.data)
+
+
+@pytest.mark.django_db
+def test_get_reservation_list_report(api_client, reservation):
+    response = api_client.get(reservation_list_report_url)
+    assert response.status_code == 200
+
+    check_valid_response(response)
+
+
+@pytest.mark.django_db
+def test_reservations_list_report_filter_errors(api_client, test_unit, reservation, resource_in_unit):
+    response = api_client.get(reservation_list_report_url + '?start=abc', HTTP_ACCEPT_LANGUAGE='en')
     assert response.status_code == 400
     assert 'must be a timestamp in ISO' in str(response.data)
