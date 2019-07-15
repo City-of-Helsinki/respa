@@ -34,11 +34,3 @@ def convert_pretax_to_aftertax(pretax_price: Decimal, tax_percentage: Decimal) -
 
 def convert_aftertax_to_pretax(aftertax_price: Decimal, tax_percentage: Decimal) -> Decimal:
     return aftertax_price / (1 + tax_percentage / 100)
-
-
-def get_tax_amount_from_aftertax(aftertax_price: Decimal, tax_percentage: Decimal) -> Decimal:
-    return convert_aftertax_to_pretax(aftertax_price, tax_percentage) * (tax_percentage / 100)
-
-
-def get_tax_amount_from_pretax(pretax_price: Decimal, tax_percentage: Decimal) -> Decimal:
-    return pretax_price * (tax_percentage / 100)
