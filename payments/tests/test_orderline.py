@@ -22,14 +22,6 @@ def order_line_price(two_hour_reservation):
     )
 
 
-def test_get_pretax_price_correct(order_line_price):
-    """Test price calculation works correctly for prices without tax
-
-    Two hour reservation of one product with a price of 12.40 should equal 20"""
-    pretax_price = order_line_price.get_pretax_price()
-    assert pretax_price == Decimal('20.00')
-
-
 def test_get_price_correct(order_line_price):
     """Test price calculation works correctly for prices with tax
 

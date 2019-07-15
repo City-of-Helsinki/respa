@@ -16,8 +16,8 @@ def get_datetime_in_localtime(dt):
 
 class ProductAdmin(TranslationAdmin):
     list_display = (
-        'product_id', 'sku', 'name', 'type', 'price', 'price_type', 'tax_percentage', 'get_pretax_price',
-        'max_quantity', 'get_resources', 'get_created_at', 'get_modified_at'
+        'product_id', 'sku', 'name', 'type', 'price', 'price_type', 'tax_percentage', 'max_quantity', 'get_resources',
+        'get_created_at', 'get_modified_at'
     )
     readonly_fields = ('product_id',)
     fieldsets = (
@@ -32,11 +32,6 @@ class ProductAdmin(TranslationAdmin):
         }),
     )
     ordering = ('-product_id',)
-
-    def get_pretax_price(self, obj):
-        return obj.get_pretax_price()
-
-    get_pretax_price.short_description = _('price excluding VAT')
 
     def get_resources(self, obj):
         return mark_safe('<br>'.join([str(r) for r in obj.resources.all()]))
@@ -66,9 +61,7 @@ class ProductAdmin(TranslationAdmin):
 
 class OrderLineInline(admin.TabularInline):
     model = OrderLine
-    fields = (
-        'product', 'product_type', 'unit_price', 'quantity', 'price', 'tax_percentage', 'tax_amount', 'pretax_price'
-    )
+    fields = ('product', 'product_type', 'unit_price', 'quantity', 'price', 'tax_percentage')
     extra = 0
     readonly_fields = fields
     can_delete = False
@@ -96,16 +89,6 @@ class OrderLineInline(admin.TabularInline):
 
     tax_percentage.short_description = _('tax percentage')
 
-    def tax_amount(self, obj):
-        return obj.get_tax_amount()
-
-    tax_amount.short_description = _('tax amount')
-
-    def pretax_price(self, obj):
-        return obj.get_pretax_price()
-
-    pretax_price.short_description = _('price excluding VAT')
-
 
 class OrderLogEntryInline(admin.TabularInline):
     model = OrderLogEntry
@@ -123,16 +106,9 @@ class OrderLogEntryInline(admin.TabularInline):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('order_number', 'user', 'created_at', 'state', 'reservation', 'price', 'tax_amount', 'pretax_price')
+    list_display = ('order_number', 'user', 'created_at', 'state', 'reservation', 'price')
 
-    fieldsets = (
-        (None, {
-            'fields': ('order_number', 'created_at', 'state', 'reservation', 'user')
-        }),
-        (_('total price').capitalize(), {
-            'fields': (('price', 'tax_amount', 'pretax_price'),)
-        })
-    )
+    fields = ('order_number', 'created_at', 'state', 'reservation', 'user', 'price')
 
     raw_id_fields = ('reservation',)
     inlines = (OrderLineInline, OrderLogEntryInline)
@@ -178,16 +154,6 @@ class OrderAdmin(admin.ModelAdmin):
         return get_datetime_in_localtime(obj.created_at)
 
     created_at.short_description = _('created at')
-
-    def tax_amount(self, obj):
-        return obj.get_tax_amount()
-
-    tax_amount.short_description = _('tax amount')
-
-    def pretax_price(self, obj):
-        return obj.get_pretax_price()
-
-    pretax_price.short_description = _('price excluding VAT')
 
 
 if settings.RESPA_PAYMENTS_ENABLED:

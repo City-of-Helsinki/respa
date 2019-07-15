@@ -16,7 +16,7 @@ from resources.models import Reservation, Resource
 from resources.models.utils import generate_id
 
 from .exceptions import OrderStateTransitionError
-from .utils import convert_aftertax_to_pretax, get_tax_amount_from_aftertax, round_price, rounded
+from .utils import convert_aftertax_to_pretax, rounded
 
 # The best way for representing non existing archived_at would be using None for it,
 # but that would not work with the unique_together constraint, which brings many
@@ -121,10 +121,6 @@ class Product(models.Model):
         return convert_aftertax_to_pretax(self.price, self.tax_percentage)
 
     @rounded
-    def get_tax_amount(self) -> Decimal:
-        return get_tax_amount_from_aftertax(self.price, self.tax_percentage)
-
-    @rounded
     def get_pretax_price_for_time_range(self, begin: datetime, end: datetime) -> Decimal:
         return convert_aftertax_to_pretax(self.get_price_for_time_range(begin, end), self.tax_percentage)
 
@@ -222,14 +218,8 @@ class Order(models.Model):
         # don't exist in the db. That is needed in the price check endpoint.
         return self._in_memory_order_lines if hasattr(self, '_in_memory_order_lines') else self.order_lines.all()
 
-    def get_pretax_price(self) -> Decimal:
-        return sum(order_line.get_pretax_price() for order_line in self.get_order_lines())
-
     def get_price(self) -> Decimal:
         return sum(order_line.get_price() for order_line in self.get_order_lines())
-
-    def get_tax_amount(self) -> Decimal:
-        return self.get_price() - self.get_pretax_price()
 
     def set_state(self, new_state: str, log_message: str = None, save: bool = True) -> None:
         assert new_state in (Order.WAITING, Order.CONFIRMED, Order.REJECTED, Order.EXPIRED, Order.CANCELLED)
@@ -287,17 +277,11 @@ class OrderLine(models.Model):
     def __str__(self):
         return str(self.product)
 
-    def get_pretax_price(self) -> Decimal:
-        return round_price(convert_aftertax_to_pretax(self.get_price(), self.product.tax_percentage))
-
     def get_unit_price(self) -> Decimal:
         return self.product.get_price_for_reservation(self.order.reservation)
 
     def get_price(self) -> Decimal:
         return self.product.get_price_for_reservation(self.order.reservation) * self.quantity
-
-    def get_tax_amount(self) -> Decimal:
-        return self.get_price() - self.get_pretax_price()
 
 
 class OrderLogEntry(models.Model):
@@ -346,11 +330,10 @@ class NotificationProductSerializer(serializers.ModelSerializer):
 class NotificationOrderLineSerializer(serializers.ModelSerializer):
     product = NotificationProductSerializer()
     price = LocalizedSerializerField(source='get_price')
-    tax_amount = LocalizedSerializerField(source='get_tax_amount')
 
     class Meta:
         model = OrderLine
-        fields = ('product', 'quantity', 'price', 'tax_amount')
+        fields = ('product', 'quantity', 'price')
 
 
 class NotificationOrderSerializer(serializers.ModelSerializer):
@@ -358,8 +341,7 @@ class NotificationOrderSerializer(serializers.ModelSerializer):
     created_at = LocalizedSerializerField()
     order_lines = NotificationOrderLineSerializer(many=True)
     price = LocalizedSerializerField(source='get_price')
-    tax_amount = LocalizedSerializerField(source='get_tax_amount')
 
     class Meta:
         model = Order
-        fields = ('id', 'order_lines', 'price', 'tax_amount', 'created_at')
+        fields = ('id', 'order_lines', 'price', 'created_at')

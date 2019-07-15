@@ -14,15 +14,6 @@ def auto_use_django_db(db):
     pass
 
 
-def test_get_pretax_price_correct(order_with_products):
-    """Test price calculation returns the correct combined taxfree sum for products
-
-    Two hour reservation of two products with a price of 10, where one product
-    has an hourly rate and one is with a fixed price, should equal 30"""
-    pretax_price = order_with_products.get_pretax_price()
-    assert pretax_price == Decimal('30.00')
-
-
 def test_get_price_correct(order_with_products):
     """Test price calculation returns the correct combined sum for products
 
