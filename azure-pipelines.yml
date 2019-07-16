@@ -55,4 +55,4 @@ jobs:
       displayName: 'Install prerequisites'
     - script: |
         pushd '$(projectRoot)'
-        py.test
+        pytest
