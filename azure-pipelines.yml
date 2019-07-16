@@ -50,7 +50,7 @@ jobs:
     - script: printenv
     - script: |
         apt update
-        apt install -Y libgdal-dev postgresql-9.6-postgis-2.4
+        apt install -y libgdal-dev postgresql-9.6-postgis-2.4
         python -m pip install --upgrade pip
         python -m venv ./venv
         ./venv/bin/pip install -r requirements.txt
