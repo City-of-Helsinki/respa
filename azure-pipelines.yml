@@ -1,7 +1,7 @@
 resources:
   containers:
   - container: db
-    image: postgres:11
+    image: postgres:9
     env:
       POSTGRES_USER: "django"
       POSTGRES_PASSWORD: "djangotest"
@@ -49,6 +49,8 @@ jobs:
 
     - script: printenv
     - script: |
+        apt update
+        apt install -Y libgdal-dev postgresql-9.6-postgis-2.4
         python -m pip install --upgrade pip
         python -m venv ./venv
         ./venv/bin/pip install -r requirements.txt
