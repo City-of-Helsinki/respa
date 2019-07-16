@@ -29,7 +29,7 @@ class ReservationEndpointOrderSerializer(OrderSerializerBase):
             OrderLine.objects.create(order=order, **order_line_data)
 
         payments = get_payment_provider(request=self.context['request'],
-                                        return_url=return_url)
+                                        ui_return_url=return_url)
         try:
             self.context['payment_url'] = payments.initiate_payment(order)
         except DuplicateOrderError as doe:

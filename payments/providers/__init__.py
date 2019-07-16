@@ -36,7 +36,7 @@ def load_provider_config():
     _provider_class.config = config
 
 
-def get_payment_provider(request: HttpRequest, return_url=None) -> PaymentProvider:
+def get_payment_provider(request: HttpRequest, ui_return_url: str = None) -> PaymentProvider:
     """Get a new instance of the active payment provider with associated request
     and optional return_url info"""
-    return _provider_class(request=request, return_url=return_url)
+    return _provider_class(request=request, ui_return_url=ui_return_url)
