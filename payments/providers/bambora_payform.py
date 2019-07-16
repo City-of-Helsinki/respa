@@ -48,14 +48,12 @@ class BamboraPayformProvider(PaymentProvider):
     def initiate_payment(self, order) -> str:
         """Initiate payment by constructing the payload with necessary items"""
 
-        full_return_url = super().create_full_return_url()
-
         payload = {
             'version': 'w3.1',
             'api_key': self.config.get(RESPA_PAYMENTS_BAMBORA_API_KEY),
             'payment_method': {
                 'type': 'e-payment',
-                'return_url': full_return_url,
+                'return_url': self.get_success_url(),
                 'notify_url': self.get_notify_url(),
                 'selected': self.config.get(RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS)
             },
@@ -155,55 +153,54 @@ class BamboraPayformProvider(PaymentProvider):
             is_valid = False
         return is_valid
 
-    def handle_success_request(self, request):  # noqa: C901
+    def handle_success_request(self):  # noqa: C901
         """Handle the payform response after user has completed the payment flow in normal fashion"""
+        request = self.request
         logger.debug('Handling Bambora user return request, params: {}.'.format(request.GET))
 
-        return_url = super().extract_ui_return_url()
-
         if not self.check_new_payment_authcode(request):
-            return self.ui_redirect_failure(return_url)
+            return self.ui_redirect_failure()
 
         try:
             order = Order.objects.get(order_number=request.GET['ORDER_NUMBER'])
         except Order.DoesNotExist:
             logger.warning('Order does not exist.')
-            return self.ui_redirect_failure(return_url)
+            return self.ui_redirect_failure()
 
         return_code = request.GET['RETURN_CODE']
         if return_code == '0':
             logger.debug('Payment completed successfully.')
             try:
                 order.set_state(Order.CONFIRMED, 'Code 0 (payment succeeded) in Bambora Payform success request.')
-                return self.ui_redirect_success(return_url, order)
+                return self.ui_redirect_success(order)
             except OrderStateTransitionError as oste:
                 logger.warning(oste)
                 order.create_log_entry('Code 0 (payment succeeded) in Bambora Payform success request.')
-                return self.ui_redirect_failure(return_url, order)
+                return self.ui_redirect_failure(order)
         elif return_code == '1':
             logger.debug('Payment failed.')
             try:
                 order.set_state(Order.REJECTED, 'Code 1 (payment rejected) in Bambora Payform success request.')
-                return self.ui_redirect_failure(return_url, order)
+                return self.ui_redirect_failure(order)
             except OrderStateTransitionError as oste:
                 logger.warning(oste)
                 order.create_log_entry('Code 1 (payment rejected) in Bambora Payform success request.')
-                return self.ui_redirect_failure(return_url, order)
+                return self.ui_redirect_failure(order)
         elif return_code == '4':
             logger.debug('Transaction status could not be updated.')
             order.create_log_entry(
                 'Code 4: Transaction status could not be updated. Use the merchant UI to resolve.'
             )
-            return self.ui_redirect_failure(return_url, order)
+            return self.ui_redirect_failure(order)
         elif return_code == '10':
             logger.debug('Maintenance break.')
             order.create_log_entry('Code 10: Bambora Payform maintenance break')
-            return self.ui_redirect_failure(return_url, order)
+            return self.ui_redirect_failure(order)
         else:
             logger.warning('Incorrect RETURN_CODE "{}".'.format(return_code))
-            return self.ui_redirect_failure(return_url, order)
+            return self.ui_redirect_failure(order)
 
-    def handle_notify_request(self, request):
+    def handle_notify_request(self):
         """Handle the asynchronous part of payform response
 
         Arrives some time after user has completed the payment flow or stopped it abruptly.
@@ -213,6 +210,7 @@ class BamboraPayformProvider(PaymentProvider):
         TODO Maybe try recreating the reservation if the time slot is still available
 
         Bambora expects 20x response to acknowledge the notify was received"""
+        request = self.request
         logger.debug('Handling Bambora notify request, params: {}.'.format(request.GET))
 
         if not self.check_new_payment_authcode(request):
