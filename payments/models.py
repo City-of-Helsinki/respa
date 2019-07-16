@@ -351,10 +351,11 @@ class NotificationProductSerializer(serializers.ModelSerializer):
 class NotificationOrderLineSerializer(serializers.ModelSerializer):
     product = NotificationProductSerializer()
     price = LocalizedSerializerField(source='get_price')
+    unit_price = LocalizedSerializerField(source='get_unit_price')
 
     class Meta:
         model = OrderLine
-        fields = ('product', 'quantity', 'price')
+        fields = ('product', 'quantity', 'price', 'unit_price')
 
 
 class NotificationOrderSerializer(serializers.ModelSerializer):
