@@ -1,21 +1,58 @@
-# Node.js
-# Build a general Node.js project with npm.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+resources:
+  containers:
+  - container: db
+    image: postgres:11
+    env:
+      POSTGRES_USER: "django"
+      POSTGRES_PASSWORD: "djangotest"
+      POSTGRES_DB: "respa"
+  - container: copy36
+    image: python:3.6
+    env:
+      DATABASE_URL: "postgis://django:djangotest@db/respa"
 
-trigger:
-- master
+variables:
+  tag1: '$(Build.SourceBranchName)'
+  tag2: '$(Build.SourceVersion)'
 
-pool:
-  vmImage: 'ubuntu-latest'
+jobs:
+- job: RunInContainer
+  pool:
+    vmImage: 'ubuntu-latest'
+  
+  services:
+    db: db
 
-steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '10.x'
-  displayName: 'Install Node.js'
+  strategy:
+    matrix:
+      py36:
+        containerResource: copy36
 
-- script: |
-    npm install
-    npm run build
-  displayName: 'npm install and build'
+  container: $[ variables['containerResource'] ]
+
+  steps:
+    - task: PythonScript@0
+      displayName: 'Export project path'
+      inputs:
+        scriptSource: 'inline'
+        script: |
+          """Search all subdirectories for `manage.py`."""
+          from glob import iglob
+          from os import path
+          # Python >= 3.5
+          manage_py = next(iglob(path.join('**', 'manage.py'), recursive=True), None)
+          if not manage_py:
+              raise SystemExit('Could not find a Django project')
+          project_location = path.dirname(path.abspath(manage_py))
+          print('Found Django project in', project_location)
+          print('##vso[task.setvariable variable=projectRoot]{}'.format(project_location))
+
+    - script: printenv
+    - script: |
+        python -m pip install --upgrade pip
+        python -m venv ./venv
+        ./venv/bin/pip install -r requirements.txt
+      displayName: 'Install prerequisites'
+    - script: |
+        pushd '$(projectRoot)'
+        py.test
