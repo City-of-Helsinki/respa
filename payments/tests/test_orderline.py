@@ -1,3 +1,4 @@
+from datetime import timedelta
 from decimal import Decimal
 
 import pytest
@@ -17,7 +18,8 @@ def order_line_price(two_hour_reservation):
         quantity=1,
         product__price=Decimal('12.40'),
         product__tax_percentage=Decimal('24.00'),
-        product__price_type=Product.PRICE_PER_HOUR,
+        product__price_type=Product.PRICE_PER_PERIOD,
+        product__price_period=timedelta(hours=1),
         order__reservation=two_hour_reservation
     )
 
