@@ -113,5 +113,5 @@ class PaymentProvider:
     def _redirect_to_ui(cls, return_url: str, status: str, order: Order = None):
         params = {'payment_status': status}
         if order:
-            params['order_id'] = order.id
+            params['reservation_id'] = order.reservation_id
         return redirect('{}?{}'.format(return_url, urlencode(params)))

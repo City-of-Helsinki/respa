@@ -1,4 +1,4 @@
-from rest_framework import mixins, permissions, serializers, viewsets
+from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -7,13 +7,6 @@ from resources.models import Reservation
 
 from ..api.base import OrderLineSerializer, OrderSerializerBase
 from ..models import Order, OrderLine
-
-
-class OrderSerializer(OrderSerializerBase):
-    id = serializers.ReadOnlyField(source='order_number')
-
-    class Meta(OrderSerializerBase.Meta):
-        fields = OrderSerializerBase.Meta.fields + ('id', 'reservation')
 
 
 class PriceEndpointOrderSerializer(OrderSerializerBase):
@@ -27,15 +20,7 @@ class PriceEndpointOrderSerializer(OrderSerializerBase):
         fields = ('order_lines', 'price', 'begin', 'end')
 
 
-class OrderViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
-    queryset = Order.objects.all()
-    serializer_class = OrderSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    lookup_field = 'order_number'
-
-    def get_queryset(self):
-        return super().get_queryset().can_view(self.request.user)
-
+class OrderViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['POST'])
     def check_price(self, request):
         # validate incoming Order and OrderLine data
@@ -68,4 +53,4 @@ class OrderViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.Li
         return Response(order_data, status=200)
 
 
-register_view(OrderViewSet, 'order')
+register_view(OrderViewSet, 'order', 'order')
