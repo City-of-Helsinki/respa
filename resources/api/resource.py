@@ -1,5 +1,6 @@
 import collections
 import datetime
+import logging
 
 import arrow
 import django_filters
@@ -8,7 +9,9 @@ from arrow.parser import ParserError
 
 from django import forms
 from django.conf import settings
-from django.db.models import Prefetch, Q
+from django.db.models import OuterRef, Prefetch, Q, Subquery, Value
+from django.db.models.functions import Coalesce, Least
+from django.db.models.functions import Coalesce, Least
 from django.urls import reverse
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
@@ -21,17 +24,22 @@ from guardian.core import ObjectPermissionChecker
 
 from munigeo import api as munigeo_api
 from resources.models import (
-    Purpose, Reservation, Resource, ResourceImage, ResourceType, ResourceEquipment,
-    TermsOfUse, Equipment, ReservationMetadataSet, ResourceDailyOpeningHours
+    AccessibilityValue, AccessibilityViewpoint, Purpose, Reservation, Resource, ResourceAccessibility,
+    ResourceImage, ResourceType, ResourceEquipment, TermsOfUse, Equipment, ReservationMetadataSet,
+    ResourceDailyOpeningHours, UnitAccessibility
 )
 from resources.models.resource import determine_hours_time_range
 
 from ..auth import is_general_admin, is_staff
-from .base import TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
+from .accessibility import ResourceAccessibilitySerializer
+from .base import ExtraDataMixin, TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
 from .reservation import ReservationSerializer
 from .unit import UnitSerializer
 from .equipment import EquipmentSerializer
 from rest_framework.settings import api_settings as drf_settings
+
+
+logger = logging.getLogger(__name__)
 
 
 def parse_query_time_range(params):
@@ -144,7 +152,7 @@ class TermsOfUseSerializer(TranslatedModelSerializer):
         fields = ('text',)
 
 
-class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
+class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     purposes = PurposeSerializer(many=True)
     images = NestedResourceImageSerializer(many=True)
     equipment = ResourceEquipmentSerializer(many=True, read_only=True, source='resource_equipment')
@@ -166,6 +174,32 @@ class ResourceSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializ
     reservable_before = serializers.SerializerMethodField()
     reservable_min_days_in_advance = serializers.ReadOnlyField(source='get_reservable_min_days_in_advance')
     reservable_after = serializers.SerializerMethodField()
+
+    def get_extra_fields(self, includes, context):
+        """ Define extra fields that can be included via query parameters. Method from ExtraDataMixin."""
+        extra_fields = {}
+        if 'accessibility_summaries' in includes:
+            extra_fields['accessibility_summaries'] = serializers.SerializerMethodField()
+        if 'unit_detail' in includes:
+            extra_fields['unit'] = UnitSerializer(read_only=True, context=context)
+        return extra_fields
+
+    def get_accessibility_summaries(self, obj):
+        """ Get accessibility summaries for the resource. If data is missing for
+        any accessibility viewpoints, unknown values are returned for those.
+        """
+        if 'accessibility_viewpoint_cache' in self.context:
+            accessibility_viewpoints = self.context['accessibility_viewpoint_cache']
+        else:
+            accessibility_viewpoints = AccessibilityViewpoint.objects.all()
+        summaries_by_viewpoint = {acc_s.viewpoint_id: acc_s for acc_s in obj.accessibility_summaries.all()}
+        summaries = [
+            summaries_by_viewpoint.get(
+                vp.id,
+                ResourceAccessibility(
+                    viewpoint=vp, resource=obj, value=AccessibilityValue(value=AccessibilityValue.UNKNOWN_VALUE)))
+            for vp in accessibility_viewpoints]
+        return [ResourceAccessibilitySerializer(summary).data for summary in summaries]
 
     def get_user_permissions(self, obj):
         request = self.context.get('request', None)
@@ -310,6 +344,41 @@ class ParentCharFilter(ParentFilter):
     field_class = forms.CharField
 
 
+class ResourceOrderingFilter(django_filters.OrderingFilter):
+    """
+    Resource ordering with added capabilities for Accessibility data.
+    """
+
+    def filter(self, qs, value):
+        if value and ('accessibility' in value or '-accessibility' in value):
+            viewpoint_id = self.parent.data.get('accessibility_viewpoint')
+            try:
+                accessibility_viewpoint = AccessibilityViewpoint.objects.get(id=viewpoint_id)
+            except AccessibilityViewpoint.DoesNotExist:
+                accessibility_viewpoint = AccessibilityViewpoint.objects.first()
+            if accessibility_viewpoint is None:
+                logging.error('Accessibility Viewpoints are not imported from Accessibility database')
+                value = [val for val in value if val != 'accessibility' and val != '-accessibility']
+                return super().filter(qs, value)
+
+            # annotate the queryset with accessibility priority from selected viewpoint.
+            # use the worse value of the resource and unit accessibilities.
+            # missing accessibility data is considered same priority as UNKNOWN.
+            resource_accessibility_summary = ResourceAccessibility.objects.filter(
+                resource_id=OuterRef('pk'), viewpoint_id=accessibility_viewpoint.id)
+            resource_accessibility_order = Subquery(resource_accessibility_summary.values('order')[:1])
+            unit_accessibility_summary = UnitAccessibility.objects.filter(
+                unit_id=OuterRef('unit_id'), viewpoint_id=accessibility_viewpoint.id)
+            unit_accessibility_order = Subquery(unit_accessibility_summary.values('order')[:1])
+            qs = qs.annotate(
+                accessibility_priority=Least(
+                    Coalesce(resource_accessibility_order, Value(AccessibilityValue.UNKNOWN_ORDERING)),
+                    Coalesce(unit_accessibility_order, Value(AccessibilityValue.UNKNOWN_ORDERING))
+                )
+            ).prefetch_related('accessibility_summaries')
+        return super().filter(qs, value)
+
+
 class ResourceFilterSet(django_filters.FilterSet):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
@@ -332,7 +401,7 @@ class ResourceFilterSet(django_filters.FilterSet):
                                                   widget=DRFFilterBooleanWidget)
     municipality = django_filters.Filter(field_name='unit__municipality_id', lookup_expr='in',
                                          widget=django_filters.widgets.CSVWidget, distinct=True)
-    order_by = django_filters.OrderingFilter(
+    order_by = ResourceOrderingFilter(
         fields=(
             ('name_fi', 'resource_name_fi'),
             ('name_en', 'resource_name_en'),
@@ -344,6 +413,7 @@ class ResourceFilterSet(django_filters.FilterSet):
             ('type__name_en', 'type_name_en'),
             ('type__name_sv', 'type_name_sv'),
             ('people_capacity', 'people_capacity'),
+            ('accessibility_priority', 'accessibility'),
         ),
     )
 
@@ -505,6 +575,12 @@ class ResourceFilterBackend(filters.BaseFilterBackend):
     """
 
     def filter_queryset(self, request, queryset, view):
+        accessibility_filtering = request.query_params.get('order_by', None) == 'accessibility'
+        viewpoint_defined = 'accessibility_viewpoint' in request.query_params
+        if accessibility_filtering and not viewpoint_defined:
+            error_message = "'accessibility_viewpoint' must be defined when ordering by accessibility"
+            raise exceptions.ParseError(error_message)
+
         return ResourceFilterSet(request.query_params, queryset=queryset, user=request.user).qs
 
 
@@ -605,6 +681,8 @@ class ResourceCacheMixin:
             context['reservations_cache'] = self._preload_reservations(times)
         context['opening_hours_cache'] = self._preload_opening_hours(times)
 
+        context['accessibility_viewpoint_cache'] = AccessibilityViewpoint.objects.all()
+
         self._preload_permissions()
 
         return context
@@ -619,15 +697,17 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
     search_fields = ('name_fi', 'description_fi', 'unit__name_fi',
                      'name_sv', 'description_sv', 'unit__name_sv',
                      'name_en', 'description_en', 'unit__name_en')
+    serializer_class = ResourceSerializer
     authentication_classes = (
         list(drf_settings.DEFAULT_AUTHENTICATION_CLASSES) +
         [SessionAuthentication])
 
     def get_serializer_class(self):
-        query_params = self.request.query_params
-        if query_params.get('include') == 'unit_detail':
-            return get_resource_detail_serializer()
-        return get_resource_list_serializer()
+        if settings.RESPA_PAYMENTS_ENABLED:
+            from payments.api.resource import PaymentsResourceSerializer  # noqa
+            return PaymentsResourceSerializer
+        else:
+            return ResourceSerializer
 
     def get_serializer(self, page, *args, **kwargs):
         self._page = page
@@ -647,7 +727,11 @@ class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
     queryset = ResourceListViewSet.queryset
 
     def get_serializer_class(self):
-        return get_resource_detail_serializer()
+        if settings.RESPA_PAYMENTS_ENABLED:
+            from payments.api.resource import PaymentsResourceDetailsSerializer  # noqa
+            return PaymentsResourceDetailsSerializer
+        else:
+            return ResourceDetailsSerializer
 
     def get_serializer(self, page, *args, **kwargs):
         self._page = [page]
@@ -690,19 +774,3 @@ class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
 
 register_view(ResourceListViewSet, 'resource')
 register_view(ResourceViewSet, 'resource')
-
-
-def get_resource_list_serializer():
-    if settings.RESPA_PAYMENTS_ENABLED:
-        from payments.api.resource import PaymentsResourceSerializer  # noqa
-        return PaymentsResourceSerializer
-    else:
-        return ResourceSerializer
-
-
-def get_resource_detail_serializer():
-    if settings.RESPA_PAYMENTS_ENABLED:
-        from payments.api.resource import PaymentsResourceDetailsSerializer  # noqa
-        return PaymentsResourceDetailsSerializer
-    else:
-        return ResourceDetailsSerializer

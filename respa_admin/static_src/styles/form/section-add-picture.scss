@@ -4,20 +4,8 @@
         padding-bottom: 16px;
     }
 
-    button.add-picture-button {
-        background-color: $hel-copper;
-        color: $white;
-        font-size: $font-size-base;
-        max-height: 60px;
-        min-width: 200px;
-        max-width: 300px;
-        line-height: 1;
-        padding: 20px;
-        text-align: center;
-    }
-
     button.choose-picture-button {
-        @extend .add-picture-button;
+        @extend .resources-button;
         max-height: 50px;
         min-width: 100px;
         max-width: 200px;
@@ -26,12 +14,16 @@
         margin-top: 30px;
     }
 
-    button.remove-picture-button {
-        @extend .btn-danger;
-        @extend .btn;
+    button.remove-picture-button.remove-picture-button {
         @extend .choose-picture-button;
         color: #fd4f00;
+        border: 2px solid #fd4f00;
         background-color: transparent;
+
+        &:hover {
+            color: #fd4f00;
+            filter: brightness(0.9);
+        }
     }
 
     img.preview-image {

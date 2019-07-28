@@ -35,7 +35,9 @@
                     <li><a href="#term-condition">{% trans "Authentication, terms and price" %}</a></li>
                     <li><a href="#equipment">{% trans "Equipment" %}</a></li>
                     <li><a href="#opening-hours">{% trans "Opening hours" %}</a></li>
-                    <li><a href="#add-accessibility-data">{% trans "Accessibility" %}</a></li>
+                    {% if accessibility_data_link %}
+                        <li><a href="#add-accessibility-data">{% trans "Accessibility" %}</a></li>
+                    {% endif %}
                 </ul>
             </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->

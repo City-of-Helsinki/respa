@@ -23,10 +23,10 @@ from .base import ExtraReadonlyFieldsOnUpdateMixin, CommonExcludeMixin, Populate
 from resources.admin.period_inline import PeriodInline
 
 from ..models import (
-    Day, Equipment, EquipmentAlias, EquipmentCategory, Purpose, Reservation,
-    ReservationMetadataField, ReservationMetadataSet, Resource,
+    AccessibilityValue, AccessibilityViewpoint, Day, Equipment, EquipmentAlias, EquipmentCategory, Purpose,
+    Reservation, ReservationMetadataField, ReservationMetadataSet, Resource, ResourceAccessibility,
     ResourceEquipment, ResourceGroup, ResourceImage, ResourceType, TermsOfUse,
-    Unit, UnitAuthorization, UnitGroup, UnitGroupAuthorization)
+    Unit, UnitAuthorization, UnitIdentifier, UnitGroup, UnitGroupAuthorization)
 from munigeo.models import Municipality
 
 logger = logging.getLogger(__name__)
@@ -90,6 +90,12 @@ class ResourceGroupInline(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, a
     extra = 0
 
 
+class UnitIdentifierInline(admin.StackedInline):
+    model = UnitIdentifier
+    fields = ('namespace', 'value')
+    extra = 0
+
+
 class ResourceAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin, HttpsFriendlyGeoAdmin):
     inlines = [
         PeriodInline,
@@ -114,7 +120,8 @@ class ResourceAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Transla
 class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, FixedGuardedModelAdminMixin,
                 TranslationAdmin, HttpsFriendlyGeoAdmin):
     inlines = [
-        PeriodInline
+        UnitIdentifierInline,
+        PeriodInline,
     ]
     change_list_template = 'admin/units/import_buttons.html'
     import_template = 'admin/units/import_template.html'
@@ -317,6 +324,17 @@ class MunicipalityAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, adm
         return TemplateResponse(request, self.import_template, context)
 
 
+class AccessibilityViewpointAdmin(TranslationAdmin):
+    pass
+
+
+class ResourceAccessibilityAdmin(admin.ModelAdmin):
+    list_display = ('resource', 'viewpoint', 'value')
+    list_filter = ('value',)
+    raw_id_fields = ('resource',)
+    search_fields = ('resource__name', 'viewpoint__name')
+
+
 class ReservationMetadataFieldForm(forms.ModelForm):
     class Meta:
         model = ReservationMetadataField
@@ -361,3 +379,6 @@ admin.site.register(ResourceGroup, ResourceGroupAdmin)
 if admin.site.is_registered(Municipality):
     admin.site.unregister(Municipality)
 admin.site.register(Municipality, MunicipalityAdmin)
+admin.site.register(AccessibilityViewpoint, AccessibilityViewpointAdmin)
+admin.site.register(AccessibilityValue)
+admin.site.register(ResourceAccessibility, ResourceAccessibilityAdmin)

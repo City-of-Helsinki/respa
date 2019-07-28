@@ -32,6 +32,7 @@ from guardian.core import ObjectPermissionChecker
 from ..auth import is_authenticated_user, is_general_admin
 from ..errors import InvalidImage
 from ..fields import EquipmentField
+from .accessibility import AccessibilityValue, AccessibilityViewpoint, ResourceAccessibility
 from .base import AutoIdentifiedModel, NameIdentifiedModel, ModifiableModel
 from .utils import create_datetime_days_from_now, get_translated, get_translated_name, humanize_duration
 from .equipment import Equipment
@@ -232,6 +233,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         verbose_name=_('External reservation URL'),
         help_text=_('A link to an external reservation system if this resource is managed elsewhere'),
         null=True, blank=True)
+    reservation_extra_questions = models.TextField(verbose_name=_('Reservation extra questions'), blank=True)
 
     objects = ResourceQuerySet.as_manager()
 

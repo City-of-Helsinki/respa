@@ -22,8 +22,32 @@ main {
       top: 0;
       bottom: 0;
       width: 100%;
-      @include koro("pulse", $hel-fog, 400);
+      background-color: $hel-fog;
       transform: rotate(180deg);
+    }
+
+    &.koro-basic:before {
+      background-color: transparent;
+      @include koro("basic", $hel-fog, 400);
+    }
+
+    &.koro-pulse:before {
+      background-color: transparent;
+      @include koro("pulse", $hel-fog, 400);
+    }
+
+    &.koro-beat:before {
+      background-color: transparent;
+      @include koro("beat", $hel-fog, 400);
+    }
+    &.koro-storm:before {
+      background-color: transparent;
+      @include koro("storm", $hel-fog, 400);
+    }
+
+    &.koro-wave:before {
+      background-color: transparent;
+      @include koro("wave", $hel-fog, 400);
     }
 
     .container {

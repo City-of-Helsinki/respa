@@ -30,7 +30,7 @@ django-guardian
 Jinja2
 django-jinja
 django-anymail
-raven
+sentry-sdk
 delorean
 freezegun
 python-docx
