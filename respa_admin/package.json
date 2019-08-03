@@ -31,6 +31,6 @@
     "mini-css-extract-plugin": "^0.4.0",
     "sass-loader": "^7.0.1",
     "webpack": "^4.8.3",
-    "webpack-cli": "^2.1.4"
+    "webpack-cli": "^3.1.1"
   }
 }
