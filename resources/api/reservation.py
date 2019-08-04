@@ -26,7 +26,8 @@ from resources.models.utils import generate_reservation_xlsx, get_object_or_none
 
 from ..auth import is_general_admin
 from .base import (
-    NullableDateTimeField, TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
+    NullableDateTimeField, TranslatedModelSerializer, register_view, DRFFilterBooleanWidget,
+    ExtraDataMixin
 )
 
 User = get_user_model()
@@ -63,7 +64,7 @@ class UserSerializer(TranslatedModelSerializer):
         fields = ('id', 'display_name', 'email')
 
 
-class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
+class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     begin = NullableDateTimeField()
     end = NullableDateTimeField()
     user = UserSerializer(required=False)
@@ -114,6 +115,15 @@ class ReservationSerializer(TranslatedModelSerializer, munigeo_api.GeoModelSeria
 
             for field_name in required:
                 self.fields[field_name].required = True
+
+    def get_extra_fields(self, includes, context):
+        from .resource import ResourceInlineSerializer
+
+        """ Define extra fields that can be included via query parameters. Method from ExtraDataMixin."""
+        extra_fields = {}
+        if 'resource_detail' in includes:
+            extra_fields['resource'] = ResourceInlineSerializer(read_only=True, context=context)
+        return extra_fields
 
     def validate_state(self, value):
         instance = self.instance

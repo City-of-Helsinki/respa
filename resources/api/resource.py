@@ -325,6 +325,21 @@ class ResourceDetailsSerializer(ResourceSerializer):
     unit = UnitSerializer()
 
 
+class ResourceInlineSerializer(ResourceDetailsSerializer):
+    """
+    Serializer that has a limited set of fields in order to avoid
+    performance issues. Used by .reservation.ReservationSerializer,
+    when request has 'include=resource_detail` parameter.
+
+    Before including any other fields here make sure that the view
+    which will call this serializer has optimized queryset, i.e. it
+    selects/prefetches related fields.
+    """
+    class Meta:
+        model = Resource
+        fields = ('id', 'name', 'unit', 'location')
+
+
 class ParentFilter(django_filters.Filter):
     """
     Filter that also checks the parent field

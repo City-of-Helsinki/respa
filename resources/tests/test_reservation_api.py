@@ -1960,3 +1960,10 @@ def test_resource_filter(resource_in_unit, resource_in_unit2, other_resource, re
     response = api_client.get(list_url + '?resource={},{}'.format(resource_in_unit.id, resource_in_unit2.id))
     assert response.status_code == 200
     assert_response_objects(response, (reservation, reservation2))
+
+
+@pytest.mark.django_db
+def test_include_resource_detail(api_client, resource_in_unit, reservation, list_url):
+    response = api_client.get(list_url + '?include=resource_detail')
+    assert response.status_code == 200
+    assert response.json()['results'][0]['resource']['name']['fi'] == resource_in_unit.name
