@@ -97,6 +97,7 @@ class ExtraDataMixin():
         if 'context' in kwargs and 'request' in kwargs['context']:
             request = kwargs['context']['request']
             includes = request.GET.getlist(self.INCLUDE_PARAMETER_NAME)
+            kwargs['context']['includes'] = includes
             self.fields.update(self.get_extra_fields(includes, context=kwargs['context']))
 
     def get_extra_fields(self, includes, context):

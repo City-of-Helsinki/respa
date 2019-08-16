@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock, create_autospec, patch
+from urllib.parse import urlencode
 
 import pytest
 from guardian.shortcuts import assign_perm
@@ -93,11 +94,14 @@ def test_reservation_creation_state(user_api_client, resource_in_unit, has_order
 
 
 @pytest.mark.parametrize('endpoint', ('list', 'detail'))
-@pytest.mark.parametrize('include', (None, '', 'foo', 'foo,bar', 'order', 'foo,order'))
+@pytest.mark.parametrize('include', (None, '', 'foo', ['foo', 'bar'], 'order', ['foo', 'order']))
 def test_reservation_orders_field(user_api_client, order_with_products, endpoint, include):
     url = LIST_URL if endpoint == 'list' else get_detail_url(order_with_products.reservation)
     if include is not None:
-        url += '?include={}'.format(include)
+        if not isinstance(include, list):
+            include = list(include)
+        query_string = urlencode([('include', i) for i in include])
+        url += '?' + query_string
 
     response = user_api_client.get(url)
     assert response.status_code == 200

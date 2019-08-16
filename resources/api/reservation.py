@@ -548,7 +548,6 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         context = super().get_serializer_context(*args, **kwargs)
         if hasattr(self, '_page'):
             context.update(self._get_cache_context())
-        context['expanded'] = self.request.GET.get('include', '').split(',')
         return context
 
     def get_queryset(self):
