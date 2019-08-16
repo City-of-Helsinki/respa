@@ -710,6 +710,12 @@ paths:
         description: Return only own reservations
         schema:
           type: boolean
+      - name: include
+        in: query
+        description: Include extra data to queryset. Currently accepts value `resource_detail`.
+        schema:
+          type: string
+        example: resource_detail
       responses:
         200:
           description: Successful response
