@@ -94,7 +94,7 @@ def test_reservation_creation_state(user_api_client, resource_in_unit, has_order
 
 
 @pytest.mark.parametrize('endpoint', ('list', 'detail'))
-@pytest.mark.parametrize('include', (None, '', 'foo', ['foo', 'bar'], 'order', ['foo', 'order']))
+@pytest.mark.parametrize('include', (None, '', 'foo', ['foo', 'bar'], 'order_detail', ['foo', 'order_detail']))
 def test_reservation_orders_field(user_api_client, order_with_products, endpoint, include):
     url = LIST_URL if endpoint == 'list' else get_detail_url(order_with_products.reservation)
     if include is not None:
@@ -109,7 +109,7 @@ def test_reservation_orders_field(user_api_client, order_with_products, endpoint
     reservation_data = response.data['results'][0] if endpoint == 'list' else response.data
 
     order_data = reservation_data['order']
-    if include is not None and 'order' in include:
+    if include is not None and 'order_detail' in include:
         # order should be nested data
         assert set(order_data.keys()) == ORDER_FIELDS
         assert order_data['id'] == order_with_products.order_number
@@ -176,7 +176,7 @@ def test_order_post(user_api_client, resource_in_unit, product, product_2, mock_
 
     response = user_api_client.post(LIST_URL, reservation_data)
 
-    assert response.status_code == 201
+    assert response.status_code == 201, response.data
     mock_provider.initiate_payment.assert_called()
 
     # check response fields

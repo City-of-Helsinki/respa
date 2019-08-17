@@ -92,7 +92,7 @@ class PaymentsReservationSerializer(ReservationSerializer):
             resource = self.context.get('resource')
             order_required = resource.has_rent() if resource else True
             self.fields['order'] = ReservationEndpointOrderSerializer(required=order_required)
-        elif 'order' in self.context['includes']:
+        elif 'order_detail' in self.context['includes']:
             self.fields['order'] = ReservationEndpointOrderSerializer(read_only=True)
 
     class Meta(ReservationSerializer.Meta):
