@@ -1,6 +1,7 @@
 import datetime
 from decimal import Decimal
 
+import factory.random
 import pytest
 from pytz import UTC
 
@@ -8,6 +9,11 @@ from payments.factories import OrderFactory, OrderLineFactory
 from payments.models import Order, Product
 from resources.models import Reservation
 from resources.tests.conftest import *  # noqa
+
+
+@pytest.fixture(autouse=True)
+def set_fixed_random_seed():
+    factory.random.reseed_random(777)
 
 
 @pytest.fixture()
