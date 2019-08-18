@@ -708,6 +708,8 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
     queryset = Resource.objects.select_related('generic_terms', 'unit', 'type', 'reservation_metadata_set')
     queryset = queryset.prefetch_related('favorited_by', 'resource_equipment', 'resource_equipment__equipment',
                                          'purposes', 'images', 'purposes', 'groups')
+    if settings.RESPA_PAYMENTS_ENABLED:
+        queryset = queryset.prefetch_related('products')
     filter_backends = (filters.SearchFilter, ResourceFilterBackend, LocationFilterBackend)
     search_fields = ('name_fi', 'description_fi', 'unit__name_fi',
                      'name_sv', 'description_sv', 'unit__name_sv',
