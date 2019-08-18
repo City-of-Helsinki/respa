@@ -79,15 +79,6 @@ environ.Env.read_env()
 # reservation confirmation emails use this
 RESPA_IMAGE_BASE_URL = env('RESPA_IMAGE_BASE_URL')
 
-RESPA_PAYMENTS_ENABLED = env('RESPA_PAYMENTS_ENABLED')
-
-# Dotted path to the active payment provider class, see payments.providers init.
-# Example value: 'payments.providers.BamboraPayformProvider'
-RESPA_PAYMENTS_PROVIDER_CLASS = env('RESPA_PAYMENTS_PROVIDER_CLASS')
-
-# amount of minutes before orders in state "waiting" will be set to state "expired"
-RESPA_PAYMENTS_PAYMENT_WAITING_TIME = env('RESPA_PAYMENTS_PAYMENT_WAITING_TIME')
-
 DEBUG_TOOLBAR_CONFIG = {
     'RESULTS_CACHE_SIZE': 100,
 }
@@ -358,6 +349,15 @@ if env('MAIL_MAILGUN_KEY'):
 
 RESPA_ADMIN_USERNAME_LOGIN = env.bool(
     'RESPA_ADMIN_USERNAME_LOGIN', default=True)
+
+RESPA_PAYMENTS_ENABLED = env('RESPA_PAYMENTS_ENABLED')
+
+# Dotted path to the active payment provider class, see payments.providers init.
+# Example value: 'payments.providers.BamboraPayformProvider'
+RESPA_PAYMENTS_PROVIDER_CLASS = env('RESPA_PAYMENTS_PROVIDER_CLASS')
+
+# amount of minutes before orders in state "waiting" will be set to state "expired"
+RESPA_PAYMENTS_PAYMENT_WAITING_TIME = env('RESPA_PAYMENTS_PAYMENT_WAITING_TIME')
 
 # local_settings.py can be used to override environment-specific settings
 # like database and email that differ between development and production.
