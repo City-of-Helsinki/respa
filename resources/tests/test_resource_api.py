@@ -13,6 +13,11 @@ from resources.models import (Day, Equipment, Period, Reservation, ReservationMe
 from .utils import assert_response_objects, check_only_safe_methods_allowed, is_partial_dict_in_list
 
 
+@pytest.fixture(autouse=True)
+def disable_payments(settings):
+    settings.RESPA_PAYMENTS_ENABLED = False
+
+
 @pytest.fixture
 def list_url():
     return reverse('resource-list')
