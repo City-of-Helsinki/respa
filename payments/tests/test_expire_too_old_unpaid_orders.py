@@ -11,7 +11,7 @@ from ..models import Order, OrderLogEntry
 
 PAYMENT_WAITING_MINUTES = 15
 
-COMMAND_NAME = 'update_expired_orders'
+COMMAND_NAME = 'expire_too_old_unpaid_orders'
 
 
 def get_order_expired_time():

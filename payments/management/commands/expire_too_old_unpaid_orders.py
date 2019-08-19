@@ -13,6 +13,6 @@ class Command(BaseCommand):
 
     @atomic
     def handle(self, *args, **options):
-        logger.info('Updating expired orders...')
+        logger.info('Expiring too old unpaid orders...')
         num_of_updated_orders = Order.objects.update_expired()
         logger.info('Done, {} order(s) got expired.'.format(num_of_updated_orders))
