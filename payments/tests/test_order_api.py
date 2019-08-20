@@ -17,9 +17,10 @@ ORDER_LINE_FIELDS = {
 }
 
 PRODUCT_FIELDS = {
-    'id', 'type', 'name', 'description', 'tax_percentage', 'price', 'price_type', 'price_period', 'tax_percentage',
-    'max_quantity'
+    'id', 'type', 'name', 'description', 'price', 'max_quantity'
 }
+
+PRICE_FIELDS = {'type'}
 
 
 def get_detail_url(order):
@@ -63,6 +64,7 @@ def test_order_price_check_success(user_api_client, product, two_hour_reservatio
     for ol in response.data['order_lines']:
         assert set(ol.keys()) == ORDER_LINE_FIELDS
         assert set(ol['product']) == PRODUCT_FIELDS
+        assert all(f in ol['product']['price'] for f in PRICE_FIELDS)
 
     # Check order count didn't change
     assert order_count_before == Order.objects.count()

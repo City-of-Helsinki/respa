@@ -1,3 +1,4 @@
+from django.utils.duration import duration_string
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
@@ -8,13 +9,27 @@ from ..models import Order, OrderLine, Product
 
 class ProductSerializer(TranslatedModelSerializer):
     id = serializers.CharField(source='product_id')
-    tax_percentage = serializers.CharField()
+    price = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = (
-            'id', 'type', 'name', 'description', 'tax_percentage', 'price', 'price_type', 'price_period', 'max_quantity'
+            'id', 'type', 'name', 'description', 'price', 'max_quantity'
         )
+
+    def get_price(self, obj):
+        if obj.price_type not in (Product.PRICE_FIXED, Product.PRICE_PER_PERIOD):
+            raise ValueError('{} has invalid price type "{}"'.format(obj, obj.price_type))
+
+        ret = {
+            'type': obj.price_type,
+            'tax_percentage': str(obj.tax_percentage),
+            'amount': str(obj.price)
+        }
+        if obj.price_type == Product.PRICE_PER_PERIOD:
+            ret.update({'period': duration_string(obj.price_period)})
+
+        return ret
 
 
 class OrderLineSerializer(serializers.ModelSerializer):

@@ -1351,28 +1351,38 @@ components:
             en:
               type: string
               description: English description
-        tax_percentage:
-          type: string
-          enum:
-            - "0.00"
-            - "10.00"
-            - "14.00"
-            - "24.00"
         price:
-          type: string
-          description: |
-            All prices are in euros. A product's price is stored in this field. However, there are different ways the value should be interpreted depending on `price_type` field's value.
-        price_type:
-          type: string
-          description: |
-            - `fixed`: The price stays always the same regardless of the reservation, so if `price` is `10.00` the final price is 10.00 EUR.
-            - `per_period`: When price type is `per_period`, field `price_period` contains length of the period, for example if `price` is `10.00` and `price_period` is `00:30:00` it means the actual price is 10.00 EUR / 0.5h
-          enum:
-            - fixed
-            - per_period
-        price_period:
-          type: string
-          description: When `price_type` is `per_period`, this field contains the period's duration, format hh:mm:ss
+          type: object
+          description: Price data of the product. Has always at least `type` field. Existence of other fields depends on the type.
+          properties:
+            type:
+              type: string
+              description: |
+                - `fixed`: The price stays always the same regardless of the reservation, so if `amount` is `10.00` the final price is 10.00 EUR.
+                   Other price fields present with this type: `tax_percentage` and `amount`.
+                - `per_period`: When price type is `per_period`, field `period` contains length of the period, for example if `amount` is `10.00` and `period` is `00:30:00` it means the actual price is 10.00 EUR / 0.5h.
+                   Other price fields present with this type: `tax_percentage`, `amount` and `period.
+              enum:
+                - fixed
+                - per_period
+            tax_percentage:
+              description: Present when `type` is `fixed` or `per_period`.
+              type: string
+              enum:
+                - "0.00"
+                - "10.00"
+                - "14.00"
+                - "24.00"
+            amount:
+              type: string
+              description: |
+                The product's price in euros. However, there are different ways the value should be interpreted depending on `type` field's value.
+                Present when `type` is `fixed` or `per_period`.
+            period:
+              type: string
+              description: |
+                When `type` is `per_period`, this field contains the period's duration, format hh:mm:ss.
+                Present when `type` is `per_period`.
         max_quantity:
           type: integer
           description: The maximum quantity of this product in a single order
