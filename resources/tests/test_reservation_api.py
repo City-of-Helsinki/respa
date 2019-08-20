@@ -1967,3 +1967,40 @@ def test_include_resource_detail(api_client, resource_in_unit, reservation, list
     response = api_client.get(list_url + '?include=resource_detail')
     assert response.status_code == 200
     assert response.json()['results'][0]['resource']['name']['fi'] == resource_in_unit.name
+
+
+@pytest.mark.parametrize('filtering', (
+    'reserver_info_search=',
+    'reserver_info_search=martta',
+    'reserver_info_search=brendan',
+    'reserver_info_search=neutra',
+    'reserver_info_search=brendan@neutra.com',
+))
+@pytest.mark.django_db
+def test_reserver_info_search_filter(staff_api_client, staff_user, reservation, reservation2,
+                                     reservation3, resource_in_unit2, list_url, filtering):
+    assign_perm('unit:can_view_reservation_extra_fields', staff_user, resource_in_unit2.unit)
+
+    # without filters all reservations should be returned
+    response = staff_api_client.get(list_url)
+    assert response.status_code == 200
+    assert_response_objects(response, [reservation, reservation2, reservation3])
+
+    url_with_filters = list_url + '?' + filtering
+
+    response = staff_api_client.get(url_with_filters)
+    assert response.status_code == 200
+
+    # if no value given for the filter, it should return all reservations
+    if filtering == 'reserver_info_search=':
+        assert_response_objects(response, [reservation, reservation2, reservation3])
+
+    # martta is reserver_name in first reservation fixture, which has another unit assigned,
+    # hence our staff_user should not have permissions to view reservations' users' info
+    elif filtering == 'reserver_info_search=martta':
+        assert_response_objects(response, [])
+
+    # with the given value, only the third reservation should be returned,
+    # as the filter value has info of this reservation's user
+    else:
+        assert_response_objects(response, reservation3)

@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: Respa
-  description: The Respa API provides categorized data on resources available for reservation within a city or metropolitan area 
+  description: The Respa API provides categorized data on resources available for reservation within a city or metropolitan area
     and enables the reservation of these resources. The API provides data in the JSON format, in a RESTful fashion.
   version: v1
 servers:
@@ -64,7 +64,7 @@ paths:
     get:
       tags:
       - unit
-      description: The unit endpoint returns units (libraries, youth centers etc.) listed in the reservation system. The optional 
+      description: The unit endpoint returns units (libraries, youth centers etc.) listed in the reservation system. The optional
         parameter **page** allows specifying page number and **page_size** allows specifying more than the default 20 units per page.
       parameters:
       - name: resource_group
@@ -134,8 +134,8 @@ paths:
     get:
       tags:
       - filter
-      description: The purpose endpoint returns the possible resource usage purposes registered in the system. 
-        The optional parameter **page** allows specifying page number and **page_size** allows specifying more than the default 
+      description: The purpose endpoint returns the possible resource usage purposes registered in the system.
+        The optional parameter **page** allows specifying page number and **page_size** allows specifying more than the default
         50 purposes per page.
       parameters:
       - name: page
@@ -193,7 +193,7 @@ paths:
     get:
       tags:
       - filter
-      description: The type endpoint returns the possible resource types registered in the system. The optional parameter **page** 
+      description: The type endpoint returns the possible resource types registered in the system. The optional parameter **page**
         allows specifying page number and **page_size** allows specifying more than the default 20 units per page.
       parameters:
       - name: resource_group
@@ -257,7 +257,7 @@ paths:
     get:
       tags:
       - equipment
-      description: The equipment endpoint returns the pieces of equipment of the resources. The optional parameter **page** allows 
+      description: The equipment endpoint returns the pieces of equipment of the resources. The optional parameter **page** allows
         specifying page number and **page_size** allows specifying more than the default 20 pieces of equipment per page.
       parameters:
       - name: resource_group
@@ -320,7 +320,7 @@ paths:
     get:
       tags:
       - equipment
-      description: The equipment category endpoint returns the possible categories for the pieces of equipment. The optional parameter 
+      description: The equipment category endpoint returns the possible categories for the pieces of equipment. The optional parameter
         **page** allows specifying page number and **page_size** allows specifying more than the default 20 equipment categories per page.
       parameters:
       - name: page
@@ -378,9 +378,9 @@ paths:
     get:
       tags:
       - resource
-      description: The resource endpoint returns resources (e.g. meeting rooms) listed in the reservation system, 
-        allowing queries based on resource purpose, type, name and availability. Availability can be specified for a desired 
-        duration in a desired time interval. This allows fetching only the resources that match a particular need at a particular time. 
+      description: The resource endpoint returns resources (e.g. meeting rooms) listed in the reservation system,
+        allowing queries based on resource purpose, type, name and availability. Availability can be specified for a desired
+        duration in a desired time interval. This allows fetching only the resources that match a particular need at a particular time.
         The optional **page** parameter allows specifying page number and **page_size** allows specifying more than the default 20 units per page.
       parameters:
       - name: purpose
@@ -601,7 +601,7 @@ paths:
     get:
       tags:
       - reservation
-      description: The reservation endpoint returns reservations listed in the reservation system. The optional parameter **page** 
+      description: The reservation endpoint returns reservations listed in the reservation system. The optional parameter **page**
         allows specifying page number and **page_size** allows specifying more than the default 20 units per page.
       parameters:
       - name: page
@@ -630,6 +630,12 @@ paths:
           from unit personnel.
         schema:
           type: boolean
+      - name: reserver_info_search
+        in: query
+        description: Only return reservations matching the specified string. Queries the
+          reserver's name, email and phone number.
+        schema:
+          type: string
       - name: state
         in: query
         description: 'Display only reservation(s) in given state(s). Possible values:

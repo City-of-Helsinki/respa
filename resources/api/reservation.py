@@ -1,4 +1,7 @@
+import operator
 import uuid
+from functools import reduce
+
 import arrow
 import django_filters
 from arrow.parser import ParserError
@@ -440,6 +443,8 @@ class ReservationFilterSet(django_filters.rest_framework.FilterSet):
     has_catering_order = django_filters.BooleanFilter(method='filter_has_catering_order', widget=DRFFilterBooleanWidget)
     resource = django_filters.Filter(lookup_expr='in', widget=django_filters.widgets.CSVWidget)
 
+    reserver_info_search = django_filters.CharFilter(method="filter_reserver_info_search")
+
     def filter_is_favorite_resource(self, queryset, name, value):
         user = self.request.user
 
@@ -451,6 +456,28 @@ class ReservationFilterSet(django_filters.rest_framework.FilterSet):
 
     def filter_has_catering_order(self, queryset, name, value):
         return queryset.exclude(catering_orders__isnull=value)
+
+    def filter_reserver_info_search(self, queryset, name, value):
+        """
+        A partial copy of rest_framework.filters.SearchFilter.filter_queryset.
+        Needed due to custom filters applied to queryset within this ReservationFilterSet.
+
+        Does not support comma separation of values, i.e. '?reserver_info_search=foo,bar' will
+        be considered as one string - 'foo,bar'.
+        """
+        user = self.request.user
+        if not value:
+            return queryset
+
+        # restrict results to reservations the user has right to see
+        queryset = queryset.extra_fields_visible(user)
+
+        fields = ('user__first_name', 'user__last_name', 'user__email',
+                  'reserver_name', 'reserver_email_address', 'reserver_phone_number')
+        conditions = []
+        for field in fields:
+            conditions.append(Q(**{field + '__icontains': value}))
+        return queryset.filter(reduce(operator.or_, conditions))
 
 
 class ReservationPermission(permissions.BasePermission):
