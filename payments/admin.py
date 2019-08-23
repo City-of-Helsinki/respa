@@ -10,7 +10,7 @@ from payments.utils import get_price_period_display
 from .models import Order, OrderLine, OrderLogEntry, Product
 
 
-def get_datetime_in_localtime(dt):
+def get_datetime_display(dt):
     if not dt:
         return None
     return localtime(dt).strftime('%d %b %Y %H:%M:%S')
@@ -29,7 +29,7 @@ class ProductAdmin(TranslationAdmin):
         (_('price').capitalize(), {
             'fields': ('price', 'price_type', 'price_period', 'tax_percentage'),
         }),
-        ('resources'.capitalize(), {
+        (_('resources').capitalize(), {
             'fields': ('resources',)
         }),
     )
@@ -107,7 +107,7 @@ class OrderLogEntryInline(admin.TabularInline):
         return False
 
     def timestamp_with_seconds(self, obj):
-        return get_datetime_in_localtime(obj.timestamp)
+        return get_datetime_display(obj.timestamp)
 
     timestamp_with_seconds.short_description = _('timestamp')
 
@@ -158,7 +158,7 @@ class OrderAdmin(admin.ModelAdmin):
     price.short_description = _('price including VAT')
 
     def created_at(self, obj):
-        return get_datetime_in_localtime(obj.created_at)
+        return get_datetime_display(obj.created_at)
 
     created_at.short_description = _('created at')
 

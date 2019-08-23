@@ -52,7 +52,10 @@ class OrderLineSerializer(serializers.ModelSerializer):
         return order_line
 
     def validate_product(self, product):
-        available_products = self.context.get('available_products')
+        available_products = self.context['available_products']
+        # available_products None means "all".
+        # The price check endpoint uses that because available products don't
+        # make sense in it's context (because there is no resource),
         if available_products is not None:
             if product not in available_products:
                 raise serializers.ValidationError(_("This product isn't available on the resource."))

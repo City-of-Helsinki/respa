@@ -66,7 +66,7 @@ class BamboraPayformProvider(PaymentProvider):
         self.payload_add_auth_code(payload)
 
         try:
-            r = requests.post(self.url_payment_auth, json=payload)
+            r = requests.post(self.url_payment_auth, json=payload, timeout=60)
             r.raise_for_status()
             return self.handle_initiate_payment(r.json())
         except RequestException as e:
@@ -198,6 +198,7 @@ class BamboraPayformProvider(PaymentProvider):
             return self.ui_redirect_failure(order)
         else:
             logger.warning('Incorrect RETURN_CODE "{}".'.format(return_code))
+            order.create_log_entry('Bambora Payform incorrect return code "{}".'.format(return_code))
             return self.ui_redirect_failure(order)
 
     def handle_notify_request(self):

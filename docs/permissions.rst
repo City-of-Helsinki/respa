@@ -133,6 +133,9 @@ can_modify_reservation_catering_orders
 can_view_reservation_product_orders
   Can view reservation product orders
 
+can_modify_paid_reservations
+  Can modify paid reservations
+
 Respa Admin Permissions
 ~~~~~~~~~~~~~~~~~~~~~~~
 

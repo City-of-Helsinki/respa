@@ -19,6 +19,11 @@ class PriceEndpointOrderSerializer(OrderSerializerBase):
     class Meta(OrderSerializerBase.Meta):
         fields = ('order_lines', 'price', 'begin', 'end')
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # None means "all", we don't want product availability validation
+        self.context['available_products'] = None
+
 
 class OrderViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['POST'])

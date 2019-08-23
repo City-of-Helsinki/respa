@@ -11,7 +11,6 @@ from django import forms
 from django.conf import settings
 from django.db.models import OuterRef, Prefetch, Q, Subquery, Value
 from django.db.models.functions import Coalesce, Least
-from django.db.models.functions import Coalesce, Least
 from django.urls import reverse
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
