@@ -33,11 +33,6 @@ DEFAULT_REQUIRED_RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_nu
 User = get_user_model()
 
 
-@pytest.fixture(autouse=True)
-def disable_payments(settings):
-    settings.RESPA_PAYMENTS_ENABLED = False
-
-
 @pytest.fixture
 def list_url():
     return reverse('reservation-list')
