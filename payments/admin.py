@@ -1,11 +1,14 @@
+from django import forms
 from django.conf import settings
 from django.contrib import admin
+from django.core.exceptions import ValidationError
 from django.utils.safestring import mark_safe
 from django.utils.timezone import localtime
 from django.utils.translation import ugettext_lazy as _
 from modeltranslation.admin import TranslationAdmin
 
 from payments.utils import get_price_period_display
+from resources.models import Resource
 
 from .models import Order, OrderLine, OrderLogEntry, Product
 
@@ -14,6 +17,23 @@ def get_datetime_display(dt):
     if not dt:
         return None
     return localtime(dt).strftime('%d %b %Y %H:%M:%S')
+
+
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['resources'] = forms.ModelMultipleChoiceField(queryset=Resource.objects.order_by('name'))
+
+    def clean_resources(self):
+        resources = self.cleaned_data.get('resources', [])
+        if resources:
+            if any(r.need_manual_confirmation for r in resources):
+                raise ValidationError(_('All the resources must have manual reservation confirmation disabled.'))
+        return resources
 
 
 class ProductAdmin(TranslationAdmin):
@@ -34,6 +54,7 @@ class ProductAdmin(TranslationAdmin):
         }),
     )
     ordering = ('-product_id',)
+    form = ProductForm
 
     def get_resources(self, obj):
         return mark_safe('<br>'.join([str(r) for r in obj.resources.all()]))

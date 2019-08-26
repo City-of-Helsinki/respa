@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-18 21:12+0300\n"
+"POT-Creation-Date: 2019-08-26 22:30+0300\n"
 "PO-Revision-Date: 2018-09-27 12:10+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -271,6 +271,9 @@ msgstr "Herätemalli"
 msgid "Notification templates"
 msgstr "Herätemallit"
 
+msgid "All the resources must have manual reservation confirmation disabled."
+msgstr "Millään näistä resursseista ei saa olla \"tarvitsee virkailijan vahvistuksen\" päällä."
+
 msgid "price"
 msgstr "hinta"
 
@@ -317,7 +320,8 @@ msgid "Order lines cannot contain duplicate products."
 msgstr "Tilausrivit eivät voi sisältää samoja tuotteita."
 
 msgid "The order must contain at least one product of type \"rent\"."
-msgstr "Tilauksen täytyy sisältää vähintään yksi tuote jonka tyyppi on \"vuokra\"."
+msgstr ""
+"Tilauksen täytyy sisältää vähintään yksi tuote jonka tyyppi on \"vuokra\"."
 
 msgid "rent"
 msgstr "vuokra"
@@ -362,7 +366,9 @@ msgid "products"
 msgstr "tuotteet"
 
 msgid "This field requires a non-zero value when price type is \"per period\"."
-msgstr "Tällä kentällä tulee oll arvo silloin kun hinnan tyyppi on \"ajanjaksoa kohti\"."
+msgstr ""
+"Tällä kentällä tulee oll arvo silloin kun hinnan tyyppi on \"ajanjaksoa kohti"
+"\"."
 
 msgid "waiting"
 msgstr "odottaa"
@@ -890,7 +896,10 @@ msgstr "Heikko"
 msgid "Strong"
 msgstr "Vahva"
 
-msgid "6-digit pin code"
+msgid "4-digit PIN code"
+msgstr "4-numeroinen pin-koodi"
+
+msgid "6-digit PIN code"
 msgstr "6-numeroinen pin-koodi"
 
 msgid "Resource type"
@@ -998,6 +1007,9 @@ msgstr "Tämä arvo ei voi olla suurempi kuin maksimituntihinta"
 
 msgid "This value must be a multiple of slot_size"
 msgstr "Tämän arvon täytyy olla slot_size arvon moninkerta"
+
+msgid "This cannot be enabled because the resource has product(s)."
+msgstr "Tätä ei voi laittaa päälle, koska resurssilla on ainakin yksi tuote."
 
 msgid "Main photo"
 msgstr "Päävalokuva"
