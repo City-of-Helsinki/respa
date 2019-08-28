@@ -644,6 +644,12 @@ paths:
           from unit personnel.
         schema:
           type: boolean
+      - name: reserver_info_search
+        in: query
+        description: Only return reservations matching the specified string. Queries the
+          reserver's name, email and phone number.
+        schema:
+          type: string
       - name: state
         in: query
         description: 'Display only reservation(s) in given state(s). Possible values:
