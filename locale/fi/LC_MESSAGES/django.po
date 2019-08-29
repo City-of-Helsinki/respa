@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-11-09 16:45+0200\n"
+"POT-Creation-Date: 2019-08-26 22:30+0300\n"
 "PO-Revision-Date: 2018-09-27 12:10+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -120,6 +120,82 @@ msgstr "Kommentti"
 msgid "Comments"
 msgstr "Kommentit"
 
+msgid "installed"
+msgstr ""
+
+msgid "removed"
+msgstr ""
+
+msgid "State of the user"
+msgstr ""
+
+msgid "identifier"
+msgstr ""
+
+msgid "Identifier of user in the access control system (if any)"
+msgstr ""
+
+msgid "[No identifier]"
+msgstr ""
+
+#, python-brace-format
+msgid "{uuid}: {name}"
+msgstr ""
+
+#, python-brace-format
+msgid "{uuid}"
+msgstr ""
+
+msgid "requested"
+msgstr "käsiteltävänä"
+
+msgid "cancelled"
+msgstr "peruttu"
+
+msgid "removing"
+msgstr ""
+
+msgid "access code"
+msgstr ""
+
+msgid "State of the grant"
+msgstr ""
+
+msgid "Identifier of grant in the access control system (if any)"
+msgstr ""
+
+msgid "How many times the system has tried to install this grant and failed"
+msgstr ""
+
+msgid "How many times the system has tried to remove this grant (and failed)"
+msgstr ""
+
+#, python-brace-format
+msgid "{user} {reservation} ({state})"
+msgstr ""
+
+msgid "system"
+msgstr ""
+
+msgid "resource"
+msgstr "resurssi"
+
+msgid "Identifier of resource in the access control system (if any)"
+msgstr ""
+
+msgid "Driver-specific configuration"
+msgstr ""
+
+msgid "Internal driver data"
+msgstr ""
+
+msgid "reservation leeway"
+msgstr ""
+
+msgid ""
+"How many minutes before and after the reservation the access will be allowed"
+msgstr ""
+
 msgid "Notifications"
 msgstr "Herätteet"
 
@@ -143,6 +219,9 @@ msgstr "Varaus hylätty"
 
 msgid "Reservation created with access code"
 msgstr "Varaus pääsykoodin kanssa tehty"
+
+msgid "Access code was created for a reservation"
+msgstr ""
 
 msgid "Catering order created"
 msgstr "Tarjoilutilaus luotu"
@@ -191,6 +270,157 @@ msgstr "Herätemalli"
 
 msgid "Notification templates"
 msgstr "Herätemallit"
+
+msgid "All the resources must have manual reservation confirmation disabled."
+msgstr "Millään näistä resursseista ei saa olla \"tarvitsee virkailijan vahvistuksen\" päällä."
+
+msgid "price"
+msgstr "hinta"
+
+msgid "resources"
+msgstr "resurssit"
+
+msgid "created at"
+msgstr "luotu"
+
+msgid "modified at"
+msgstr "muokattu"
+
+msgid "price period"
+msgstr "hinnan ajanjakso"
+
+msgid "product type"
+msgstr "tuotteen tyyppi"
+
+msgid "price including VAT"
+msgstr "hinta sisältäen ALV:n"
+
+msgid "unit price"
+msgstr "yksikköhinta"
+
+msgid "tax percentage"
+msgstr "veroprosentti"
+
+msgid "timestamp"
+msgstr "aikaleima"
+
+msgid "user"
+msgstr "käyttäjä"
+
+msgid "Cannot exceed max product quantity"
+msgstr "Maksimilukumäärää ei voi ylittää"
+
+msgid "This product isn't available on the resource."
+msgstr "Tämä tuote ei ole saatavilla tällä resurssilla."
+
+msgid "At least one order line required."
+msgstr "Vähintään yksi tilausrivi tarvitaan."
+
+msgid "Order lines cannot contain duplicate products."
+msgstr "Tilausrivit eivät voi sisältää samoja tuotteita."
+
+msgid "The order must contain at least one product of type \"rent\"."
+msgstr ""
+"Tilauksen täytyy sisältää vähintään yksi tuote jonka tyyppi on \"vuokra\"."
+
+msgid "rent"
+msgstr "vuokra"
+
+msgid "extra"
+msgstr "extra"
+
+msgid "per period"
+msgstr "ajanjaksoa kohti"
+
+msgid "fixed"
+msgstr "kiinteä"
+
+msgid "internal product ID"
+msgstr "sisäinen tuote-ID"
+
+msgid "archived_at"
+msgstr "arkistoitu"
+
+msgid "type"
+msgstr "tyyppi"
+
+msgid "SKU"
+msgstr "SKU"
+
+msgid "name"
+msgstr "nimi"
+
+msgid "description"
+msgstr "kuvaus"
+
+msgid "price type"
+msgstr "hinnan tyyppi"
+
+msgid "max quantity"
+msgstr "maksimimäärä"
+
+msgid "product"
+msgstr "tuote"
+
+msgid "products"
+msgstr "tuotteet"
+
+msgid "This field requires a non-zero value when price type is \"per period\"."
+msgstr ""
+"Tällä kentällä tulee oll arvo silloin kun hinnan tyyppi on \"ajanjaksoa kohti"
+"\"."
+
+msgid "waiting"
+msgstr "odottaa"
+
+msgid "confirmed"
+msgstr "hyväksytty"
+
+msgid "rejected"
+msgstr "hylätty"
+
+msgid "expired"
+msgstr "vanhentunut"
+
+msgid "state"
+msgstr "tila"
+
+msgid "order number"
+msgstr "tilausnumero"
+
+msgid "reservation"
+msgstr "varaus"
+
+msgid "order"
+msgstr "tilaus"
+
+msgid "orders"
+msgstr "tilaukset"
+
+msgid "quantity"
+msgstr "määrä"
+
+msgid "order line"
+msgstr "tilausrivi"
+
+msgid "order lines"
+msgstr "tilausrivit"
+
+msgid "order log entry"
+msgstr "tilauksen lokirivi"
+
+msgid "state change"
+msgstr "tilanvaihto"
+
+msgid "order log entries"
+msgstr "tilauksen lokirivit"
+
+msgid "hour"
+msgstr "tunti"
+
+#, python-brace-format
+msgid "{hours} hours"
+msgstr "{hours} tuntia"
 
 msgid "No reservations."
 msgstr "Ei varauksia."
@@ -269,6 +499,9 @@ msgstr "Tila on varattavissa vain ennen %(datetime)s"
 msgid "The resource is reservable only after %(datetime)s"
 msgstr "Tila on varattavissa vain %(datetime)s jälkeen"
 
+msgid "Only allowed to be set by resource managers"
+msgstr ""
+
 msgid "Only allowed to be set by staff members"
 msgstr "Ainoastaan virkailijat saavat asettaa"
 
@@ -289,9 +522,6 @@ msgstr "Virheellinen arvo filtterissä %(filter)s"
 msgid "reservations"
 msgstr "varaukset"
 
-msgid "reservation"
-msgstr "varaus"
-
 msgid "Resource app"
 msgstr "Resurssisovellus"
 
@@ -304,6 +534,48 @@ msgstr "toimipisteen ylläpitäjä"
 msgid "unit manager"
 msgstr "toimipisteen hoitaja"
 
+msgid "Time of modification"
+msgstr "Muokkausaika"
+
+msgid "accessibility viewpoint"
+msgstr ""
+
+msgid "accessibility viewpoints"
+msgstr ""
+
+msgid "Accessibility summary value"
+msgstr ""
+
+msgid "Ordering priority"
+msgstr ""
+
+msgid "accessibility value"
+msgstr ""
+
+msgid "accessibility values"
+msgstr ""
+
+msgid "Resource Accessibility"
+msgstr ""
+
+msgid "Resource"
+msgstr "Resurssi"
+
+msgid "Resource ordering priority"
+msgstr ""
+
+msgid "resource accessibility summary"
+msgstr ""
+
+msgid "resource accessibility summaries"
+msgstr ""
+
+msgid "unit accessibility summary"
+msgstr ""
+
+msgid "unit accessibility summaries"
+msgstr ""
+
 msgid "open"
 msgstr "auki"
 
@@ -312,9 +584,6 @@ msgstr "kiinni"
 
 msgid "-"
 msgstr "-"
-
-msgid "Resource"
-msgstr "Resurssi"
 
 msgid "Unit"
 msgstr "Toimipiste"
@@ -379,17 +648,11 @@ msgstr "Sulkemisaika"
 msgid "Range between opens and closes"
 msgstr "Aukioloajan pituus"
 
-msgid "description"
-msgstr "kuvaus"
-
 msgid "day"
 msgstr "päivä"
 
 msgid "days"
 msgstr "päivät"
-
-msgid "Time of modification"
-msgstr "Muokkausaika"
 
 msgid "Modified by"
 msgstr "Muokkaaja"
@@ -444,20 +707,20 @@ msgstr "Voi nähdä varauksen cateringtilaukset"
 msgid "Can modify reservation catering orders"
 msgstr "Voi muokata varauksen tarjoilutilauksia"
 
+msgid "Can view reservation product orders"
+msgstr "Voi nähdä varauksen tuotetilaukset"
+
+msgid "Can modify paid reservations"
+msgstr "Voi muokata maksettuja varauksia"
+
 msgid "created"
 msgstr "luoja"
-
-msgid "cancelled"
-msgstr "peruttu"
-
-msgid "confirmed"
-msgstr "hyväksytty"
 
 msgid "denied"
 msgstr "hylätty"
 
-msgid "requested"
-msgstr "käsiteltävänä"
+msgid "waiting for payment"
+msgstr "odottaa maksua"
 
 msgid "Begin time"
 msgstr "Alkuaika"
@@ -498,6 +761,9 @@ msgstr "Osallistujat"
 msgid "Host name"
 msgstr "Isäntä"
 
+msgid "Reservation extra questions"
+msgstr "Varauksen lisäkysymykset"
+
 msgid "Reserver name"
 msgstr "Varaajan nimi"
 
@@ -521,6 +787,18 @@ msgstr "Varaajan kaupunki"
 
 msgid "Company"
 msgstr "Yhdistys"
+
+msgid "Billing first name"
+msgstr "Laskutusosoite etunimi"
+
+msgid "Billing last name"
+msgstr "Laskutusosoite sukunimi"
+
+msgid "Billing email address"
+msgstr "Laskutussähköposti"
+
+msgid "Billing phone number"
+msgstr "Laskutuspuhelinnumero"
 
 msgid "Billing address street"
 msgstr "Laskutusosoite katuosoite"
@@ -618,7 +896,10 @@ msgstr "Heikko"
 msgid "Strong"
 msgstr "Vahva"
 
-msgid "6-digit pin code"
+msgid "4-digit PIN code"
+msgstr "4-numeroinen pin-koodi"
+
+msgid "6-digit PIN code"
 msgstr "6-numeroinen pin-koodi"
 
 msgid "Resource type"
@@ -687,6 +968,12 @@ msgstr "Maksimituntihinta"
 msgid "Access code type"
 msgstr "Pääsykoodityyppi"
 
+msgid "Generate access codes"
+msgstr ""
+
+msgid "Should access codes generated by the general system"
+msgstr ""
+
 msgid "Reservable max. days in advance"
 msgstr "Varattavissa enintään näin monta päivää etukäteen"
 
@@ -701,15 +988,6 @@ msgid ""
 "elsewhere"
 msgstr ""
 "Ulkoisen varausjärjestelmän osoite jos tätä resurssia hallitaan muualla"
-
-msgid "Reservation extra questions"
-msgstr "Varauksen lisäkysymykset"
-
-msgid "resource"
-msgstr "resurssi"
-
-msgid "resources"
-msgstr "resurssit"
 
 msgid "You cannot make a multi day reservation"
 msgstr "Varaus ei saa ulottua useammalle päivälle"
@@ -729,6 +1007,9 @@ msgstr "Tämä arvo ei voi olla suurempi kuin maksimituntihinta"
 
 msgid "This value must be a multiple of slot_size"
 msgstr "Tämän arvon täytyy olla slot_size arvon moninkerta"
+
+msgid "This cannot be enabled because the resource has product(s)."
+msgstr "Tätä ei voi laittaa päälle, koska resurssilla on ainakin yksi tuote."
 
 msgid "Main photo"
 msgstr "Päävalokuva"
@@ -867,6 +1148,9 @@ msgid_plural "%(count)d minutes"
 msgstr[0] "%(count)d minuutti"
 msgstr[1] "%(count)d minuuttia"
 
+msgid "Home"
+msgstr ""
+
 msgid "Add Another"
 msgstr "Lisää toinen"
 
@@ -906,14 +1190,14 @@ msgstr "Varattavissa"
 msgid "Please check the opening hours."
 msgstr "Tarkista aukioloajat."
 
-msgid "Instructions"
-msgstr "Ohjeet"
-
 msgid "Log out"
 msgstr "Kirjaudu ulos"
 
 msgid "Contact us"
 msgstr "Ota yhteyttä"
+
+msgid "Instructions"
+msgstr "Ohjeet"
 
 msgid "Copy time period"
 msgstr "Kopioi aikajakso"
@@ -1021,9 +1305,6 @@ msgstr "Sähköposti-ilmoitukset"
 msgid "A notification will be sent when a space is booked."
 msgstr "Ilmoitus lähetetään, kun tilaa varataan."
 
-msgid "Extra questions"
-msgstr "Lisäkysymykset"
-
 msgid "Extra questions for reservation"
 msgstr "Varauksen lisäkysymykset"
 
@@ -1093,9 +1374,6 @@ msgstr "Muokkaa resurssia"
 msgid "Create new resource"
 msgstr "Luo uusi resurssi"
 
-msgid "name"
-msgstr "nimi"
-
 msgid "a descriptive name for this Exchange configuration"
 msgstr "kuvaava nimi tälle Exchange-kokoonpanolle"
 
@@ -1105,8 +1383,8 @@ msgstr "EWS URL"
 msgid ""
 "the URL to the Exchange Web Service (e.g. https://contoso.com/EWS/Exchange."
 "asmx)"
-msgstr "URL Exchange Web Serviceen (esim. https://contoso.com/EWS/Exchange."
-"asmx)"
+msgstr ""
+"URL Exchange Web Serviceen (esim. https://contoso.com/EWS/Exchange.asmx)"
 
 msgid "username"
 msgstr "käyttäjätunnus"
@@ -1138,7 +1416,8 @@ msgstr "synkronoi Exchange Respaan"
 
 msgid ""
 "if disabled, events will not be synced from the Exchange calendar to Respa"
-msgstr "mikäli ei käytössä, tapahtumia ei synkronoida Exchange-kalenterista Respaan"
+msgstr ""
+"mikäli ei käytössä, tapahtumia ei synkronoida Exchange-kalenterista Respaan"
 
 msgid "sync Respa to Exchange"
 msgstr "synkronoi Respa Exchangeen"
@@ -1146,7 +1425,8 @@ msgstr "synkronoi Respa Exchangeen"
 msgid ""
 "if disabled, new events will not be synced from Respa to the Exchange "
 "calendar; pre-existing events continue to be updated"
-msgstr "mikäli ei käytössä, uusia tapahtumia ei synkronoida Respasta Exchange-"
+msgstr ""
+"mikäli ei käytössä, uusia tapahtumia ei synkronoida Respasta Exchange-"
 "kalenteriin; ennestään olleet tapahtumat päivittyvät"
 
 msgid "principal email"

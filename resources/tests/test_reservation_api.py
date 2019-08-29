@@ -146,9 +146,12 @@ def other_resource(space_resource_type, test_unit):
 
 @pytest.fixture
 def reservations_in_all_states(resource_in_unit, user):
-    all_states = (Reservation.CANCELLED, Reservation.CONFIRMED, Reservation.DENIED, Reservation.REQUESTED)
+    all_states = (
+        Reservation.CANCELLED, Reservation.CONFIRMED, Reservation.DENIED, Reservation.REQUESTED,
+        Reservation.WAITING_FOR_PAYMENT
+    )
     reservations = dict()
-    for i, state in enumerate(all_states, 4):
+    for i, state in enumerate(all_states, 5):
         reservations[state] = Reservation.objects.create(
             resource=resource_in_unit,
             begin='2115-04-0%sT09:00:00+02:00' % i,
@@ -909,7 +912,7 @@ def test_extra_fields_ignored_for_non_paid_reservations(user_api_client, list_ur
 def test_user_can_see_her_reservations_in_all_states(user_api_client, list_url, reservations_in_all_states):
     response = user_api_client.get(list_url)
     assert response.status_code == 200
-    assert response.data['count'] == 4
+    assert response.data['count'] == 5
 
 
 @pytest.mark.django_db
@@ -918,8 +921,9 @@ def test_user_cannot_see_others_denied_or_cancelled_reservations(api_client, use
     api_client.force_authenticate(user=user2)
     response = api_client.get(list_url)
     assert response.status_code == 200
-    assert response.data['count'] == 2
-    assert set([Reservation.CONFIRMED, Reservation.REQUESTED]) == set(r['state'] for r in response.data['results'])
+    assert response.data['count'] == 3
+    expected = {Reservation.CONFIRMED, Reservation.REQUESTED, Reservation.WAITING_FOR_PAYMENT}
+    assert {r['state'] for r in response.data['results']} == expected
 
 
 @pytest.mark.django_db
@@ -928,7 +932,7 @@ def test_admins_can_see_reservations_in_all_states(
     api_client.force_authenticate(user=general_admin)
     response = api_client.get(list_url)
     assert response.status_code == 200
-    assert response.data['count'] == 4
+    assert response.data['count'] == 5
 
 
 @pytest.mark.django_db
@@ -1072,7 +1076,7 @@ def test_need_manual_confirmation_filter(user_api_client, user, list_url, reserv
 
 
 @pytest.mark.parametrize('state_filter, expected_states', [
-    ('', ['requested', 'confirmed', 'denied', 'cancelled']),
+    ('', ['requested', 'confirmed', 'denied', 'cancelled', 'waiting_for_payment']),
     ('?state=requested', ['requested']),
     ('?state=confirmed,requested', ['confirmed', 'requested']),
     ('?state=confirmed,   requested    ,', ['confirmed', 'requested'])

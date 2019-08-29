@@ -8,11 +8,13 @@ import pytz
 from arrow.parser import ParserError
 
 from django import forms
+from django.conf import settings
 from django.db.models import OuterRef, Prefetch, Q, Subquery, Value
 from django.db.models.functions import Coalesce, Least
 from django.urls import reverse
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
+
 from resources.pagination import PurposePagination
 from rest_framework import exceptions, filters, mixins, serializers, viewsets, response, status
 from rest_framework.authentication import SessionAuthentication
@@ -705,6 +707,8 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
     queryset = Resource.objects.select_related('generic_terms', 'unit', 'type', 'reservation_metadata_set')
     queryset = queryset.prefetch_related('favorited_by', 'resource_equipment', 'resource_equipment__equipment',
                                          'purposes', 'images', 'purposes', 'groups')
+    if settings.RESPA_PAYMENTS_ENABLED:
+        queryset = queryset.prefetch_related('products')
     filter_backends = (filters.SearchFilter, ResourceFilterBackend, LocationFilterBackend)
     search_fields = ('name_fi', 'description_fi', 'unit__name_fi',
                      'name_sv', 'description_sv', 'unit__name_sv',
@@ -713,6 +717,13 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
     authentication_classes = (
         list(drf_settings.DEFAULT_AUTHENTICATION_CLASSES) +
         [SessionAuthentication])
+
+    def get_serializer_class(self):
+        if settings.RESPA_PAYMENTS_ENABLED:
+            from payments.api.resource import PaymentsResourceSerializer  # noqa
+            return PaymentsResourceSerializer
+        else:
+            return ResourceSerializer
 
     def get_serializer(self, page, *args, **kwargs):
         self._page = page
@@ -729,8 +740,14 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
 
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
                       viewsets.GenericViewSet, ResourceCacheMixin):
-    serializer_class = ResourceDetailsSerializer
     queryset = ResourceListViewSet.queryset
+
+    def get_serializer_class(self):
+        if settings.RESPA_PAYMENTS_ENABLED:
+            from payments.api.resource import PaymentsResourceDetailsSerializer  # noqa
+            return PaymentsResourceDetailsSerializer
+        else:
+            return ResourceDetailsSerializer
 
     def get_serializer(self, page, *args, **kwargs):
         self._page = [page]

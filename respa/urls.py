@@ -17,6 +17,9 @@ if getattr(settings, 'RESPA_COMMENTS_ENABLED', False):
 if getattr(settings, 'RESPA_CATERINGS_ENABLED', False):
     import caterings.api
 
+if settings.RESPA_PAYMENTS_ENABLED:
+    import payments.api.order  # noqa
+
 router = RespaAPIRouter()
 
 urlpatterns = [
@@ -38,6 +41,10 @@ if 'reports' in settings.INSTALLED_APPS:
         path('reports/reservation_details/', ReservationDetailsReport.as_view(), name='reservation-details-report'),
     ])
 
-
+if settings.RESPA_PAYMENTS_ENABLED:
+    from payments import urls as payment_urls  # noqa
+    urlpatterns.extend([
+        path('payments/', include(payment_urls))
+    ])
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -556,7 +556,14 @@ paths:
                   results:
                     type: array
                     items:
-                      $ref: '#/components/schemas/resource'
+                      allOf:
+                        - $ref: '#/components/schemas/resource'
+                        - type: object
+                          properties:
+                            products:
+                              type: array
+                              items:
+                                $ref: '#/components/schemas/product'
   /resource/{id}/:
     get:
       tags:
@@ -596,7 +603,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/resource'
+                allOf:
+                  - $ref: '#/components/schemas/resource'
+                  - type: object
+                    properties:
+                      products:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/product'
   /reservation/:
     get:
       tags:
@@ -718,7 +732,7 @@ paths:
           type: boolean
       - name: include
         in: query
-        description: Include extra data to queryset. Currently accepts value `resource_detail`.
+        description: Include extra data to queryset. Currently accepts values `resource_detail` and `order_detail` (available only when the payment support is enabled).
         schema:
           type: string
         example: resource_detail
@@ -742,7 +756,9 @@ paths:
                   results:
                     type: array
                     items:
-                      $ref: '#/components/schemas/reservation'
+                      allOf:
+                        - $ref: '#/components/schemas/reservation'
+                        - $ref: '#/components/schemas/order_just_id'
     post:
       tags:
       - reservation
@@ -752,7 +768,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/reservation'
+              allOf:
+                - $ref: '#/components/schemas/reservation'
+                - $ref: '#/components/schemas/order_creation_request'
         required: true
       responses:
         201:
@@ -760,7 +778,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/reservation'
+                allOf:
+                  - $ref: '#/components/schemas/reservation'
+                  - $ref: '#/components/schemas/order_creation_response'
         400:
           description: Bad request
           content:
@@ -790,7 +810,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/reservation'
+                allOf:
+                  - $ref: '#/components/schemas/reservation'
+                  - $ref: '#/components/schemas/order_just_id'
     put:
       tags:
       - reservation
@@ -815,7 +837,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/reservation'
+                allOf:
+                  - $ref: '#/components/schemas/reservation'
+                  - $ref: '#/components/schemas/order_just_id'
         400:
           description: Bad request
           content:
@@ -841,6 +865,25 @@ paths:
         204:
           description: Reservation deleted
           content: {}
+  /order/check_price/:
+    post:
+      tags:
+        - order
+      description: Check the price of an order (available only when the payment support is enabled)
+      requestBody:
+        description: The order data for which one wishes to find out the price
+        content:
+          application/json:
+              schema:
+                $ref: '#/components/schemas/order_check_price_request'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/order_check_price_response'
+
 components:
   schemas:
     unit:
@@ -1144,6 +1187,7 @@ components:
           - confirmed
           - denied
           - requested
+          - waiting_for_payment
         need_manual_confirmation:
           type: boolean
           description: Does the reservation require a confirmation from the unit personnel?
@@ -1172,6 +1216,18 @@ components:
         billing_address_city:
           type: string
           description: Billing address city
+        billing_first_name:
+          type: string
+          description: Billpayer's first name
+        billing_last_name:
+          type: string
+          description: Billpayer's last name
+        billing_phone_number:
+          type: string
+          description: Billpayer's phone number
+        billing_email_address:
+          type: string
+          description: Billpayer's email address
         company:
           type: string
           description: Reserver company
@@ -1262,3 +1318,173 @@ components:
             fi:
               type: string
               description: Resource type in Finnish
+    product:
+      type: object
+      description: Products represent everything one can order and pay related to reservations. A product can be the mandatory rent of the resource, or some optional extra accessories. (available only when the payment support is enabled)
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the product
+        type:
+          type: string
+          description: |
+            - `rent`: At least one product of type `rent` must be ordered when such is available on the resource.
+            - `extra`: Ordering of products of type `extra` is not mandatory, so when there are only `extra` products available, one can create a reservation without an order. However, when an order is created, even with just extra product(s), it must be paid to get the reservation confirmed.
+          enum:
+            - rent
+            - extra
+        name:
+          type: object
+          properties:
+            fi:
+              type: string
+              description: Finnish name
+            sv:
+              type: string
+              description: Swedish name
+            en:
+              type: string
+              description: English name
+        description:
+          type: object
+          properties:
+            fi:
+              type: string
+              description: Finnish description
+            sv:
+              type: string
+              description: Swedish description
+            en:
+              type: string
+              description: English description
+        price:
+          type: object
+          description: Price data of the product. Has always at least `type` field. Existence of other fields depends on the type.
+          properties:
+            type:
+              type: string
+              description: |
+                - `fixed`: The price stays always the same regardless of the reservation, so if `amount` is `10.00` the final price is 10.00 EUR.
+                   Other price fields present with this type: `tax_percentage` and `amount`.
+                - `per_period`: When price type is `per_period`, field `period` contains length of the period, for example if `amount` is `10.00` and `period` is `00:30:00` it means the actual price is 10.00 EUR / 0.5h.
+                   Other price fields present with this type: `tax_percentage`, `amount` and `period.
+              enum:
+                - fixed
+                - per_period
+            tax_percentage:
+              description: Present when `type` is `fixed` or `per_period`.
+              type: string
+              enum:
+                - "0.00"
+                - "10.00"
+                - "14.00"
+                - "24.00"
+            amount:
+              type: string
+              description: |
+                The product's price in euros. However, there are different ways the value should be interpreted depending on `type` field's value.
+                Present when `type` is `fixed` or `per_period`.
+            period:
+              type: string
+              description: |
+                When `type` is `per_period`, this field contains the period's duration, format hh:mm:ss.
+                Present when `type` is `per_period`.
+        max_quantity:
+          type: integer
+          description: The maximum quantity of this product in a single order
+          minimum: 1
+    order_just_id:
+      type: object
+      properties:
+        order:
+          type: string
+          description: ID of the order (available only when the payment support is enabled)
+    order_line_read:
+      type: object
+      properties:
+        quantity:
+          type: integer
+          minimum: 1
+        unit_price:
+          type: string
+        price:
+          type: string
+        product:
+          $ref: '#/components/schemas/product'
+    order_line_write:
+      type: object
+      properties:
+        quantity:
+          type: integer
+          minimum: 1
+        product:
+          type: string
+          description: ID of the product
+    order_request_base:
+      type: object
+      properties:
+        order_lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/order_line_write'
+    order_response_base:
+      type: object
+      properties:
+        order_lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/order_line_read'
+        price:
+          type: string
+    order_creation_request:
+      type: object
+      properties:
+        order:
+          allOf:
+            - $ref: '#/components/schemas/order_request_base'
+            - type: object
+              description: Order data containing products ordered alongside the reservation (available only when the payment support is enabled)
+              properties:
+                return_url:
+                  type: string
+                  description: URL to the frontend where the user is redirected after the payment has been completed
+    order_creation_response:
+      type: object
+      properties:
+        order:
+          allOf:
+            - $ref: '#/components/schemas/order_response_base'
+            - type: object
+              description: Order data containing products ordered alongside the reservation (available only when the payment support is enabled)
+              properties:
+                id:
+                  type: string
+                  description: ID of the order
+                state:
+                  type: string
+                  enum:
+                    - waiting
+                    - confirmed
+                    - rejected
+                    - expired
+                    - cancelled
+                payment_url:
+                  type: string
+                  description: URL to the payment provider's site where the user should be redirected to execute the payment
+    order_check_price_base:
+      type: object
+      properties:
+        begin:
+          type: string
+          description: Begin timestamp, format hh:mm:ss
+        end:
+          type: string
+          description: End timestamp, format hh:mm:ss
+    order_check_price_request:
+      allOf:
+        - $ref: '#/components/schemas/order_request_base'
+        - $ref: '#/components/schemas/order_check_price_base'
+    order_check_price_response:
+      allOf:
+        - $ref: '#/components/schemas/order_response_base'
+        - $ref: '#/components/schemas/order_check_price_base'
