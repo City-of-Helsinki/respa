@@ -2008,3 +2008,45 @@ def test_reserver_info_search_filter(staff_api_client, staff_user, reservation, 
     # as the filter value has info of this reservation's user
     else:
         assert_response_objects(response, reservation3)
+
+
+@pytest.mark.django_db
+def test_reservation_default_type(reservation_data, user_api_client):
+    """ Reservation should return default reservation type """
+    list_url = reverse('reservation-list')
+    response = user_api_client.post(list_url, data=reservation_data)
+    detail_url = reverse('reservation-detail', kwargs={'pk': response.data['id']})
+    response = user_api_client.get(detail_url)
+    assert response.data['type'] == Reservation.TYPE_NORMAL
+
+
+@pytest.mark.django_db
+def test_reservation_normal_type_normal_user(resource_in_unit, reservation_data, user_api_client):
+    """ Normal user should be able to create a NORMAL type reservation """
+    list_url = reverse('reservation-list')
+    reservation_data['type'] = Reservation.TYPE_NORMAL
+    response = user_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201
+    assert response.data['type'] == Reservation.TYPE_NORMAL
+
+
+@pytest.mark.django_db
+def test_reservation_block_type_normal_user(resource_in_unit, reservation_data, user_api_client):
+    """ Normal user should not be able to create a BLOCKED type reservation """
+    list_url = reverse('reservation-list')
+    reservation_data['type'] = Reservation.TYPE_BLOCKED
+    response = user_api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_reservation_block_type_manager(resource_in_unit, reservation_data, api_client, unit_manager_user):
+    """ Unit manager user should be able to create a BLOCKED type reservation """
+    api_client.force_authenticate(unit_manager_user)
+    list_url = reverse('reservation-list')
+    reservation_data['type'] = Reservation.TYPE_BLOCKED
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201
+    assert response.data['type'] == Reservation.TYPE_BLOCKED
+    reservation_obj = Reservation.objects.get(id=response.data['id'])
+    assert reservation_obj.type == Reservation.TYPE_BLOCKED
