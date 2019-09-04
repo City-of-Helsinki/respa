@@ -2050,3 +2050,13 @@ def test_reservation_block_type_manager(resource_in_unit, reservation_data, api_
     assert response.data['type'] == Reservation.TYPE_BLOCKED
     reservation_obj = Reservation.objects.get(id=response.data['id'])
     assert reservation_obj.type == Reservation.TYPE_BLOCKED
+
+
+@pytest.mark.django_db
+def test_reservation_cannot_add_bogus_type(resource_in_unit, reservation_data, api_client, unit_manager_user):
+    """ User should not be able to add a non-supported type to reservation """
+    api_client.force_authenticate(unit_manager_user)
+    list_url = reverse('reservation-list')
+    reservation_data['type'] = 'foobar'
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400

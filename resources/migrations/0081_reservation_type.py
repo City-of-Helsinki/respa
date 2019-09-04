@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('resources', '0079_reservation_extra_questions'),
+        ('resources', '0080_payments_related_changes'),
     ]
 
     operations = [
