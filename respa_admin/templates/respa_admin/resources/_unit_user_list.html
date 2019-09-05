@@ -1,0 +1,81 @@
+{% load i18n %}
+{% load thumbnail %}
+{% load templatetags %}
+
+<section class='resources'>
+    <div class='container'>
+
+        <div class='filter-bar container-fluid'>
+            <h2 class="pull-left">{% trans 'Unit management' %}</h2>
+            <div class='filter pull-right'>
+
+                <form name="filter-dropdowns" method="get">
+
+                    <div class='select-dropdown btn btn-primary'>
+                        <select id="place-dropdown" name="selected_unit" onchange="this.form.submit();">
+                            <option {% if not selected_unit %} selected="selected" {% endif %} value="">
+                                {% trans "Filter by unit" %}...
+                            </option>
+                            {% for unit in all_available_units %}
+                            <option {% if unit.id == selected_unit %} selected="selected" {% endif %}
+                                value="{{ unit.id }}">
+                                {{ unit.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class='container-fluid'>
+            {% for unit in units %}
+            <span class="sub-header">{{ unit.name }}</span>
+
+            {% for authorization in unit.authorizations.all %}
+            {% with authorization.authorized as unit_user %}
+            {% user_has_permission unit_user 'can_approve_reservation' unit as user_can_approve %}
+
+            <div class="row panel management-list">
+                <div class="col-md-2">
+                    <span>{{ unit_user.first_name }} {{ unit_user.last_name }}</span>
+                </div>
+                <div class="col-md-3">
+                    <span>{{ unit_user.email }}</span>
+                </div>
+                <div class="col-md-4">
+                    <div class="col-md-4">
+                        <div>
+                            <span class="{% if unit_user.is_staff %}shape-success{% else %}shape-danger{% endif %}"></span> <span>{% trans 'Staff' %}</span>
+                        </div>
+                        <div>
+                            <span class="{% if authorization.level == authorization.level.admin %}shape-success{% else %}shape-danger{% endif %}"></span> <span>{% trans 'Admin' %}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div>
+                            <span class="{% if authorization.level == authorization.level.manager %}shape-success{% else %}shape-danger{% endif %}"></span>
+                            <span>{% trans 'Manager' %}</span>
+                        </div>
+                        <div>
+                            <span class="{% if user_can_approve %}shape-success{% else %}shape-danger{% endif %}"></span> <span>Alustava varaushallinta</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <h6>
+                        <span class='glyphicon glyphicon-pencil icon-left' aria-hidden="true"></span>
+                        <a href="">{% trans 'Edit permissions' %}</a>
+                    </h6>
+                </div>
+            </div>
+
+            {% endwith %}
+            {% endfor %}
+            <br><br>
+            {% endfor %}
+
+        </div>
+    </div>
+</section>

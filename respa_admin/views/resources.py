@@ -1,12 +1,14 @@
 from django.conf import settings
 from django.contrib import messages
-from django.db.models import FieldDoesNotExist
-from django.http import HttpResponseRedirect
+from django.db.models import FieldDoesNotExist, Q
+from django.http import HttpResponseRedirect, Http404
 from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, ListView
 from django.utils.translation import ugettext_lazy as _
 from respa_admin.views.base import ExtraContextMixin
+from resources.enums import UnitGroupAuthorizationLevel, UnitAuthorizationLevel
+from resources.auth import is_any_admin
 
 from resources.models import (
     Resource,
@@ -15,6 +17,7 @@ from resources.models import (
     ResourceImage,
     ResourceType,
     Unit,
+    UnitGroup
 )
 from respa_admin import forms
 
@@ -79,6 +82,47 @@ class ResourceListView(ExtraContextMixin, ListView):
         qs = qs.prefetch_related('images', 'unit')
 
         return qs
+
+
+class ManageUserPermissionsListView(ExtraContextMixin, ListView):
+    model = Unit
+    context_object_name = 'units'
+    template_name = 'respa_admin/user_management.html'
+
+    def get(self, request, *args, **kwargs):
+        get_params = request.GET
+        self.selected_unit = get_params.get('selected_unit')
+        return super().get(request, *args, **kwargs)
+
+    def dispatch(self, request, *args, **kwargs):
+        if not is_any_admin(request.user):
+            raise Http404
+        return super(ManageUserPermissionsListView, self).dispatch(request, *args, **kwargs)
+
+    def get_all_available_units(self):
+        unit_filters = Q(authorizations__authorized=self.request.user,
+                         authorizations__level__in={
+                             UnitAuthorizationLevel.admin,
+                         })
+        unit_group_filters = Q(unit_groups__authorizations__authorized=self.request.user,
+                               unit_groups__authorizations__level__in={
+                                   UnitGroupAuthorizationLevel.admin,
+                               })
+        all_available_units = self.model.objects.filter(unit_filters | unit_group_filters).prefetch_related('authorizations')
+        return all_available_units.exclude(authorizations__authorized__isnull=True)
+
+    def get_queryset(self):
+        qs = self.get_all_available_units()
+        if self.selected_unit:
+            qs = qs.filter(id=self.selected_unit)
+
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context['selected_unit'] = self.selected_unit or ''
+        context['all_available_units'] = self.get_all_available_units()
+        return context
 
 
 class RespaAdminIndex(ResourceListView):
