@@ -36,3 +36,8 @@ def get_value_from_dict(dict_data, key):
     """
     if key:
         return dict_data.get(key)
+
+
+@register.simple_tag
+def user_has_permission(user, permission, obj):
+    return user.has_perm(permission, obj)

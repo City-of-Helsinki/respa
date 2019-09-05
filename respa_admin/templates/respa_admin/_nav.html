@@ -76,6 +76,11 @@
                 <li>
                     <a href="{% url 'respa_admin:resources' %}">{% trans "Resources" %}</a>
                 </li>
+                {% if user_is_any_admin %}
+                <li>
+                    <a href="{% url 'respa_admin:user-management' %}">{% trans "User management" %}</a>
+                </li>
+                {% endif %}
                 {% if SUPPORT_EMAIL %}
                 <li>
                     <a href="mailto:{{ SUPPORT_EMAIL }}">
