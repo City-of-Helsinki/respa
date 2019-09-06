@@ -912,6 +912,9 @@ msgstr "Ohjeet"
 msgid "Log out"
 msgstr "Kirjaudu ulos"
 
+msgid "User management"
+msgstr "Käyttäjien hallinta"
+
 msgid "Contact us"
 msgstr "Ota yhteyttä"
 
@@ -996,6 +999,27 @@ msgstr "Näkyvyys"
 
 msgid "Edit"
 msgstr "Muokkaa"
+
+msgid "Unit management"
+msgstr "Toimipaikan hallinta"
+
+msgid "Staff"
+msgstr "Henkilökunta"
+
+msgid "Admin"
+msgstr "Admin"
+
+msgid "Manager"
+msgstr "Hoitaja"
+
+msgid "Edit permissions"
+msgstr "Muokkaa käyttöoikeuksia"
+
+msgid "Can approve reservations"
+msgstr "Voi hyväksyä varauksia"
+
+msgid "Users by search term"
+msgstr "Käyttäjät haulla"
 
 msgid "Accessibility"
 msgstr "Esteettömyys"
@@ -1086,6 +1110,9 @@ msgstr "Tallenna"
 
 msgid "View resource"
 msgstr "Tarkastele resurssia"
+
+msgid "Search for users"
+msgstr "Hae käyttäjiä"
 
 msgid "Edit resource"
 msgstr "Muokkaa resurssia"
