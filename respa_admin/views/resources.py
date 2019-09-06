@@ -91,6 +91,7 @@ class ManageUserPermissionsListView(ExtraContextMixin, ListView):
     context_object_name = 'units'
     template_name = 'respa_admin/user_management.html'
     user_list_template_name = 'respa_admin/resources/_unit_user_list.html'
+    paginate_by = 10
 
     def get(self, request, *args, **kwargs):
         get_params = request.GET
@@ -103,6 +104,10 @@ class ManageUserPermissionsListView(ExtraContextMixin, ListView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_all_available_units(self):
+        if self.request.user.is_superuser:
+            all_units = self.model.objects.all().prefetch_related('authorizations').exclude(authorizations__authorized__isnull=True)
+            return all_units
+
         unit_filters = Q(authorizations__authorized=self.request.user,
                          authorizations__level__in={
                              UnitAuthorizationLevel.admin,
