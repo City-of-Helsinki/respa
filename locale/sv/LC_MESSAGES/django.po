@@ -1023,6 +1023,9 @@ msgstr "Kan godkänna bokningen"
 msgid "Users by search term"
 msgstr "Användarsökning med term"
 
+msgid "Clear search"
+msgstr "Rensa sökning"
+
 msgid "Accessibility"
 msgstr "Tillgänglighet"
 
