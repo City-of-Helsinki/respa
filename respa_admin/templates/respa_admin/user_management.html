@@ -9,7 +9,7 @@
                 <div class="resources-report row">
                     <h1 class="col-sm-6">{% trans 'User management' %}</h1>
                 </div>
-                <form action="." method="get">
+                <form action="{% url 'respa_admin:user-management-search' %}" method="get">
                     <div class="form-group resources-search center-block">
                         <div class="input-group">
                             <span class="input-group-addon">{% trans 'Search for users' %}</span>
@@ -28,5 +28,5 @@
 {% endblock koro_shape %}
 
 {% block body %}
-    {% include "respa_admin/resources/_unit_user_list.html" %}
+    {% include user_list_template_name %}
 {% endblock body %}
