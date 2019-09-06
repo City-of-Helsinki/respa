@@ -1021,6 +1021,9 @@ msgstr "Voi hyväksyä varauksia"
 msgid "Users by search term"
 msgstr "Käyttäjät haulla"
 
+msgid "Clear search"
+msgstr ""
+
 msgid "Accessibility"
 msgstr "Esteettömyys"
 

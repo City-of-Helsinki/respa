@@ -7,6 +7,11 @@
 
         <div class='filter-bar container-fluid'>
             <h2 class="pull-left">{% trans 'Users by search term' %}: {{ search_query }} ({{ users.count }})</h2>
+            <div class='filter pull-right'>
+                <a href="{% url 'respa_admin:user-management' %}" rel="noopener noreferrer" class="empty-search-button">
+                    {% trans "Clear search" %}
+                </a>
+            </div>
         </div>
 
         <div class='container-fluid'>

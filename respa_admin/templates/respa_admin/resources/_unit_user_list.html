@@ -44,7 +44,7 @@
                 <div class="col-md-3">
                     <span>{{ unit_user.email }}</span>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4 text-nowrap">
                     <div class="col-md-4">
                         <div>
                             <span class="{% if unit_user.is_staff %}shape-success{% else %}shape-danger{% endif %}"></span> <span>{% trans 'Staff' %}</span>
@@ -59,7 +59,7 @@
                             <span>{% trans 'Manager' %}</span>
                         </div>
                         <div>
-                            <span class="{% if user_can_approve %}shape-success{% else %}shape-danger{% endif %}"></span> <span>Alustava varaushallinta</span>
+                            <span class="{% if user_can_approve %}shape-success{% else %}shape-danger{% endif %}"></span> <span>{% trans 'Can approve reservations' %}</span>
                         </div>
                     </div>
                 </div>
