@@ -1,0 +1,39 @@
+{% load i18n %}
+{% load thumbnail %}
+{% load templatetags %}
+
+<section class='resources'>
+    <div class='container'>
+
+        <div class='filter-bar container-fluid'>
+            <h2 class="pull-left">{% trans 'Users by search term' %}: {{ search_query }} ({{ users.count }})</h2>
+        </div>
+
+        <div class='container-fluid'>
+            {% for user in users %}
+            <span class="sub-header">{{ unit.name }}</span>
+
+            <div class="row panel management-list list-item">
+                <div class="col-md-3">
+                    <span>{{ user.first_name }} {{ user.last_name }}</span>
+                </div>
+                <div class="col-md-3">
+                    <span>{{ user.email }}</span>
+                </div>
+                <div class="col-md-3">
+                        <div>
+                            <span class="{% if user.is_staff %}shape-success{% else %}shape-danger{% endif %}"></span> <span>{% trans 'Staff' %}</span>
+                        </div>
+                </div>
+                <div class="col-md-3">
+                    <h6>
+                        <span class='glyphicon glyphicon-pencil icon-left' aria-hidden="true"></span>
+                        <a href="">{% trans 'Edit permissions' %}</a>
+                    </h6>
+                </div>
+            </div>
+            {% endfor %}
+
+        </div>
+    </div>
+</section>

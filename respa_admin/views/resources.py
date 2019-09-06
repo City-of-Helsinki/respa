@@ -10,6 +10,8 @@ from respa_admin.views.base import ExtraContextMixin
 from resources.enums import UnitGroupAuthorizationLevel, UnitAuthorizationLevel
 from resources.auth import is_any_admin
 
+from users.models import User
+
 from resources.models import (
     Resource,
     Period,
@@ -88,6 +90,7 @@ class ManageUserPermissionsListView(ExtraContextMixin, ListView):
     model = Unit
     context_object_name = 'units'
     template_name = 'respa_admin/user_management.html'
+    user_list_template_name = 'respa_admin/resources/_unit_user_list.html'
 
     def get(self, request, *args, **kwargs):
         get_params = request.GET
@@ -97,7 +100,7 @@ class ManageUserPermissionsListView(ExtraContextMixin, ListView):
     def dispatch(self, request, *args, **kwargs):
         if not is_any_admin(request.user):
             raise Http404
-        return super(ManageUserPermissionsListView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_all_available_units(self):
         unit_filters = Q(authorizations__authorized=self.request.user,
@@ -122,6 +125,40 @@ class ManageUserPermissionsListView(ExtraContextMixin, ListView):
         context = super().get_context_data()
         context['selected_unit'] = self.selected_unit or ''
         context['all_available_units'] = self.get_all_available_units()
+        context['user_list_template_name'] = self.user_list_template_name
+        return context
+
+
+class ManageUserPermissionsSearchView(ExtraContextMixin, ListView):
+    model = User
+    context_object_name = 'users'
+    template_name = 'respa_admin/user_management.html'
+    user_list_template_name = 'respa_admin/resources/_user_list.html'
+
+    def get(self, request, *args, **kwargs):
+        get_params = request.GET
+        self.search_query = get_params.get('search_query')
+        return super().get(request, *args, **kwargs)
+
+    def get_queryset(self):
+        if self.search_query and '@' in self.search_query:
+            qs = self.model.objects.filter(email__iexact=self.search_query)
+            return qs
+        elif self.search_query and ' ' in self.search_query:
+            try:
+                name1, name2 = self.search_query.split()
+                filters = Q(first_name__iexact=name1, last_name__iexact=name2) | Q(first_name__iexact=name2, last_name__iexact=name1)
+                qs = self.model.objects.filter(filters)
+                return qs
+            except ValueError:
+                return qs
+        return self.model.objects.none()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context['user_list_template_name'] = self.user_list_template_name
+        context['search_query'] = self.search_query or None
+
         return context
 
 

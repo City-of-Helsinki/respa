@@ -37,7 +37,7 @@
             {% with authorization.authorized as unit_user %}
             {% user_has_permission unit_user 'can_approve_reservation' unit as user_can_approve %}
 
-            <div class="row panel management-list">
+            <div class="row panel management-list list-item">
                 <div class="col-md-2">
                     <span>{{ unit_user.first_name }} {{ unit_user.last_name }}</span>
                 </div>
