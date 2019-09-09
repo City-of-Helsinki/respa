@@ -97,6 +97,13 @@ class Reservation(ModifiableModel):
         (WAITING_FOR_PAYMENT, _('waiting for payment')),
     )
 
+    TYPE_NORMAL = 'normal'
+    TYPE_BLOCKED = 'blocked'
+    TYPE_CHOICES = (
+        (TYPE_NORMAL, _('Normal reservation')),
+        (TYPE_BLOCKED, _('Resource blocked')),
+    )
+
     resource = models.ForeignKey('Resource', verbose_name=_('Resource'), db_index=True, related_name='reservations',
                                  on_delete=models.PROTECT)
     begin = models.DateTimeField(verbose_name=_('Begin time'))
@@ -111,6 +118,8 @@ class Reservation(ModifiableModel):
                                  related_name='approved_reservations', null=True, blank=True,
                                  on_delete=models.SET_NULL)
     staff_event = models.BooleanField(verbose_name=_('Is staff event'), default=False)
+    type = models.CharField(
+        blank=False, verbose_name=_('Type'), max_length=32, choices=TYPE_CHOICES, default=TYPE_NORMAL)
 
     # access-related fields
     access_code = models.CharField(verbose_name=_('Access code'), max_length=32, null=True, blank=True)

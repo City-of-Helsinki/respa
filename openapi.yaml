@@ -1188,6 +1188,12 @@ components:
           - denied
           - requested
           - waiting_for_payment
+        type:
+          type: string
+          description: Type of the reservation
+          enum:
+          - normal
+          - blocked
         need_manual_confirmation:
           type: boolean
           description: Does the reservation require a confirmation from the unit personnel?
