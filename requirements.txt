@@ -43,7 +43,7 @@ django-parler-rest==2.0   # via django-munigeo
 django-parler==1.9.2
 django-reversion==3.0.2
 django-sanitized-dump==0.2.2
-django==2.1.9
+django==2.2.5
 djangorestframework-jwt==1.11.0
 djangorestframework==3.9.1
 drf-oidc-auth==0.9        # via django-helusers
