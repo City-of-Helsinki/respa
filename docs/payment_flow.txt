@@ -1,0 +1,23 @@
+@startuml
+Actor Browser
+
+Browser -> Frontend: Start payment
+Frontend -> Respa: Create new reservation with order data\nand frontend return URL
+opt Needed by some providers
+    Respa -> "Payment provider": Initiate payment
+    Respa <-- "Payment provider"
+end
+Frontend <-- Respa: Return payment URL
+Browser <-- Frontend: Redirect to payment URL
+|||
+Browser -> "Payment provider": Complete payment on provider's site
+Browser <-- "Payment provider": Redirect to Respa with some data that confirms the payment
+|||
+Browser -> Respa: Pass payment confirmation data
+Browser <-- Respa: Redirect to frontend return URL\nwith payment status and reservation ID
+|||
+Browser -> Frontend: Pass payment status and reservation ID
+Frontend -> Respa: Request reservation and order details
+Frontend <-- Respa: Return reservation and order details
+Browser <-- Frontend: Show payment succeeded page
+@enduml

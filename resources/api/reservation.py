@@ -5,6 +5,7 @@ from functools import reduce
 import arrow
 import django_filters
 from arrow.parser import ParserError
+from django.conf import settings
 from guardian.core import ObjectPermissionChecker
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
@@ -22,6 +23,7 @@ from rest_framework.exceptions import NotAcceptable, ValidationError
 from rest_framework.settings import api_settings as drf_settings
 
 from munigeo import api as munigeo_api
+
 from resources.models import Reservation, Resource, ReservationMetadataSet
 from resources.models.reservation import RESERVATION_EXTRA_FIELDS
 from resources.pagination import ReservationPagination
@@ -80,9 +82,9 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
         model = Reservation
         fields = [
             'url', 'id', 'resource', 'user', 'begin', 'end', 'comments', 'is_own', 'state', 'need_manual_confirmation',
-            'staff_event', 'access_code', 'user_permissions'
+            'staff_event', 'access_code', 'user_permissions', 'type'
         ] + list(RESERVATION_EXTRA_FIELDS)
-        read_only_fields = RESERVATION_EXTRA_FIELDS
+        read_only_fields = list(RESERVATION_EXTRA_FIELDS)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -118,6 +120,8 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
 
             for field_name in required:
                 self.fields[field_name].required = True
+
+        self.context.update({'resource': resource})
 
     def get_extra_fields(self, includes, context):
         from .resource import ResourceInlineSerializer
@@ -187,6 +191,10 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
             if not is_resource_manager:
                 raise ValidationError(dict(staff_event=_('Only allowed to be set by resource managers')))
 
+        if 'type' in data:
+            if data['type'] != Reservation.TYPE_NORMAL and not (is_resource_admin or is_resource_manager):
+                raise ValidationError({'type': _('You are not allowed to make a reservation of this type')})
+
         if 'comments' in data:
             if not is_resource_admin:
                 raise ValidationError(dict(comments=_('Only allowed to be set by staff members')))
@@ -228,7 +236,6 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
             for key, value in exc.error_dict.items():
                 error_dict[key] = [error.message for error in value]
             raise ValidationError(error_dict)
-
         return data
 
     def to_internal_value(self, data):
@@ -537,8 +544,8 @@ class ReservationCacheMixin:
 class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, ReservationCacheMixin):
     queryset = Reservation.objects.select_related('user', 'resource', 'resource__unit')\
         .prefetch_related('catering_orders').prefetch_related('resource__groups').order_by('begin', 'resource__unit__name', 'resource__name')
-
-    serializer_class = ReservationSerializer
+    if settings.RESPA_PAYMENTS_ENABLED:
+        queryset = queryset.prefetch_related('order', 'order__order_lines', 'order__order_lines__product')
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter, UserFilterBackend, ReservationFilterBackend,
                        NeedManualConfirmationFilterBackend, StateFilterBackend, CanApproveFilterBackend)
     filterset_class = ReservationFilterSet
@@ -549,6 +556,13 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         list(drf_settings.DEFAULT_AUTHENTICATION_CLASSES) +
         [TokenAuthentication, SessionAuthentication])
     ordering_fields = ('begin',)
+
+    def get_serializer_class(self):
+        if settings.RESPA_PAYMENTS_ENABLED:
+            from payments.api.reservation import PaymentsReservationSerializer  # noqa
+            return PaymentsReservationSerializer
+        else:
+            return ReservationSerializer
 
     def get_serializer(self, *args, **kwargs):
         if 'data' not in kwargs and len(args) == 1:
@@ -575,8 +589,9 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         if is_general_admin(user):
             return queryset
 
-        # normal users can see only their own reservations and reservations that are confirmed or requested
-        filters = Q(state__in=(Reservation.CONFIRMED, Reservation.REQUESTED))
+        # normal users can see only their own reservations and reservations that are confirmed, requested or
+        # waiting for payment
+        filters = Q(state__in=(Reservation.CONFIRMED, Reservation.REQUESTED, Reservation.WAITING_FOR_PAYMENT))
         if user.is_authenticated:
             filters |= Q(user=user)
         queryset = queryset.filter(filters)
@@ -597,7 +612,10 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         if resource.need_manual_confirmation and not is_resource_manager:
             new_state = Reservation.REQUESTED
         else:
-            new_state = Reservation.CONFIRMED
+            if instance.get_order():
+                new_state = Reservation.WAITING_FOR_PAYMENT
+            else:
+                new_state = Reservation.CONFIRMED
 
         instance.set_state(new_state, self.request.user)
 

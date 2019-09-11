@@ -8,6 +8,7 @@ import django.contrib.postgres.fields as pgfields
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.utils import translation
+from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -30,7 +31,8 @@ DEFAULT_TZ = pytz.timezone(settings.TIME_ZONE)
 logger = logging.getLogger(__name__)
 
 RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street', 'reserver_address_zip',
-                            'reserver_address_city', 'billing_address_street', 'billing_address_zip',
+                            'reserver_address_city', 'billing_first_name', 'billing_last_name', 'billing_phone_number',
+                            'billing_email_address', 'billing_address_street', 'billing_address_zip',
                             'billing_address_city', 'company', 'event_description', 'event_subject', 'reserver_id',
                             'number_of_participants', 'participants', 'reserver_email_address', 'host_name',
                             'reservation_extra_questions')
@@ -85,12 +87,21 @@ class Reservation(ModifiableModel):
     CONFIRMED = 'confirmed'
     DENIED = 'denied'
     REQUESTED = 'requested'
+    WAITING_FOR_PAYMENT = 'waiting_for_payment'
     STATE_CHOICES = (
         (CREATED, _('created')),
         (CANCELLED, _('cancelled')),
         (CONFIRMED, _('confirmed')),
         (DENIED, _('denied')),
         (REQUESTED, _('requested')),
+        (WAITING_FOR_PAYMENT, _('waiting for payment')),
+    )
+
+    TYPE_NORMAL = 'normal'
+    TYPE_BLOCKED = 'blocked'
+    TYPE_CHOICES = (
+        (TYPE_NORMAL, _('Normal reservation')),
+        (TYPE_BLOCKED, _('Resource blocked')),
     )
 
     resource = models.ForeignKey('Resource', verbose_name=_('Resource'), db_index=True, related_name='reservations',
@@ -102,11 +113,13 @@ class Reservation(ModifiableModel):
     comments = models.TextField(null=True, blank=True, verbose_name=_('Comments'))
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('User'), null=True,
                              blank=True, db_index=True, on_delete=models.PROTECT)
-    state = models.CharField(max_length=16, choices=STATE_CHOICES, verbose_name=_('State'), default=CREATED)
+    state = models.CharField(max_length=32, choices=STATE_CHOICES, verbose_name=_('State'), default=CREATED)
     approver = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Approver'),
                                  related_name='approved_reservations', null=True, blank=True,
                                  on_delete=models.SET_NULL)
     staff_event = models.BooleanField(verbose_name=_('Is staff event'), default=False)
+    type = models.CharField(
+        blank=False, verbose_name=_('Type'), max_length=32, choices=TYPE_CHOICES, default=TYPE_NORMAL)
 
     # access-related fields
     access_code = models.CharField(verbose_name=_('Access code'), max_length=32, null=True, blank=True)
@@ -121,7 +134,6 @@ class Reservation(ModifiableModel):
     host_name = models.CharField(verbose_name=_('Host name'), max_length=100, blank=True)
     reservation_extra_questions = models.TextField(verbose_name=_('Reservation extra questions'), blank=True)
 
-    # extra detail fields for manually confirmed reservations
     reserver_name = models.CharField(verbose_name=_('Reserver name'), max_length=100, blank=True)
     reserver_id = models.CharField(verbose_name=_('Reserver ID (business or person)'), max_length=30, blank=True)
     reserver_email_address = models.EmailField(verbose_name=_('Reserver email address'), blank=True)
@@ -130,6 +142,10 @@ class Reservation(ModifiableModel):
     reserver_address_zip = models.CharField(verbose_name=_('Reserver address zip'), max_length=30, blank=True)
     reserver_address_city = models.CharField(verbose_name=_('Reserver address city'), max_length=100, blank=True)
     company = models.CharField(verbose_name=_('Company'), max_length=100, blank=True)
+    billing_first_name = models.CharField(verbose_name=_('Billing first name'), max_length=100, blank=True)
+    billing_last_name = models.CharField(verbose_name=_('Billing last name'), max_length=100, blank=True)
+    billing_email_address = models.EmailField(verbose_name=_('Billing email address'), blank=True)
+    billing_phone_number = models.CharField(verbose_name=_('Billing phone number'), max_length=30, blank=True)
     billing_address_street = models.CharField(verbose_name=_('Billing address street'), max_length=100, blank=True)
     billing_address_zip = models.CharField(verbose_name=_('Billing address zip'), max_length=30, blank=True)
     billing_address_city = models.CharField(verbose_name=_('Billing address city'), max_length=100, blank=True)
@@ -214,7 +230,7 @@ class Reservation(ModifiableModel):
         # Make sure it is a known state
         assert new_state in (
             Reservation.REQUESTED, Reservation.CONFIRMED, Reservation.DENIED,
-            Reservation.CANCELLED
+            Reservation.CANCELLED, Reservation.WAITING_FOR_PAYMENT
         )
 
         old_state = self.state
@@ -249,8 +265,13 @@ class Reservation(ModifiableModel):
         elif new_state == Reservation.DENIED:
             self.send_reservation_denied_mail()
         elif new_state == Reservation.CANCELLED:
-            if user != self.user:
-                self.send_reservation_cancelled_mail()
+            order = self.get_order()
+            if order:
+                if order.state == order.CANCELLED:
+                    self.send_reservation_cancelled_mail()
+            else:
+                if user != self.user:
+                    self.send_reservation_cancelled_mail()
             reservation_cancelled.send(sender=self.__class__, instance=self,
                                        user=user)
 
@@ -260,6 +281,12 @@ class Reservation(ModifiableModel):
     def can_modify(self, user):
         if not user:
             return False
+
+        if self.state == Reservation.WAITING_FOR_PAYMENT:
+            return False
+
+        if self.get_order():
+            return self.resource.can_modify_paid_reservations(user)
 
         # reservations that need manual confirmation and are confirmed cannot be
         # modified or cancelled without reservation approve permission
@@ -285,6 +312,17 @@ class Reservation(ModifiableModel):
         if self.is_own(user):
             return True
         return self.resource.can_view_catering_orders(user)
+
+    def can_add_product_order(self, user):
+        return self.is_own(user)
+
+    def can_view_product_orders(self, user):
+        if self.is_own(user):
+            return True
+        return self.resource.can_view_product_orders(user)
+
+    def get_order(self):
+        return getattr(self, 'order', None)
 
     def format_time(self):
         tz = self.resource.unit.get_tz()
@@ -346,14 +384,25 @@ class Reservation(ModifiableModel):
                 'begin_dt': self.begin,
                 'end_dt': self.end,
                 'time_range': self.format_time(),
-                'number_of_participants': self.number_of_participants,
-                'host_name': self.host_name,
                 'reserver_name': reserver_name,
-                'event_subject': self.event_subject,
-                'event_description': self.event_description,
                 'reserver_email_address': reserver_email_address,
-                'reserver_phone_number': self.reserver_phone_number,
             }
+            directly_included_fields = (
+                'number_of_participants',
+                'host_name',
+                'event_subject',
+                'event_description',
+                'reserver_phone_number',
+                'billing_first_name',
+                'billing_last_name',
+                'billing_email_address',
+                'billing_phone_number',
+                'billing_address_street',
+                'billing_address_zip',
+                'billing_address_city',
+            )
+            for field in directly_included_fields:
+                context[field] = getattr(self, field)
             if self.resource.unit:
                 context['unit'] = self.resource.unit.name
                 context['unit_id'] = self.resource.unit.id
@@ -381,6 +430,10 @@ class Reservation(ModifiableModel):
                 ground_plan_image_url = ground_plan_image.get_full_url()
                 if ground_plan_image_url:
                     context['resource_ground_plan_image_url'] = ground_plan_image_url
+
+            order = getattr(self, 'order', None)
+            if order:
+                context['order'] = order.get_notification_context(language_code)
 
         return context
 

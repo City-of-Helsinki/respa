@@ -579,6 +579,12 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     def can_modify_catering_orders(self, user):
         return self._has_perm(user, 'can_modify_reservation_catering_orders')
 
+    def can_view_product_orders(self, user):
+        return self._has_perm(user, 'can_view_reservation_product_orders', allow_admin=False)
+
+    def can_modify_paid_reservations(self, user):
+        return self._has_perm(user, 'can_modify_paid_reservations', allow_admin=False)
+
     def can_approve_reservations(self, user):
         return self._has_perm(user, 'can_approve_reservation', allow_admin=False)
 
@@ -599,6 +605,9 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
     def get_reservable_after(self):
         return create_datetime_days_from_now(self.get_reservable_min_days_in_advance())
+
+    def has_rent(self):
+        return self.products.current().rents().exists()
 
     def get_supported_reservation_extra_field_names(self, cache=None):
         if not self.reservation_metadata_set_id:
@@ -626,6 +635,11 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                 )
         if self.min_period % self.slot_size != datetime.timedelta(0):
             raise ValidationError({'min_period': _('This value must be a multiple of slot_size')})
+
+        if self.need_manual_confirmation and self.products.current().exists():
+            raise ValidationError(
+                {'need_manual_confirmation': _('This cannot be enabled because the resource has product(s).')}
+            )
 
 
 class ResourceImage(ModifiableModel):

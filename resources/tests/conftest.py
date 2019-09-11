@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from rest_framework.test import APIClient, APIRequestFactory
 
+from resources.enums import UnitAuthorizationLevel
 from resources.models import Resource, ResourceType, Unit, Purpose, Day, Period
 from resources.models import Equipment, EquipmentAlias, ResourceEquipment, EquipmentCategory, TermsOfUse, ResourceGroup
 from resources.models import AccessibilityValue, AccessibilityViewpoint, ResourceAccessibility, UnitAccessibility
@@ -232,6 +233,21 @@ def staff_user():
         is_staff=True,
         preferred_language='en'
     )
+
+
+@pytest.mark.django_db
+@pytest.fixture
+def unit_manager_user(resource_in_unit):
+    user = get_user_model().objects.create(
+        username='test_manager_user',
+        first_name='Inspector',
+        last_name='Lestrade',
+        email='lestrade@scotlandyard.co.uk',
+        is_staff=True,
+        preferred_language='en'
+    )
+    user.unit_authorizations.create(subject=resource_in_unit.unit, level=UnitAuthorizationLevel.manager)
+    return user
 
 
 @pytest.mark.django_db

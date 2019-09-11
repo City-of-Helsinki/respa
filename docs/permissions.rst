@@ -96,7 +96,8 @@ group on two scopes:
 
 In addition **General Administrators, Unit Group Administrator and Unit
 Administrators implicitly have all other resource permissions except
-``can_approve_reservation`` for the resources in the Unit Group or
+``can_approve_reservation``, ``can_view_reservation_product_orders`` and
+``can_modify_paid_reservations`` for the resources in the Unit Group or
 Unit**.
 
 The resource permissions are implemented as Django Object Permissions
@@ -128,6 +129,12 @@ can_view_reservation_catering_orders
 
 can_modify_reservation_catering_orders
   Can modify reservation catering orders
+
+can_view_reservation_product_orders
+  Can view reservation product orders
+
+can_modify_paid_reservations
+  Can modify paid reservations
 
 Respa Admin Permissions
 ~~~~~~~~~~~~~~~~~~~~~~~
