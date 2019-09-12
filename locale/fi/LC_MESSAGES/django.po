@@ -1306,7 +1306,7 @@ msgid "Users by search term"
 msgstr "Käyttäjät haulla"
 
 msgid "Clear search"
-msgstr ""
+msgstr "Tyhjennä haku"
 
 msgid "Accessibility"
 msgstr "Esteettömyys"
