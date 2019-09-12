@@ -52,6 +52,8 @@ def select_resources(resources, selected_resources):
                 pass
             if res_id == res.principal_email:
                 break
+            if res_id == res.resource.id:
+                break
         else:
             raise CommandError('Resource with ID "%s" not found' % res_id)
         ret.append(res)
