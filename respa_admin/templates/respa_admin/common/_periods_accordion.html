@@ -6,11 +6,13 @@
     <div class="dropdown-time panel-group input-row" id="accordion{{id}}" role="tablist" aria-multiselectable="true">
         <div class="panel-heading">
             <div class="left-group">
-                <span class="panel-heading-period" id="period-timespan"></span>
+                <span class="panel-heading-tag">{{ period.name.value }}</span>
+                <span class="panel-heading-period">{{ period.start.value|date:"j.n.Y" }} - {{ period.end.value|date:"j.n.Y" }}</span>
             </div>
             <div class="right-group">
                 <button class="btn copy-time-btn" type="button" id="copy-time-period-{{ id }}">
-                    <span class="glyphicons glyphicons-more-windows icon-left" aria-hidden="true">{% trans "Copy time period" %}</span>
+                    <span class="glyphicon glyphicon-duplicate icon-left" aria-hidden="true"></span>
+                    {% trans "Copy time period" %}
                 </button>
                 <a class="btn" role="button" data-toggle="collapse" data-parent="#accordion{{id}}" href="#collapse{{id}}" aria-expanded="true" aria-controls="#collapse{{id}}">
                     <span class="glyphicon glyphicon-edit icon-left"></span>

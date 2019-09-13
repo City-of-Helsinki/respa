@@ -112,13 +112,15 @@
 .weekday-row {
   border-bottom: solid 1px $dark-gray;
 
-  .weekday-checkbox {
-    margin: auto 0;
-    padding: 0;
+  .form-group {
+      height: 50px;
+  }
 
-    label {
-      font-size: $font-size-large;
-      padding-left: 32px;
+  .checkbox-row {
+    padding-top: 12px;
+
+    .custom-checkbox label.checkbox-custom-label {
+      font-weight: bold;
     }
   }
 
