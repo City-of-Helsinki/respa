@@ -360,6 +360,9 @@ function attachPeriodEventHandlers(periodItem) {
   //Attach the event handler for the date pickers.
   let $dates = periodItem.find("[id^='date-input']");
   $dates.change(() => modifyDays(periodItem, $dates));
+
+  const $copyTimeButtons = periodItem.find('.copy-next');
+  $copyTimeButtons.click((event) => copyTimeToNext(event));
 }
 
 function removePeriodEventHandlers(periodItem) {
