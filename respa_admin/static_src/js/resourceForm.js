@@ -11,6 +11,7 @@ import {
   removePeriod,
   modifyDays,
   copyTimePeriod,
+  copyTimeToNext,
   sortPeriodDays,
 } from './resourceFormPeriods';
 
@@ -158,6 +159,13 @@ function enablePeriodEventHandlers() {
 
     const $dates = $('#date-inputs-' + i);
     $dates.change(() => modifyDays($(periods[i]), $dates));
+
+    // This binds the event also to the extra element that is later cloned to
+    // emptyDayItem. New day items will then have event already bound.
+    // This works only when event handlers are bound before setClonableItems
+    // is called.
+    const $copyTimeButtons = $(periods[i]).find('.copy-next');
+    $copyTimeButtons.click((event) => copyTimeToNext(event));
 
     const removeButton = $('#remove-button-' + i);
     removeButton.click(() => removePeriod(periods[i]));

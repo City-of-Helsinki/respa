@@ -107,7 +107,7 @@ function updatePeriodDaysIndices($periodItem) {
         $(cellInput).attr('id', $(cellInput).attr('id').replace(/-(\d+)-(\d+)-/, '-' + periodIdNum + '-' + dayIndex + '-'));
         $(cellInput).attr('name', $(cellInput).attr('name').replace(/-(\d+)-(\d+)-/, '-' + periodIdNum + '-' + dayIndex + '-'));
       });
-    })
+    });
   };
 
   let dayIndex = 0;
@@ -242,6 +242,9 @@ export function modifyDays($periodItem, $dates) {
   let startDate = new Date(convertDateFormat(dateInputs[0].value));
   let endDate = new Date(convertDateFormat(dateInputs[1].value));
   let currentDays = [];
+
+  let $periodHeading = $periodItem.find('.panel-heading-period');
+  $periodHeading.text(`${startDate.toLocaleDateString('fi-FI')} - ${endDate.toLocaleDateString('fi-FI')}`);
 
   if ((!startDate || !endDate) || (startDate > endDate)) {
     return;
@@ -414,4 +417,20 @@ export function copyTimePeriod(periodItem) {
 
   //Reset initial forms in case there are some days present in the previous period.
   newItem.find('#days-management-form').find('[id$="-INITIAL_FORMS"]').val('0');
+}
+
+/*
+ * Copy opening and closing times to next row in period
+ */
+export function copyTimeToNext(event) {
+  const currentRow = event.target.closest('.weekday-row');
+  const nextRow = currentRow.nextElementSibling;
+  if (nextRow === null) {
+    return;
+  }
+  const timeInputs = currentRow.querySelectorAll('.time-input-row input');
+  const nextTimeInputs = nextRow.querySelectorAll('.time-input-row input');
+  for (let i = 0; i < timeInputs.length; i++) {
+    nextTimeInputs[i].value = timeInputs[i].value;
+  }
 }

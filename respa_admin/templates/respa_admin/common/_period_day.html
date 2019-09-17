@@ -21,5 +21,10 @@
         </div>
 
         {{ day.closed }}
+
+        <button class="btn copy-next" type="button" id="copy-next-{{ id }}">
+            <span class="glyphicon glyphicon-duplicate icon-left" aria-hidden="true"></span>
+            {% trans "Copy to next" %}
+        </button>
     </div>
 {% endwith %}
