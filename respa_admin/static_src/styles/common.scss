@@ -92,6 +92,10 @@
           padding: 16px $padding-large-horizontal;
           transform: scaleY(0.5);
         }
+
+        input {
+          margin: 0;
+        }
       }
 
       .text-input {
@@ -114,6 +118,10 @@
 
   .form-group {
     height: 50px;
+
+    input {
+      margin: 0;
+    }
   }
 
   .checkbox-row {
@@ -144,6 +152,7 @@
 }
 
 .weekday-row:last-child {
+
   .copy-next {
     display: none;
   }
