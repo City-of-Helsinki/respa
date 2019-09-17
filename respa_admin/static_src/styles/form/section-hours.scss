@@ -133,6 +133,11 @@
             select {
                 font-weight: bold;
             }
+
+            &:active {
+              box-shadow: none;
+              -webkit-box-shadow: none;
+            }
         }
 
         .checkbox-row {
@@ -178,12 +183,13 @@
         }
     }
 
-.weekday-row:last-child {
+    .weekday-row:last-child {
 
-  .copy-next {
-    display: none;
-  }
-}
+      .copy-next {
+        display: none;
+      }
+    }
+
     .hours-wrapper {
         padding: 0 32px 32px;
         background-color: rgba($light-gray, 0.5);
