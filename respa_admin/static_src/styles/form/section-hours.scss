@@ -57,12 +57,12 @@
         }
 
         .left-group {
-            height: 100%;
+            height: auto;
             padding: $padding-small-vertical 0;
         }
 
         .right-group {
-            height: 100%;
+            height: auto;
 
             & > * {
                 border: 0;
@@ -93,6 +93,97 @@
         }
     }
 
+    .range-input span {
+      width: 50px;
+    }
+
+    .hours-table-header {
+      .schedule {
+        margin-right: 100px;
+        width: 405px;
+
+        input {
+          width: 100%;
+          max-width: none;
+        }
+      }
+    }
+
+    .weekday-row {
+        border-bottom: solid 1px $dark-gray;
+
+        .form-group {
+            height: 50px;
+            margin-right: 50px;
+
+            input {
+                margin: 0;
+            }
+        }
+
+        .day-db-ids {
+            display: none;
+        }
+
+        .period-weekday {
+            border: none;
+            margin: 0;
+            padding-left: 0;
+
+            select {
+                font-weight: bold;
+            }
+        }
+
+        .checkbox-row {
+            padding-top: 12px;
+
+            .custom-checkbox label.checkbox-custom-label {
+                font-weight: bold;
+            }
+        }
+
+        .time-input-row {
+          display: flex;
+          flex-wrap: wrap;
+
+          .text-input {
+            max-width: 100px;
+            min-width: 100px;
+            padding-left: 25px;
+          }
+
+          .form-group {
+            margin-bottom: 0;
+          }
+
+        }
+
+        .add-time {
+            padding-left: 32px;
+            font-weight: lighter;
+            background-color: transparent;
+            display: inline-flex;
+
+            span {
+                font-size: $font-size-large;
+            }
+        }
+
+        .copy-next {
+            background-color: $hel-copper;
+            margin: 5px 0;
+            color: $white;
+            height: 40px;
+        }
+    }
+
+.weekday-row:last-child {
+
+  .copy-next {
+    display: none;
+  }
+}
     .hours-wrapper {
         padding: 0 32px 32px;
         background-color: rgba($light-gray, 0.5);
@@ -109,4 +200,10 @@
             padding-bottom: 24px;
         }
     }
+}
+
+@media (max-width: 991px) {
+  #opening-hours .weekday-row .form-group {
+    margin-right: 12px;
+  }
 }

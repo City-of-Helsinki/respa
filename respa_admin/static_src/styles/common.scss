@@ -80,81 +80,16 @@
       }
     }
 
-    .accordion-item {
-      margin-bottom: 2px;
-
-      .range-input {
-        padding: 0;
-        flex-wrap: nowrap;
-
-        span {
-          margin: 0;
-          padding: 16px $padding-large-horizontal;
-          transform: scaleY(0.5);
-        }
-
-        input {
-          margin: 0;
-        }
-      }
-
-      .text-input {
-        margin: 0;
-        min-width: 120px;
-      }
-
-      .hours-table-header {
-
-        .schedule {
-          margin-right: 36px;
-        }
-      }
-    }
-  }
-}
-
-.weekday-row {
-  border-bottom: solid 1px $dark-gray;
-
-  .form-group {
-    height: 50px;
 
     input {
       margin: 0;
+      width: 75px;
     }
-  }
 
-  .checkbox-row {
-    padding-top: 12px;
-
-    .custom-checkbox label.checkbox-custom-label {
-      font-weight: bold;
+    .text-input {
+      margin: 0;
+      min-width: 120px;
     }
-  }
-
-  .add-time {
-    padding-left: 32px;
-    font-weight: lighter;
-    background-color: transparent;
-    display: inline-flex;
-
-    span {
-      font-size: $font-size-large;
-    }
-  }
-
-  .copy-next {
-    background-color: $hel-copper;
-    margin: 5px 0;
-    color: $white;
-    height: 40px;
-  }
-}
-
-.weekday-row:last-child {
-
-  .copy-next {
-    display: none;
   }
 }
 
