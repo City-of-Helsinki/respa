@@ -45,7 +45,7 @@
                             </g>
                         </svg>
                         <h6>
-                            <a href="">{% trans 'Edit permissions' %}</a>
+                            <a href="{% url 'respa_admin:edit-user' user_id=user.id %}">{% trans 'Edit permissions' %}</a>
                         </h6>
                     </div>
                 </div>

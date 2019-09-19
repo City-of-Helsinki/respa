@@ -4,9 +4,10 @@ from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
 
 from .widgets import (
-    RespaRadioSelect,
     RespaCheckboxSelect,
     RespaCheckboxInput,
+    RespaGenericCheckboxInput,
+    RespaRadioSelect,
 )
 
 from resources.models import (
@@ -15,8 +16,9 @@ from resources.models import (
     Period,
     Purpose,
     Resource,
-    ResourceImage,
+    ResourceImage
 )
+from users.models import User
 
 from respa.settings import LANGUAGES
 
@@ -358,3 +360,21 @@ def _get_images_formset_translated_fields(images_formset, lang_postfix):
             images_translation_count += len([x for x in form.initial if x.endswith(lang_postfix)])
 
     return images_translation_count
+
+
+class UserForm(forms.ModelForm):
+    is_staff = forms.CheckboxInput()
+
+    class Meta:
+        model = User
+
+        fields = [
+            'is_staff',
+        ]
+
+        widgets = {
+            'is_staff': RespaGenericCheckboxInput(attrs={
+                'label': 'Henkilökuntaa',
+                'help_text': 'Merkintä antaa oikeuden antaa käyttöoikeuksia toimipisteelle.'
+            })
+        }

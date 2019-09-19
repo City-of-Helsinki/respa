@@ -1,11 +1,11 @@
 from django.conf import settings
 from django.contrib import messages
 from django.db.models import FieldDoesNotExist, Q
-from django.http import HttpResponseRedirect, Http404
+from django.http import Http404, HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, ListView
 from django.utils.translation import ugettext_lazy as _
+from django.views.generic import CreateView, ListView, UpdateView
 from respa_admin.views.base import ExtraContextMixin
 from resources.enums import UnitGroupAuthorizationLevel, UnitAuthorizationLevel
 from resources.auth import is_any_admin
@@ -24,9 +24,10 @@ from resources.models import (
 from respa_admin import forms
 
 from respa_admin.forms import (
-    get_period_formset,
-    get_resource_image_formset,
     ResourceForm,
+    UserForm,
+    get_period_formset,
+    get_resource_image_formset
 )
 
 from respa_admin import accessibility_api
@@ -84,6 +85,15 @@ class ResourceListView(ExtraContextMixin, ListView):
         qs = qs.prefetch_related('images', 'unit')
 
         return qs
+
+
+class ManageUserPermissionsView(ExtraContextMixin, UpdateView):
+    model = User
+    context_object_name = 'user_object'
+    pk_url_kwarg = 'user_id'
+    form_class = UserForm
+    template_name = 'respa_admin/resources/edit_user.html'
+    success_url = reverse_lazy('respa_admin:user-management')
 
 
 class ManageUserPermissionsListView(ExtraContextMixin, ListView):

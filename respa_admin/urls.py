@@ -4,7 +4,8 @@ from django.urls import include
 from . import views
 from .auth import admin_url as url
 from .views.resources import (
-    ManageUserPermissionsListView, ManageUserPermissionsSearchView, ResourceListView, SaveResourceView
+    ManageUserPermissionsListView, ManageUserPermissionsSearchView, ManageUserPermissionsView, ResourceListView,
+    SaveResourceView
 )
 
 app_name = 'respa_admin'
@@ -19,5 +20,6 @@ urlpatterns = [
     url(r'^resource/edit/(?P<resource_id>\w+)/$', SaveResourceView.as_view(), name='edit-resource'),
     url(r'^i18n/$', include('django.conf.urls.i18n'), name='language'),
     url(r'^user_management/$', ManageUserPermissionsListView.as_view(), name='user-management'),
+    url(r'^user_management/(?P<user_id>\w+)/$', ManageUserPermissionsView.as_view(), name='edit-user'),
     url(r'^user_management/search/$', ManageUserPermissionsSearchView.as_view(), name='user-management-search'),
 ]

@@ -1,0 +1,18 @@
+.user-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 35px;
+}
+
+.cancel-button {
+    margin-left: 10px;
+    background-color: transparent;
+    color: #d21220;
+    padding: $padding-large-vertical 24px;
+    font-weight: 500;
+}
+
+.button-div {
+    margin-top: 50px;
+}

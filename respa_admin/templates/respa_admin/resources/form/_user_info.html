@@ -1,0 +1,19 @@
+{% load i18n %}
+
+<div id="general-info">
+    <div>
+        <h2>Käyttäjäprofiili</h2>
+        <div class="user-info panel list-item">
+            <p>{{ user_object.first_name }} {{ user_object.last_name }}</p>
+            <p>{{ user_object.email }}</p>
+            <div>
+                {% include "respa_admin/forms/_errors.html" with field=form.is_staff %}
+                {{ form.is_staff }}
+            </div>
+        </div>
+    </div>
+    <div>
+        
+        {% include "respa_admin/resources/form/_permissions.html" with formset=period_formset_with_days %}
+    </div>
+</div>
