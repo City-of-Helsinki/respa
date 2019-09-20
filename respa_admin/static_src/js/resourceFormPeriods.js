@@ -84,7 +84,7 @@ export function sortPeriodDays($periodItem) {
 function updatePeriodDaysIndices($periodItem) {
   let originalDaysList = $periodItem.find('.weekday-row.original-day');
   let newDaysList = $periodItem.find('.weekday-row:not(.original-day)');
-  let periodIdNum = $periodItem[0].id.match(/[0-9]/)[0];
+  let periodIdNum = $periodItem[0].id.match(/[0-9]+/)[0];
 
   const setIndex = function (dayIndex, day) {
     $(day).attr('id', $(day).attr('id').replace(/-(\d+)-(\d+)/, '-' + periodIdNum + '-' + dayIndex));
