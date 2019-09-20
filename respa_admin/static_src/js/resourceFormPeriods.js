@@ -307,7 +307,7 @@ function addDay(daysList, weekday) {
   let emptyDayItem = getEmptyDayItem();
 
   if (emptyDayItem) {
-    let newDayItem = emptyDayItem.clone();
+    let newDayItem = emptyDayItem.clone(true);
 
     newDayItem.find("[id*='-weekday']").val(weekday);
     daysList.append(newDayItem);
@@ -369,6 +369,7 @@ function removePeriodEventHandlers(periodItem) {
   periodItem.find(".delete-time").off();
   periodItem.find(".copy-time-btn").off();
   periodItem.find("[id^='date-input']").off();
+  periodItem.find('.copy-next').off();
 
 }
 
