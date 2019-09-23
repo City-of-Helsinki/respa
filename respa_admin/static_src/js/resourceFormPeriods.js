@@ -84,7 +84,7 @@ export function sortPeriodDays($periodItem) {
 function updatePeriodDaysIndices($periodItem) {
   let originalDaysList = $periodItem.find('.weekday-row.original-day');
   let newDaysList = $periodItem.find('.weekday-row:not(.original-day)');
-  let periodIdNum = $periodItem[0].id.match(/[0-9]/)[0];
+  let periodIdNum = $periodItem[0].id.match(/[0-9]+/)[0];
 
   const setIndex = function (dayIndex, day) {
     $(day).attr('id', $(day).attr('id').replace(/-(\d+)-(\d+)/, '-' + periodIdNum + '-' + dayIndex));
@@ -307,7 +307,7 @@ function addDay(daysList, weekday) {
   let emptyDayItem = getEmptyDayItem();
 
   if (emptyDayItem) {
-    let newDayItem = emptyDayItem.clone();
+    let newDayItem = emptyDayItem.clone(true);
 
     newDayItem.find("[id*='-weekday']").val(weekday);
     daysList.append(newDayItem);
@@ -369,6 +369,7 @@ function removePeriodEventHandlers(periodItem) {
   periodItem.find(".delete-time").off();
   periodItem.find(".copy-time-btn").off();
   periodItem.find("[id^='date-input']").off();
+  periodItem.find('.copy-next').off();
 
 }
 

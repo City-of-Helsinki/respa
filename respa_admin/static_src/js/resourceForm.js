@@ -65,7 +65,7 @@ function setPeriodAndDayItems() {
   let $daysList = $servedPeriodItem.find('#period-days-list')[0].children;
   let $servedDayItem = $daysList[$daysList.length-1];
 
-  emptyDayItem = $($servedDayItem).clone();
+  emptyDayItem = $($servedDayItem).clone(true);
   emptyDayItem.removeClass('original-day');  // added days are not original. used for sorting formset indices.
   emptyPeriodItem = $($servedPeriodItem).clone();
 
