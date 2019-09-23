@@ -84,7 +84,7 @@ export function sortPeriodDays($periodItem) {
 function updatePeriodDaysIndices($periodItem) {
   let originalDaysList = $periodItem.find('.weekday-row.original-day');
   let newDaysList = $periodItem.find('.weekday-row:not(.original-day)');
-  let periodIdNum = $periodItem[0].id.match(/[0-9]/)[0];
+  let periodIdNum = $periodItem[0].id.match(/[0-9]+/)[0];
 
   const setIndex = function (dayIndex, day) {
     $(day).attr('id', $(day).attr('id').replace(/-(\d+)-(\d+)/, '-' + periodIdNum + '-' + dayIndex));
@@ -107,7 +107,7 @@ function updatePeriodDaysIndices($periodItem) {
         $(cellInput).attr('id', $(cellInput).attr('id').replace(/-(\d+)-(\d+)-/, '-' + periodIdNum + '-' + dayIndex + '-'));
         $(cellInput).attr('name', $(cellInput).attr('name').replace(/-(\d+)-(\d+)-/, '-' + periodIdNum + '-' + dayIndex + '-'));
       });
-    })
+    });
   };
 
   let dayIndex = 0;
@@ -243,6 +243,9 @@ export function modifyDays($periodItem, $dates) {
   let endDate = new Date(convertDateFormat(dateInputs[1].value));
   let currentDays = [];
 
+  let $periodHeading = $periodItem.find('.panel-heading-period');
+  $periodHeading.text(`${startDate.toLocaleDateString('fi-FI')} - ${endDate.toLocaleDateString('fi-FI')}`);
+
   if ((!startDate || !endDate) || (startDate > endDate)) {
     return;
   }
@@ -304,7 +307,7 @@ function addDay(daysList, weekday) {
   let emptyDayItem = getEmptyDayItem();
 
   if (emptyDayItem) {
-    let newDayItem = emptyDayItem.clone();
+    let newDayItem = emptyDayItem.clone(true);
 
     newDayItem.find("[id*='-weekday']").val(weekday);
     daysList.append(newDayItem);
@@ -357,12 +360,16 @@ function attachPeriodEventHandlers(periodItem) {
   //Attach the event handler for the date pickers.
   let $dates = periodItem.find("[id^='date-input']");
   $dates.change(() => modifyDays(periodItem, $dates));
+
+  const $copyTimeButtons = periodItem.find('.copy-next');
+  $copyTimeButtons.click((event) => copyTimeToNext(event));
 }
 
 function removePeriodEventHandlers(periodItem) {
   periodItem.find(".delete-time").off();
   periodItem.find(".copy-time-btn").off();
   periodItem.find("[id^='date-input']").off();
+  periodItem.find('.copy-next').off();
 
 }
 
@@ -414,4 +421,20 @@ export function copyTimePeriod(periodItem) {
 
   //Reset initial forms in case there are some days present in the previous period.
   newItem.find('#days-management-form').find('[id$="-INITIAL_FORMS"]').val('0');
+}
+
+/*
+ * Copy opening and closing times to next row in period
+ */
+export function copyTimeToNext(event) {
+  const currentRow = event.target.closest('.weekday-row');
+  const nextRow = currentRow.nextElementSibling;
+  if (nextRow === null) {
+    return;
+  }
+  const timeInputs = currentRow.querySelectorAll('.time-input-row input');
+  const nextTimeInputs = nextRow.querySelectorAll('.time-input-row input');
+  for (let i = 0; i < timeInputs.length; i++) {
+    nextTimeInputs[i].value = timeInputs[i].value;
+  }
 }

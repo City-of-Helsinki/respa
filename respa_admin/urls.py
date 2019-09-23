@@ -2,11 +2,10 @@ from django.conf.urls import url as unauthorized_url
 from django.urls import include
 
 from . import views
-from .views.resources import (
-    ResourceListView,
-    SaveResourceView
-)
 from .auth import admin_url as url
+from .views.resources import (
+    ManageUserPermissionsListView, ManageUserPermissionsSearchView, ResourceListView, SaveResourceView
+)
 
 app_name = 'respa_admin'
 urlpatterns = [
@@ -19,4 +18,6 @@ urlpatterns = [
     url(r'^resource/new/$', SaveResourceView.as_view(), name='new-resource'),
     url(r'^resource/edit/(?P<resource_id>\w+)/$', SaveResourceView.as_view(), name='edit-resource'),
     url(r'^i18n/$', include('django.conf.urls.i18n'), name='language'),
+    url(r'^user_management/$', ManageUserPermissionsListView.as_view(), name='user-management'),
+    url(r'^user_management/search/$', ManageUserPermissionsSearchView.as_view(), name='user-management-search'),
 ]

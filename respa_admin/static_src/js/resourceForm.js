@@ -11,6 +11,7 @@ import {
   removePeriod,
   modifyDays,
   copyTimePeriod,
+  copyTimeToNext,
   sortPeriodDays,
 } from './resourceFormPeriods';
 
@@ -64,7 +65,7 @@ function setPeriodAndDayItems() {
   let $daysList = $servedPeriodItem.find('#period-days-list')[0].children;
   let $servedDayItem = $daysList[$daysList.length-1];
 
-  emptyDayItem = $($servedDayItem).clone();
+  emptyDayItem = $($servedDayItem).clone(true);
   emptyDayItem.removeClass('original-day');  // added days are not original. used for sorting formset indices.
   emptyPeriodItem = $($servedPeriodItem).clone();
 
@@ -158,6 +159,13 @@ function enablePeriodEventHandlers() {
 
     const $dates = $('#date-inputs-' + i);
     $dates.change(() => modifyDays($(periods[i]), $dates));
+
+    // This binds the event also to the extra element that is later cloned to
+    // emptyDayItem. New day items will then have event already bound.
+    // This works only when event handlers are bound before setClonableItems
+    // is called.
+    const $copyTimeButtons = $(periods[i]).find('.copy-next');
+    $copyTimeButtons.click((event) => copyTimeToNext(event));
 
     const removeButton = $('#remove-button-' + i);
     removeButton.click(() => removePeriod(periods[i]));

@@ -1,0 +1,43 @@
+.management-list {
+    display: flex;
+    align-items: center;
+}
+
+.sub-header {
+    display: block;
+    font-size: 22px;
+    padding-bottom: 5px;
+}
+
+.list-item {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.empty-search-button {
+    display: flex;
+    font-weight: 500;
+    align-items: center;
+    height: $input-height-default;
+    padding: $padding-large-vertical 24px;
+    background-color: #c4123e;
+    border: 0;
+    color: $white;
+    text-decoration: none;
+
+    &:hover {
+        filter: brightness(0.9);
+        text-decoration: none;
+        color: $white;
+    }
+}
+
+svg.person-edit-icon {
+    overflow: visible;
+}
+
+.icon-text-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}

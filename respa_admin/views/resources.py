@@ -1,12 +1,16 @@
 from django.conf import settings
 from django.contrib import messages
-from django.db.models import FieldDoesNotExist
-from django.http import HttpResponseRedirect
+from django.db.models import FieldDoesNotExist, Q
+from django.http import HttpResponseRedirect, Http404
 from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, ListView
 from django.utils.translation import ugettext_lazy as _
 from respa_admin.views.base import ExtraContextMixin
+from resources.enums import UnitGroupAuthorizationLevel, UnitAuthorizationLevel
+from resources.auth import is_any_admin
+
+from users.models import User
 
 from resources.models import (
     Resource,
@@ -15,6 +19,7 @@ from resources.models import (
     ResourceImage,
     ResourceType,
     Unit,
+    UnitGroup
 )
 from respa_admin import forms
 
@@ -79,6 +84,87 @@ class ResourceListView(ExtraContextMixin, ListView):
         qs = qs.prefetch_related('images', 'unit')
 
         return qs
+
+
+class ManageUserPermissionsListView(ExtraContextMixin, ListView):
+    model = Unit
+    context_object_name = 'units'
+    template_name = 'respa_admin/user_management.html'
+    user_list_template_name = 'respa_admin/resources/_unit_user_list.html'
+    paginate_by = 10
+
+    def get(self, request, *args, **kwargs):
+        get_params = request.GET
+        self.selected_unit = get_params.get('selected_unit')
+        return super().get(request, *args, **kwargs)
+
+    def dispatch(self, request, *args, **kwargs):
+        if not is_any_admin(request.user):
+            raise Http404
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_all_available_units(self):
+        if self.request.user.is_superuser:
+            all_units = self.model.objects.all().prefetch_related('authorizations').exclude(authorizations__authorized__isnull=True)
+            return all_units
+
+        unit_filters = Q(authorizations__authorized=self.request.user,
+                         authorizations__level__in={
+                             UnitAuthorizationLevel.admin,
+                         })
+        unit_group_filters = Q(unit_groups__authorizations__authorized=self.request.user,
+                               unit_groups__authorizations__level__in={
+                                   UnitGroupAuthorizationLevel.admin,
+                               })
+        all_available_units = self.model.objects.filter(unit_filters | unit_group_filters).prefetch_related('authorizations')
+        return all_available_units.exclude(authorizations__authorized__isnull=True)
+
+    def get_queryset(self):
+        qs = self.get_all_available_units()
+        if self.selected_unit:
+            qs = qs.filter(id=self.selected_unit)
+
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context['selected_unit'] = self.selected_unit or ''
+        context['all_available_units'] = self.get_all_available_units()
+        context['user_list_template_name'] = self.user_list_template_name
+        return context
+
+
+class ManageUserPermissionsSearchView(ExtraContextMixin, ListView):
+    model = User
+    context_object_name = 'users'
+    template_name = 'respa_admin/user_management.html'
+    user_list_template_name = 'respa_admin/resources/_user_list.html'
+
+    def get(self, request, *args, **kwargs):
+        get_params = request.GET
+        self.search_query = get_params.get('search_query')
+        return super().get(request, *args, **kwargs)
+
+    def get_queryset(self):
+        if self.search_query and '@' in self.search_query:
+            qs = self.model.objects.filter(email__iexact=self.search_query)
+            return qs
+        elif self.search_query and ' ' in self.search_query:
+            try:
+                name1, name2 = self.search_query.split()
+                filters = Q(first_name__iexact=name1, last_name__iexact=name2) | Q(first_name__iexact=name2, last_name__iexact=name1)
+                qs = self.model.objects.filter(filters)
+                return qs
+            except ValueError:
+                return qs
+        return self.model.objects.none()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context['user_list_template_name'] = self.user_list_template_name
+        context['search_query'] = self.search_query or None
+
+        return context
 
 
 class RespaAdminIndex(ResourceListView):

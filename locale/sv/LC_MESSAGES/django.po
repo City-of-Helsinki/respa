@@ -913,6 +913,9 @@ msgstr "Instruktioner"
 msgid "Log out"
 msgstr "Logga ut"
 
+msgid "User management"
+msgstr "Användarhantering"
+
 msgid "Contact us"
 msgstr "Kontakta oss"
 
@@ -998,6 +1001,30 @@ msgstr "Synlighet"
 
 msgid "Edit"
 msgstr "Redigera"
+
+msgid "Unit management"
+msgstr "Enhetshantering"
+
+msgid "Staff"
+msgstr "Personal"
+
+msgid "Admin"
+msgstr "Admin"
+
+msgid "Manager"
+msgstr "Chef"
+
+msgid "Edit permissions"
+msgstr "Redigera behörigheter"
+
+msgid "Can approve reservations"
+msgstr "Kan godkänna bokningen"
+
+msgid "Users by search term"
+msgstr "Användarsökning med term"
+
+msgid "Clear search"
+msgstr "Rensa sökning"
 
 msgid "Accessibility"
 msgstr "Tillgänglighet"
@@ -1088,6 +1115,9 @@ msgstr "Spara"
 
 msgid "View resource"
 msgstr "Visa resurs"
+
+msgid "Search for users"
+msgstr ""
 
 msgid "Edit resource"
 msgstr "Modifiera resurs"

@@ -1,0 +1,32 @@
+{% extends "respa_admin/_base.html" %}
+{% load staticfiles %}
+{% load i18n %}
+
+{% block koro_shape %}
+    <section class="hero-section bg-light {{ KORO_STYLE }}">
+        <div class="container">
+            <div class="headline">
+                <div class="resources-report row">
+                    <h1 class="col-sm-6">{% trans 'User management' %}</h1>
+                </div>
+                <form action="{% url 'respa_admin:user-management-search' %}" method="get">
+                    <div class="form-group resources-search center-block">
+                        <div class="input-group">
+                            <span class="input-group-addon">{% trans 'Search for users' %}</span>
+                            <input autofocus type="text" class="form-control text-input" name="search_query" value="{{ request.GET.search_query }}">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default" type="submit">
+                                    <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+{% endblock koro_shape %}
+
+{% block body %}
+    {% include user_list_template_name %}
+{% endblock body %}

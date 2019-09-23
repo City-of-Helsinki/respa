@@ -23,7 +23,7 @@ class FindCalendarItemsRequest(EWSRequest):
         body = M.FindItem(
             {'Traversal': 'Shallow'},
             M.ItemShape(
-                T.BaseShape("Default")
+                T.BaseShape('AllProperties')
             ),
             M.CalendarView({
                 'MaxEntriesReturned': str(1048576),
