@@ -31,25 +31,6 @@
                         <span>{% trans 'Staff' %}</span>
                     </div>
                 </div>
-                {% if user != request.user %}
-                <div class="col-md-3">
-                    <div class="icon-text-container">
-                        <svg class="person-edit-icon" width="28px" height="28px" viewBox="0 0 28 28" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                            <g id="icons/edit-user" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="square">
-                                <g id="a-edit-outline-64" stroke="#000000" stroke-width="2">
-                                    <path d="M5.25,6.53333333 C5.25,2.92506667 8.188125,0 11.8125,0 C15.436875,0 18.375,2.92506667 18.375,6.53333333 C18.375,10.1416 15.436875,14 11.8125,14 C8.188125,14 5.25,10.1416 5.25,6.53333333 Z" id="Shape"></path>
-                                    <path d="M17.5,18.8591375 C15.9526723,18.5699062 14.1147601,18.375 11.9733691,18.375 C6.84324097,18.375 3.45661956,19.4967938 1.63344386,20.3418688 C0.635049078,20.80435 0,21.838075 0,22.9791188 L0,28 L11.9733691,28" id="Shape"></path>
-                                    <polygon id="Shape" points="19.3641304 27.5434783 16.625 28 17.0815217 25.2608696 24.8423913 17.5 27.125 19.7826087">
-                                    </polygon>
-                                </g>
-                            </g>
-                        </svg>
-                        <h6>
-                            <a href="">{% trans 'Edit permissions' %}</a>
-                        </h6>
-                    </div>
-                </div>
-                {% endif %}
             </div>
             {% endfor %}
 
