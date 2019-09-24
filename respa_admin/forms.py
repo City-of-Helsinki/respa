@@ -16,7 +16,8 @@ from resources.models import (
     Period,
     Purpose,
     Resource,
-    ResourceImage
+    ResourceImage,
+    UnitAuthorization
 )
 from users.models import User
 
@@ -363,7 +364,6 @@ def _get_images_formset_translated_fields(images_formset, lang_postfix):
 
 
 class UserForm(forms.ModelForm):
-    is_staff = forms.CheckboxInput()
 
     class Meta:
         model = User
@@ -378,3 +378,55 @@ class UserForm(forms.ModelForm):
                 'help_text': 'Merkintä antaa oikeuden antaa käyttöoikeuksia toimipisteelle.'
             })
         }
+
+
+class UnitAuthorizationForm(forms.ModelForm):
+    can_approve_reservation = forms.BooleanField(widget=RespaGenericCheckboxInput, required=False)
+
+    class Meta:
+        model = UnitAuthorization
+
+        fields = [
+            'subject',
+            'level',
+            'authorized',
+        ]
+
+
+class UnitAuthorizationFormSet(forms.BaseInlineFormSet):
+    pass
+
+
+def get_unit_authorization_formset(request=None, extra=1, instance=None):
+    unit_authorization_formset = inlineformset_factory(
+        User,
+        UnitAuthorization,
+        form=UnitAuthorizationForm,
+        formset=UnitAuthorizationFormSet,
+        extra=extra,
+    )
+
+    if not request:
+        return unit_authorization_formset(instance=instance)
+    if request.method == 'GET':
+        return unit_authorization_formset(instance=instance)
+    else:
+        return unit_authorization_formset(data=request.POST, instance=instance)
+
+
+class UserAuthorizationFormSet(forms.BaseInlineFormSet):
+
+    def _get_unit_authorization_formset(self, form):
+        unit_authorization_formset = inlineformset_factory(
+            User,
+            UnitAuthorization,
+            form=UnitAuthorizationForm,
+        )
+
+        return unit_authorization_formset(
+            instance=form.instance,
+            data=form.data if form.is_bound else None,
+            prefix='unit-authorization-%s' % (
+                form.prefix,
+            ),
+        )

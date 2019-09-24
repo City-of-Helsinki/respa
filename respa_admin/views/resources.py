@@ -27,7 +27,8 @@ from respa_admin.forms import (
     ResourceForm,
     UserForm,
     get_period_formset,
-    get_resource_image_formset
+    get_resource_image_formset,
+    get_unit_authorization_formset
 )
 
 from respa_admin import accessibility_api
@@ -94,6 +95,48 @@ class ManageUserPermissionsView(ExtraContextMixin, UpdateView):
     form_class = UserForm
     template_name = 'respa_admin/resources/edit_user.html'
     success_url = reverse_lazy('respa_admin:user-management')
+
+    def _validate_forms(self, form, unit_authorization_formset):
+        valid_form = form.is_valid()
+        unit_authorization_formset = unit_authorization_formset.is_valid()
+
+        return valid_form and unit_authorization_formset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['unit_authorization_formset'] = get_unit_authorization_formset(
+            self.request,
+            instance=self.object,
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+
+        unit_authorization_formset = get_unit_authorization_formset(request=request, instance=self.get_object())
+
+        if self._validate_forms(form, unit_authorization_formset):
+            return self.forms_valid(form, unit_authorization_formset)
+        else:
+            return self.forms_invalid(form, unit_authorization_formset)
+
+    def forms_valid(self, form, unit_authorization_formset):
+        self.object = form.save()
+        unit_authorization_formset.instance = self.object
+        unit_authorization_formset.save()
+        return HttpResponseRedirect(self.get_success_url())
+
+    def forms_invalid(self, form, unit_authorization_formset):
+        messages.error(self.request, 'Tallennus epäonnistui. Tarkista lomakkeen virheet.')
+
+        return self.render_to_response(
+            self.get_context_data(
+                form=form,
+                unit_authorization_formset=unit_authorization_formset,
+            )
+        )
 
 
 class ManageUserPermissionsListView(ExtraContextMixin, ListView):

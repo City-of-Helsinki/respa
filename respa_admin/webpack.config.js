@@ -13,6 +13,7 @@ module.exports = {
     main: './static_src/styles/base.scss',
     styles: './static_src/js/styles.js',
     resourceForm: './static_src/js/resourceFormIndex.js',
+    userForm: './static_src/js/userFormIndex.js',
     base: './static_src/js/baseIndex.js',
   },
   output: {

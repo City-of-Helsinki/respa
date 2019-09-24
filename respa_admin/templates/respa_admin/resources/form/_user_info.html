@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load staticfiles %}
 
 <div id="general-info">
     <div>
@@ -13,7 +14,11 @@
         </div>
     </div>
     <div>
-        
-        {% include "respa_admin/resources/form/_permissions.html" with formset=period_formset_with_days %}
+        {% include "respa_admin/resources/form/_permissions.html" with formset=unit_authorization_formset %}
     </div>
 </div>
+
+{% block js_extra %}
+    <script type="text/javascript" src="{% static 'respa_admin/userForm-bundle.js' %}"></script>
+{% endblock js_extra %}
+

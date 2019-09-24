@@ -5,21 +5,40 @@
         <h4>Käyttöoikeudet</h4>
     </div>
 
-    <div>
-        <button class="resources-button" type="button" id="add-new-hour">{% trans "Add permissions" %}</button>
-        <div class="select-dropdown btn btn-primary">
-            <select>
-                <option>{% trans "Add general time period" %}</option>
-            </select>
-            <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
-        </div>
-    </div>
-
-    <div class="present-hours-list" id="current-periods-list">
-        {% for period in formset %}
+    <table class="full-width-table">
+        <thead>
+            <tr>
+                <th class="table-header">Toimipiste</th>
+                <th class="table-header">Toimipisteen ylläpitäjä/hoitaja</th>
+                <th class="table-header">Voi hyväksyä alustavia varauksia</th>
+            </tr>
+        </thead>
+        <tbody id="current-permissions-list">
+            {% for form in formset %}
             {% with forloop.counter0 as id %}
-            {% include "respa_admin/common/_periods_accordion.html" with period=period id=id %}
-            {% endwith %}
-        {% endfor %}
-    </div>
+            <tr id="permission-item-{{id}}" class="permission-item">
+                {{ form.id }}
+                <td class="table-cell-centered">
+                    {% include "respa_admin/forms/_select.html" with field=form.subject inline=True skip_label=True %}
+                </td>
+                <td class="table-cell-centered">
+                    {% include "respa_admin/forms/_select.html" with field=form.level inline=True skip_label=True %}
+                </td>
+                    {{ form.authorized }}
+                <td class="table-cell-centered table-cell-margin">
+                    {{ form.can_approve_reservation }}
+                </td>
+                <td class="table-cell-centered table-cell-margin">
+                    <button class="remove-permission resources-button" type="button">Poista</button>
+                    <span class="hidden-delete-checkbox">{{ form.DELETE }}</span>
+                </td>
+                {{ form.errors }} {{ form.non_field_errors }}
+                {% endwith %}
+            </tr>
+            {% endfor %}
+        </tbody>
+        <div class="hidden" id="permission-management-form">
+            {{ formset.management_form }}
+        </div>
+    </table>
 </div>
