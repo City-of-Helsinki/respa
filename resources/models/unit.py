@@ -122,6 +122,12 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
         return self.is_admin(user) or (is_authenticated_user(user) and (
             user.unit_authorizations.to_unit(self).manager_level().exists()))
 
+    def has_imported_attributes(self):
+        return False
+
+    def has_imported_hours(self):
+        return False
+
 
 class UnitAuthorizationQuerySet(models.QuerySet):
     def for_user(self, user):
