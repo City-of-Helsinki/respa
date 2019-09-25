@@ -48,11 +48,22 @@ function updatePermissionInputIds() {
   let permissions = $('#current-permissions-list').children();
 
   permissions.each(function (i, permissionItem) {
-    let inputs = $(permissionItem).find('select');
+    let selects = $(permissionItem).find('select');
+    let inputs = $(permissionItem).find('input');
+    let labels = $(permissionItem).find('label');
+
+    selects.each(function (selectIndex, select) {
+      $(select).attr('id', $(select).attr('id').replace(/-(\d+)-/, "-" + i + "-"));
+      $(select).attr('name', $(select).attr('name').replace(/-(\d+)-/, "-" + i + "-"));
+    });
 
     inputs.each(function (inputIndex, input) {
       $(input).attr('id', $(input).attr('id').replace(/-(\d+)-/, "-" + i + "-"));
       $(input).attr('name', $(input).attr('name').replace(/-(\d+)-/, "-" + i + "-"));
+    });
+
+    labels.each(function (labelIndex, label) {
+      $(label).attr('for', $(label).attr('for').replace(/-(\d+)-/, "-" + i + "-"));
     });
   });
 }

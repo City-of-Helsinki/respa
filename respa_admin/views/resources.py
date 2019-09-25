@@ -6,6 +6,7 @@ from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import CreateView, ListView, UpdateView
+from guardian.shortcuts import assign_perm, remove_perm
 from respa_admin.views.base import ExtraContextMixin
 from resources.enums import UnitGroupAuthorizationLevel, UnitAuthorizationLevel
 from resources.auth import is_any_admin
@@ -94,7 +95,9 @@ class ManageUserPermissionsView(ExtraContextMixin, UpdateView):
     pk_url_kwarg = 'user_id'
     form_class = UserForm
     template_name = 'respa_admin/resources/edit_user.html'
-    success_url = reverse_lazy('respa_admin:user-management')
+
+    def get_success_url(self, **kwargs):
+        return reverse_lazy('respa_admin:edit-user', kwargs={'user_id': self.object.pk})
 
     def _validate_forms(self, form, unit_authorization_formset):
         valid_form = form.is_valid()
@@ -125,6 +128,13 @@ class ManageUserPermissionsView(ExtraContextMixin, UpdateView):
     def forms_valid(self, form, unit_authorization_formset):
         self.object = form.save()
         unit_authorization_formset.instance = self.object
+        for formset in unit_authorization_formset.cleaned_data:
+            if 'pk' in formset:
+                if formset['can_approve_reservation']:
+                    assign_perm('unit:can_approve_reservation', self.object, formset['subject'])
+                else:
+                    remove_perm('unit:can_approve_reservation', self.object, formset['subject'])
+
         unit_authorization_formset.save()
         return HttpResponseRedirect(self.get_success_url())
 

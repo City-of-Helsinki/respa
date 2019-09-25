@@ -4,7 +4,7 @@
             {{ field.label }}{% if field.field.required %}*{% endif %}
         </label>
     {% endif %}
-    <div class="select-dropdown btn btn-primary">
+    <div class="select-dropdown btn btn-primary {% if extra_classes %}{{ extra_classes }}{% endif %}">
         {{ field }}
         <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
     </div>

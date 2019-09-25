@@ -383,6 +383,13 @@ class UserForm(forms.ModelForm):
 class UnitAuthorizationForm(forms.ModelForm):
     can_approve_reservation = forms.BooleanField(widget=RespaGenericCheckboxInput, required=False)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        can_approve_initial_value = False
+        if self.instance.pk:
+            can_approve_initial_value = self.instance.authorized.has_perm('unit:can_approve_reservation', self.instance.subject)
+        self.fields['can_approve_reservation'].initial = can_approve_initial_value
+
     class Meta:
         model = UnitAuthorization
 
@@ -412,21 +419,3 @@ def get_unit_authorization_formset(request=None, extra=1, instance=None):
         return unit_authorization_formset(instance=instance)
     else:
         return unit_authorization_formset(data=request.POST, instance=instance)
-
-
-class UserAuthorizationFormSet(forms.BaseInlineFormSet):
-
-    def _get_unit_authorization_formset(self, form):
-        unit_authorization_formset = inlineformset_factory(
-            User,
-            UnitAuthorization,
-            form=UnitAuthorizationForm,
-        )
-
-        return unit_authorization_formset(
-            instance=form.instance,
-            data=form.data if form.is_bound else None,
-            prefix='unit-authorization-%s' % (
-                form.prefix,
-            ),
-        )

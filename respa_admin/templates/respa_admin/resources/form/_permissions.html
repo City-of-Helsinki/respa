@@ -19,20 +19,19 @@
             <tr id="permission-item-{{id}}" class="permission-item">
                 {{ form.id }}
                 <td class="table-cell-centered">
-                    {% include "respa_admin/forms/_select.html" with field=form.subject inline=True skip_label=True %}
+                    {% include "respa_admin/forms/_select.html" with field=form.subject inline=False skip_label=True extra_classes='dropdown-block' %}
                 </td>
                 <td class="table-cell-centered">
-                    {% include "respa_admin/forms/_select.html" with field=form.level inline=True skip_label=True %}
+                    {% include "respa_admin/forms/_select.html" with field=form.level inline=True skip_label=True extra_classes='dropdown-block' %}
                 </td>
                     {{ form.authorized }}
                 <td class="table-cell-centered table-cell-margin">
                     {{ form.can_approve_reservation }}
                 </td>
                 <td class="table-cell-centered table-cell-margin">
-                    <button class="remove-permission resources-button" type="button">Poista</button>
+                    <button class="remove-permission btn cancel-button" type="button">Poista</button>
                     <span class="hidden-delete-checkbox">{{ form.DELETE }}</span>
                 </td>
-                {{ form.errors }} {{ form.non_field_errors }}
                 {% endwith %}
             </tr>
             {% endfor %}
