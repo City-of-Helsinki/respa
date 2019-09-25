@@ -907,6 +907,12 @@ msgstr "Kan reserveras"
 msgid "Please check the opening hours."
 msgstr "Kontrollera öppethållningstider"
 
+msgid "Staff account"
+msgstr "Personalkonto"
+
+msgid "Allows user to grant permissions to units"
+msgstr "Tillåter användare att bevilja behörigheter till behörigheter"
+
 msgid "Instructions"
 msgstr "Instruktioner"
 
@@ -1101,6 +1107,12 @@ msgstr "Lägg till en ny tidsperiod"
 msgid "Add general time period"
 msgstr "Lägg till allmäm tidsperiod"
 
+msgid "Permissions"
+msgstr "Behörigheter"
+
+msgid "Manager/admin of unit"
+msgstr "Enhetens admin/chef"
+
 msgid "Pricing"
 msgstr "Pris"
 
@@ -1115,6 +1127,9 @@ msgstr "Spara"
 
 msgid "View resource"
 msgstr "Visa resurs"
+
+msgid "User profile"
+msgstr "Användarprofil"
 
 msgid "Search for users"
 msgstr ""

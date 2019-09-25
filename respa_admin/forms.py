@@ -374,8 +374,8 @@ class UserForm(forms.ModelForm):
 
         widgets = {
             'is_staff': RespaGenericCheckboxInput(attrs={
-                'label': 'Henkilökunnan tili',
-                'help_text': 'Merkintä antaa oikeuden antaa käyttöoikeuksia toimipisteelle.'
+                'label': _('Staff account'),
+                'help_text': _('Allows user to grant permissions to units')
             })
         }
 
