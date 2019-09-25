@@ -5,8 +5,8 @@
     <div>
         <h2>Käyttäjäprofiili</h2>
         <div class="user-info panel list-item">
-            <p>{{ user_object.first_name }} {{ user_object.last_name }}</p>
-            <p>{{ user_object.email }}</p>
+            <span>{{ user_object.first_name }} {{ user_object.last_name }}</span>
+            <span>{{ user_object.email }}</span>
             <div>
                 {% include "respa_admin/forms/_errors.html" with field=form.is_staff %}
                 {{ form.is_staff }}
