@@ -1032,6 +1032,12 @@ msgstr "Användarsökning med term"
 msgid "Clear search"
 msgstr "Rensa sökning"
 
+msgid "Cancel"
+msgstr "Avbryt"
+
+msgid "Add permissions"
+msgstr "Lägg till behörigheter"
+
 msgid "Accessibility"
 msgstr "Tillgänglighet"
 

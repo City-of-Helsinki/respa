@@ -1314,6 +1314,12 @@ msgstr "Käyttäjät haulla"
 msgid "Clear search"
 msgstr "Tyhjennä haku"
 
+msgid "Cancel"
+msgstr "Peruuta"
+
+msgid "Add permissions"
+msgstr "Lisää käyttöoikeuksia"
+
 msgid "Accessibility"
 msgstr "Esteettömyys"
 
