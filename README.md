@@ -30,7 +30,7 @@ Contributing
 
 Your contributions are always welcome! 
 
-Our main issue tracking is in [Jira](https://helsinkisolutionoffice.atlassian.net/projects/RESPA/issues). However, we also monitor this repository's issues and import them to Jira. If you want to report a bug or see a new feature feel free to create a [new issue](https://github.com/City-of-Helsinki/respa/issues/new) on GitHub or discuss it with us on [Gitter](https://gitter.im/City-of-Helsinki/heldev). Alternatively, you can create a pull request (base master branch). Your PR will be reviewed by the project tech lead.
+Our main issue tracking is in [Jira](https://helsinkisolutionoffice.atlassian.net/projects/RESPA/issues). However, we also monitor this repository's issues and import them to Jira. If you want to report a bug or see a new feature feel free to create a [new issue](https://github.com/City-of-Helsinki/respa/issues/new) on GitHub or discuss it with us on [Gitter](https://gitter.im/City-of-Helsinki/heldev). Alternatively, you can create a pull request (develop branch). Your PR will be reviewed by the project tech lead.
 
 Who is using Respa
 ------------
@@ -43,6 +43,7 @@ Who is using Respa
 - [City of Raahe](https://varaamo-api.raahe.fi/v1/) - for [Varaamo UI](https://varaamo.raahe.fi/)
 - [City of Tampere](https://respa.tampere.fi/v1/) - for [Varaamo UI](https://varaamo.tampere.fi/) - [GitHub repo](https://github.com/Tampere/respa)
 - [City of Lappeenranta](https://varaamo.lappeenranta.fi/respa/v1/) - for [Varaamo UI](https://varaamo.lappeenranta.fi/) - [GitHub repo](https://github.com/City-of-Lappeenranta/Respa)
+- City of Turku - for [Varaamo UI](https://varaamo.turku.fi/) - [GitHub repo](https://github.com/digipointtku/respaTku)
 - City of Hämeenlinna - for [Berth Reservation UI](https://varaukset.hameenlinna.fi/)  - [GitHub repo](https://github.com/CityOfHameenlinna/respa)
 
 FAQ
