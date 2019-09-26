@@ -102,6 +102,7 @@ class Importer(object):
             obj._changed = False
         obj._changed_fields = []
 
+        data['data_source'] = getattr(self, 'name', '')
         self._update_fields(obj, data, ['id', 'identifiers', 'municipality'])
 
         obj.id = data.get('id')

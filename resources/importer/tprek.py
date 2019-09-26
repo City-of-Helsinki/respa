@@ -22,6 +22,7 @@ class TPRekImporter(Importer):
     def _import_unit(self, data, syncher):
         tprek_id = str(data['id'])
 
+        # this is misleading - the id is not actually tprek id. it is servicemap id.
         data['id'] = 'tprek:' + tprek_id
 
         ids = data.setdefault('identifiers', [])

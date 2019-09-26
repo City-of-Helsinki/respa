@@ -29,7 +29,7 @@
                                     </a>
                                 </div>
                                 <div class="col-3">
-                                    {% if unit.has_imported_attributes or unit.has_imported_hours %}
+                                    {% if unit.has_imported_data or unit.has_imported_hours %}
                                         <h6> <div class='shape-danger'></div> {% trans 'Can not be edited' %}</h6>
                                     {% else %}
                                         <h6> <div class='shape-success'></div> {% trans 'Can be edited' %}</h6>
