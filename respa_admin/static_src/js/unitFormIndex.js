@@ -1,4 +1,4 @@
-import { initializeUnitForm, calendarHandler, coloredDropdownListener }  from './unitForm';
+import { initializeUnitForm, calendarHandler }  from './unitForm';
 import { toggleCurrentLanguage, calculateTranslatedFields }  from './resourceFormLanguage';
 
 function start() {

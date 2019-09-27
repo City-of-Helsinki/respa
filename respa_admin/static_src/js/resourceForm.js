@@ -5,84 +5,32 @@ import {
 } from './resourceFormImages';
 
 import {
-  addNewPeriod,
-  updateTotalDays,
-  updatePeriodsTotalForms,
-  removePeriod,
-  modifyDays,
-  copyTimePeriod,
-  copyTimeToNext,
-  sortPeriodDays,
-} from './resourceFormPeriods';
+  initializePeriods,
+} from './periods';
 
 import {
   toggleLanguage,
 } from './resourceFormLanguage';
 
 let emptyImageItem = null;
-let emptyPeriodItem = null;
-let emptyDayItem = null;
+
+export function initializeResourceForm() {
+  initializeEventHandlers();
+  initializePeriods();
+  setImageItem();
+}
 
 /*
 * Attach all the event handlers to their objects upon load.
 * */
 export function initializeEventHandlers() {
-  enablePeriodEventHandlers();
-  enableAddNewPeriod();
   enableLanguageButtons();
   enableAddNewImage();
   enableRemoveImage();
 }
 
-export function setClonableItems() {
-  setPeriodAndDayItems();
-  setImageItem();
-}
-
 export function getEmptyImage() {
   return emptyImageItem;
-}
-
-export function getEmptyPeriodItem() {
-  return emptyPeriodItem;
-}
-
-export function getEmptyDayItem() {
-  return emptyDayItem;
-}
-
-
-
-/*
-* Set empty day and period variables.
-* */
-function setPeriodAndDayItems() {
-  //Get the last period in the list.
-  let $periodList = $('#current-periods-list')[0].children;
-  let $servedPeriodItem = $($periodList[$periodList.length-1]);
-
-  //Get the last day from the period.
-  let $daysList = $servedPeriodItem.find('#period-days-list')[0].children;
-  let $servedDayItem = $daysList[$daysList.length-1];
-
-  emptyDayItem = $($servedDayItem).clone(true);
-  emptyDayItem.removeClass('original-day');  // added days are not original. used for sorting formset indices.
-  emptyPeriodItem = $($servedPeriodItem).clone();
-
-  $servedDayItem.remove();
-  $servedPeriodItem.remove();
-
-  //Iterate the existing days in all periods and remove the last one
-  //which has been added from the backend.
-  if ($periodList.length > 0) {
-    for (let i = 0; i < $periodList.length; i++) {
-      let $days = $($periodList[i]).find('#period-days-list');
-      $days.children().last().remove();
-      updateTotalDays($($periodList[i]));
-    }
-  }
-
-  updatePeriodsTotalForms();
 }
 
 /*
@@ -105,14 +53,6 @@ function setImageItem() {
   $('#images-list')[0].classList.remove('hidden');
 
   updateImagesTotalForms();
-}
-
-/*
-* Bind event for adding a new period to its corresponding button.
-* */
-function enableAddNewPeriod() {
-  let button = document.getElementById('add-new-hour');
-  button.addEventListener('click', addNewPeriod, false);
 }
 
 /*
@@ -150,40 +90,6 @@ function enableLanguageButtons() {
   }
 }
 
-function enablePeriodEventHandlers() {
-  let periods = getPeriodsList();
-
-  for (let i = 0; i < periods.length; i++) {
-    const copyButton = $('#copy-time-period-' + i);
-    copyButton.click(() => copyTimePeriod(periods[i]));
-
-    const $dates = $('#date-inputs-' + i);
-    $dates.change(() => modifyDays($(periods[i]), $dates));
-
-    // This binds the event also to the extra element that is later cloned to
-    // emptyDayItem. New day items will then have event already bound.
-    // This works only when event handlers are bound before setClonableItems
-    // is called.
-    const $copyTimeButtons = $(periods[i]).find('.copy-next');
-    $copyTimeButtons.click((event) => copyTimeToNext(event));
-
-    const removeButton = $('#remove-button-' + i);
-    removeButton.click(() => removePeriod(periods[i]));
-  }
-}
-
-export function initialSortPeriodDays() {
-  let periods = getPeriodsList();
-
-  for (let i = 0; i < periods.length; i++) {
-    sortPeriodDays($(periods[i]));
-  }
-}
-
-export function getPeriodsList() {
-  return document.getElementById('current-periods-list').children;
-}
-
 export function calendarHandler() {
   // Copied from bootstrap-datepicker@1.8.0/js/locales/bootstrap-datepicker.fi.js
   // As it can not be imported as a module, and would need to be shimmed
@@ -211,8 +117,6 @@ export function addDropdownColor() {
   let reservableDropdown = document.getElementById('id_reservable');
   let reservableDropdownValue = reservableDropdown.options[reservableDropdown.selectedIndex].value;
   let reservableDropdownIcon = document.getElementById('reservable-dropdown-icon');
-
-
 
   if(publicDropdownValue === 'True') {
     publicDropdownIcon.className = 'shape-success'
