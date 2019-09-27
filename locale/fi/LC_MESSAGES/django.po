@@ -1419,6 +1419,9 @@ msgstr "Käyttäjäprofiili"
 msgid "Search for users"
 msgstr "Hae käyttäjiä"
 
+msgid "You can't remove staff status from user with existing permissions"
+msgstr "Ei voida poistaa henkilökunnan tili -merkintää käyttäjältä, jolla on käyttöoikeuksia toimipisteelle"
+
 msgid "Edit resource"
 msgstr "Muokkaa resurssia"
 

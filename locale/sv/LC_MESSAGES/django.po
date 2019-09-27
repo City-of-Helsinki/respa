@@ -1140,6 +1140,9 @@ msgstr "Användarprofil"
 msgid "Search for users"
 msgstr ""
 
+msgid "You can't remove staff status from user with existing permissions"
+msgstr "Det går inte att ta bort personalkontot från användaren med behörigheter till enheten"
+
 msgid "Edit resource"
 msgstr "Modifiera resurs"
 
