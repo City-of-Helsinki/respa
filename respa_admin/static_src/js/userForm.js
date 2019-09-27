@@ -1,7 +1,7 @@
 let emptyPermissionItem = null;
 
 function enableRemovePermission() {
-  $('.remove-permission').bind('click', removePermission);
+  $('#current-permissions-list').on('click', '.remove-permission', removePermission)
 }
 
 function enableAddNewPermission() {
@@ -34,15 +34,15 @@ function addNewPermission() {
 }
 
 function removePermission() {
+  console.log('REMOVE PERMISSIONS  @@@@@@@ ');
   $(this).next('span.hidden-delete-checkbox').find('input').prop("checked", true);
   $(this).closest('.permission-item').hide()
 }
 
 function initializeUserForm() {
   updatePermissionsTotalForms();
-  enableRemovePermission();
   updatePermissionInputIds();
-  updateAllDaysMgmtFormIndices();
+  updateAllPermissionMgmtFormIndices();
 }
 
 function getPermissionsCount() {
@@ -77,7 +77,7 @@ function updatePermissionInputIds() {
   });
 }
 
-function updatePeriodDaysMgmtFormIndices(periodItem, index = null) {
+function updatePermissionMgmtFormIndices(periodItem, index = null) {
   let $managementFormInputs = $(periodItem).find('#permission-management-form').find('input');
 
   if (index === null) {
@@ -85,15 +85,15 @@ function updatePeriodDaysMgmtFormIndices(periodItem, index = null) {
   }
 
   $managementFormInputs.each(function (id, input) {
-    $(input).attr('id', $(input).attr('id').replace(/id_unit_authorizations-(\d+)-/, 'id_days-periods-' + index + '-'));
-    $(input).attr('name', $(input).attr('name').replace(/unit_authorizations-(\d+)-/, 'days-periods-' + index + '-'));
+    $(input).attr('id', $(input).attr('id').replace(/id_unit_authorizations-(\d+)-/, 'id_unit_authorizations-' + index + '-'));
+    $(input).attr('name', $(input).attr('name').replace(/unit_authorizations-(\d+)-/, 'unit_authorizations-' + index + '-'));
   });
 }
 
-function updateAllDaysMgmtFormIndices() {
+function updateAllPermissionMgmtFormIndices() {
   let periodList = $('#current-permissions-list').children();
   for (let i = 0; i < getPermissionsCount(); i++) {
-    updatePeriodDaysMgmtFormIndices(periodList[i], i);
+    updatePermissionMgmtFormIndices(periodList[i], i);
   }
 }
 
