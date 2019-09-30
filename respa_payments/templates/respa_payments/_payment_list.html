@@ -8,16 +8,34 @@
             <div class='filter pull-right'>
                 <span class="dropdowns-label">{% trans 'Filter' %}:</span>
                 <form name="filter-dropdowns" method="get">
-                    <div class="hours-table-header" id="period-list">
-                        <div class="input-row period-input" id="period-input-interval-filter">
-                            <div class="form-group">
-                                <label class="control-label input-label">{% trans "Time interval" %}</label>
-                                <div class="input-row range-input date-input" id="date-inputs-interval-filter">
-                                    <input name="filter_start" value="{{ filter_start|default:'' }}" onchange="this.form.submit();" class="text-input form-control" data-provide="datepicker" data-date-format="dd.mm.yyyy" />
-                                    <span class="glyphicon glyphicon-minus"></span>
-                                    <input name="filter_end" value="{{ filter_end|default:'' }}" onchange="this.form.submit();" class="text-input form-control" data-provide="datepicker" data-date-format="dd.mm.yyyy" />
-                                </div>
-                            </div>
+                    <div class="form-group">
+                        <label class="control-label input-label">{% trans "Time interval" %}</label>
+                        <div class="input-row range-input date-input" id="date-inputs-interval-filter">
+                            <input name="filter_start" value="{{ filter_start|default:'' }}" onchange="this.form.submit();" class="text-input form-control" data-provide="datepicker" data-date-format="dd.mm.yyyy" />
+                            <span class="glyphicon glyphicon-minus"></span>
+                            <input name="filter_end" value="{{ filter_end|default:'' }}" onchange="this.form.submit();" class="text-input form-control" data-provide="datepicker" data-date-format="dd.mm.yyyy" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label input-label">{% trans "Payment result" %}</label>
+                        <div class='select-dropdown btn btn-primary'>
+                            <select id="type-selector" name="display" onchange="this.form.submit();">
+                                <option
+                                    {% if display == 'success' %}
+                                        selected="selected"
+                                    {% endif %}
+                                        value="success">
+                                    {% trans "Only succeeded payments" %}
+                                </option>
+                                <option
+                                    {% if display == 'all' %}
+                                        selected="selected"
+                                    {% endif %}
+                                        value="all">
+                                    {% trans "All payments" %}
+                                </option>
+                            </select>
+                            <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
                         </div>
                     </div>
                 </form>
