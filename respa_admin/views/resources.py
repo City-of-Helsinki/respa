@@ -103,10 +103,11 @@ class ManageUserPermissionsView(ExtraContextMixin, UpdateView):
         valid_form = form.is_valid()
         valid_unit_authorization_formset = unit_authorization_formset.is_valid()
 
-        perms_are_empty_or_marked_for_deletion = all(
-            {"DELETE": True}.items() <= dict.items() or len(dict) == 0
-            for dict in unit_authorization_formset.cleaned_data
-        )
+        if valid_unit_authorization_formset:
+            perms_are_empty_or_marked_for_deletion = all(
+                {"DELETE": True}.items() <= dict.items() or len(dict) == 0
+                for dict in unit_authorization_formset.cleaned_data
+            )
 
         if not form.cleaned_data['is_staff'] and not perms_are_empty_or_marked_for_deletion:
             form.add_error(None, _('You can\'t remove staff status from user with existing permissions'))
@@ -137,12 +138,12 @@ class ManageUserPermissionsView(ExtraContextMixin, UpdateView):
     def forms_valid(self, form, unit_authorization_formset):
         self.object = form.save()
         unit_authorization_formset.instance = self.object
-        for formset in unit_authorization_formset.cleaned_data:
-            if 'subject' and 'level' in formset:
-                if formset['can_approve_reservation']:
-                    assign_perm('unit:can_approve_reservation', self.object, formset['subject'])
+        for form in unit_authorization_formset.cleaned_data:
+            if 'subject' and 'level' in form:
+                if form['can_approve_reservation']:
+                    assign_perm('unit:can_approve_reservation', self.object, form['subject'])
                 else:
-                    remove_perm('unit:can_approve_reservation', self.object, formset['subject'])
+                    remove_perm('unit:can_approve_reservation', self.object, form['subject'])
 
         unit_authorization_formset.save()
         return HttpResponseRedirect(self.get_success_url())

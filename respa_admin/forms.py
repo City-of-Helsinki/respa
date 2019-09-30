@@ -418,9 +418,6 @@ class UnitAuthorizationFormSet(forms.BaseInlineFormSet):
         kwargs['permission_checker'] = self.permission_checker
         return kwargs
 
-    def get_queryset(self):
-        return super().get_queryset()
-
 
 def get_unit_authorization_formset(request=None, extra=1, instance=None):
     unit_authorization_formset = inlineformset_factory(
