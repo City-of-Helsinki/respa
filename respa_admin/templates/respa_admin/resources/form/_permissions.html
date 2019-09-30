@@ -25,10 +25,10 @@
                     {% include "respa_admin/forms/_select.html" with field=form.level inline=True skip_label=True extra_classes='dropdown-block' %}
                 </td>
                     {{ form.authorized }}
-                <td class="table-cell-centered table-cell-margin">
+                <td class="table-cell-centered">
                     {{ form.can_approve_reservation }}
                 </td>
-                <td class="table-cell-centered table-cell-margin">
+                <td class="table-cell-centered">
                     <button class="remove-permission btn cancel-button" type="button">{% trans "Delete Item" %}</button>
                     <span class="hidden-delete-checkbox">{{ form.DELETE }}</span>
                 </td>
