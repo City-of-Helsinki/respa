@@ -75,7 +75,7 @@
                                 -
                             {% endif %}
                         </td>
-                        <td>{{ payment.sku.name }}</td>
+                        <td>{% if payment.sku_name %}{{ payment.sku_name }}{% else %}{{ payment.sku.name }}{% endif %}</td>
                         <td>{{ payment.payment_service_amount|floatformat:2|add:" €"|default:"-" }}</td>
                     </tr>
                 {% endfor %}
