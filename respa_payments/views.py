@@ -6,7 +6,7 @@ import datetime
 
 class PaymentListView(ListView):
     model = Order
-    paginate_by = 10
+    paginate_by = 30
     context_object_name = 'payments'
     template_name = 'respa_payments/page_payments.html'
 
