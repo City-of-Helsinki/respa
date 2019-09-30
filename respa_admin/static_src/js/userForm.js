@@ -12,7 +12,7 @@ function isStaffCheckboxListener() {
   let staff_input_elem = $("input#id_is_staff");
   $('.select-dropdown, .custom-checkbox').change(function() {
     if(!staff_input_elem.is(":checked")) {
-      staff_input_elem.prop("checked", true)
+      staff_input_elem.prop("checked", true);
     }
   });
 }
