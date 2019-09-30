@@ -1141,7 +1141,12 @@ msgid "Search for users"
 msgstr ""
 
 msgid "You can't remove staff status from user with existing permissions"
-msgstr "Det går inte att ta bort personalkontot från användaren med behörigheter till enheten"
+msgstr ""
+"Det går inte att ta bort personalkontot från användaren med behörigheter "
+"till enheten"
+
+msgid "Failed to save. Please check the form for errors."
+msgstr "Det gick inte att spara. Kontrollera formuläret för fel."
 
 msgid "Edit resource"
 msgstr "Modifiera resurs"

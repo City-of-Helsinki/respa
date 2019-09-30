@@ -149,7 +149,7 @@ class ManageUserPermissionsView(ExtraContextMixin, UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
     def forms_invalid(self, form, unit_authorization_formset):
-        messages.error(self.request, 'Tallennus epäonnistui. Tarkista lomakkeen virheet.')
+        messages.error(self.request, _('Failed to save. Please check the form for errors.'))
 
         return self.render_to_response(
             self.get_context_data(
@@ -376,7 +376,7 @@ class SaveResourceView(ExtraContextMixin, CreateView):
         return HttpResponseRedirect(self.get_success_url())
 
     def forms_invalid(self, form, period_formset_with_days, resource_image_formset):
-        messages.error(self.request, 'Tallennus epäonnistui. Tarkista lomakkeen virheet.')
+        messages.error(self.request, _('Failed to save. Please check the form for errors.'))
 
         # Extra forms are not added upon post so they
         # need to be added manually below. This is because
