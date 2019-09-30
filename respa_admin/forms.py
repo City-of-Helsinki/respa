@@ -3,6 +3,8 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
 
+from guardian.core import ObjectPermissionChecker
+
 from .widgets import (
     RespaCheckboxSelect,
     RespaCheckboxInput,
@@ -17,6 +19,7 @@ from resources.models import (
     Purpose,
     Resource,
     ResourceImage,
+    Unit,
     UnitAuthorization
 )
 from users.models import User
@@ -384,10 +387,13 @@ class UnitAuthorizationForm(forms.ModelForm):
     can_approve_reservation = forms.BooleanField(widget=RespaGenericCheckboxInput, required=False)
 
     def __init__(self, *args, **kwargs):
+        permission_checker = kwargs.pop('permission_checker')
         super().__init__(*args, **kwargs)
         can_approve_initial_value = False
         if self.instance.pk:
-            can_approve_initial_value = self.instance.authorized.has_perm('unit:can_approve_reservation', self.instance.subject)
+            can_approve_initial_value = permission_checker.has_perm(
+                "unit:can_approve_reservation", self.instance.subject
+            )
         self.fields['can_approve_reservation'].initial = can_approve_initial_value
 
     class Meta:
@@ -401,7 +407,19 @@ class UnitAuthorizationForm(forms.ModelForm):
 
 
 class UnitAuthorizationFormSet(forms.BaseInlineFormSet):
-    pass
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.permission_checker = ObjectPermissionChecker(kwargs['instance'])
+        self.permission_checker.prefetch_perms(Unit.objects.filter(authorizations__authorized=kwargs['instance']))
+
+    def get_form_kwargs(self, index):
+        kwargs = super().get_form_kwargs(index)
+        kwargs['permission_checker'] = self.permission_checker
+        return kwargs
+
+    def get_queryset(self):
+        return super().get_queryset()
 
 
 def get_unit_authorization_formset(request=None, extra=1, instance=None):
