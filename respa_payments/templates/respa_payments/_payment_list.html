@@ -4,117 +4,134 @@
     <div class='container'>
 
         <div class='filter-bar container-fluid'>
-            <h2 class="pull-left">{% trans 'All payments' %}</h2>
+            <div class="pull-left">
+            <h2>{% trans 'All payments' %}</h2>
+            <h6>{% trans 'Total amount' %}: {{ total_payment_service_amount|floatformat:2|add:" €"|default:"-" }} </h6>
+            </div>
             <div class='filter pull-right'>
                 <span class="dropdowns-label">{% trans 'Filter' %}:</span>
                 <form name="filter-dropdowns" method="get">
-                    <div class="hours-table-header" id="period-list">
-                        <div class="input-row period-input" id="period-input-interval-filter">
-                            <div class="form-group">
-                                <label class="control-label input-label">{% trans "Time interval" %}</label>
-                                <div class="input-row range-input date-input" id="date-inputs-interval-filter">
-                                    <input name="filter_start" value="{{ filter_start|default:'' }}" onchange="this.form.submit();" class="text-input form-control" data-provide="datepicker" data-date-format="dd.mm.yyyy" />
-                                    <span class="glyphicon glyphicon-minus"></span>
-                                    <input name="filter_end" value="{{ filter_end|default:'' }}" onchange="this.form.submit();" class="text-input form-control" data-provide="datepicker" data-date-format="dd.mm.yyyy" />
-                                </div>
-                            </div>
+                    <div class="form-group">
+                        <label class="control-label input-label">{% trans "Time interval" %}</label>
+                        <div class="input-row range-input date-input" id="date-inputs-interval-filter">
+                            <input name="filter_start" value="{{ filter_start|default:'' }}" onchange="this.form.submit();" class="text-input form-control" data-provide="datepicker" data-date-format="dd.mm.yyyy" />
+                            <span class="glyphicon glyphicon-minus"></span>
+                            <input name="filter_end" value="{{ filter_end|default:'' }}" onchange="this.form.submit();" class="text-input form-control" data-provide="datepicker" data-date-format="dd.mm.yyyy" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label input-label">{% trans "Payment result" %}</label>
+                        <div class='select-dropdown btn btn-primary'>
+                            <select id="type-selector" name="display" onchange="this.form.submit();">
+                                <option
+                                    {% if display == 'success' %}
+                                        selected="selected"
+                                    {% endif %}
+                                        value="success">
+                                    {% trans "Only succeeded payments" %}
+                                </option>
+                                <option
+                                    {% if display == 'all' %}
+                                        selected="selected"
+                                    {% endif %}
+                                        value="all">
+                                    {% trans "All payments" %}
+                                </option>
+                            </select>
+                            <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
 
-        <div class='payment-list container-fluid'>
-            <ul class='list-group'>
-                <li class="list-group-item sort-bar">
-                    <button class="col-2 btn">
-                        {% trans 'Date' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
-                    </button>
-                    <button class="col-2 btn">
-                        {% trans 'Status' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
-                    </button>
-                    <button class="col-2 btn">
-                        {% trans 'Name' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
-                    </button>
-                    <button class="col-2 btn">
-                        {% trans 'Email' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
-                    </button>
-                    <button class="col-2 btn">
-                        {% trans 'Phone number' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
-                    </button>
-                    <button class="col-2 btn">
-                        {% trans 'Resource' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
-                    </button>
-                    <button class="col-2 btn">
-                        {% trans 'Amount' %} <span class='glyphicon glyphicon-sort' aria-hidden="true"></span>
-                    </button>
-                </li>
+        <table class='table'>
+            <thead>
+                <tr>
+                    <th scope="col">{% trans 'Date' %}</th>
+                    <th scope="col">{% trans 'Status' %}</th>
+                    <th scope="col">{% trans 'Name' %}</th>
+                    <th scope="col">{% trans 'Email' %}</th>
+                    <th scope="col">{% trans 'Phone number' %}</th>
+                    <th scope="col">{% trans 'Resource' %}</th>
+                    <th scope="col">{% trans 'Product' %}</th>
+                    <th scope="col">{% trans 'Amount' %}</th>
+                </tr>
+            </thead>
+            <tbody>
                 {% for payment in payments %}
-                    <li class="list-group-item">
-                        <div class='panel panel-default'>
-                            <div class="panel-body">
-                                <div class="col-2">
-                                    <h6>{{ payment.order_process_started|date:"d.m.Y"|default:"-"  }}</h6>
-                                </div>
-
-                                <div class="col-2">
-                                    <h6>{{ payment.payment_service_status|default:"-"|lower }}</h6>
-                                </div>
-
-                                <div class="col-2">
-                                    <h6>{{ payment.reservation.reserver_name|default:"-" }}</h6>
-                                </div>
-
-                                <div class="col-2">
-                                    <h6>{{ payment.reservation.reserver_email_address|default:"-" }}</h6>
-                                </div>
-
-                                <div class="col-2">
-                                    <h6>{{ payment.reservation.reserver_phone_number|default:"-" }}</h6>
-                                </div>
-
-                                <div class="col-2">
-                                      {% if payment.reservation.resource %}
-                                        <a href="{% url 'respa_admin:edit-resource' resource_id=payment.reservation.resource.id %}">
-                                          {{ payment.reservation.resource.name|default:payment.reservation.resource.id }}
-                                        </a>
-                                      {% else %}
-                                        -
-                                      {% endif %}
-                                    </h6>
-                                </div>
-
-                                <div class="col-2">
-                                    <h6>{{ payment.payment_service_amount|floatformat:2|add:" €"|default:"-" }}</h6>
-                                </div>
-                            </div>
-                        </div>
-                    </li>
+                    <tr>
+                        <th scope="row">{{ payment.order_process_started|date:"d.m.Y"|default:"-"  }}</th>
+                        <td>{{ payment.payment_service_status|default:"-"|lower }}</td>
+                        <td>{{ payment.reservation.reserver_name|default:"-" }}</td>
+                        <td>{{ payment.reservation.reserver_email_address|default:"-" }}</td>
+                        <td>{{ payment.reservation.reserver_phone_number|default:"-" }}</td>
+                        <td>
+                            {% if payment.reservation.resource %}
+                                <a href="{% url 'respa_admin:edit-resource' resource_id=payment.reservation.resource.id %}">
+                                    {{ payment.reservation.resource.name|default:payment.reservation.resource.id }}
+                                </a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{% if payment.sku_name %}{{ payment.sku_name }}{% else %}{{ payment.sku.name }}{% endif %}</td>
+                        <td>{{ payment.payment_service_amount|floatformat:2|add:" €"|default:"-" }}</td>
+                    </tr>
                 {% endfor %}
-                <li class="list-group-item">
-                    <div class='panel panel-default'>
-                        <div class="panel-body">
-                            <div class="col-2">
-                            </div>
-                            <div class="col-2">
-                            </div>
-                            <div class="col-2">
-                            </div>
-                            <div class="col-2">
-                            </div>
-                            <div class="col-2">
-                            </div>
-                            <div class="col-2">
-                            </div>
-                            <div class="pull-right col-2">
-                                <h6>{{ total_payment_service_amount|floatformat:2|add:" €"|default:"-" }}</h6>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-            </ul>
+            </tbody>
+        </table>
 
-            {% include "respa_admin/common/_pagination.html" %}
+            <div class="page-navigation">
+                <nav aria-label="page-navigation">
+                    <ul class="pagination pagination-lg">
+                        {% if page_obj.has_previous %}
+                            <li>
+                                <a
+                                    aria-label="Previous"
+                                    class="btn previous"
+                                    href="?page={{ page_obj.previous_page_number }}&filter_start={{ filter_start }}&filter_end={{ filter_end }}"
+                                    >
+                                    <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% for page_no in paginator.page_range %}
+                            {% if page_no > page_obj.number|add:"-3" and page_no < page_obj.number|add:"3" %}
+                                <li>
+                                    <a
+                                        class="btn {% if page_no == page_obj.number %}active-page{% endif %}"
+                                        href="?page={{ page_no }}&filter_start={{ filter_start }}&filter_end={{ filter_end }}"
+                                        >
+                                        {{ page_no }}
+                                    </a>
+                                </li>
+                            {% elif page_no == page_obj.number|add:"-4" or page_no == page_obj.number|add:"4" %}
+                                <li>
+                                    <a
+                                        class="btn"
+                                        href="?page={{ page_no }}&filter_start={{ filter_start }}&filter_end={{ filter_end }}"
+                                        >
+                                        ...
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        {% if page_obj.has_next %}
+                            <li>
+                                <a
+                                    aria-label="Next"
+                                    class="btn next"
+                                    href="?page={{ page_obj.next_page_number }}&filter_start={{ filter_start }}&filter_end={{ filter_end }}"
+                                    >
+                                    <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+
         </div>
     </div>
 </section>
