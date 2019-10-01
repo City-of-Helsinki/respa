@@ -479,11 +479,24 @@ class ReservationFilterSet(django_filters.rest_framework.FilterSet):
         # restrict results to reservations the user has right to see
         queryset = queryset.extra_fields_visible(user)
 
+        # assume that first_name and last_name were provided if empty space was found
+        if ' ' in value:
+            name1, name2 = value.split()
+            filters = Q(
+                user__first_name__icontains=name1,
+                user__last_name__icontains=name2,
+            ) | Q(
+                user__first_name__icontains=name2,
+                user__last_name__icontains=name1,
+            )
+            return queryset.filter(filters)
+
         fields = ('user__first_name', 'user__last_name', 'user__email',
                   'reserver_name', 'reserver_email_address', 'reserver_phone_number')
         conditions = []
         for field in fields:
             conditions.append(Q(**{field + '__icontains': value}))
+            print(conditions)
         return queryset.filter(reduce(operator.or_, conditions))
 
 
