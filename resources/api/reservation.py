@@ -496,7 +496,6 @@ class ReservationFilterSet(django_filters.rest_framework.FilterSet):
         conditions = []
         for field in fields:
             conditions.append(Q(**{field + '__icontains': value}))
-            print(conditions)
         return queryset.filter(reduce(operator.or_, conditions))
 
 
