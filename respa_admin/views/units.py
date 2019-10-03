@@ -1,7 +1,8 @@
 from django.conf import settings
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.db.models import FieldDoesNotExist
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.utils.translation import ugettext as _
 from django.views.generic import CreateView, ListView
@@ -111,8 +112,14 @@ class UnitEditView(ExtraContextMixin, CreateView):
     def post(self, request, *args, **kwargs):
         if self.pk_url_kwarg in kwargs:
             self.object = self.get_object()
+            if not (self.object.is_admin(request.user) or self.object.is_manager(request.user)):
+                raise PermissionDenied
         else:
             self.object = None
+
+        if self.object is None:
+            # Creating new units is currently disabled
+            return HttpResponse(status_code=404)
 
         form = self.get_form()
 
