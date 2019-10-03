@@ -117,9 +117,8 @@ class ManageUserPermissionsView(ExtraContextMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         context['unit_authorization_formset'] = get_unit_authorization_formset(
-            self.request,
+            request=self.request,
             instance=self.object,
         )
         return context
@@ -139,7 +138,7 @@ class ManageUserPermissionsView(ExtraContextMixin, UpdateView):
         self.object = form.save()
         unit_authorization_formset.instance = self.object
         for form in unit_authorization_formset.cleaned_data:
-            if 'subject' and 'level' in form:
+            if 'subject' in form and 'level' in form:
                 if form['can_approve_reservation']:
                     assign_perm('unit:can_approve_reservation', self.object, form['subject'])
                 else:

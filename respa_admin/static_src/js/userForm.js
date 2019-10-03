@@ -34,7 +34,6 @@ function addNewPermission() {
 }
 
 function removePermission() {
-  console.log('REMOVE PERMISSIONS  @@@@@@@ ');
   $(this).next('span.hidden-delete-checkbox').find('input').prop("checked", true);
   $(this).closest('.permission-item').hide()
 }

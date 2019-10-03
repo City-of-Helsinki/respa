@@ -388,6 +388,7 @@ class UnitAuthorizationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         permission_checker = kwargs.pop('permission_checker')
+        self.request = kwargs.pop('request')
         super().__init__(*args, **kwargs)
         can_approve_initial_value = False
         if self.instance.pk:
@@ -395,6 +396,14 @@ class UnitAuthorizationForm(forms.ModelForm):
                 "unit:can_approve_reservation", self.instance.subject
             )
         self.fields['can_approve_reservation'].initial = can_approve_initial_value
+
+    def clean(self):
+        cleaned_data = super().clean()
+        unit = cleaned_data.get('subject')
+        if not self.request.user.unit_authorizations.to_unit(unit).admin_level().exists() \
+           and not self.request.user.unit_group_authorizations.to_unit(unit).admin_level().exists():
+            self.add_error('subject', _('You can\'t add permissions to unit you are not admin of'))
+        return cleaned_data
 
     class Meta:
         model = UnitAuthorization
@@ -409,6 +418,7 @@ class UnitAuthorizationForm(forms.ModelForm):
 class UnitAuthorizationFormSet(forms.BaseInlineFormSet):
 
     def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
         self.permission_checker = ObjectPermissionChecker(kwargs['instance'])
         self.permission_checker.prefetch_perms(Unit.objects.filter(authorizations__authorized=kwargs['instance']))
@@ -416,6 +426,7 @@ class UnitAuthorizationFormSet(forms.BaseInlineFormSet):
     def get_form_kwargs(self, index):
         kwargs = super().get_form_kwargs(index)
         kwargs['permission_checker'] = self.permission_checker
+        kwargs['request'] = self.request
         return kwargs
 
 
@@ -433,4 +444,4 @@ def get_unit_authorization_formset(request=None, extra=1, instance=None):
     if request.method == 'GET':
         return unit_authorization_formset(instance=instance)
     else:
-        return unit_authorization_formset(data=request.POST, instance=instance)
+        return unit_authorization_formset(request=request, data=request.POST, instance=instance)
