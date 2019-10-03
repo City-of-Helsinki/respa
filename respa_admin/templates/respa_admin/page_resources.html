@@ -6,16 +6,16 @@
     <section class="hero-section bg-light {{ KORO_STYLE }}">
         <div class="container">
             <div class="headline">
-                <div class="resources-report row">
+                <div class="listing-report row">
                     <h1 class="col-sm-6">{% trans 'All resources I manage' %}</h1>
-                    <span class="col-sm-6 resources-count">{{ paginator.count }} kpl</span>
+                    <span class="col-sm-6 listing-count">{{ paginator.count }} kpl</span>
                 </div>
                 <a class="btn resource-control" href="{% url 'respa_admin:new-resource' %}">
                     <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
                     {% trans 'Add a new resource' %}<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
                 </a>
                 <form action="." method="get">
-                    <div class="form-group resources-search center-block">
+                    <div class="form-group listing-search center-block">
                         <div class="input-group">
                             <span class="input-group-addon">{% trans 'Search' %}</span>
                             <input autofocus type="text" class="form-control text-input" name="search_query" value="{{ request.GET.search_query }}">
