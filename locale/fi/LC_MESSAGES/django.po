@@ -1196,6 +1196,9 @@ msgstr "Henkilökunnan tili"
 msgid "Allows user to grant permissions to units"
 msgstr "Antaa käyttäjän myöntää käyttöoikeuksia toimipisteille"
 
+msgid "You can't add permissions to unit you are not admin of"
+msgstr "Et voi antaa käyttöoikeuksia toimipisteelle, jonka ylläpitäjä et ole"
+
 msgid "Log out"
 msgstr "Kirjaudu ulos"
 

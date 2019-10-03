@@ -913,6 +913,9 @@ msgstr "Personalkonto"
 msgid "Allows user to grant permissions to units"
 msgstr "Tillåter användare att bevilja behörigheter till behörigheter"
 
+msgid "You can't add permissions to unit you are not admin of"
+msgstr "Du kan inte bevilja behörigheter till enheter som du inte är administratör för"
+
 msgid "Instructions"
 msgstr "Instruktioner"
 
