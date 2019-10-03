@@ -10,6 +10,10 @@
                     <h1 class="col-sm-6">{% trans 'All units I manage' %}</h1>
                     <span class="col-sm-6 resources-count">{{ paginator.count }} kpl</span>
                 </div>
+                <a class="btn resource-control" href="{% url 'respa_admin:new-unit' %}">
+                    <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
+                    {% trans 'Add a new unit' %}<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                </a>
                 <form action="." method="get">
                     <div class="form-group resources-search center-block">
                         <div class="input-group">

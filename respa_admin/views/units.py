@@ -5,10 +5,10 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.utils.translation import ugettext as _
 from django.views.generic import CreateView, ListView
-from resources.models import Day, Period, Unit
+from resources.enums import UnitAuthorizationLevel
+from resources.models import Day, Period, Unit, UnitAuthorization
 from respa_admin.forms import (
     get_period_formset,
-    get_resource_image_formset,
     get_translated_field_count,
     UnitForm,
 )
@@ -124,12 +124,16 @@ class UnitEditView(ExtraContextMixin, CreateView):
             return self.forms_invalid(form, period_formset_with_days)
 
     def forms_valid(self, form, period_formset_with_days):
+        is_creating_new = self.object is None
         self.object = form.save()
 
         self._delete_extra_periods_days(period_formset_with_days)
         period_formset_with_days.instance = self.object
         period_formset_with_days.save()
         self.object.update_opening_hours()
+        if is_creating_new:
+            UnitAuthorization.objects.create(
+                subject=self.object, authorized=self.request.user, level=UnitAuthorizationLevel.admin)
 
         return HttpResponseRedirect(self.get_success_url())
 
