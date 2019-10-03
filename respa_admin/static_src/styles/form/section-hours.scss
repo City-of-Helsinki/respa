@@ -24,59 +24,62 @@
             padding-bottom: $padding-large-vertical;
         }
 
-        .dropdown-time {
-            background-color: rgba($light-gray, 0.5);
-            padding: 10px 32px;
+        a:active {
+            box-shadow: none;
+        }
+
+        .panel-heading {
+            padding: $padding-small-vertical 0;
             margin: 0;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .panel-heading-tag {
+            padding: $padding-large-vertical 0 $padding-large-vertical 0;
+            font-size: $font-size-large;
+            font-weight: bold;
+            width: 150px;
+            display: inline-block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            vertical-align: bottom;
+        }
+
+        .panel-heading-period {
+            font-size: $font-size-large;
+            margin-left: 32px;
+            line-height: 1.5;
+            display: inline-block;
+        }
+
+        .left-group {
+            height: auto;
+            padding: $padding-small-vertical 0;
+        }
+
+        .right-group {
             height: auto;
 
-            span {
-                padding-top: $padding-large-vertical;
-                padding-bottom: $padding-large-vertical;
-            }
-
-            a:active {
-                box-shadow: none;
-            }
-
-            .panel-heading {
+            & > * {
+                border: 0;
                 padding: $padding-small-vertical 0;
-                margin: 0;
-                width: 100%;
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: space-between;
             }
 
-            .panel-heading-tag {
-                width: 150px;
+            button {
+                background-color: transparent;
             }
 
-            .panel-heading-period {
-                font-size: $font-size-large;
+            a {
+                padding: 10px 0;
                 margin-left: 32px;
             }
 
-            .left-group {
-                padding: $padding-small-vertical 0;
-            }
-
-            .right-group {
-                height: 100%;
-
-                & > * {
-                    border: 0;
-                    padding: $padding-small-vertical 0;
-                    height: 100%;
-                }
-
-                button {
-                    background-color: transparent;
-                }
-
-                a {
-                    margin-left: 32px;
-                }
+            .copy-time-btn {
+                font-weight: normal;
             }
         }
 
@@ -88,6 +91,103 @@
         .present-hours-list {
             padding-top: $padding-large-vertical;
         }
+    }
+
+    .range-input span {
+      width: 50px;
+    }
+
+    .hours-table-header {
+      .schedule {
+        margin-right: 100px;
+        width: 405px;
+
+        input {
+          width: 100%;
+          max-width: none;
+        }
+      }
+    }
+
+    .weekday-row {
+        border-bottom: solid 1px $dark-gray;
+
+        .form-group {
+            height: 50px;
+            margin-right: 50px;
+
+            input {
+                margin: 0;
+            }
+        }
+
+        .day-db-ids {
+            display: none;
+        }
+
+        .period-weekday {
+            border: none;
+            margin: 0;
+            padding-left: 0;
+
+            select {
+                font-weight: bold;
+            }
+
+            &:active {
+              box-shadow: none;
+              -webkit-box-shadow: none;
+            }
+        }
+
+        .checkbox-row {
+            padding-top: 12px;
+
+            .custom-checkbox label.checkbox-custom-label {
+                font-weight: bold;
+            }
+        }
+
+        .time-input-row {
+          display: flex;
+          flex-wrap: wrap;
+
+          .text-input {
+            max-width: 100px;
+            min-width: 100px;
+            padding-left: 25px;
+          }
+
+          .form-group {
+            margin-bottom: 0;
+          }
+
+        }
+
+        .add-time {
+            padding-left: 32px;
+            font-weight: lighter;
+            background-color: transparent;
+            display: inline-flex;
+
+            span {
+                font-size: $font-size-large;
+            }
+        }
+
+        .copy-next {
+            background-color: $hel-copper;
+            margin: 5px 0;
+            color: $white;
+            height: 40px;
+        }
+    }
+
+    .weekday-row:last-child {
+
+      .copy-next {
+        display: none;
+      }
     }
 
     .hours-wrapper {
@@ -106,4 +206,10 @@
             padding-bottom: 24px;
         }
     }
+}
+
+@media (max-width: 991px) {
+  #opening-hours .weekday-row .form-group {
+    margin-right: 12px;
+  }
 }

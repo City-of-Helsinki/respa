@@ -3,14 +3,16 @@
 {% with forloop.counter0 as dayId %}
     <div class="weekday-row input-row original-day" id="period-day-{{ id }}-{{ dayId }}">
 
-        <div id="day-db-ids">
+        <div id="day-db-ids" class="day-db-ids">
             {{ day.period }}
             {{ day.id }}
         </div>
 
-        <span class="select-dropdown btn btn-primary period-weekday">
-            {{ day.weekday }}
-        </span>
+        <div class="form-group">
+            <span class="select-dropdown btn btn-primary period-weekday">
+                {{ day.weekday }}
+            </span>
+        </div>
 
         <div class="form-group">
             <div class="time-input-row range-input">
@@ -20,6 +22,15 @@
             </div>
         </div>
 
-        {{ day.closed }}
+        <div class="form-group">
+            {{ day.closed }}
+        </div>
+
+        <div class="form-group">
+            <button class="btn copy-next" type="button" id="copy-next-{{ id }}">
+                <span class="glyphicon glyphicon-duplicate icon-left" aria-hidden="true"></span>
+                {% trans "Copy to next" %}
+            </button>
+        </div>
     </div>
 {% endwith %}

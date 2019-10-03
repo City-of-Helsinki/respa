@@ -63,27 +63,6 @@
     }
   }
 
-    .time-input-row {
-        display: flex;
-        flex-wrap: wrap;
-        padding: 15px 0;
-        margin-left: 25px;
-
-        .text-input {
-            max-width: 100px;
-            min-width: 100px;
-            padding-left: 25px;
-        }
-
-        .form-group {
-            margin-bottom: 0;
-        }
-
-        & > * {
-            margin-right: $padding-large-horizontal * 2 ;
-        }
-    }
-
   .dropdown-row {
 
     .form-group {
