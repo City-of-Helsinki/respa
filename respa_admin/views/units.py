@@ -7,13 +7,12 @@ from django.urls import reverse_lazy
 from django.utils.translation import ugettext as _
 from django.views.generic import CreateView, ListView
 from resources.enums import UnitAuthorizationLevel
-from resources.models import Day, Period, Unit, UnitAuthorization
+from resources.models import Unit, UnitAuthorization
 from respa_admin.forms import (
-    get_period_formset,
     get_translated_field_count,
     UnitForm,
 )
-from respa_admin.views.base import ExtraContextMixin
+from respa_admin.views.base import ExtraContextMixin, PeriodMixin
 
 
 class UnitListView(ExtraContextMixin, ListView):
@@ -54,7 +53,7 @@ class UnitListView(ExtraContextMixin, ListView):
         return qs
 
 
-class UnitEditView(ExtraContextMixin, CreateView):
+class UnitEditView(ExtraContextMixin, PeriodMixin, CreateView):
     """
     View for saving new units and updating existing units.
     """
@@ -92,18 +91,11 @@ class UnitEditView(ExtraContextMixin, CreateView):
 
         form = self.get_form()
 
-        period_formset_with_days = get_period_formset(
-            self.request,
-            instance=self.object,
-            parent_class=Unit
-        )
-
         trans_fields = get_translated_field_count()
 
         return self.render_to_response(
             self.get_context_data(
                 form=form,
-                period_formset_with_days=period_formset_with_days,
                 trans_fields=trans_fields,
                 page_headline=page_headline,
             )
@@ -122,8 +114,7 @@ class UnitEditView(ExtraContextMixin, CreateView):
             return HttpResponse(status_code=404)
 
         form = self.get_form()
-
-        period_formset_with_days = get_period_formset(request=request, instance=self.object, parent_class=Unit)
+        period_formset_with_days = self.get_period_formset()
 
         if self._validate_forms(form, period_formset_with_days):
             return self.forms_valid(form, period_formset_with_days)
@@ -133,11 +124,8 @@ class UnitEditView(ExtraContextMixin, CreateView):
     def forms_valid(self, form, period_formset_with_days):
         is_creating_new = self.object is None
         self.object = form.save()
+        self.save_period_formset(period_formset_with_days)
 
-        self._delete_extra_periods_days(period_formset_with_days)
-        period_formset_with_days.instance = self.object
-        period_formset_with_days.save()
-        self.object.update_opening_hours()
         if is_creating_new:
             UnitAuthorization.objects.create(
                 subject=self.object, authorized=self.request.user, level=UnitAuthorizationLevel.admin)
@@ -146,21 +134,8 @@ class UnitEditView(ExtraContextMixin, CreateView):
 
     def forms_invalid(self, form, period_formset_with_days):
         messages.error(self.request, _('Saving failed. Check error in the form.'))
-
-        # Extra forms are not added upon post so they
-        # need to be added manually below. This is because
-        # the front-end uses the empty 'extra' forms for cloning.
-        temp_period_formset = get_period_formset()
-        temp_day_form = temp_period_formset.forms[0].days.forms[0]
-
-        period_formset_with_days.forms.append(temp_period_formset.forms[0])
-
-        # Add a nested empty day to each period as well.
-        for period in period_formset_with_days:
-            period.days.forms.append(temp_day_form)
-
+        period_formset_with_days = self.add_empty_forms(period_formset_with_days)
         trans_fields = get_translated_field_count()
-
         return self.render_to_response(
             self.get_context_data(
                 form=form,
@@ -174,45 +149,3 @@ class UnitEditView(ExtraContextMixin, CreateView):
         valid_form = form.is_valid()
         valid_period_form = period_formset.is_valid()
         return valid_form and valid_period_form
-
-    def _delete_extra_periods_days(self, period_formset_with_days):
-        data = period_formset_with_days.data
-        period_ids = get_formset_ids('periods', data)
-
-        if period_ids is None:
-            return
-
-        Period.objects.filter(unit=self.object).exclude(pk__in=period_ids).delete()
-        period_count = to_int(data.get('periods-TOTAL_FORMS'))
-
-        if not period_count:
-            return
-
-        for i in range(period_count):
-            period_id = to_int(data.get('periods-{}-id'.format(i)))
-
-            if period_id is None:
-                continue
-
-            day_ids = get_formset_ids('days-periods-{}'.format(i), data)
-            if day_ids is not None:
-                Day.objects.filter(period=period_id).exclude(pk__in=day_ids).delete()
-
-
-def get_formset_ids(formset_name, data):
-    count = to_int(data.get('{}-TOTAL_FORMS'.format(formset_name)))
-    if count is None:
-        return None
-
-    ids_or_nones = (
-        to_int(data.get('{}-{}-{}'.format(formset_name, i, 'id')))
-        for i in range(count)
-    )
-
-    return {x for x in ids_or_nones if x is not None}
-
-
-def to_int(string):
-    if not string or not string.isdigit():
-        return None
-    return int(string)
