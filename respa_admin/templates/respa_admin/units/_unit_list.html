@@ -24,15 +24,27 @@
                         <div class="panel panel-default">
                             <div class="panel-body">
                                 <div class="col-2">
-                                    <a href="{% url 'respa_admin:edit-unit' unit_id=unit.id %}">
+                                    {% if unit.is_editable %}
+                                        <a href="{% url 'respa_admin:edit-unit' unit_id=unit.id %}">
+                                            <h4>{{ unit.name }}</h4>
+                                        </a>
+                                    {% else %}
                                         <h4>{{ unit.name }}</h4>
-                                    </a>
+                                    {% endif %}
                                 </div>
                                 <div class="col-3">
-                                    {% if unit.has_imported_data or unit.has_imported_hours %}
-                                        <h6> <div class='shape-danger'></div> {% trans 'Can not be edited' %}</h6>
-                                    {% else %}
+                                    {% if unit.is_editable %}
                                         <h6> <div class='shape-success'></div> {% trans 'Can be edited' %}</h6>
+                                    {% else %}
+                                        <h6> <div class='shape-danger'></div> {% trans 'Can not be edited' %}</h6>
+                                    {% endif %}
+                                </div>
+                                <div class="col-4">
+                                    {% if unit.is_editable %}
+                                        <h6>
+                                            <span class='glyphicon glyphicon-pencil icon-left' aria-hidden="true"></span>
+                                            <a href="{% url 'respa_admin:edit-unit' unit_id=unit.id %}">{% trans 'Edit' %}</a>
+                                        </h6>
                                     {% endif %}
                                 </div>
                             </div>

@@ -151,7 +151,7 @@ main {
     /* Unit list has only two columns */
     .unit-list ul li div.panel div.panel-body,
     .unit-list ul li.list-group-item.sort-bar {
-      grid-template-columns: 0px 9fr 3fr;
+      grid-template-columns: 0px 7fr 3fr 2fr;
     }
 
     .resource-list ul li,

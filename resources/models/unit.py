@@ -132,6 +132,10 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
     def has_imported_hours(self):
         return self.data_source_hours != ''
 
+    def is_editable(self):
+        """ Whether unit is editable by normal admin users or not """
+        return not (self.has_imported_data() or self.has_imported_hours())
+
 
 class UnitAuthorizationQuerySet(models.QuerySet):
     def for_user(self, user):

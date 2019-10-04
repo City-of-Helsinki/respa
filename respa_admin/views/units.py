@@ -105,6 +105,10 @@ class UnitEditView(ExtraContextMixin, PeriodMixin, CreateView):
         if self.pk_url_kwarg in kwargs:
             self.object = self.get_object()
             if not (self.object.is_admin(request.user) or self.object.is_manager(request.user)):
+                # only unit admins or managers can edit units
+                raise PermissionDenied
+            if not self.object.is_editable():
+                # unit with imported data can not be edited
                 raise PermissionDenied
         else:
             self.object = None
