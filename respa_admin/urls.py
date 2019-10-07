@@ -23,6 +23,6 @@ urlpatterns = [
     url(r'^units/edit/(?P<unit_id>[\w\d:]+)/$', UnitEditView.as_view(), name='edit-unit'),
     url(r'^i18n/$', include('django.conf.urls.i18n'), name='language'),
     url(r'^user_management/$', ManageUserPermissionsListView.as_view(), name='user-management'),
-    url(r'^user_management/(?P<user_id>\w+)/$', ManageUserPermissionsView.as_view(), name='edit-user'),
     url(r'^user_management/search/$', ManageUserPermissionsSearchView.as_view(), name='user-management-search'),
+    url(r'^user_management/(?P<user_id>\w+)/$', ManageUserPermissionsView.as_view(), name='edit-user'),
 ]
