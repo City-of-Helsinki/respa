@@ -3,10 +3,13 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
 
+from guardian.core import ObjectPermissionChecker
+
 from .widgets import (
-    RespaRadioSelect,
     RespaCheckboxSelect,
     RespaCheckboxInput,
+    RespaGenericCheckboxInput,
+    RespaRadioSelect,
 )
 
 from resources.models import (
@@ -17,7 +20,10 @@ from resources.models import (
     Resource,
     ResourceImage,
     Unit,
+    UnitAuthorization
 )
+
+from users.models import User
 
 from respa.settings import LANGUAGES
 
@@ -392,3 +398,84 @@ def _get_images_formset_translated_fields(images_formset, lang_postfix):
             images_translation_count += len([x for x in form.initial if x.endswith(lang_postfix)])
 
     return images_translation_count
+
+
+class UserForm(forms.ModelForm):
+
+    class Meta:
+        model = User
+
+        fields = [
+            'is_staff',
+        ]
+
+        widgets = {
+            'is_staff': RespaGenericCheckboxInput(attrs={
+                'label': _('Staff account'),
+                'help_text': _('Allows user to grant permissions to units')
+            })
+        }
+
+
+class UnitAuthorizationForm(forms.ModelForm):
+    can_approve_reservation = forms.BooleanField(widget=RespaGenericCheckboxInput, required=False)
+
+    def __init__(self, *args, **kwargs):
+        permission_checker = kwargs.pop('permission_checker')
+        self.request = kwargs.pop('request')
+        super().__init__(*args, **kwargs)
+        can_approve_initial_value = False
+        if self.instance.pk:
+            can_approve_initial_value = permission_checker.has_perm(
+                "unit:can_approve_reservation", self.instance.subject
+            )
+        self.fields['can_approve_reservation'].initial = can_approve_initial_value
+
+    def clean(self):
+        cleaned_data = super().clean()
+        unit = cleaned_data.get('subject')
+        if not self.request.user.unit_authorizations.to_unit(unit).admin_level().exists() \
+           and not self.request.user.unit_group_authorizations.to_unit(unit).admin_level().exists():
+            self.add_error('subject', _('You can\'t add permissions to unit you are not admin of'))
+        return cleaned_data
+
+    class Meta:
+        model = UnitAuthorization
+
+        fields = [
+            'subject',
+            'level',
+            'authorized',
+        ]
+
+
+class UnitAuthorizationFormSet(forms.BaseInlineFormSet):
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+        self.permission_checker = ObjectPermissionChecker(kwargs['instance'])
+        self.permission_checker.prefetch_perms(Unit.objects.filter(authorizations__authorized=kwargs['instance']))
+
+    def get_form_kwargs(self, index):
+        kwargs = super().get_form_kwargs(index)
+        kwargs['permission_checker'] = self.permission_checker
+        kwargs['request'] = self.request
+        return kwargs
+
+
+def get_unit_authorization_formset(request=None, extra=1, instance=None):
+    unit_authorization_formset = inlineformset_factory(
+        User,
+        UnitAuthorization,
+        form=UnitAuthorizationForm,
+        formset=UnitAuthorizationFormSet,
+        extra=extra,
+    )
+
+    if not request:
+        return unit_authorization_formset(instance=instance)
+    if request.method == 'GET':
+        return unit_authorization_formset(instance=instance)
+    else:
+        return unit_authorization_formset(request=request, data=request.POST, instance=instance)

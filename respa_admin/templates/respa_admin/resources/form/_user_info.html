@@ -1,0 +1,25 @@
+{% load i18n %}
+{% load staticfiles %}
+
+<div id="general-info">
+    <div>
+        <h2>{% trans "User profile" %}</h2>
+        <div class="form-error-block">{{ form.non_field_errors }}</div>
+        <div class="user-info panel list-item">
+            <span>{{ user_object.first_name }} {{ user_object.last_name }}</span>
+            <span>{{ user_object.email }}</span>
+            <div>
+                {% include "respa_admin/forms/_errors.html" with field=form.is_staff %}
+                {{ form.is_staff }}
+            </div>
+        </div>
+    </div>
+    <div>
+        {% include "respa_admin/resources/form/_permissions.html" with formset=unit_authorization_formset %}
+    </div>
+</div>
+
+{% block js_extra %}
+    <script type="text/javascript" src="{% static 'respa_admin/userForm-bundle.js' %}"></script>
+{% endblock js_extra %}
+
