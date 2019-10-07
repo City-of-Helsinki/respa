@@ -231,8 +231,6 @@ def build_reservations_ical_file(reservations):
     """
 
     cal = Calendar()
-    cal['X-WR-CALNAME'] = vText('RESPA')
-    cal['name'] = vText('RESPA')
     for reservation in reservations:
         event = Event()
         begin_utc = timezone.localtime(reservation.begin, timezone.utc)
