@@ -10,7 +10,8 @@
     <div class="dropdown-time panel-group input-row" id="accordion{{id}}" role="tablist" aria-multiselectable="true">
         <div class="panel-heading">
             <div class="left-group">
-                <span class="panel-heading-tag">{{ period.name.value }}</span>
+                {% trans 'New period' as translated_unnamed_title %}
+                <span class="panel-heading-tag">{{ period.name.value|default_if_none:translated_unnamed_title }}</span>
                 <span class="panel-heading-period">{{ period.start.value|date:"j.n.Y" }} - {{ period.end.value|date:"j.n.Y" }}</span>
             </div>
             <div class="right-group">

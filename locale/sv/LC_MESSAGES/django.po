@@ -1325,6 +1325,9 @@ msgstr "Instruktioner"
 msgid "Copy to next"
 msgstr "Kopiera till nästa"
 
+msgid "New period"
+msgstr "Ny tidsperiod"
+
 msgid "Copy time period"
 msgstr "Kopiera tidsperiod"
 
@@ -1548,7 +1551,6 @@ msgstr "Kan redigeras"
 
 msgid "Can not be edited"
 msgstr "Kan inte redigeras"
-
 
 msgid "Contact"
 msgstr "Kontaktuppgifter"

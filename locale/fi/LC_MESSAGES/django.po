@@ -1231,6 +1231,9 @@ msgstr "Ohjeet"
 msgid "Copy to next"
 msgstr "Kopioi seuraavaan"
 
+msgid "New period"
+msgstr "Uusi aikajakso"
+
 msgid "Copy time period"
 msgstr "Kopioi aikajakso"
 
