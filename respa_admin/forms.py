@@ -22,6 +22,7 @@ from resources.models import (
     Unit,
     UnitAuthorization
 )
+
 from users.models import User
 
 from respa.settings import LANGUAGES
@@ -248,6 +249,37 @@ class ResourceForm(forms.ModelForm):
         }
 
 
+class UnitForm(forms.ModelForm):
+    name_fi = forms.CharField(
+        required=True,
+        label='Nimi [fi]',
+    )
+
+    class Meta:
+        model = Unit
+
+        translated_fields = [
+            'description_en',
+            'description_fi',
+            'description_sv',
+            'name_en',
+            'name_fi',
+            'name_sv',
+            'street_address_en',
+            'street_address_fi',
+            'street_address_sv',
+            'www_url_en',
+            'www_url_fi',
+            'www_url_sv',
+        ]
+
+        fields = [
+            'address_zip',
+            'municipality',
+            'phone',
+        ] + translated_fields
+
+
 class PeriodFormset(forms.BaseInlineFormSet):
 
     def _get_days_formset(self, form, extra_days=1):
@@ -298,11 +330,11 @@ class PeriodFormset(forms.BaseInlineFormSet):
         return saved_form
 
 
-def get_period_formset(request=None, extra=1, instance=None):
+def get_period_formset(request=None, extra=1, instance=None, parent_class=Resource):
     period_formset_with_days = inlineformset_factory(
-        Resource,
+        parent_class,
         Period,
-        fk_name='resource',
+        fk_name=parent_class._meta.model_name,
         form=PeriodForm,
         formset=PeriodFormset,
         extra=extra,
@@ -332,7 +364,7 @@ def get_resource_image_formset(request=None, extra=1, instance=None):
         return resource_image_formset(data=request.POST, files=request.FILES, instance=instance)
 
 
-def get_translated_field_count(image_formset):
+def get_translated_field_count(image_formset=None):
     """
     Serve a count of how many fields are possible to translate with the translate
     buttons in the UI. The image formset is passed as a parameter since it can hold
@@ -356,6 +388,8 @@ def get_translated_field_count(image_formset):
 
 
 def _get_images_formset_translated_fields(images_formset, lang_postfix):
+    if images_formset is None:
+        return 0
     image_forms = images_formset.forms
     images_translation_count = 0
 

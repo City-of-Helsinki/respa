@@ -72,6 +72,10 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
                                                                       null=True, blank=True)
     reservable_min_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable min. days in advance'),
                                                                       null=True, blank=True)
+    data_source = models.CharField(max_length=128, blank=True, default='',
+                                   verbose_name=_('External data source'))
+    data_source_hours = models.CharField(max_length=128, blank=True, default='',
+                                         verbose_name=_('External data source for opening hours'))
 
     objects = UnitQuerySet.as_manager()
 
@@ -121,6 +125,16 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
     def is_manager(self, user):
         return self.is_admin(user) or (is_authenticated_user(user) and (
             user.unit_authorizations.to_unit(self).manager_level().exists()))
+
+    def has_imported_data(self):
+        return self.data_source != ''
+
+    def has_imported_hours(self):
+        return self.data_source_hours != ''
+
+    def is_editable(self):
+        """ Whether unit is editable by normal admin users or not """
+        return not (self.has_imported_data() or self.has_imported_hours())
 
 
 class UnitAuthorizationQuerySet(models.QuerySet):

@@ -1,0 +1,59 @@
+{% load i18n %}
+{% load thumbnail %}
+
+<section class="units">
+    <div class="container">
+
+        <div class="filter-bar container-fluid">
+            <h2 class="pull-left">{% trans "All units" %}</h2>
+        </div>
+
+        <div class="unit-list container-fluid">
+            <ul class="list-group">
+                <li class="list-group-item sort-bar">
+                    <div class="pull-left empty-holder col-1"></div>
+                    <a class="col-2 btn order-by-link" href="?order_by={% if order_by == "name" %}-name{% else %}name{% endif %}">
+                        {% trans "Name" %} <span class="glyphicon glyphicon-sort" aria-hidden="true"></span>
+                    </a>
+                    <span class="col-3 order-by-link">
+                        {% trans "Editable" %}
+                    </span>
+                </li>
+                {% for unit in units %}
+                    <li class="list-group-item">
+                        <div class="panel panel-default">
+                            <div class="panel-body">
+                                <div class="col-2">
+                                    {% if unit.is_editable %}
+                                        <a href="{% url 'respa_admin:edit-unit' unit_id=unit.id %}">
+                                            <h4>{{ unit.name }}</h4>
+                                        </a>
+                                    {% else %}
+                                        <h4>{{ unit.name }}</h4>
+                                    {% endif %}
+                                </div>
+                                <div class="col-3">
+                                    {% if unit.is_editable %}
+                                        <h6> <div class='shape-success'></div> {% trans 'Can be edited' %}</h6>
+                                    {% else %}
+                                        <h6> <div class='shape-danger'></div> {% trans 'Can not be edited' %}</h6>
+                                    {% endif %}
+                                </div>
+                                <div class="col-4">
+                                    {% if unit.is_editable %}
+                                        <h6>
+                                            <span class='glyphicon glyphicon-pencil icon-left' aria-hidden="true"></span>
+                                            <a href="{% url 'respa_admin:edit-unit' unit_id=unit.id %}">{% trans 'Edit' %}</a>
+                                        </h6>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+
+            {% include "respa_admin/common/_pagination.html" %}
+        </div>
+    </div>
+</section>

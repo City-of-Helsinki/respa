@@ -7,18 +7,14 @@
         <div class="container">
             <div class="headline">
                 <div class="listing-report row">
-                    <h1 class="col-sm-6">{% trans 'All resources I manage' %}</h1>
+                    <h1 class="col-sm-6">{% trans 'All units I manage' %}</h1>
                     <span class="col-sm-6 listing-count">{{ paginator.count }} kpl</span>
                 </div>
-                <a class="btn resource-control" href="{% url 'respa_admin:new-resource' %}">
-                    <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
-                    {% trans 'Add a new resource' %}<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-                </a>
                 <form action="." method="get">
                     <div class="form-group listing-search center-block">
                         <div class="input-group">
                             <span class="input-group-addon">{% trans 'Search' %}</span>
-                            <input autofocus type="text" class="form-control text-input" name="search_query" value="{{ request.GET.search_query }}">
+                            <input autofocus type="text" class="form-control text-input" name="search_query" value="{{ search_query }}">
                             <span class="input-group-btn">
                                 <button class="btn btn-default" type="submit">
                                     <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
@@ -33,5 +29,5 @@
 {% endblock koro_shape %}
 
 {% block body %}
-    {% include "respa_admin/resources/_resource_list.html" %}
+    {% include "respa_admin/units/_unit_list.html" %}
 {% endblock body %}

@@ -1978,6 +1978,7 @@ def test_include_resource_detail(api_client, resource_in_unit, reservation, list
     'reserver_info_search=martta',
     'reserver_info_search=brendan',
     'reserver_info_search=neutra',
+    'reserver_info_search=brendan+neutra',
     'reserver_info_search=brendan@neutra.com',
 ))
 @pytest.mark.django_db
@@ -1998,6 +1999,10 @@ def test_reserver_info_search_filter(staff_api_client, staff_user, reservation, 
     # if no value given for the filter, it should return all reservations
     if filtering == 'reserver_info_search=':
         assert_response_objects(response, [reservation, reservation2, reservation3])
+
+    # providing query param including space assumes that first_name and last_name are being provided
+    elif filtering == 'reserver_info_search=brendan+neutra':
+        assert_response_objects(response, [reservation3])
 
     # martta is reserver_name in first reservation fixture, which has another unit assigned,
     # hence our staff_user should not have permissions to view reservations' users' info
