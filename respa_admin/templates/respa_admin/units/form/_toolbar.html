@@ -1,0 +1,15 @@
+{% load i18n %}
+
+<div class="panel panel-default form-toolbar-wrapper">
+    <div class='container form-toolbar'>
+        <span class="toolbar-label">{% trans "Functions" %}</span>
+        <button class='resources-button' type="submit">{% trans "Save" %}</button>
+        {% if unit and RESPA_ADMIN_VIEW_UNIT_URL %}
+            <a href="{{ RESPA_ADMIN_VIEW_UNIT_URL }}" target="_blank" rel="noopener noreferrer">
+                <button class='btn toolbar-preview' type='button'>
+                {% trans "View unit" %}
+                </button>
+            </a>
+        {% endif %}
+    </div>
+</div>

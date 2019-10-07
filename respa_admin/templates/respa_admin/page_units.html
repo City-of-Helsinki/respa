@@ -6,12 +6,12 @@
     <section class="hero-section bg-light {{ KORO_STYLE }}">
         <div class="container">
             <div class="headline">
-                <div class="resources-report row">
+                <div class="listing-report row">
                     <h1 class="col-sm-6">{% trans 'All units I manage' %}</h1>
-                    <span class="col-sm-6 resources-count">{{ paginator.count }} kpl</span>
+                    <span class="col-sm-6 listing-count">{{ paginator.count }} kpl</span>
                 </div>
                 <form action="." method="get">
-                    <div class="form-group resources-search center-block">
+                    <div class="form-group listing-search center-block">
                         <div class="input-group">
                             <span class="input-group-addon">{% trans 'Search' %}</span>
                             <input autofocus type="text" class="form-control text-input" name="search_query" value="{{ search_query }}">
@@ -29,5 +29,5 @@
 {% endblock koro_shape %}
 
 {% block body %}
-    {% include "respa_admin/resources/_unit_list.html" %}
+    {% include "respa_admin/units/_unit_list.html" %}
 {% endblock body %}

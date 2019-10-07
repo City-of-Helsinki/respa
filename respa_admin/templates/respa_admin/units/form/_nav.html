@@ -1,0 +1,38 @@
+{% load i18n %}
+{% load templatetags %}
+
+<div class="panel panel-default form-nav-wrapper">
+    <div class='container form-header-wrapper'>
+        <div class="container-fluid row form-header">
+            <div class='form-title col-sm-6'>
+                <h2>
+                    <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>{{ page_headline }}
+                </h2>
+            </div>
+
+            <div class="language-switcher">
+                {% for key, value in LANGUAGES %}
+                    <button name="language-{{ key }}" value="{{ key }}" class='language-item btn'>
+                        {{ value }}
+                        {% if trans_fields %}
+                            <span class="badge">{{ trans_fields|get_value_from_dict:key}}</span>
+                        {% else %}
+                            <span class="badge">0</span>
+                        {% endif %}
+                    </button>
+                {% endfor %}
+                <div class="language-switcher-header">{% trans "Translations" %}</div>
+            </div>
+        </div>
+    </div>
+    <nav class="navbar navbar-default">
+        <div class="container">
+            <div class="form-nav collapse navbar-collapse">
+                <ul class="nav navbar-nav">
+                    <li><a href="#general-info">{% trans "General information" %}</a></li>
+                    <li><a href="#opening-hours">{% trans "Opening hours" %}</a></li>
+                </ul>
+            </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+    </nav>
+</div>

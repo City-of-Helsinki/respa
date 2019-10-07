@@ -21,15 +21,13 @@ from resources.models import (
     Unit,
     UnitGroup
 )
-from respa_admin import forms
-
+from respa_admin import accessibility_api, forms
 from respa_admin.forms import (
     get_period_formset,
     get_resource_image_formset,
     ResourceForm,
 )
-
-from respa_admin import accessibility_api
+from respa_admin.views.base import PeriodMixin
 
 
 class ResourceListView(ExtraContextMixin, ListView):
@@ -176,7 +174,7 @@ def admin_office(request):
     return TemplateResponse(request, 'respa_admin/page_office.html')
 
 
-class SaveResourceView(ExtraContextMixin, CreateView):
+class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
     """
     View for saving new resources and updating existing resources.
     """
@@ -214,11 +212,6 @@ class SaveResourceView(ExtraContextMixin, CreateView):
 
         form = self.get_form()
 
-        period_formset_with_days = get_period_formset(
-            self.request,
-            instance=self.object,
-        )
-
         resource_image_formset = get_resource_image_formset(
             self.request,
             instance=self.object,
@@ -232,7 +225,6 @@ class SaveResourceView(ExtraContextMixin, CreateView):
             self.get_context_data(
                 accessibility_data_link=accessibility_data_link,
                 form=form,
-                period_formset_with_days=period_formset_with_days,
                 resource_image_formset=resource_image_formset,
                 trans_fields=trans_fields,
                 page_headline=page_headline,
@@ -271,7 +263,7 @@ class SaveResourceView(ExtraContextMixin, CreateView):
 
         form = self.get_form()
 
-        period_formset_with_days = get_period_formset(request=request, instance=self.object)
+        period_formset_with_days = self.get_period_formset()
         resource_image_formset = get_resource_image_formset(request=request, instance=self.object)
 
         if self._validate_forms(form, period_formset_with_days, resource_image_formset):
@@ -290,16 +282,10 @@ class SaveResourceView(ExtraContextMixin, CreateView):
 
     def forms_valid(self, form, period_formset_with_days, resource_image_formset):
         self.object = form.save()
-
-        self._delete_extra_periods_days(period_formset_with_days)
-        period_formset_with_days.instance = self.object
-        period_formset_with_days.save()
-
         self._save_resource_purposes()
         self._delete_extra_images(resource_image_formset)
         self._save_resource_images(resource_image_formset)
-        self.object.update_opening_hours()
-
+        self.save_period_formset(period_formset_with_days)
         return HttpResponseRedirect(self.get_success_url())
 
     def forms_invalid(self, form, period_formset_with_days, resource_image_formset):
@@ -309,16 +295,8 @@ class SaveResourceView(ExtraContextMixin, CreateView):
         # need to be added manually below. This is because
         # the front-end uses the empty 'extra' forms for cloning.
         temp_image_formset = get_resource_image_formset()
-        temp_period_formset = get_period_formset()
-        temp_day_form = temp_period_formset.forms[0].days.forms[0]
-
         resource_image_formset.forms.append(temp_image_formset.forms[0])
-        period_formset_with_days.forms.append(temp_period_formset.forms[0])
-
-        # Add a nested empty day to each period as well.
-        for period in period_formset_with_days:
-            period.days.forms.append(temp_day_form)
-
+        period_formset_with_days = self.add_empty_forms(period_formset_with_days)
         trans_fields = forms.get_translated_field_count(resource_image_formset)
 
         return self.render_to_response(
@@ -365,29 +343,6 @@ class SaveResourceView(ExtraContextMixin, CreateView):
             return
 
         ResourceImage.objects.filter(resource=self.object).exclude(pk__in=image_ids).delete()
-
-    def _delete_extra_periods_days(self, period_formset_with_days):
-        data = period_formset_with_days.data
-        period_ids = get_formset_ids('periods', data)
-
-        if period_ids is None:
-            return
-
-        Period.objects.filter(resource=self.object).exclude(pk__in=period_ids).delete()
-        period_count = to_int(data.get('periods-TOTAL_FORMS'))
-
-        if not period_count:
-            return
-
-        for i in range(period_count):
-            period_id = to_int(data.get('periods-{}-id'.format(i)))
-
-            if period_id is None:
-                continue
-
-            day_ids = get_formset_ids('days-periods-{}'.format(i), data)
-            if day_ids is not None:
-                Day.objects.filter(period=period_id).exclude(pk__in=day_ids).delete()
 
 
 def get_formset_ids(formset_name, data):
