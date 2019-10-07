@@ -484,6 +484,19 @@ class ReservationFilterSet(django_filters.rest_framework.FilterSet):
         conditions = []
         for field in fields:
             conditions.append(Q(**{field + '__icontains': value}))
+
+        # assume that first_name and last_name were provided if empty space was found
+        if ' ' in value and value.count(' ') == 1:
+            name1, name2 = value.split()
+            filters = Q(
+                user__first_name__icontains=name1,
+                user__last_name__icontains=name2,
+            ) | Q(
+                user__first_name__icontains=name2,
+                user__last_name__icontains=name1,
+            )
+            conditions.append(filters)
+
         return queryset.filter(reduce(operator.or_, conditions))
 
 
