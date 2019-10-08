@@ -187,7 +187,7 @@ class ManageUserPermissionsListView(ExtraContextMixin, ListView):
                                    UnitGroupAuthorizationLevel.admin,
                                })
         all_available_units = self.model.objects.filter(unit_filters | unit_group_filters).prefetch_related('authorizations')
-        return all_available_units.exclude(authorizations__authorized__isnull=True)
+        return all_available_units.exclude(authorizations__authorized__isnull=True).distinct('name')
 
     def get_queryset(self):
         qs = self.get_all_available_units()
