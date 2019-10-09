@@ -19,17 +19,17 @@
             <tr id="permission-item-{{id}}" class="permission-item">
                 {{ form.id }}
                 <td class="table-cell-centered">
-                    {% include "respa_admin/forms/_select.html" with field=form.subject inline=False skip_label=True extra_classes='dropdown-block' %}
+                    {% include "respa_admin/forms/_select.html" with field=form.subject inline=False skip_label=True extra_classes='dropdown-block' disabled=form.is_disabled %}
                 </td>
                 <td class="table-cell-centered">
-                    {% include "respa_admin/forms/_select.html" with field=form.level inline=True skip_label=True extra_classes='dropdown-block' %}
+                    {% include "respa_admin/forms/_select.html" with field=form.level inline=True skip_label=True extra_classes='dropdown-block' disabled=form.is_disabled %}
                 </td>
                     {{ form.authorized }}
                 <td class="table-cell-centered">
                     {{ form.can_approve_reservation }}
                 </td>
                 <td class="table-cell-centered">
-                    <button class="remove-permission btn cancel-button" type="button">{% trans "Delete Item" %}</button>
+                    <button class="remove-permission btn remove-button{% if form.is_disabled %}-disabled{% endif%}" type="button" {% if form.is_disabled %}disabled{% endif %}>{% trans "Delete Item" %}</button>
                     <span class="hidden-delete-checkbox">{{ form.DELETE }}</span>
                 </td>
                 {% endwith %}

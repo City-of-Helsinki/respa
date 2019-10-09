@@ -46,6 +46,20 @@ $input-height-default: 50px;
   }
 }
 
+.select-dropdown-disabled {
+  @extend .select-dropdown;
+  background-color: #e5e5e5;
+
+  &:hover {
+    background-color: #e5e5e5;
+    cursor: not-allowed;
+  }
+
+  span, select {
+    color: #999898;
+  }
+}
+
 // styling for input label
 
 .input-label {
