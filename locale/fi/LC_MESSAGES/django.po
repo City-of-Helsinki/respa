@@ -1254,14 +1254,14 @@ msgstr ""
 msgid "Login failed"
 msgstr "Kirjautuminen epäonnistui"
 
-msgid "Log in with Helsinki account"
-msgstr "Kirjaudu Helsinki-tunnuksella"
-
 msgid "Username"
 msgstr "Käyttäjätunnus"
 
 msgid "Password"
 msgstr "Salasana"
+
+msgid "Log in with Django account"
+msgstr "Kirjaudu sisään Django-tunnuksella"
 
 msgid "All resources I manage"
 msgstr "Kaikki hallitsemani resurssit"
