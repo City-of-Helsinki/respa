@@ -272,7 +272,9 @@ msgid "Notification templates"
 msgstr "Herätemallit"
 
 msgid "All the resources must have manual reservation confirmation disabled."
-msgstr "Millään näistä resursseista ei saa olla \"tarvitsee virkailijan vahvistuksen\" päällä."
+msgstr ""
+"Millään näistä resursseista ei saa olla \"tarvitsee virkailijan vahvistuksen"
+"\" päällä."
 
 msgid "price"
 msgstr "hinta"
@@ -502,6 +504,9 @@ msgstr "Tila on varattavissa vain %(datetime)s jälkeen"
 msgid "Only allowed to be set by resource managers"
 msgstr ""
 
+msgid "You are not allowed to make a reservation of this type"
+msgstr "Et voi tehdä tämän tyyppistä varausta"
+
 msgid "Only allowed to be set by staff members"
 msgstr "Ainoastaan virkailijat saavat asettaa"
 
@@ -721,6 +726,12 @@ msgstr "hylätty"
 
 msgid "waiting for payment"
 msgstr "odottaa maksua"
+
+msgid "Normal reservation"
+msgstr "Tavallinen varaus"
+
+msgid "Resource blocked"
+msgstr "Resurssi suljettu"
 
 msgid "Begin time"
 msgstr "Alkuaika"
@@ -1091,6 +1102,12 @@ msgstr "Valokuvan osoite"
 msgid "Picture caption"
 msgstr "Valokuvan kuvateksti"
 
+msgid "External data source"
+msgstr "Ulkoinen tietolähde"
+
+msgid "External data source for opening hours"
+msgstr "Ulkoinen tietolähde aukioloajoille"
+
 msgid "unit"
 msgstr "toimipiste"
 
@@ -1211,6 +1228,12 @@ msgstr "Ota yhteyttä"
 msgid "Instructions"
 msgstr "Ohjeet"
 
+msgid "Copy to next"
+msgstr "Kopioi seuraavaan"
+
+msgid "New period"
+msgstr "Uusi aikajakso"
+
 msgid "Copy time period"
 msgstr "Kopioi aikajakso"
 
@@ -1272,6 +1295,9 @@ msgstr "Luo uusi resurssi"
 msgid "Search"
 msgstr "Hae"
 
+msgid "All units I manage"
+msgstr "Kaikki hallitsemani toimipisteet"
+
 msgid "All resources"
 msgstr "Kaikki resurssit"
 
@@ -1305,17 +1331,20 @@ msgstr "Admin"
 msgid "Manager"
 msgstr "Hoitaja"
 
-msgid "Edit permissions"
-msgstr "Muokkaa käyttöoikeuksia"
-
 msgid "Can approve reservations"
 msgstr "Voi hyväksyä varauksia"
+
+msgid "Edit permissions"
+msgstr "Muokkaa käyttöoikeuksia"
 
 msgid "Users by search term"
 msgstr "Käyttäjät haulla"
 
 msgid "Clear search"
 msgstr "Tyhjennä haku"
+
+msgid "Save"
+msgstr "Tallenna"
 
 msgid "Cancel"
 msgstr "Peruuta"
@@ -1410,14 +1439,29 @@ msgstr "Tila on ilmainen"
 msgid "Functions"
 msgstr "Toiminnot"
 
-msgid "Save"
-msgstr "Tallenna"
-
 msgid "View resource"
 msgstr "Tarkastele resurssia"
 
 msgid "User profile"
 msgstr "Käyttäjäprofiili"
+
+msgid "All units"
+msgstr "Kaikki toimipisteet"
+
+msgid "Editable"
+msgstr "Muokattava"
+
+msgid "Can be edited"
+msgstr "Muokattavissa"
+
+msgid "Can not be edited"
+msgstr "Ei muokattavissa"
+
+msgid "Contact"
+msgstr "Yhteystiedot"
+
+msgid "View unit"
+msgstr "Tarkastele toimipistettä"
 
 msgid "Search for users"
 msgstr "Hae käyttäjiä"
@@ -1435,6 +1479,21 @@ msgstr "Muokkaa resurssia"
 
 msgid "Create new resource"
 msgstr "Luo uusi resurssi"
+
+msgid "Unit saved"
+msgstr "Toimipiste tallennettu"
+
+msgid "Edit unit"
+msgstr "Muokkaa toimipistettä"
+
+msgid "Create new unit"
+msgstr "Luo uusi toimipiste"
+
+msgid "Saving failed. Check error in the form."
+msgstr "Tallennus epäonnistui. Tarkista lomakkeen virheet."
+
+msgid "Edit Unit"
+msgstr "Muokkaa toimipistettä"
 
 msgid "a descriptive name for this Exchange configuration"
 msgstr "kuvaava nimi tälle Exchange-kokoonpanolle"
