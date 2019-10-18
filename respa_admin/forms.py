@@ -2,6 +2,7 @@ from django.utils.translation import ugettext_lazy as _
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
+from django.forms.formsets import DELETION_FIELD_NAME
 
 from guardian.core import ObjectPermissionChecker
 
@@ -426,17 +427,28 @@ class UnitAuthorizationForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         can_approve_initial_value = False
         if self.instance.pk:
+            unit = self.instance.subject
+            user_has_unit_auth = self.request.user.unit_authorizations.to_unit(unit).admin_level().exists()
+            user_has_unit_group_auth = self.request.user.unit_group_authorizations.to_unit(unit).admin_level().exists()
             can_approve_initial_value = permission_checker.has_perm(
                 "unit:can_approve_reservation", self.instance.subject
             )
+            if not user_has_unit_auth and not user_has_unit_group_auth:
+                self.fields['subject'].disabled = True
+                self.fields['level'].disabled = True
+                self.fields['can_approve_reservation'].disabled = True
+                self.is_disabled = True
         self.fields['can_approve_reservation'].initial = can_approve_initial_value
 
     def clean(self):
         cleaned_data = super().clean()
         unit = cleaned_data.get('subject')
-        if not self.request.user.unit_authorizations.to_unit(unit).admin_level().exists() \
-           and not self.request.user.unit_group_authorizations.to_unit(unit).admin_level().exists():
-            self.add_error('subject', _('You can\'t add permissions to unit you are not admin of'))
+        user_has_unit_auth = self.request.user.unit_authorizations.to_unit(unit).admin_level().exists()
+        user_has_unit_group_auth = self.request.user.unit_group_authorizations.to_unit(unit).admin_level().exists()
+        if self.has_changed():
+            if not user_has_unit_auth and not user_has_unit_group_auth:
+                self.add_error('subject', _('You can\'t add, change or delete permissions to unit you are not admin of'))
+                self.cleaned_data[DELETION_FIELD_NAME] = False
         return cleaned_data
 
     class Meta:
@@ -476,6 +488,6 @@ def get_unit_authorization_formset(request=None, extra=1, instance=None):
     if not request:
         return unit_authorization_formset(instance=instance)
     if request.method == 'GET':
-        return unit_authorization_formset(instance=instance)
+        return unit_authorization_formset(request=request, instance=instance)
     else:
         return unit_authorization_formset(request=request, data=request.POST, instance=instance)
