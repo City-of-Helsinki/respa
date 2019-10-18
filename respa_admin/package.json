@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bootstrap": "4.1.2",
+    "bootstrap": "4.3.1",
     "bootstrap-datepicker": "^1.8.0",
     "copy-webpack-plugin": "^5.0.3",
     "css-loader": "^0.28.11",
