@@ -968,9 +968,6 @@ msgstr ""
 msgid "Login failed"
 msgstr "Inloggningen misslyckades"
 
-msgid "Log in with Helsinki account"
-msgstr "Logga in med Helsinki konto"
-
 #, fuzzy
 #| msgid "username"
 msgid "Username"
@@ -980,6 +977,9 @@ msgstr "användarnamn"
 #| msgid "password"
 msgid "Password"
 msgstr "lösenord"
+
+msgid "Log in with Django account"
+msgstr "Logga in med Django konto"
 
 msgid "All resources I manage"
 msgstr "Alla mina resurser"
