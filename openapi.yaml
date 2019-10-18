@@ -3,7 +3,7 @@ info:
   title: Respa
   description: The Respa API provides categorized data on resources available for reservation within a city or metropolitan area
     and enables the reservation of these resources. The API provides data in the JSON format, in a RESTful fashion.
-  version: v1
+  version: 1.5.1
 servers:
 - url: https://api.hel.fi/respa/v1
 tags:
