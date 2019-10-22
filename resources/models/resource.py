@@ -299,11 +299,12 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         if begin.date() != end.date():
             raise ValidationError(_("You cannot make a multi day reservation"))
 
-        opening_hours = self.get_opening_hours(begin.date(), end.date())
-        days = opening_hours.get(begin.date(), None)
-        if days is None or not any(day['opens'] and begin >= day['opens'] and end <= day['closes'] for day in days):
-            if not self._has_perm(user, 'can_ignore_opening_hours'):
-                raise ValidationError(_("You must start and end the reservation during opening hours"))
+        if not self.can_ignore_opening_hours(user):
+            opening_hours = self.get_opening_hours(begin.date(), end.date())
+            days = opening_hours.get(begin.date(), None)
+            if days is None or not any(day['opens'] and begin >= day['opens'] and end <= day['closes'] for day in days):
+                if not self._has_perm(user, 'can_ignore_opening_hours'):
+                    raise ValidationError(_("You must start and end the reservation during opening hours"))
 
         if self.max_period and (end - begin) > self.max_period:
             raise ValidationError(_("The maximum reservation length is %(max_period)s") %
@@ -559,21 +560,33 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         return users
 
     def can_make_reservations(self, user):
+        if self.is_manager(user):
+            return True
         return self.reservable or self._has_perm(user, 'can_make_reservations')
 
     def can_modify_reservations(self, user):
+        if self.is_manager(user):
+            return True
         return self._has_perm(user, 'can_modify_reservations')
 
     def can_ignore_opening_hours(self, user):
+        if self.is_manager(user):
+            return True
         return self._has_perm(user, 'can_ignore_opening_hours')
 
     def can_view_reservation_extra_fields(self, user):
+        if self.is_manager(user):
+            return True
         return self._has_perm(user, 'can_view_reservation_extra_fields')
 
     def can_access_reservation_comments(self, user):
+        if self.is_manager(user):
+            return True
         return self._has_perm(user, 'can_access_reservation_comments')
 
     def can_view_catering_orders(self, user):
+        if self.is_manager(user):
+            return True
         return self._has_perm(user, 'can_view_reservation_catering_orders')
 
     def can_modify_catering_orders(self, user):
@@ -589,6 +602,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         return self._has_perm(user, 'can_approve_reservation', allow_admin=False)
 
     def can_view_access_codes(self, user):
+        if self.is_manager(user):
+            return True
         return self._has_perm(user, 'can_view_reservation_access_code')
 
     def is_access_code_enabled(self):
