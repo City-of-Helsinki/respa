@@ -351,6 +351,8 @@ class Reservation(ModifiableModel):
             if self.resource.unit:
                 context['unit'] = self.resource.unit.name
                 context['unit_id'] = self.resource.unit.id
+                context['unit_street_address'] = self.resource.unit.street_address
+                context['unit_address_zip'] = self.resource.unit.address_zip
             if self.can_view_access_code(user) and self.access_code:
                 context['access_code'] = self.access_code
 
