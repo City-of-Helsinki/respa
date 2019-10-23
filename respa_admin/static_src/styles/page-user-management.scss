@@ -1,0 +1,58 @@
+.user-info {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  margin-top: 35px;
+}
+
+.cancel-button, .remove-button {
+  margin-left: 10px;
+  background-color: transparent;
+  color: #d21220;
+  padding: $padding-large-vertical 24px;
+  font-weight: 500;
+}
+
+.remove-button-disabled {
+  @extend .remove-button;
+  color: #999898;
+
+  &:hover {
+    color: #999898;
+    cursor: not-allowed;
+  }
+}
+
+.button-div {
+  margin-top: 50px;
+}
+
+.full-width-table {
+  width: 100%;
+}
+
+.table-cell-centered {
+  text-align: center;
+  padding-top: 5px;
+  vertical-align: top;
+}
+
+.table-header {
+  text-align: center;
+  padding-top: 30px;
+  padding-bottom: 10px;
+}
+
+.hidden-delete-checkbox {
+  display: none;
+}
+
+.dropdown-block {
+  display: block;
+}
+
+.form-error-block {
+  text-align: center;
+  font-weight: bold;
+  color: red;
+}

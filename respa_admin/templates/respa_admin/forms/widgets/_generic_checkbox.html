@@ -1,0 +1,15 @@
+{% load i18n %}
+
+<div class="custom-checkbox checkbox-inline generic-checkbox">
+    <input
+        class="custom-checkbox"
+        id="{{ widget.attrs.id }}"
+        type="checkbox"
+        name="{{ widget.name }}"
+        {% if widget.value != None %}value="{{ widget.value|stringformat:'s' }}"{% endif %}
+        {% include "django/forms/widgets/attrs.html" %}
+    >
+
+    <label for="{{ widget.attrs.id }}" class="">{{ widget.attrs.label }}</label>
+    <p>{{ widget.attrs.help_text }}</p>
+</div>

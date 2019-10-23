@@ -2,11 +2,15 @@ from django.utils.translation import ugettext_lazy as _
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
+from django.forms.formsets import DELETION_FIELD_NAME
+
+from guardian.core import ObjectPermissionChecker
 
 from .widgets import (
-    RespaRadioSelect,
     RespaCheckboxSelect,
     RespaCheckboxInput,
+    RespaGenericCheckboxInput,
+    RespaRadioSelect,
 )
 
 from resources.models import (
@@ -16,7 +20,11 @@ from resources.models import (
     Purpose,
     Resource,
     ResourceImage,
+    Unit,
+    UnitAuthorization
 )
+
+from users.models import User
 
 from respa.settings import LANGUAGES
 
@@ -242,6 +250,37 @@ class ResourceForm(forms.ModelForm):
         }
 
 
+class UnitForm(forms.ModelForm):
+    name_fi = forms.CharField(
+        required=True,
+        label='Nimi [fi]',
+    )
+
+    class Meta:
+        model = Unit
+
+        translated_fields = [
+            'description_en',
+            'description_fi',
+            'description_sv',
+            'name_en',
+            'name_fi',
+            'name_sv',
+            'street_address_en',
+            'street_address_fi',
+            'street_address_sv',
+            'www_url_en',
+            'www_url_fi',
+            'www_url_sv',
+        ]
+
+        fields = [
+            'address_zip',
+            'municipality',
+            'phone',
+        ] + translated_fields
+
+
 class PeriodFormset(forms.BaseInlineFormSet):
 
     def _get_days_formset(self, form, extra_days=1):
@@ -292,11 +331,11 @@ class PeriodFormset(forms.BaseInlineFormSet):
         return saved_form
 
 
-def get_period_formset(request=None, extra=1, instance=None):
+def get_period_formset(request=None, extra=1, instance=None, parent_class=Resource):
     period_formset_with_days = inlineformset_factory(
-        Resource,
+        parent_class,
         Period,
-        fk_name='resource',
+        fk_name=parent_class._meta.model_name,
         form=PeriodForm,
         formset=PeriodFormset,
         extra=extra,
@@ -326,7 +365,7 @@ def get_resource_image_formset(request=None, extra=1, instance=None):
         return resource_image_formset(data=request.POST, files=request.FILES, instance=instance)
 
 
-def get_translated_field_count(image_formset):
+def get_translated_field_count(image_formset=None):
     """
     Serve a count of how many fields are possible to translate with the translate
     buttons in the UI. The image formset is passed as a parameter since it can hold
@@ -350,6 +389,8 @@ def get_translated_field_count(image_formset):
 
 
 def _get_images_formset_translated_fields(images_formset, lang_postfix):
+    if images_formset is None:
+        return 0
     image_forms = images_formset.forms
     images_translation_count = 0
 
@@ -358,3 +399,95 @@ def _get_images_formset_translated_fields(images_formset, lang_postfix):
             images_translation_count += len([x for x in form.initial if x.endswith(lang_postfix)])
 
     return images_translation_count
+
+
+class UserForm(forms.ModelForm):
+
+    class Meta:
+        model = User
+
+        fields = [
+            'is_staff',
+        ]
+
+        widgets = {
+            'is_staff': RespaGenericCheckboxInput(attrs={
+                'label': _('Staff account'),
+                'help_text': _('Allows user to grant permissions to units')
+            })
+        }
+
+
+class UnitAuthorizationForm(forms.ModelForm):
+    can_approve_reservation = forms.BooleanField(widget=RespaGenericCheckboxInput, required=False)
+
+    def __init__(self, *args, **kwargs):
+        permission_checker = kwargs.pop('permission_checker')
+        self.request = kwargs.pop('request')
+        super().__init__(*args, **kwargs)
+        can_approve_initial_value = False
+        if self.instance.pk:
+            unit = self.instance.subject
+            user_has_unit_auth = self.request.user.unit_authorizations.to_unit(unit).admin_level().exists()
+            user_has_unit_group_auth = self.request.user.unit_group_authorizations.to_unit(unit).admin_level().exists()
+            can_approve_initial_value = permission_checker.has_perm(
+                "unit:can_approve_reservation", self.instance.subject
+            )
+            if not user_has_unit_auth and not user_has_unit_group_auth:
+                self.fields['subject'].disabled = True
+                self.fields['level'].disabled = True
+                self.fields['can_approve_reservation'].disabled = True
+                self.is_disabled = True
+        self.fields['can_approve_reservation'].initial = can_approve_initial_value
+
+    def clean(self):
+        cleaned_data = super().clean()
+        unit = cleaned_data.get('subject')
+        user_has_unit_auth = self.request.user.unit_authorizations.to_unit(unit).admin_level().exists()
+        user_has_unit_group_auth = self.request.user.unit_group_authorizations.to_unit(unit).admin_level().exists()
+        if self.has_changed():
+            if not user_has_unit_auth and not user_has_unit_group_auth:
+                self.add_error('subject', _('You can\'t add, change or delete permissions to unit you are not admin of'))
+                self.cleaned_data[DELETION_FIELD_NAME] = False
+        return cleaned_data
+
+    class Meta:
+        model = UnitAuthorization
+
+        fields = [
+            'subject',
+            'level',
+            'authorized',
+        ]
+
+
+class UnitAuthorizationFormSet(forms.BaseInlineFormSet):
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+        self.permission_checker = ObjectPermissionChecker(kwargs['instance'])
+        self.permission_checker.prefetch_perms(Unit.objects.filter(authorizations__authorized=kwargs['instance']))
+
+    def get_form_kwargs(self, index):
+        kwargs = super().get_form_kwargs(index)
+        kwargs['permission_checker'] = self.permission_checker
+        kwargs['request'] = self.request
+        return kwargs
+
+
+def get_unit_authorization_formset(request=None, extra=1, instance=None):
+    unit_authorization_formset = inlineformset_factory(
+        User,
+        UnitAuthorization,
+        form=UnitAuthorizationForm,
+        formset=UnitAuthorizationFormSet,
+        extra=extra,
+    )
+
+    if not request:
+        return unit_authorization_formset(instance=instance)
+    if request.method == 'GET':
+        return unit_authorization_formset(request=request, instance=instance)
+    else:
+        return unit_authorization_formset(request=request, data=request.POST, instance=instance)

@@ -46,6 +46,20 @@ $input-height-default: 50px;
   }
 }
 
+.select-dropdown-disabled {
+  @extend .select-dropdown;
+  background-color: #e5e5e5;
+
+  &:hover {
+    background-color: #e5e5e5;
+    cursor: not-allowed;
+  }
+
+  span, select {
+    color: #999898;
+  }
+}
+
 // styling for input label
 
 .input-label {
@@ -217,6 +231,10 @@ $input-height-default: 50px;
     font-size: $font-size-small * 0.9;
     margin-left: 8px;
   }
+}
+
+.generic-checkbox {
+  padding-top: 10px;
 }
 
 // styling for radio button

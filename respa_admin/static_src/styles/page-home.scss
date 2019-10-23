@@ -13,7 +13,7 @@ main {
   section.hero-section {
     position: relative;
     padding-top: 20px;
-    padding-bottom: 72px; 
+    padding-bottom: 72px;
 
     &:before {
       content: " ";
@@ -120,7 +120,8 @@ main {
     }
   }
 
-  section.resources {
+  section.resources,
+  section.units {
 
     .container {
       padding: 32px 0 100px;
@@ -147,7 +148,14 @@ main {
       }
     }
 
-    .resource-list ul li {
+    /* Unit list has only two columns */
+    .unit-list ul li div.panel div.panel-body,
+    .unit-list ul li.list-group-item.sort-bar {
+      grid-template-columns: 0px 7fr 3fr 2fr;
+    }
+
+    .resource-list ul li,
+    .unit-list ul li {
       $list-item-height: 100px;
       $table-template: $list-item-height 4fr 3fr 3fr 2fr;
 

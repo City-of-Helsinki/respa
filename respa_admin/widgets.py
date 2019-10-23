@@ -21,3 +21,7 @@ class RespaImageSelectWidget(forms.ClearableFileInput):
 
 class RespaImageSelectField(forms.ImageField):
     widget = RespaImageSelectWidget()
+
+
+class RespaGenericCheckboxInput(forms.CheckboxInput):
+    template_name = 'respa_admin/forms/widgets/_generic_checkbox.html'

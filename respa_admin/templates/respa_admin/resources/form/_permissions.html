@@ -1,0 +1,43 @@
+{% load i18n %}
+
+<div id="permission-management">
+    <div>
+        <h4>{% trans "Permissions" %}</h4>
+    </div>
+
+    <table class="full-width-table">
+        <thead>
+            <tr>
+                <th class="table-header">{% trans "Unit" %}</th>
+                <th class="table-header">{% trans "Manager/admin of unit" %}</th>
+                <th class="table-header">{% trans "Can approve reservations" %}</th>
+            </tr>
+        </thead>
+        <tbody id="current-permissions-list">
+            {% for form in formset %}
+            {% with forloop.counter0 as id %}
+            <tr id="permission-item-{{id}}" class="permission-item">
+                {{ form.id }}
+                <td class="table-cell-centered">
+                    {% include "respa_admin/forms/_select.html" with field=form.subject inline=False skip_label=True extra_classes='dropdown-block' disabled=form.is_disabled %}
+                </td>
+                <td class="table-cell-centered">
+                    {% include "respa_admin/forms/_select.html" with field=form.level inline=True skip_label=True extra_classes='dropdown-block' disabled=form.is_disabled %}
+                </td>
+                    {{ form.authorized }}
+                <td class="table-cell-centered">
+                    {{ form.can_approve_reservation }}
+                </td>
+                <td class="table-cell-centered">
+                    <button class="remove-permission btn remove-button{% if form.is_disabled %}-disabled{% endif%}" type="button" {% if form.is_disabled %}disabled{% endif %}>{% trans "Delete Item" %}</button>
+                    <span class="hidden-delete-checkbox">{{ form.DELETE }}</span>
+                </td>
+                {% endwith %}
+            </tr>
+            {% endfor %}
+        </tbody>
+        <div class="hidden" id="permission-management-form">
+            {{ formset.management_form }}
+        </div>
+    </table>
+</div>

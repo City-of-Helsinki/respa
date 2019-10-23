@@ -1,13 +1,11 @@
-import { initializeResourceForm, calendarHandler, coloredDropdownListener, addDropdownColor }  from './resourceForm';
+import { initializeUnitForm, calendarHandler }  from './unitForm';
 import { toggleCurrentLanguage, calculateTranslatedFields }  from './resourceFormLanguage';
 
 function start() {
-  initializeResourceForm();
+  initializeUnitForm();
   toggleCurrentLanguage();
   calculateTranslatedFields();
   calendarHandler();
-  addDropdownColor();
-  coloredDropdownListener();
 }
 
 window.addEventListener('load', start, false);
