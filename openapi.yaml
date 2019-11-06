@@ -6,7 +6,7 @@ info:
   version: 1.6.1
 servers:
 - url: https://api.hel.fi/respa/v1
-- url: https://respa.koe.hel.ninja/respa/v1
+- url: https://respa.koe.hel.ninja/v1
 tags:
 - name: resource
   description: Look for available resources
