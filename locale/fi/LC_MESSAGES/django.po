@@ -1433,6 +1433,9 @@ msgstr "Käyttöoikeudet"
 msgid "Manager/admin of unit"
 msgstr "Toimipisteen ylläpitäjä/hoitaja"
 
+msgid "Choose form"
+msgstr "Valitse varauslomake"
+
 msgid "Pricing"
 msgstr "Hinnoittelu"
 

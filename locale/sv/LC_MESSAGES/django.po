@@ -1528,6 +1528,9 @@ msgstr "Behörigheter"
 msgid "Manager/admin of unit"
 msgstr "Enhetens admin/chef"
 
+msgid "Choose form"
+msgstr "Välj form"
+
 msgid "Pricing"
 msgstr "Pris"
 

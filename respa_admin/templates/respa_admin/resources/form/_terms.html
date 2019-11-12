@@ -9,9 +9,10 @@
         <span class="control-label input-label">{{ form.need_manual_confirmation.label }}</span>
         {{ form.need_manual_confirmation }}
     </div>
+    {% trans "Choose form" as metadata_custom_label %}
     {% include "respa_admin/forms/_select.html" with field=form.authentication %}
     {% include "respa_admin/forms/_select.html" with field=form.generic_terms %}
-    {% include "respa_admin/forms/_select.html" with field=form.reservation_metadata_set %}
+    {% include "respa_admin/forms/_select.html" with field=form.reservation_metadata_set custom_label=metadata_custom_label %}
     {% include "respa_admin/forms/_select.html" with field=form.access_code_type %}
 
     {% include "respa_admin/forms/_textarea_input.html" with field=form.specific_terms_fi %}
