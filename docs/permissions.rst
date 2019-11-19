@@ -149,22 +149,29 @@ with the scope of authorization and the authorized roles.
 General Administrator role is not bound to any Unit or Unit Group and so
 their permissions are unscoped.
 
-================================ ============ ====== ======= ====== ======
-**Permission**                   **Scope**    **GA** **UGA** **UA** **UM**
--------------------------------- ------------ ------ ------- ------ ------
-can_login_to_respa_admin         General        X       X      X      X
-can_modify_resources             Unit           X       X      X      X
-can_modify_unit                  Unit           X       X      X      X
-can_access_permissions_view      General        X       X      X
-can_search_users                 General        X       X      X
-can_manage_resource_perms        Unit           X       X      X
-can_manage_auth_of_unit          Unit           X       X      X
-can_create_resource_to_unit      Unit           X       X      X
-can_delete_resource_of_unit      Unit           X       X      X
-can_manage_auth_of_unit_group    Unit Group     X       X
-can_create_unit_to_group         Unit Group     X       X
-can_delete_unit_of_group         Unit Group     X       X
-================================ ============ ====== ======= ====== ======
+====================================== ============ ====== ======= ====== ======
+**Permission**                         **Scope**    **GA** **UGA** **UA** **UM**
+-------------------------------------- ------------ ------ ------- ------ ------
+can_login_to_respa_admin               General        X       X      X      X
+can_modify_resources                   Unit           X       X      X      X
+can_modify_unit                        Unit           X       X      X      X
+can_access_permissions_view            General        X       X      X
+can_search_users                       General        X       X      X
+can_manage_resource_perms              Unit           X       X      X
+can_manage_auth_of_unit                Unit           X       X      X
+can_create_resource_to_unit            Unit           X       X      X
+can_delete_resource_of_unit            Unit           X       X      X
+can_make_reservations                  Unit                                 X
+can_modify_reservations                Unit                                 X
+can_ignore_opening_hours               Unit                                 X
+can_view_reservation_access_code       Unit                                 X
+can_view_reservation_extra_fields      Unit                                 X
+can_access_reservation_comments        Unit                                 X
+can_view_reservation_catering_orders   Unit                                 X
+can_manage_auth_of_unit_group          Unit Group     X       X
+can_create_unit_to_group               Unit Group     X       X
+can_delete_unit_of_group               Unit Group     X       X
+====================================== ============ ====== ======= ====== ======
 
 Definitions of the permissions:
 

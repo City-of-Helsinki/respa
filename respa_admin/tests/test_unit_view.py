@@ -1,10 +1,11 @@
 import pytest
-
+from django.utils.translation import activate
 from ..views.units import UnitEditView, UnitListView
 
 
 @pytest.mark.django_db
 def test_unit_list(test_unit, test_unit2, general_admin, rf):
+    activate('en')
     test_unit2.data_source = 'external_source'
     test_unit2.save()
     request = rf.get('/')

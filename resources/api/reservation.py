@@ -273,7 +273,6 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
                 'created_at': instance.created_at
             })
 
-        # Show the comments field and the user object only for staff
         if not resource.is_admin(user) and not resource.can_access_reservation_comments(user):
             del data['comments']
 

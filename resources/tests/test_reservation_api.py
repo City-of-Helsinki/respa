@@ -2174,6 +2174,5 @@ def test_manager_can_view_reservation_catering_orders(api_client, reservation, u
     api_client.force_authenticate(user=unit_manager_user)
 
     response = api_client.get(detail_url)
-    # import pdb; pdb.set_trace()
     assert response.status_code == 200
     assert response.data['has_catering_order'] == True
