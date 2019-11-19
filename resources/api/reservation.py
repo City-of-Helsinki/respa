@@ -473,15 +473,10 @@ class ReservationFilterSet(django_filters.rest_framework.FilterSet):
         Does not support comma separation of values, i.e. '?reserver_info_search=foo,bar' will
         be considered as one string - 'foo,bar'.
         """
-        user = self.request.user
         if not value:
             return queryset
 
-        # restrict results to reservations the user has right to see
-        queryset = queryset.extra_fields_visible(user)
-
-        fields = ('user__first_name', 'user__last_name', 'user__email',
-                  'reserver_name', 'reserver_email_address', 'reserver_phone_number')
+        fields = ('user__first_name', 'user__last_name', 'user__email')
         conditions = []
         for field in fields:
             conditions.append(Q(**{field + '__icontains': value}))
