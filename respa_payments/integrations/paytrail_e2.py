@@ -5,12 +5,13 @@ from hashlib import sha256
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 from respa_payments.payments import PaymentIntegration
-from respa_payments import settings
+from respa_payments import settings, models
 
 
 class PaytrailE2Integration(PaymentIntegration):
     def __init__(self, **kwargs):
         super(PaytrailE2Integration, self).__init__(**kwargs)
+        self.service = 'VARAUS'
         self.merchant_id = settings.MERCHANT_ID
         self.merchant_auth_hash = settings.MERCHANT_AUTH_HASH
         self.payment_methods = '1,2,3,5,6,10,50,51,52,61'
@@ -39,8 +40,9 @@ class PaytrailE2Integration(PaymentIntegration):
             'PAYER_PERSON_ADDR_POSTAL_CODE,'
             'PAYER_PERSON_ADDR_TOWN')
 
-    def construct_order_post(self, order):
-        super(PaytrailE2Integration, self).construct_order_post(order)
+    def construct_order_post(self, order_dict):
+        super(PaytrailE2Integration, self).construct_order_post(order_dict)
+        order = models.Order.objects.get(pk=order_dict.get('id'))
         data = {
             'MERCHANT_AUTH_HASH': self.merchant_auth_hash,
             'MERCHANT_ID': self.merchant_id,
@@ -50,21 +52,21 @@ class PaytrailE2Integration(PaymentIntegration):
             'PARAMS_IN': self.params_in,
             'PARAMS_OUT': self.params_out,
             'PAYMENT_METHODS': self.payment_methods,
-            'ORDER_NUMBER': order.get('id', ''),
-            'ITEM_TITLE[0]': order.get('product', ''),
-            'ITEM_ID[0]': order.get('product_id', ''),
+            'ORDER_NUMBER': self.service + '+' + order.sku.duration_slot.resource.name + '+' + str(order_dict.get('id', '')),
+            'ITEM_TITLE[0]': order_dict.get('product', ''),
+            'ITEM_ID[0]': order_dict.get('product_id', ''),
             'ITEM_QUANTITY[0]': 1,
-            'ITEM_UNIT_PRICE[0]': order.get('price', ''),
-            'ITEM_VAT_PERCENT[0]': order.get('vat', ''),
+            'ITEM_UNIT_PRICE[0]': order_dict.get('price', ''),
+            'ITEM_VAT_PERCENT[0]': order_dict.get('vat', ''),
             'ITEM_DISCOUNT_PERCENT[0]': 0,
             'ITEM_TYPE[0]': 1,
-            'PAYER_PERSON_PHONE': order.get('reserver_phone_number', '').replace(' ', ''),
-            'PAYER_PERSON_EMAIL': order.get('reserver_email_address', ''),
-            'PAYER_PERSON_FIRSTNAME': order.get('reserver_name', ''),
-            'PAYER_PERSON_LASTNAME': order.get('reserver_name', ''),
-            'PAYER_PERSON_ADDR_STREET': order.get('billing_address_street', order.get('reserver_address_street', '')),
-            'PAYER_PERSON_ADDR_POSTAL_CODE': order.get('billing_address_zip', order.get('reserver_address_zip', '')),
-            'PAYER_PERSON_ADDR_TOWN': order.get('billing_address_city', order.get('reserver_address_city', '')),
+            'PAYER_PERSON_PHONE': order_dict.get('reserver_phone_number', '').replace(' ', ''),
+            'PAYER_PERSON_EMAIL': order_dict.get('reserver_email_address', ''),
+            'PAYER_PERSON_FIRSTNAME': order_dict.get('reserver_name', ''),
+            'PAYER_PERSON_LASTNAME': order_dict.get('reserver_name', ''),
+            'PAYER_PERSON_ADDR_STREET': order_dict.get('billing_address_street', order_dict.get('reserver_address_street', '')),
+            'PAYER_PERSON_ADDR_POSTAL_CODE': order_dict.get('billing_address_zip', order_dict.get('reserver_address_zip', '')),
+            'PAYER_PERSON_ADDR_TOWN': order_dict.get('billing_address_city', order_dict.get('reserver_address_city', '')),
         }
 
         auth_code = data['MERCHANT_AUTH_HASH'] + '|' + \
