@@ -121,6 +121,9 @@ can_view_reservation_access_code
 can_view_reservation_extra_fields
   Can view reservation extra fields
 
+can_bypass_payment
+  Can bypass payment when making a reservation
+
 can_access_reservation_comments
   Can access reservation comments
 
@@ -155,6 +158,7 @@ their permissions are unscoped.
 can_login_to_respa_admin               General        X       X      X      X
 can_modify_resources                   Unit           X       X      X      X
 can_modify_unit                        Unit           X       X      X      X
+can_bypass_payment                     Unit           X       X      X      X
 can_access_permissions_view            General        X       X      X
 can_search_users                       General        X       X      X
 can_manage_resource_perms              Unit           X       X      X
