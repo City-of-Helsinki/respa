@@ -605,7 +605,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             return True
         return self._has_perm(user, 'can_view_reservation_access_code')
 
-    def can_bypass_payments(self, user):
+    def can_bypass_payment(self, user):
         if self.is_manager(user) or self.is_admin(user):
             return True
         return self._has_perm(user, 'can_bypass_payment')

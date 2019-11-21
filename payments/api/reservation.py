@@ -93,7 +93,7 @@ class PaymentsReservationSerializer(ReservationSerializer):
             resource = self.context.get('resource')
 
             if resource and request:
-                order_required = resource.has_rent() and not resource.can_bypass_payments(request.user)
+                order_required = resource.has_rent() and not resource.can_bypass_payment(request.user)
             elif resource:
                 order_required = resource.has_rent()
             else:
