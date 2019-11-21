@@ -803,6 +803,9 @@ msgstr "Kan visa reservationer catering beställningar"
 msgid "Can modify paid reservations"
 msgstr "Kan modifiera reservationer"
 
+msgid "Can bypass payment for paid reservations"
+msgstr "Kan åsidosätta betalningen av bokningen"
+
 msgid "created"
 msgstr "skapad"
 

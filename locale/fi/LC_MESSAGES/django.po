@@ -718,6 +718,9 @@ msgstr "Voi nähdä varauksen tuotetilaukset"
 msgid "Can modify paid reservations"
 msgstr "Voi muokata maksettuja varauksia"
 
+msgid "Can bypass payment for paid reservations"
+msgstr "Voi ohittaa varauksen maksamisen"
+
 msgid "created"
 msgstr "luoja"
 
