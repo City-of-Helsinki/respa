@@ -309,3 +309,12 @@ def test_unit_admin_and_unit_manager_may_bypass_payment(user_api_client, resourc
     assert response.status_code == 201
     new_reservation = Reservation.objects.last()
     assert new_reservation.state == Reservation.CONFIRMED
+    UnitAuthorization.objects.all().delete()
+    Reservation.objects.all().delete()
+
+    # Order not required for manager user
+    UnitAuthorization.objects.create(subject=resource_in_unit.unit, level=UnitAuthorizationLevel.manager, authorized=user)
+    response = user_api_client.post(LIST_URL, reservation_data)
+    assert response.status_code == 201
+    new_reservation = Reservation.objects.last()
+    assert new_reservation.state == Reservation.CONFIRMED
