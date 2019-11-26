@@ -6,7 +6,7 @@ import datetime
 
 class PaymentListView(ListView):
     model = Order
-    paginate_by = 10
+    paginate_by = 30
     context_object_name = 'payments'
     template_name = 'respa_payments/page_payments.html'
 
@@ -14,6 +14,7 @@ class PaymentListView(ListView):
         get_params = request.GET
         self.filter_start = get_params.get('filter_start')
         self.filter_end = get_params.get('filter_end')
+        self.display = get_params.get('display', 'success')
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -23,10 +24,15 @@ class PaymentListView(ListView):
         )['payment_service_amount__sum'])
         context['filter_start'] = self.filter_start
         context['filter_end'] = self.filter_end
+        context['display'] = self.display
         return context
 
     def get_queryset(self):
         qs = super(PaymentListView, self).get_queryset()
+        if self.display == 'success':
+            qs = qs.filter(payment_service_success=True)
+        # currently choices are limited to success and everything
+
         if self.filter_start:
             qs = qs.filter(order_process_started__gte=datetime.datetime.strptime(self.filter_start, '%d.%m.%Y'))
         if self.filter_end:

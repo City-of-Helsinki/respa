@@ -22,6 +22,8 @@ class Sku(ModifiableModel):
 
 class Order(ModifiableModel):
     sku = models.ForeignKey(Sku, db_index=True, null=True, on_delete=models.SET_NULL)
+    # save SKU name in case SKU is deleted
+    sku_name = models.CharField(verbose_name=_('SKU name'), max_length=200, null=False, blank=True, default='')
     reservation = models.OneToOneField(Reservation, db_index=True, null=True, on_delete=models.SET_NULL,)
     verification_code = models.CharField(verbose_name=_('Verification code'), max_length=40, null=False,
                                          blank=True, default='')
@@ -48,3 +50,9 @@ class Order(ModifiableModel):
         max_length=100, blank=True,
         null=True
     )
+
+    def save(self, *args, **kwargs):
+        if self.sku:
+            self.sku_name = self.sku.name
+        return super().save(*args, **kwargs)
+
