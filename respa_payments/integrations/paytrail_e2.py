@@ -8,8 +8,6 @@ from django.core.exceptions import ValidationError
 from respa_payments.payments import PaymentIntegration
 from respa_payments import settings, models
 
-output = unicodedata.normalize('NFD', my_unicode).encode('ascii', 'ignore')
-
 
 class PaytrailE2Integration(PaymentIntegration):
     def __init__(self, **kwargs):
@@ -50,7 +48,6 @@ class PaytrailE2Integration(PaymentIntegration):
         super(PaytrailE2Integration, self).construct_order_post(order_dict)
         order = models.Order.objects.get(pk=order_dict.get('id'))
         resource_name = self.unicode_to_paytrail(order.sku.duration_slot.resource.name)
-
         data = {
             'MERCHANT_AUTH_HASH': self.merchant_auth_hash,
             'MERCHANT_ID': self.merchant_id,
