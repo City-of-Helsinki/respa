@@ -42,7 +42,7 @@ class PaytrailE2Integration(PaymentIntegration):
             'PAYER_PERSON_ADDR_TOWN')
 
     def unicode_to_paytrail(self, string):
-        return unicodedata.normalize('NFD', string).encode('ascii', 'ignore')
+        return str(unicodedata.normalize('NFD', string).encode('ascii', 'ignore'), 'utf-8')
 
     def construct_order_post(self, order_dict):
         super(PaytrailE2Integration, self).construct_order_post(order_dict)
