@@ -69,30 +69,29 @@ def _add_general_admin_to_fieldsets(fieldsets):
         for (label, field_data) in fieldsets)
 
 
-def pseudonymize_user_data(modeladmin, request, queryset):
+def anonymize_user_data(modeladmin, request, queryset):
     for user in queryset:
         user.first_name = random.choice(first_names_list)
         user.last_name = random.choice(last_names_list)
-        user.username = f'pseudonymized-{uuid.uuid4()}'
-        user.email = f'{user.first_name}.{user.last_name}@pseudonymized.net'.lower()
+        user.username = f'anonymized-{uuid.uuid4()}'
+        user.email = f'{user.first_name}.{user.last_name}@anonymized.net'.lower()
         user.save()
 
         user_reservations = Reservation.objects.filter(user=user)
-        if user_reservations:
-            user_reservations.update(
-                event_subject='Removed',
-                event_description='Sensitive data of this reservation has been pseudonymized by a script.',
-                host_name='Removed',
-                reservation_extra_questions='Removed',
-                reserver_name='Removed',
-                reserver_id='Removed',
-                reserver_email_address='Removed',
-                reserver_phone_number='Removed',
-                reserver_address_street='Removed',
-                reserver_address_zip='Removed',
-                reserver_address_city='Removed'
-            )
-    pseudonymize_user_data.short_description = 'Pseudonymize user\'s personal information'
+        user_reservations.update(
+            event_subject='Removed',
+            event_description='Sensitive data of this reservation has been anonymized by a script.',
+            host_name='Removed',
+            reservation_extra_questions='Removed',
+            reserver_name='Removed',
+            reserver_id='Removed',
+            reserver_email_address='Removed',
+            reserver_phone_number='Removed',
+            reserver_address_street='Removed',
+            reserver_address_zip='Removed',
+            reserver_address_city='Removed'
+        )
+    anonymize_user_data.short_description = 'Anonymize user\'s personal information'
 
 
 class UserAdmin(DjangoUserAdmin):
@@ -109,7 +108,7 @@ class UserAdmin(DjangoUserAdmin):
         'is_active',
         'groups',
     ]
-    actions = [pseudonymize_user_data]
+    actions = [anonymize_user_data]
 
 
 admin.site.register(User, UserAdmin)
