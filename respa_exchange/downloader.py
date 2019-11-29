@@ -320,8 +320,11 @@ def sync_from_exchange(ex_resource, future_days=365, no_op=False):
     """
 
     # To avoid race conditions with the Respa API processes, we lock the
-    # resource on database level before starting sync.
-    ex_resource = ExchangeResource.objects.select_for_update().get(id=ex_resource.id)
+    # resource on database level before starting sync. In case when syncing
+    # resource on creation, we cant select for update, because there is not
+    # that resource yet in the database.
+    if ex_resource.id:
+        ex_resource = ExchangeResource.objects.select_for_update().get(id=ex_resource.id)
 
     if not ex_resource.sync_to_respa and not no_op:
         return
