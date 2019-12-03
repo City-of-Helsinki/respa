@@ -106,12 +106,12 @@ def test_user_permissions_in_resource_endpoint(api_client, resource_in_unit, use
                             can_bypass_payment=False)
 
     # user has explicit permission to bypass payment
-    assign_perm('unit:can_ignore_opening_hours', group, resource_in_unit.unit)
+    assign_perm('unit:can_bypass_payment', group, resource_in_unit.unit)
     api_client.force_authenticate(user=user)
     _check_permissions_dict(api_client, resource_in_unit, is_admin=False,
                             can_make_reservations=True, can_ignore_opening_hours=True,
-                            can_bypass_payment=False)
-    remove_perm('unit:can_ignore_opening_hours', group, resource_in_unit.unit)
+                            can_bypass_payment=True)
+    remove_perm('unit:can_bypass_payment', group, resource_in_unit.unit)
 
     # unit admins can ignore opening hours
     user.is_general_admin = False
