@@ -89,8 +89,16 @@ class PaymentsReservationSerializer(ReservationSerializer):
         super().__init__(*args, **kwargs)
 
         if self.context['view'].action == 'create':
+            request = self.context.get('request')
             resource = self.context.get('resource')
-            order_required = resource.has_rent() if resource else True
+
+            if resource and request:
+                order_required = resource.has_rent() and not resource.can_bypass_payment(request.user)
+            elif resource:
+                order_required = resource.has_rent()
+            else:
+                order_required = True
+
             self.fields['order'] = ReservationEndpointOrderSerializer(required=order_required)
         elif 'order_detail' in self.context['includes']:
             self.fields['order'] = ReservationEndpointOrderSerializer(read_only=True)

@@ -5,7 +5,9 @@ import pytest
 from guardian.shortcuts import assign_perm
 from rest_framework.reverse import reverse
 
+from resources.enums import UnitAuthorizationLevel
 from resources.models import Reservation
+from resources.models.unit import UnitAuthorization
 from resources.tests.conftest import resource_in_unit, user_api_client  # noqa
 from resources.tests.test_reservation_api import day_and_period  # noqa
 
@@ -290,3 +292,29 @@ def test_order_must_include_rent_if_one_exists(user_api_client, resource_in_unit
 
     response = user_api_client.post(LIST_URL, reservation_data)
     assert response.status_code == 400
+
+
+def test_unit_admin_and_unit_manager_may_bypass_payment(user_api_client, resource_in_unit, user):
+    reservation_data = build_reservation_data(resource_in_unit)
+    ProductFactory(type=Product.RENT, resources=[resource_in_unit])
+
+    # Order required for normal user
+    response = user_api_client.post(LIST_URL, reservation_data)
+    assert response.status_code == 400
+    assert 'order' in response.data
+
+    # Order not required for admin user
+    UnitAuthorization.objects.create(subject=resource_in_unit.unit, level=UnitAuthorizationLevel.admin, authorized=user)
+    response = user_api_client.post(LIST_URL, reservation_data)
+    assert response.status_code == 201
+    new_reservation = Reservation.objects.last()
+    assert new_reservation.state == Reservation.CONFIRMED
+    UnitAuthorization.objects.all().delete()
+    Reservation.objects.all().delete()
+
+    # Order not required for manager user
+    UnitAuthorization.objects.create(subject=resource_in_unit.unit, level=UnitAuthorizationLevel.manager, authorized=user)
+    response = user_api_client.post(LIST_URL, reservation_data)
+    assert response.status_code == 201
+    new_reservation = Reservation.objects.last()
+    assert new_reservation.state == Reservation.CONFIRMED
