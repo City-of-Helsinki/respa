@@ -1,11 +1,8 @@
 <div class="form-group {% if not inline %}select-with-label{% endif %}">
     {% if not skip_label %}
         <label class="control-label input-label">
-            {% if custom_label %}
-                {{ custom_label }}{% if field.field.required %}*{% endif %}
-            {% else %}
-                {{ field.label }}{% if field.field.required %}*{% endif %}
-            {% endif %}
+            {% if custom_label %} {{ custom_label }} {% else %} {{ field.label }} {% endif %}
+            {% if field.field.required %}*{% endif %}
         </label>
     {% endif %}
     {% if disabled %}
