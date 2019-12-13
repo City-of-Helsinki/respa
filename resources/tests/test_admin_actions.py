@@ -19,7 +19,7 @@ def test_anonymize_user_data(api_client, resource_in_unit, user):
         end='2015-04-04T10:00:00+02:00',
         user=user,
         reserver_name='John Smith',
-        event_subject="John's welcome party",
+        event_subject='John\'s welcome party',
         state=Reservation.CONFIRMED
     )
     # anonymize_user_data expects a queryset instead of single object
