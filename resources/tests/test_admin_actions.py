@@ -23,7 +23,8 @@ def test_anonymize_user_data(api_client, resource_in_unit, user):
         state=Reservation.CONFIRMED
     )
     # anonymize_user_data expects a queryset instead of single object
-    test_user = get_user_model().objects.all().filter(first_name='testi_ukkeli')
+    test_user = get_user_model().objects.filter(first_name='testi_ukkeli')
     anonymize_user_data(modeladmin=None, request=None, queryset=test_user)
     assert get_user_model().objects.filter(first_name='testi_ukkeli').count() == 0
-    assert Reservation.objects.filter(resource=resource_in_unit)[0].event_description == 'Sensitive data of this reservation has been anonymized by a script.'
+    reservation = Reservation.objects.get(resource=resource_in_unit)
+    assert reservation.event_description == 'Sensitive data of this reservation has been anonymized by a script.'

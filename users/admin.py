@@ -27,8 +27,8 @@ first_names_list = [
     'Augustus',
     'Laurel',
     'Miles',
-    'Patricia'
-    'Beckett'
+    'Patricia',
+    'Beckett',
     'Elle'
 ]
 
