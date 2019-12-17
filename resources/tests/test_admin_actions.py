@@ -13,6 +13,8 @@ def test_anonymize_user_data(api_client, resource_in_unit, user):
     """
     user.first_name = 'testi_ukkeli'
     user.save()
+    original_uuid = user.uuid
+    user_pk = user.pk
     Reservation.objects.create(
         resource=resource_in_unit,
         begin='2015-04-04T09:00:00+02:00',
@@ -28,3 +30,5 @@ def test_anonymize_user_data(api_client, resource_in_unit, user):
     assert get_user_model().objects.filter(first_name='testi_ukkeli').count() == 0
     reservation = Reservation.objects.get(resource=resource_in_unit)
     assert reservation.event_description == 'Sensitive data of this reservation has been anonymized by a script.'
+    changed_user = get_user_model().objects.get(pk=user_pk)
+    assert changed_user.uuid != original_uuid

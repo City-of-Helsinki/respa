@@ -75,6 +75,7 @@ def anonymize_user_data(modeladmin, request, queryset):
         user.last_name = random.choice(last_names_list)
         user.username = f'anonymized-{uuid.uuid4()}'
         user.email = f'{user.first_name}.{user.last_name}@anonymized.net'.lower()
+        user.uuid = uuid.uuid4()
         user.save()
 
         user_reservations = Reservation.objects.filter(user=user)
