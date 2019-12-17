@@ -276,7 +276,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'helusers.jwt.JWTAuthentication',
+        'resources.authentication.RespaJWTAuthentication',
     ] + ([
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.BasicAuthentication",

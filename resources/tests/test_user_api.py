@@ -5,6 +5,7 @@ from django.urls import reverse
 from guardian.shortcuts import assign_perm
 
 from .utils import check_only_safe_methods_allowed
+from resources.tests.test_api import JWTMixin
 
 
 @pytest.fixture
@@ -51,3 +52,17 @@ def test_user_perms(api_client, list_url, staff_user, user, test_unit):
     assert list(perms.keys()) == ['unit']
     perms = perms['unit']
     assert list(perms.items()) == [(test_unit.id, ['can_approve_reservation'])]
+
+
+@pytest.mark.django_db
+def test_inactive_user(api_client, detail_url, user, test_unit):
+    jwt_mixin = JWTMixin()
+    jwt_mixin.jwt_token['sub'] = str(user.uuid)
+    auth = jwt_mixin.get_auth()
+    response = api_client.get(detail_url, HTTP_AUTHORIZATION=auth)
+    assert response.status_code == 200
+
+    user.is_active = False
+    user.save()
+    response = api_client.get(detail_url, HTTP_AUTHORIZATION=auth)
+    assert response.status_code == 401
