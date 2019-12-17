@@ -1,8 +1,59 @@
+import random
+import uuid
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib import admin
+from resources.models import Reservation
+
 
 User = get_user_model()
+
+
+first_names_list = [
+    'Patrick',
+    'Julia',
+    'Andrew',
+    'Paige',
+    'Ewan',
+    'Elsie',
+    'Toby',
+    'Holly',
+    'Dominic',
+    'Isla',
+    'Edison',
+    'Luna',
+    'Ronald',
+    'Bryanna',
+    'Augustus',
+    'Laurel',
+    'Miles',
+    'Patricia',
+    'Beckett',
+    'Elle'
+]
+
+last_names_list = [
+    'Ward',
+    'Robertson',
+    'Nicholson',
+    'Armstrong',
+    'White',
+    'Trevino',
+    'James',
+    'Hines',
+    'Clark',
+    'Castro',
+    'Read',
+    'Brown',
+    'Griffiths',
+    'Taylor',
+    'Cole',
+    'Leach',
+    'Chavez',
+    'Stout',
+    'Mccullough',
+    'Richards'
+]
 
 
 def _add_general_admin_to_fieldsets(fieldsets):
@@ -16,6 +67,32 @@ def _add_general_admin_to_fieldsets(fieldsets):
     return tuple(
         (label, modify_field_data(field_data))
         for (label, field_data) in fieldsets)
+
+
+def anonymize_user_data(modeladmin, request, queryset):
+    for user in queryset:
+        user.first_name = random.choice(first_names_list)
+        user.last_name = random.choice(last_names_list)
+        user.username = f'anonymized-{uuid.uuid4()}'
+        user.email = f'{user.first_name}.{user.last_name}@anonymized.net'.lower()
+        user.uuid = uuid.uuid4()
+        user.save()
+
+        user_reservations = Reservation.objects.filter(user=user)
+        user_reservations.update(
+            event_subject='Removed',
+            event_description='Sensitive data of this reservation has been anonymized by a script.',
+            host_name='Removed',
+            reservation_extra_questions='Removed',
+            reserver_name='Removed',
+            reserver_id='Removed',
+            reserver_email_address='Removed',
+            reserver_phone_number='Removed',
+            reserver_address_street='Removed',
+            reserver_address_zip='Removed',
+            reserver_address_city='Removed'
+        )
+    anonymize_user_data.short_description = 'Anonymize user\'s personal information'
 
 
 class UserAdmin(DjangoUserAdmin):
@@ -32,6 +109,7 @@ class UserAdmin(DjangoUserAdmin):
         'is_active',
         'groups',
     ]
+    actions = [anonymize_user_data]
 
 
 admin.site.register(User, UserAdmin)
