@@ -10,7 +10,7 @@ from ..enums import UnitAuthorizationLevel, UnitGroupAuthorizationLevel
 
 from resources.models import (Day, Equipment, Period, Reservation, ReservationMetadataSet, ResourceEquipment,
                               ResourceType, Unit, UnitAuthorization, UnitGroup)
-from .utils import assert_response_objects, check_only_safe_methods_allowed, is_partial_dict_in_list
+from .utils import assert_response_objects, check_only_safe_methods_allowed, is_partial_dict_in_list, MAX_QUERIES
 
 
 @pytest.fixture
@@ -1054,3 +1054,15 @@ def test_resource_with_accessibility_data(api_client, resource_with_accessibilit
         assert is_partial_dict_in_list(
             {'value': acc.value.value, 'viewpoint_id': acc.viewpoint_id},
             response.data['accessibility_summaries'])
+
+
+@pytest.mark.django_db
+def test_query_counts(user_api_client, staff_api_client, list_url, django_assert_max_num_queries):
+    """
+    Test that DB query count is less than allowed
+    """
+    with django_assert_max_num_queries(MAX_QUERIES):
+        user_api_client.get(list_url)
+
+    with django_assert_max_num_queries(MAX_QUERIES):
+        staff_api_client.get(list_url)

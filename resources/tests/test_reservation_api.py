@@ -18,7 +18,7 @@ from resources.models import (Period, Day, Reservation, Resource, ResourceGroup,
                               ReservationMetadataSet, UnitAuthorization)
 from notifications.models import NotificationTemplate, NotificationType
 from notifications.tests.utils import check_received_mail_exists
-from .utils import check_disallowed_methods, assert_non_field_errors_contain, assert_response_objects
+from .utils import check_disallowed_methods, assert_non_field_errors_contain, assert_response_objects, MAX_QUERIES
 
 
 DEFAULT_RESERVATION_EXTRA_FIELDS = ('reserver_name', 'reserver_phone_number', 'reserver_address_street',
@@ -2176,3 +2176,15 @@ def test_manager_can_view_reservation_catering_orders(api_client, reservation, u
     response = api_client.get(detail_url)
     assert response.status_code == 200
     assert response.data['has_catering_order'] == True
+
+
+@pytest.mark.django_db
+def test_query_counts(user_api_client, staff_api_client, list_url, django_assert_max_num_queries):
+    """
+    Test that DB query count is less than allowed
+    """
+    with django_assert_max_num_queries(MAX_QUERIES):
+        user_api_client.get(list_url)
+
+    with django_assert_max_num_queries(MAX_QUERIES):
+        staff_api_client.get(list_url)

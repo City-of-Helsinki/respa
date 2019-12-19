@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from enumfields import EnumField
 
-from ..auth import is_authenticated_user, is_general_admin
+from ..auth import is_authenticated_user, is_general_admin, is_unit_admin, is_unit_manager
 from ..enums import UnitAuthorizationLevel
 from .base import AutoIdentifiedModel, ModifiableModel
 from .utils import create_datetime_days_from_now, get_translated, get_translated_name
@@ -118,13 +118,10 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
     def is_admin(self, user):
         return is_authenticated_user(user) and (
             is_general_admin(user) or
-            user.unit_authorizations.to_unit(self).admin_level().exists() or
-            (user.unit_group_authorizations
-             .to_unit(self).admin_level().exists()))
+            is_unit_admin(user.unit_authorizations.all(), user.unit_group_authorizations.all(), self))
 
     def is_manager(self, user):
-        return self.is_admin(user) or (is_authenticated_user(user) and (
-            user.unit_authorizations.to_unit(self).manager_level().exists()))
+        return self.is_admin(user) or (is_authenticated_user(user) and is_unit_manager(user.unit_authorizations.all(), self))
 
     def has_imported_data(self):
         return self.data_source != ''
