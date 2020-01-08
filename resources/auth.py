@@ -1,3 +1,5 @@
+from .enums import UnitGroupAuthorizationLevel, UnitAuthorizationLevel
+
 def is_authenticated_user(user):
     return bool(user and user.is_authenticated)
 
@@ -13,8 +15,6 @@ def is_general_admin(user):
 
 
 def is_any_admin(user):
-    from .enums import UnitGroupAuthorizationLevel, UnitAuthorizationLevel
-
     if not is_authenticated_user(user):
         return False
 
@@ -28,8 +28,6 @@ def is_any_admin(user):
 
 
 def is_unit_admin(unit_authorizations, unit_group_authorizations, unit):
-    from .enums import UnitGroupAuthorizationLevel, UnitAuthorizationLevel
-
     is_admin = False
 
     for group_auth in filter(lambda group_auth: group_auth.level == UnitGroupAuthorizationLevel.admin, unit_group_authorizations):
@@ -43,6 +41,4 @@ def is_unit_admin(unit_authorizations, unit_group_authorizations, unit):
 
 
 def is_unit_manager(unit_authorizations, unit):
-    from .enums import UnitAuthorizationLevel
-
     return any(auth.subject == unit and auth.level == UnitAuthorizationLevel.manager for auth in unit_authorizations)
