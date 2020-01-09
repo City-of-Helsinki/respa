@@ -212,6 +212,7 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
             'can_make_reservations': obj.can_make_reservations(user) if request else False,
             'can_ignore_opening_hours': obj.can_ignore_opening_hours(user) if request else False,
             'is_admin': obj.is_admin(user) if request else False,
+            'is_manager': obj.is_manager(user) if request else False,
             'can_bypass_payment': obj.can_bypass_payment(user) if request else False,
         }
 
