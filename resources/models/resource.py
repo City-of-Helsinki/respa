@@ -534,6 +534,17 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             return is_general_admin(user)
         return self.unit.is_manager(user)
 
+    def is_viewer(self, user):
+        """
+        Check if the given user is a manager of this resource.
+
+        :type user: users.models.User
+        :rtype: bool
+        """
+        if not self.unit:
+            return is_general_admin(user)
+        return self.unit.is_viewer(user)
+
     def _has_perm(self, user, perm, allow_admin=True):
         if not is_authenticated_user(user):
             return False
@@ -564,9 +575,14 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         return self.reservable or self._has_perm(user, 'can_make_reservations')
 
     def can_modify_reservations(self, user):
-        if self.is_manager(user):
+        if self.is_manager(user) or self.is_viewer(user):
             return True
         return self._has_perm(user, 'can_modify_reservations')
+
+    def can_comment_reservations(self, user):
+        if self.is_admin(user) or self.is_viewer(user):
+            return True
+        return self._has_perm(user, 'can_comment_reservations')
 
     def can_ignore_opening_hours(self, user):
         if self.is_manager(user):
@@ -574,12 +590,17 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         return self._has_perm(user, 'can_ignore_opening_hours')
 
     def can_view_reservation_extra_fields(self, user):
-        if self.is_manager(user):
+        if self.is_manager(user) or self.is_viewer(user):
             return True
         return self._has_perm(user, 'can_view_reservation_extra_fields')
 
+    def can_view_reservation_user(self, user):
+        if self.is_admin(user) or self.is_viewer(user):
+            return True
+        return self._has_perm(user, 'can_view_reservation_user')
+
     def can_access_reservation_comments(self, user):
-        if self.is_manager(user):
+        if self.is_admin(user) or self.is_manager(user) or self.is_viewer(user):
             return True
         return self._has_perm(user, 'can_access_reservation_comments')
 
@@ -601,7 +622,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         return self._has_perm(user, 'can_approve_reservation', allow_admin=False)
 
     def can_view_access_codes(self, user):
-        if self.is_manager(user):
+        if self.is_manager(user) or self.is_viewer(user):
             return True
         return self._has_perm(user, 'can_view_reservation_access_code')
 

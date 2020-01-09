@@ -2179,6 +2179,75 @@ def test_manager_can_view_reservation_catering_orders(api_client, reservation, u
 
 
 @pytest.mark.django_db
+def test_viewer_can_view_reservation_access_code(api_client, reservation, unit_viewer_user, resource_in_unit):
+    resource_in_unit.access_code_type = Resource.ACCESS_CODE_TYPE_PIN6
+    resource_in_unit.save()
+    reservation.access_code = '123456'
+    reservation.save()
+    detail_url = reverse('reservation-detail', kwargs={'pk': reservation.pk})
+
+    api_client.force_authenticate(user=unit_viewer_user)
+    response = api_client.get(detail_url)
+    assert response.status_code == 200
+    assert response.data['access_code'] == '123456'
+
+
+@pytest.mark.django_db
+def test_viewer_can_view_reservation_extra_fields(api_client, resource_in_unit, reservation, unit_viewer_user):
+    resource_in_unit.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
+    resource_in_unit.save()
+    detail_url = reverse('reservation-detail', kwargs={'pk': reservation.pk})
+    api_client.force_authenticate(user=unit_viewer_user)
+
+    response = api_client.get(detail_url)
+    assert response.status_code == 200
+    for field_name in DEFAULT_RESERVATION_EXTRA_FIELDS:
+        assert (field_name in response.data) is True
+
+
+@pytest.mark.django_db
+def test_viewer_can_access_reservation_comments(api_client, reservation, unit_viewer_user):
+    reservation.comments = 'To be a foo or not to be a foo, that is the question'
+    reservation.save()
+    detail_url = reverse('reservation-detail', kwargs={'pk': reservation.pk})
+    api_client.force_authenticate(user=unit_viewer_user)
+
+    response = api_client.get(detail_url)
+    assert response.status_code == 200
+    assert response.data['comments'] == 'To be a foo or not to be a foo, that is the question'
+
+
+@pytest.mark.django_db
+def test_viewer_can_view_reservation_user(api_client, reservation, unit_viewer_user, user):
+    detail_url = reverse('reservation-detail', kwargs={'pk': reservation.pk})
+    api_client.force_authenticate(user=unit_viewer_user)
+
+    response = api_client.get(detail_url)
+    assert response.status_code == 200
+    assert response.data['user']['email'] == user.email
+
+@pytest.mark.django_db
+def test_viewer_can_modify_reservations(resource_in_unit, resource_in_unit2, api_client, unit_viewer_user, reservation_data, detail_url):
+    # unit_viewer_user is viewer of resource_in_unit (resource of reservation_data)
+    api_client.force_authenticate(user=unit_viewer_user)
+    response = api_client.put(detail_url, data=reservation_data)
+    assert response.status_code == 200
+
+    # unit_viewer_user is NOT viewer of resource_in_unit2
+    reservation_data['resource'] = resource_in_unit2.pk
+    response = api_client.put(detail_url, data=reservation_data)
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_viewer_can_comment_reservations(resource_in_unit, api_client, unit_viewer_user, reservation_data, detail_url):
+    api_client.force_authenticate(user=unit_viewer_user)
+    reservation_data['comments'] = 'test comment'
+    response = api_client.put(detail_url, data=reservation_data)
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
 def test_query_counts(user_api_client, staff_api_client, list_url, django_assert_max_num_queries):
     """
     Test that DB query count is less than allowed

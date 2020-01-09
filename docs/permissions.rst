@@ -11,6 +11,7 @@ The following roles are defined for the users of Respa.
 - Unit Group Administrator
 - Unit Administrator
 - Unit Manager
+- Unit Viewer
 - Reserver i.e. End User
 
 
@@ -143,7 +144,7 @@ Respa Admin Permissions
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 Respa Admin permissions are granted to the Unit Group Administrators
-(UGA), Unit Administrators (UA), Unit Managers (UM) and General
+(UGA), Unit Administrators (UA), Unit Managers (UM), Unit Viewers (UV) and General
 Administrators (GA).  Most of them are granted per Unit Group or per
 Unit basis, but there are also a few general permissions which are not
 tied to any object.  The permissions are listed in the following table
@@ -152,9 +153,9 @@ with the scope of authorization and the authorized roles.
 General Administrator role is not bound to any Unit or Unit Group and so
 their permissions are unscoped.
 
-====================================== ============ ====== ======= ====== ======
-**Permission**                         **Scope**    **GA** **UGA** **UA** **UM**
--------------------------------------- ------------ ------ ------- ------ ------
+====================================== ============ ====== ======= ====== ====== ======
+**Permission**                         **Scope**    **GA** **UGA** **UA** **UM** **UV**
+-------------------------------------- ------------ ------ ------- ------ ------ ------
 can_login_to_respa_admin               General        X       X      X      X
 can_modify_resources                   Unit           X       X      X      X
 can_modify_unit                        Unit           X       X      X      X
@@ -166,16 +167,18 @@ can_manage_auth_of_unit                Unit           X       X      X
 can_create_resource_to_unit            Unit           X       X      X
 can_delete_resource_of_unit            Unit           X       X      X
 can_make_reservations                  Unit                                 X
-can_modify_reservations                Unit                                 X
+can_modify_reservations                Unit                                 X      X
 can_ignore_opening_hours               Unit                                 X
-can_view_reservation_access_code       Unit                                 X
-can_view_reservation_extra_fields      Unit                                 X
-can_access_reservation_comments        Unit                                 X
+can_view_reservation_access_code       Unit                                 X      X
+can_view_reservation_extra_fields      Unit                                 X      X
+can_view_reservation_user              Unit           X       X      X             X
+can_access_reservation_comments        Unit                                 X      X
+can_comment_reservations               Unit           X       X      X             X
 can_view_reservation_catering_orders   Unit                                 X
 can_manage_auth_of_unit_group          Unit Group     X       X
 can_create_unit_to_group               Unit Group     X       X
 can_delete_unit_of_group               Unit Group     X       X
-====================================== ============ ====== ======= ====== ======
+====================================== ============ ====== ======= ====== ====== ======
 
 Definitions of the permissions:
 
@@ -215,6 +218,12 @@ can_create_unit_to_group
 
 can_delete_unit_of_group
     Can delete an Unit of the Unit Group
+
+can_view_reservation_user
+    Can see user object in reservations which contains id, name and email
+
+can_comment_reservation
+    Can add comments to a reservation
 
 
 Implementation of the Roles
@@ -259,10 +268,10 @@ called ``unit_group`` can be queried like this::
         ...
     ]>
 
-Unit Administrators and Managers
+Unit Administrators, Managers and Viewers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Unit Administrator and Unit Manager status is given per Unit via an
+Unit Administrator, Unit Manager and Unit Viewer status is given per Unit via an
 ``UnitAuthorization`` link.  The authorizations of an unit called
 ``unit`` can be queried like this::
 
@@ -276,5 +285,9 @@ Unit Administrator and Unit Manager status is given per Unit via an
             authorized=user2,
             subject=unit1,
             level=UnitAuthorizationLevel.manager),
+        UnitAuthorization(
+            authorized=user3,
+            subject=unit1,
+            level=UnitAuthorizationLevel.viewer),
         ...
     ]>

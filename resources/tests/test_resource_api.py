@@ -28,7 +28,7 @@ def detail_url(resource_in_unit):
     return reverse('resource-detail', kwargs={'pk': resource_in_unit.pk})
 
 
-def _check_permissions_dict(api_client, resource, is_admin, is_manager, can_make_reservations,
+def _check_permissions_dict(api_client, resource, is_admin, is_manager, is_viewer, can_make_reservations,
                             can_ignore_opening_hours, can_bypass_payment):
     """
     Check that user permissions returned from resource endpoint contain correct values
@@ -37,11 +37,13 @@ def _check_permissions_dict(api_client, resource, is_admin, is_manager, can_make
 
     url = reverse('resource-detail', kwargs={'pk': resource.pk})
     response = api_client.get(url)
+    print(response.data)
     assert response.status_code == 200
     permissions = response.data['user_permissions']
-    assert len(permissions) == 5
+    assert len(permissions) == 6
     assert permissions['is_admin'] == is_admin
     assert permissions['is_manager'] == is_manager
+    assert permissions['is_viewer'] == is_viewer
     assert permissions['can_make_reservations'] == can_make_reservations
     assert permissions['can_ignore_opening_hours'] == can_ignore_opening_hours
     assert permissions['can_bypass_payment'] == can_bypass_payment
@@ -64,14 +66,14 @@ def test_user_permissions_in_resource_endpoint(api_client, resource_in_unit, use
 
     # normal user, reservable = True
     _check_permissions_dict(api_client, resource_in_unit, is_admin=False, is_manager=False,
-                            can_make_reservations=True, can_ignore_opening_hours=False,
+                            is_viewer=False, can_make_reservations=True, can_ignore_opening_hours=False,
                             can_bypass_payment=False)
 
     # normal user, reservable = False
     resource_in_unit.reservable = False
     resource_in_unit.save()
     _check_permissions_dict(api_client, resource_in_unit, is_admin=False, is_manager=False,
-                            can_make_reservations=False, can_ignore_opening_hours=False,
+                            is_viewer=False, can_make_reservations=False, can_ignore_opening_hours=False,
                             can_bypass_payment=False)
 
     # admin, reservable = False
@@ -79,7 +81,7 @@ def test_user_permissions_in_resource_endpoint(api_client, resource_in_unit, use
     user.save()
     api_client.force_authenticate(user=user)
     _check_permissions_dict(api_client, resource_in_unit, is_admin=True, is_manager=True,
-                            can_make_reservations=True, can_ignore_opening_hours=True,
+                            is_viewer=False, can_make_reservations=True, can_ignore_opening_hours=True,
                             can_bypass_payment=True)
     user.is_general_admin = False
     user.save()
@@ -89,7 +91,7 @@ def test_user_permissions_in_resource_endpoint(api_client, resource_in_unit, use
     assign_perm('unit:can_make_reservations', group, resource_in_unit.unit)
     api_client.force_authenticate(user=user)
     _check_permissions_dict(api_client, resource_in_unit, is_admin=False, is_manager=False,
-                            can_make_reservations=True, can_ignore_opening_hours=False,
+                            is_viewer=False, can_make_reservations=True, can_ignore_opening_hours=False,
                             can_bypass_payment=False)
     remove_perm('unit:can_make_reservations', group, resource_in_unit.unit)
 
@@ -97,20 +99,21 @@ def test_user_permissions_in_resource_endpoint(api_client, resource_in_unit, use
     assign_perm('group:can_make_reservations', group, resource_group)
     api_client.force_authenticate(user=user)
     _check_permissions_dict(api_client, resource_in_unit, is_admin=False, is_manager=False,
-                            can_make_reservations=True, can_ignore_opening_hours=False,
+                            is_viewer=False, can_make_reservations=True, can_ignore_opening_hours=False,
                             can_bypass_payment=False)
 
     assign_perm('unit:can_ignore_opening_hours', group, resource_in_unit.unit)
     api_client.force_authenticate(user=user)
     _check_permissions_dict(api_client, resource_in_unit, is_admin=False, is_manager=False,
-                            can_make_reservations=True, can_ignore_opening_hours=True,
+                            is_viewer=False, can_make_reservations=True, can_ignore_opening_hours=True,
                             can_bypass_payment=False)
+    remove_perm('unit:can_ignore_opening_hours', group, resource_in_unit.unit)
 
     # user has explicit permission to bypass payment
     assign_perm('unit:can_bypass_payment', group, resource_in_unit.unit)
     api_client.force_authenticate(user=user)
     _check_permissions_dict(api_client, resource_in_unit, is_admin=False, is_manager=False,
-                            can_make_reservations=True, can_ignore_opening_hours=True,
+                            is_viewer=False, can_make_reservations=True, can_ignore_opening_hours=False,
                             can_bypass_payment=True)
     remove_perm('unit:can_bypass_payment', group, resource_in_unit.unit)
 
@@ -125,7 +128,7 @@ def test_user_permissions_in_resource_endpoint(api_client, resource_in_unit, use
     user.save()
     api_client.force_authenticate(user=user)
     _check_permissions_dict(api_client, resource_in_unit, is_admin=True, is_manager=True,
-                            can_make_reservations=True, can_ignore_opening_hours=True,
+                            is_viewer=False, can_make_reservations=True,can_ignore_opening_hours=True,
                             can_bypass_payment=True)
     user.unit_authorizations.all().delete()
 
@@ -138,8 +141,21 @@ def test_user_permissions_in_resource_endpoint(api_client, resource_in_unit, use
     user.save()
     api_client.force_authenticate(user=user)
     _check_permissions_dict(api_client, resource_in_unit, is_admin=False, is_manager=True,
-                            can_make_reservations=True, can_ignore_opening_hours=True,
+                            is_viewer=False, can_make_reservations=True, can_ignore_opening_hours=True,
                             can_bypass_payment=True)
+    user.unit_authorizations.all().delete()
+
+    # unit viewer
+    user.unit_authorizations.create(
+        authorized=user,
+        level=UnitAuthorizationLevel.viewer,
+        subject=resource_in_unit.unit
+    )
+    user.save()
+    api_client.force_authenticate(user=user)
+    _check_permissions_dict(api_client, resource_in_unit, is_admin=False, is_manager=False,
+                            is_viewer=True, can_make_reservations=True, can_ignore_opening_hours=False,
+                            can_bypass_payment=False)
 
 
 @pytest.mark.django_db

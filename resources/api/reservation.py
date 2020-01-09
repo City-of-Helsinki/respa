@@ -169,6 +169,7 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
 
         is_resource_admin = resource.is_admin(request_user)
         is_resource_manager = resource.is_manager(request_user)
+        is_resource_viewer = resource.is_viewer(request_user)
 
         if not is_resource_admin:
             reservable_before = resource.get_reservable_before()
@@ -196,7 +197,7 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
                 raise ValidationError({'type': _('You are not allowed to make a reservation of this type')})
 
         if 'comments' in data:
-            if not is_resource_admin:
+            if not resource.can_comment_reservations(request_user):
                 raise ValidationError(dict(comments=_('Only allowed to be set by staff members')))
 
         if 'access_code' in data:
@@ -274,10 +275,10 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
                 'created_at': instance.created_at
             })
 
-        if not resource.is_admin(user) and not resource.can_access_reservation_comments(user):
+        if not resource.can_access_reservation_comments(user):
             del data['comments']
 
-        if not resource.is_admin(user):
+        if not resource.can_view_reservation_user(user):
             del data['user']
 
         if instance.are_extra_fields_visible(user):
