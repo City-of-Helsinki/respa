@@ -2,14 +2,13 @@ from django.urls import path, re_path
 from django.conf.urls import include
 from django.conf import settings
 from django.conf.urls.static import static
-from helusers import admin
+from helusers.admin_site import admin
 from django.views.generic.base import RedirectView
 
 from resources.api import RespaAPIRouter
 from resources.views.images import ResourceImageView
 from resources.views.ical import ICalFeedView
 
-admin.autodiscover()
 
 if getattr(settings, 'RESPA_COMMENTS_ENABLED', False):
     import comments.api

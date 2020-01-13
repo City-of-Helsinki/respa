@@ -101,11 +101,11 @@ SITE_ID = 1
 INSTALLED_APPS = [
     'helusers',
     'modeltranslation',
+    'helusers.apps.HelusersAdminConfig',
     'parler',
     'grappelli',
     'django.forms',
     'django.contrib.sites',
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
