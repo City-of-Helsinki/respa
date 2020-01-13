@@ -345,6 +345,9 @@ class Reservation(ModifiableModel):
         the original reservation need to be provided in kwargs as 'original_reservation', so
         that it can be excluded when checking if the resource is available.
         """
+
+        user_is_admin = self.resource.is_admin(self.user)
+
         if self.end <= self.begin:
             raise ValidationError(_("You must end the reservation after it has begun"))
 
@@ -360,7 +363,7 @@ class Reservation(ModifiableModel):
         if self.resource.check_reservation_collision(self.begin, self.end, original_reservation):
             raise ValidationError(_("The resource is already reserved for some of the period"))
 
-        if (self.end - self.begin) < self.resource.min_period:
+        if not user_is_admin and (self.end - self.begin) < self.resource.min_period:
             raise ValidationError(_("The minimum reservation length is %(min_period)s") %
                                   {'min_period': humanize_duration(self.resource.min_period)})
 
