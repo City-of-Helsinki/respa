@@ -43,7 +43,7 @@ django-parler-rest==2.0   # via django-munigeo
 django-parler==1.9.2
 django-reversion==3.0.2
 django-sanitized-dump==0.2.2
-django==2.2.5
+django==2.2.9
 djangorestframework-jwt==1.11.0
 djangorestframework==3.9.1
 drf-oidc-auth==0.9        # via django-helusers
@@ -66,7 +66,7 @@ mccabe==0.6.1             # via flake8
 more-itertools==5.0.0     # via pytest
 ntlm-auth==1.2.0          # via requests-ntlm
 oauthlib==3.0.0           # via requests-oauthlib
-pillow==5.4.1             # via easy-thumbnails
+pillow==7.0.0             # via easy-thumbnails
 pip-tools==3.2.0
 pluggy==0.8.1             # via pytest
 psycopg2==2.7.6.1
@@ -91,6 +91,7 @@ requests-oauthlib==1.2.0  # via django-allauth
 requests==2.21.0
 sentry-sdk==0.9.0
 six==1.12.0
+sqlparse==0.3.0           # via django
 text-unidecode==1.2       # via faker
 tzlocal==1.5.1            # via delorean
 urllib3==1.24.2           # via requests, sentry-sdk
