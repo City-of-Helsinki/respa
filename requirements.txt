@@ -31,7 +31,7 @@ django-environ==0.4.5
 django-filter==2.1.0
 django-grappelli==2.12.2
 django-guardian==1.4.9
-django-helusers==0.5.3
+django-helusers==0.5.5
 django-hstore==1.4.2
 django-image-cropping==1.2.0
 django-jinja==2.4.1
