@@ -32,7 +32,7 @@ class JWTMixin(object):
         "exp": 1446421460
     }
 
-    def authenticated_post(self, url, data, **extra):
+    def get_auth(self, **extra):
         secret_key = generate_random_string(100)
         api_settings.JWT_SECRET_KEY = secret_key
         audience = generate_random_string(40)
@@ -53,6 +53,11 @@ class JWTMixin(object):
 
         encoded_token = jwt.encode(jwt_token, secret_key, algorithm='HS256')
         auth = 'JWT %s' % encoded_token.decode('utf8')
+
+        return auth
+
+    def authenticated_post(self, url, data, **extra):
+        auth = self.get_auth(**extra)
         response = self.client.post(url, data, HTTP_AUTHORIZATION=auth, **extra)
         return response
 
