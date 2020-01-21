@@ -42,3 +42,7 @@ def is_unit_admin(unit_authorizations, unit_group_authorizations, unit):
 
 def is_unit_manager(unit_authorizations, unit):
     return any(auth.subject == unit and auth.level == UnitAuthorizationLevel.manager for auth in unit_authorizations)
+
+
+def is_unit_viewer(unit_authorizations, unit):
+    return any(auth.subject == unit and auth.level == UnitAuthorizationLevel.viewer for auth in unit_authorizations)

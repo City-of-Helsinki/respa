@@ -539,6 +539,9 @@ msgstr "toimipisteen ylläpitäjä"
 msgid "unit manager"
 msgstr "toimipisteen hoitaja"
 
+msgid "unit viewer"
+msgstr "toimipisteen katsoja"
+
 msgid "Time of modification"
 msgstr "Muokkausaika"
 
@@ -703,8 +706,14 @@ msgstr "Voi nähdä varauksen pääsykoodin"
 msgid "Can view reservation extra fields"
 msgstr "Voi nähdä varauksen lisäkentät"
 
+msgid "Can view reservation user"
+msgstr "Voi nähdä varauksen käyttäjän"
+
 msgid "Can access reservation comments"
 msgstr "Pääsy varauksen kommentteihin"
+
+msgid "Can create comments for a reservation"
+msgstr "Voi luoda kommentteja varaukseen"
 
 msgid "Can view reservation catering orders"
 msgstr "Voi nähdä varauksen cateringtilaukset"
@@ -1333,6 +1342,9 @@ msgstr "Henkilökunta"
 
 msgid "Admin"
 msgstr "Admin"
+
+msgid "Viewer"
+msgstr "Katsoja"
 
 msgid "Manager"
 msgstr "Hoitaja"

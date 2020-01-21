@@ -12,7 +12,10 @@ class UnitGroupAuthorizationLevel(Enum):
 class UnitAuthorizationLevel(Enum):
     admin = 'admin'
     manager = 'manager'
+    viewer = 'viewer'
 
     class Labels:
         admin = _("unit administrator")
         manager = _("unit manager")
+        viewer = _("unit viewer")
+

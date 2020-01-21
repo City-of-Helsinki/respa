@@ -54,6 +54,10 @@
                                 <span class="{% if authorization.level == authorization.level.admin %}shape-success{% else %}shape-danger{% endif %}"></span>
                                 <span>{% trans 'Admin' %}</span>
                             </div>
+                            <div>
+                                <span class="{% if authorization.level == authorization.level.viewer %}shape-success{% else %}shape-danger{% endif %}"></span>
+                                <span>{% trans 'Viewer' %}</span>
+                            </div>
                         </div>
                         <div class="col-md-8">
                             <div>
