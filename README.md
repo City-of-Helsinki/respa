@@ -89,12 +89,10 @@ Make sure you have Node 8 or LTS and yarn installed.
 
 ### Dev environment configuration
 
-Create a file `respa/.env` to configure the dev environment e.g.:
+Copy `.env.example` to `respa/.env`. Make sure the config matches your database setup.
 
 ```
-DEBUG=1
-INTERNAL_IPS='127.0.0.1'
-DATABASE_URL='postgis://respa:password@localhost:5432/respa'
+cp .env.example respa/.env
 ```
 
 ### Run Django migrations and import data
