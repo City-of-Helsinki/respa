@@ -32,3 +32,4 @@ def test_anonymize_user_data(api_client, resource_in_unit, user):
     assert reservation.event_description == 'Sensitive data of this reservation has been anonymized by a script.'
     changed_user = get_user_model().objects.get(pk=user_pk)
     assert changed_user.uuid != original_uuid
+    assert reservation.state == Reservation.CANCELLED
