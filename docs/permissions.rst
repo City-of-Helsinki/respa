@@ -7,7 +7,7 @@ Roles
 The following roles are defined for the users of Respa.
 
 - Super User
-- General Administrator (the old staff) (DEPRECATED)
+- General Administrator
 - Unit Group Administrator
 - Unit Administrator
 - Unit Manager
@@ -51,7 +51,11 @@ Here is an example that should help understanding the user roles.
 
    * updates the details of the Resources in the Unit.
 
-5. User with the permission granted in step 3 (in Varaamo)
+5. Unit Viewer
+
+   * examines and modifies end users reservations on request
+
+6. User with the permission granted in step 3 (in Varaamo)
 
    * approves reservations.
 
@@ -95,14 +99,44 @@ group on two scopes:
     resource group.
   * Unit: The permission is granted to all resources of the unit.
 
-In addition **General Administrators, Unit Group Administrator and Unit
-Administrators implicitly have all other resource permissions except
-``can_approve_reservation``, ``can_view_reservation_product_orders`` and
-``can_modify_paid_reservations`` for the resources in the Unit Group or
-Unit**.
+The explicit resource permissions are implemented with Django Guardian.
+All resource permissions are defined in ``resources/models/permissions.py``.
 
-The resource permissions are implemented as Django Object Permissions
-and are defined in ``resources/models/permissions.py``.  They are:
+
+In addition following user roles has resource permissions in Respa:
+
+  * General Administrators (GA)
+  * Unit Group Administrator (UGA)
+  * Unit Administrators (UA)
+  * Unit Manager (UM)
+  * Unit Viewer (UV)
+
+These roles implicitly has certain permissions for the resources in
+the Unit Group or Unit. All role based permissions are represented in
+table below.
+
+
+====================================== ====== ======= ====== ====== ======
+**Permission**                         **GA** **UGA** **UA** **UM** **UV**
+-------------------------------------- ------ ------- ------ ------ ------
+can_approve_reservation
+can_make_reservations                    X       X      X      X
+can_modify_reservations                  X       X      X      X      X
+can_ignore_opening_hours                 X       X      X      X
+can_view_reservation_access_code         X       X      X      X      X
+can_view_reservation_extra_fields        X       X      X      X      X
+can_view_reservation_user                X       X      X             X
+can_access_reservation_comments          X       X      X      X      X
+can_comment_reservations                 X       X      X             X
+can_view_reservation_catering_orders     X       X      X      X
+can_modify_reservation_catering_orders
+can_view_reservation_product_orders
+can_modify_paid_reservations
+can_bypass_payment                       X       X      X      X
+====================================== ====== ======= ====== ====== ======
+
+
+Definitions of the permissions:
 
 can_approve_reservation
   Can approve reservations
@@ -122,11 +156,14 @@ can_view_reservation_access_code
 can_view_reservation_extra_fields
   Can view reservation extra fields
 
-can_bypass_payment
-  Can bypass payment when making a reservation
+can_view_reservation_user
+  Can view reservation user
 
 can_access_reservation_comments
   Can access reservation comments
+
+can_comment_reservations
+  Can create comments for a reservation
 
 can_view_reservation_catering_orders
   Can view reservation catering orders
@@ -139,6 +176,9 @@ can_view_reservation_product_orders
 
 can_modify_paid_reservations
   Can modify paid reservations
+
+can_bypass_payment
+  Can bypass payment when making a reservation
 
 Respa Admin Permissions
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -157,24 +197,14 @@ their permissions are unscoped.
 **Permission**                         **Scope**    **GA** **UGA** **UA** **UM** **UV**
 -------------------------------------- ------------ ------ ------- ------ ------ ------
 can_login_to_respa_admin               General        X       X      X      X
-can_modify_resources                   Unit           X       X      X      X
-can_modify_unit                        Unit           X       X      X      X
-can_bypass_payment                     Unit           X       X      X      X
 can_access_permissions_view            General        X       X      X
 can_search_users                       General        X       X      X
+can_modify_resource                    Unit           X       X      X      X
 can_manage_resource_perms              Unit           X       X      X
+can_modify_unit                        Unit           X       X      X      X
 can_manage_auth_of_unit                Unit           X       X      X
 can_create_resource_to_unit            Unit           X       X      X
 can_delete_resource_of_unit            Unit           X       X      X
-can_make_reservations                  Unit                                 X
-can_modify_reservations                Unit                                 X      X
-can_ignore_opening_hours               Unit                                 X
-can_view_reservation_access_code       Unit                                 X      X
-can_view_reservation_extra_fields      Unit                                 X      X
-can_view_reservation_user              Unit           X       X      X             X
-can_access_reservation_comments        Unit                                 X      X
-can_comment_reservations               Unit           X       X      X             X
-can_view_reservation_catering_orders   Unit                                 X
 can_manage_auth_of_unit_group          Unit Group     X       X
 can_create_unit_to_group               Unit Group     X       X
 can_delete_unit_of_group               Unit Group     X       X
@@ -185,21 +215,21 @@ Definitions of the permissions:
 can_login_to_respa_admin
     Can login to Respa Admin interface
 
-can_modify_resources
-    Can modify Resources of the Unit
-
-can_modify_unit
-    Can modify the Unit
-
 can_access_permissions_view
     Can access permission management view
 
 can_search_users
     Can search users (by e-mail)
 
+can_modify_resource
+    Can modify Resources of the Unit
+
 can_manage_resource_perms
     Can grant Resource Permissions to any user within scope of the
     administrated Unit
+
+can_modify_unit
+    Can modify the Unit
 
 can_manage_auth_of_unit
     Can add/remove users as Unit Administrators or Unit Managers
@@ -218,12 +248,6 @@ can_create_unit_to_group
 
 can_delete_unit_of_group
     Can delete an Unit of the Unit Group
-
-can_view_reservation_user
-    Can see user object in reservations which contains id, name and email
-
-can_comment_reservation
-    Can add comments to a reservation
 
 
 Implementation of the Roles

@@ -7,8 +7,9 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import activate
 from PIL import Image
 
+from resources.enums import UnitAuthorizationLevel, UnitGroupAuthorizationLevel
 from resources.errors import InvalidImage
-from resources.models import ResourceImage
+from resources.models import ResourceImage, Resource
 from resources.tests.utils import create_resource_image, get_test_image_data, get_field_errors
 
 
@@ -117,3 +118,43 @@ def test_time_slot_validations(resource_in_unit):
     resource_in_unit.min_period = datetime.timedelta(hours=2)
     resource_in_unit.slot_size = datetime.timedelta(minutes=30)
     resource_in_unit.full_clean()
+
+
+@pytest.mark.django_db
+def test_queryset_with_perm(resource_in_unit, user):
+    resources = Resource.objects.with_perm('can_view_reservation_catering_orders', user)
+    assert not resources
+
+    user.unit_authorizations.create(
+        authorized=user,
+        level=UnitAuthorizationLevel.manager,
+        subject=resource_in_unit.unit
+    )
+    user.save()
+
+    resources = Resource.objects.with_perm('can_view_reservation_catering_orders', user)
+    assert resources
+    assert resource_in_unit in resources
+
+    user.unit_authorizations.create(
+        authorized=user,
+        level=UnitAuthorizationLevel.admin,
+        subject=resource_in_unit.unit
+    )
+
+    resources = Resource.objects.with_perm('can_modify_paid_reservations', user)
+    assert not resources
+
+    user.unit_authorizations.all().delete()
+
+    user.unit_authorizations.create(
+        authorized=user,
+        level=UnitAuthorizationLevel.viewer,
+        subject=resource_in_unit.unit
+    )
+
+    resources = Resource.objects.with_perm('can_modify_reservations', user)
+    assert resources
+    assert resource_in_unit in resources
+
+

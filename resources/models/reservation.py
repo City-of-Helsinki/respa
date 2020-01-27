@@ -224,7 +224,7 @@ class Reservation(ModifiableModel):
     def can_view_access_code(self, user):
         if self.is_own(user):
             return True
-        return self.resource.can_view_access_codes(user)
+        return self.resource.can_view_reservation_access_code(user)
 
     def set_state(self, new_state, user):
         # Make sure it is a known state
@@ -311,7 +311,7 @@ class Reservation(ModifiableModel):
     def can_view_catering_orders(self, user):
         if self.is_own(user):
             return True
-        return self.resource.can_view_catering_orders(user)
+        return self.resource.can_view_reservation_catering_orders(user)
 
     def can_add_product_order(self, user):
         return self.is_own(user)
@@ -319,7 +319,7 @@ class Reservation(ModifiableModel):
     def can_view_product_orders(self, user):
         if self.is_own(user):
             return True
-        return self.resource.can_view_product_orders(user)
+        return self.resource.can_view_reservation_product_orders(user)
 
     def get_order(self):
         return getattr(self, 'order', None)

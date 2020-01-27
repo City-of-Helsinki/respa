@@ -1,4 +1,7 @@
 from django.utils.translation import ugettext_lazy as _
+from ..enums import UnitAuthorizationLevel, UnitGroupAuthorizationLevel
+
+# Always update permissions.rst documentation accordingly after modifying this file!
 
 RESOURCE_PERMISSIONS = (
     ('can_approve_reservation', _('Can approve reservation')),
@@ -16,6 +19,67 @@ RESOURCE_PERMISSIONS = (
     ('can_modify_paid_reservations', _('Can modify paid reservations')),
     ('can_bypass_payment', _('Can bypass payment for paid reservations')),
 )
+
+UNIT_ROLE_PERMISSIONS = {
+    'can_approve_reservation': [],
+    'can_make_reservations': [
+        UnitGroupAuthorizationLevel.admin,
+        UnitAuthorizationLevel.admin,
+        UnitAuthorizationLevel.manager
+        ],
+    'can_modify_reservations': [
+        UnitGroupAuthorizationLevel.admin,
+        UnitAuthorizationLevel.admin,
+        UnitAuthorizationLevel.manager,
+        UnitAuthorizationLevel.viewer
+        ],
+    'can_ignore_opening_hours': [
+        UnitGroupAuthorizationLevel.admin,
+        UnitAuthorizationLevel.admin,
+        UnitAuthorizationLevel.manager
+        ],
+    'can_view_reservation_access_code': [
+        UnitGroupAuthorizationLevel.admin,
+        UnitAuthorizationLevel.admin,
+        UnitAuthorizationLevel.manager,
+        UnitAuthorizationLevel.viewer
+        ],
+    'can_view_reservation_extra_fields': [
+        UnitGroupAuthorizationLevel.admin,
+        UnitAuthorizationLevel.admin,
+        UnitAuthorizationLevel.manager,
+        UnitAuthorizationLevel.viewer
+        ],
+    'can_view_reservation_user': [
+        UnitGroupAuthorizationLevel.admin,
+        UnitAuthorizationLevel.admin,
+        UnitAuthorizationLevel.viewer
+        ],
+    'can_access_reservation_comments': [
+        UnitGroupAuthorizationLevel.admin,
+        UnitAuthorizationLevel.admin,
+        UnitAuthorizationLevel.manager,
+        UnitAuthorizationLevel.viewer
+        ],
+    'can_comment_reservations': [
+        UnitGroupAuthorizationLevel.admin,
+        UnitAuthorizationLevel.admin,
+        UnitAuthorizationLevel.viewer
+        ],
+    'can_view_reservation_catering_orders': [
+        UnitGroupAuthorizationLevel.admin,
+        UnitAuthorizationLevel.admin,
+        UnitAuthorizationLevel.manager
+        ],
+    'can_modify_reservation_catering_orders': [],
+    'can_view_reservation_product_orders': [],
+    'can_modify_paid_reservations': [],
+    'can_bypass_payment': [
+        UnitGroupAuthorizationLevel.admin,
+        UnitAuthorizationLevel.admin,
+        UnitAuthorizationLevel.manager
+        ]
+}
 
 UNIT_PERMISSIONS = [
     ('unit:' + name, description)
