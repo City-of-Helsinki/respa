@@ -30,7 +30,7 @@ def get_commentable_content_types():
     return ContentType.objects.get_for_models(*COMMENTABLE_MODELS.values()).values()
 
 
-def get_comment_choices():
+def get_content_type_choices():
     return {'id__in': (ct.id for ct in get_commentable_content_types())}
 
 
@@ -68,7 +68,7 @@ class Comment(models.Model):
     content_type = models.ForeignKey(
         ContentType,
         on_delete=models.CASCADE,
-        limit_choices_to=get_comment_choices
+        limit_choices_to=get_content_type_choices
     )
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
