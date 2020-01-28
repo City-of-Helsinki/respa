@@ -285,7 +285,7 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
-        'resources.api.renderers.ResourcesBrowsableAPIRenderer',
+        'respa.renderers.ResourcesBrowsableAPIRenderer',
     )
 }
 
