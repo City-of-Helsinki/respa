@@ -100,6 +100,7 @@ SITE_ID = 1
 # Application definition
 INSTALLED_APPS = [
     'helusers',
+    'resources',
     'modeltranslation',
     'grappelli',
     'helusers.apps.HelusersAdminConfig',
@@ -134,7 +135,6 @@ INSTALLED_APPS = [
     'munigeo',
 
     'reports',
-    'resources',
     'users',
     'caterings',
     'comments',
@@ -283,6 +283,10 @@ REST_FRAMEWORK = {
     ] if DEBUG else []),
     'DEFAULT_PAGINATION_CLASS': 'resources.pagination.DefaultPagination',
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+        'resources.api.renderers.ResourcesBrowsableAPIRenderer',
+    )
 }
 
 JWT_AUTH = {
