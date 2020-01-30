@@ -536,6 +536,7 @@ class SiPassDriver(AccessControlDriver):
                     'PagerNumber': '',
                     'PagerServiceProviderId': '0',
                     'PhoneNumber': ''
+                    'ManagerEmailAddress': ''
                 },
                 'DateOfBirth': '',
                 'PayrollNumber': '',
@@ -551,7 +552,7 @@ class SiPassDriver(AccessControlDriver):
             'SmartCardProfileId': '0',
             'SmartCardProfileName': None,
             'StartDate': start_time.isoformat(),
-            'Status': 61,  # 61 means Valid
+            'Status': 62,  # 62 means Valid
             'Token': '-1',
             'TraceDetails': {
                 'CardLastUsed': None,
