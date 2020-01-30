@@ -535,7 +535,7 @@ class SiPassDriver(AccessControlDriver):
                     'MobileServiceProviderId': '0',
                     'PagerNumber': '',
                     'PagerServiceProviderId': '0',
-                    'PhoneNumber': ''
+                    'PhoneNumber': '',
                     'ManagerEmailAddress': ''
                 },
                 'DateOfBirth': '',
