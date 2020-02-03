@@ -79,7 +79,8 @@ class PurposeViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = PurposePagination
 
     def get_queryset(self):
-        if is_staff(self.request.user):
+        user = self.request.user
+        if is_staff(user) or is_general_admin(user):
             return self.queryset
         else:
             return self.queryset.filter(public=True)

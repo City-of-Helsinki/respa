@@ -1,11 +1,11 @@
-from resources.auth import is_any_admin, is_staff
+from resources.auth import is_any_admin, is_staff, is_general_admin
 
 ########################################################################
 # General permissions
 
 
 def can_login_to_respa_admin(user):
-    return is_staff(user)
+    return is_staff(user) or is_general_admin(user)
 
 
 def can_access_permissions_view(user):
@@ -21,7 +21,7 @@ def can_search_users(user):
 
 
 def can_modify_resource(user, resource):
-    return resource.unit.is_manager(user)
+    return resource.unit.is_admin(user) or resource.unit.is_manager(user)
 
 
 def can_manage_resource_perms(user, resource):
@@ -33,7 +33,7 @@ def can_manage_resource_perms(user, resource):
 
 
 def can_modify_unit(user, unit):
-    return unit.is_manager(user)
+    return unit.is_admin(user) or unit.is_manager(user)
 
 
 def can_manage_auth_of_unit(user, unit):
