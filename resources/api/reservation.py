@@ -226,7 +226,7 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
         # Run model clean
         instance = Reservation(**data)
         try:
-            instance.clean(original_reservation=reservation)
+            instance.clean(original_reservation=reservation, user=request_user)
         except DjangoValidationError as exc:
 
             # Convert Django ValidationError to DRF ValidationError so that in the response
