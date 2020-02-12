@@ -125,9 +125,9 @@ can_modify_reservations                  X       X      X      X      X
 can_ignore_opening_hours                 X       X      X      X
 can_view_reservation_access_code         X       X      X      X      X
 can_view_reservation_extra_fields        X       X      X      X      X
-can_view_reservation_user                X       X      X             X
+can_view_reservation_user                X       X      X      X      X
 can_access_reservation_comments          X       X      X      X      X
-can_comment_reservations                 X       X      X             X
+can_comment_reservations                 X       X      X      X      X
 can_view_reservation_catering_orders     X       X      X      X
 can_modify_reservation_catering_orders
 can_view_reservation_product_orders
