@@ -108,7 +108,10 @@ class PaymentsReservationSerializer(ReservationSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        if not instance.can_view_product_orders(self.context['request'].user):
+        prefetched_user = self.context.get('prefetched_user', None)
+        user = prefetched_user or self.context['request'].user
+
+        if not instance.can_view_product_orders(user):
             data.pop('order', None)
         return data
 

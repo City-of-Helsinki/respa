@@ -539,6 +539,9 @@ msgstr "toimipisteen ylläpitäjä"
 msgid "unit manager"
 msgstr "toimipisteen hoitaja"
 
+msgid "unit viewer"
+msgstr "toimipisteen katsoja"
+
 msgid "Time of modification"
 msgstr "Muokkausaika"
 
@@ -703,8 +706,14 @@ msgstr "Voi nähdä varauksen pääsykoodin"
 msgid "Can view reservation extra fields"
 msgstr "Voi nähdä varauksen lisäkentät"
 
+msgid "Can view reservation user"
+msgstr "Voi nähdä varauksen käyttäjän"
+
 msgid "Can access reservation comments"
 msgstr "Pääsy varauksen kommentteihin"
+
+msgid "Can create comments for a reservation"
+msgstr "Voi luoda kommentteja varaukseen"
 
 msgid "Can view reservation catering orders"
 msgstr "Voi nähdä varauksen cateringtilaukset"
@@ -1216,8 +1225,11 @@ msgstr "Henkilökunnan tili"
 msgid "Allows user to grant permissions to units"
 msgstr "Antaa käyttäjän myöntää käyttöoikeuksia toimipisteille"
 
-msgid "You can't add, change or delete permissions to unit you are not admin of"
-msgstr "Et voi lisätä, poistaa tai muokata käyttöoikeuksia toimipisteelle, jonka ylläpitäjä et ole"
+msgid ""
+"You can't add, change or delete permissions to unit you are not admin of"
+msgstr ""
+"Et voi lisätä, poistaa tai muokata käyttöoikeuksia toimipisteelle, jonka "
+"ylläpitäjä et ole"
 
 msgid "Log out"
 msgstr "Kirjaudu ulos"
@@ -1331,6 +1343,9 @@ msgstr "Henkilökunta"
 msgid "Admin"
 msgstr "Admin"
 
+msgid "Viewer"
+msgstr "Katsoja"
+
 msgid "Manager"
 msgstr "Hoitaja"
 
@@ -1432,6 +1447,9 @@ msgstr "Käyttöoikeudet"
 
 msgid "Manager/admin of unit"
 msgstr "Toimipisteen ylläpitäjä/hoitaja"
+
+msgid "Booking form"
+msgstr "Varauslomake"
 
 msgid "Pricing"
 msgstr "Hinnoittelu"

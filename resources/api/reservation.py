@@ -169,6 +169,7 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
 
         is_resource_admin = resource.is_admin(request_user)
         is_resource_manager = resource.is_manager(request_user)
+        is_resource_viewer = resource.is_viewer(request_user)
 
         if not is_resource_admin:
             reservable_before = resource.get_reservable_before()
@@ -196,7 +197,7 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
                 raise ValidationError({'type': _('You are not allowed to make a reservation of this type')})
 
         if 'comments' in data:
-            if not is_resource_admin:
+            if not resource.can_comment_reservations(request_user):
                 raise ValidationError(dict(comments=_('Only allowed to be set by staff members')))
 
         if 'access_code' in data:
@@ -258,7 +259,8 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
     def to_representation(self, instance):
         data = super(ReservationSerializer, self).to_representation(instance)
         resource = instance.resource
-        user = self.context['request'].user
+        prefetched_user = self.context.get('prefetched_user', None)
+        user = prefetched_user or self.context['request'].user
 
         if self.context['request'].accepted_renderer.format == 'xlsx':
             # Return somewhat different data in case we are dealing with xlsx.
@@ -273,10 +275,10 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
                 'created_at': instance.created_at
             })
 
-        if not resource.is_admin(user) and not resource.can_access_reservation_comments(user):
+        if not resource.can_access_reservation_comments(user):
             del data['comments']
 
-        if not resource.is_admin(user):
+        if not resource.can_view_reservation_user(user):
             del data['user']
 
         if instance.are_extra_fields_visible(user):
@@ -305,7 +307,10 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
 
     def get_user_permissions(self, obj):
         request = self.context.get('request')
-        can_modify_and_delete = obj.can_modify(request.user) if request else False
+        prefetched_user = self.context.get('prefetched_user', None)
+        user = prefetched_user or request.user
+
+        can_modify_and_delete = obj.can_modify(user) if request else False
         return {
             'can_modify': can_modify_and_delete,
             'can_delete': can_modify_and_delete,
@@ -588,6 +593,15 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         context = super().get_serializer_context(*args, **kwargs)
         if hasattr(self, '_page'):
             context.update(self._get_cache_context())
+
+        request_user = self.request.user
+
+        if request_user.is_authenticated:
+            prefetched_user = get_user_model().objects.prefetch_related('unit_authorizations', 'unit_group_authorizations__subject__members').\
+                get(pk=request_user.pk)
+
+            context['prefetched_user'] = prefetched_user
+
         return context
 
     def get_queryset(self):

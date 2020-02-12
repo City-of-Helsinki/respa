@@ -29,7 +29,7 @@ from PIL import Image
 from guardian.shortcuts import get_objects_for_user, get_users_with_perms
 from guardian.core import ObjectPermissionChecker
 
-from ..auth import is_authenticated_user, is_general_admin
+from ..auth import is_authenticated_user, is_general_admin, is_superuser
 from ..errors import InvalidImage
 from ..fields import EquipmentField
 from .accessibility import AccessibilityValue, AccessibilityViewpoint, ResourceAccessibility
@@ -38,7 +38,8 @@ from .utils import create_datetime_days_from_now, get_translated, get_translated
 from .equipment import Equipment
 from .unit import Unit
 from .availability import get_opening_hours
-from .permissions import RESOURCE_GROUP_PERMISSIONS
+from .permissions import RESOURCE_GROUP_PERMISSIONS, UNIT_ROLE_PERMISSIONS
+from ..enums import UnitAuthorizationLevel, UnitGroupAuthorizationLevel
 
 
 def generate_access_code(access_code_type):
@@ -152,7 +153,11 @@ class ResourceQuerySet(models.QuerySet):
                                      with_superuser=False)
         resource_groups = get_objects_for_user(user, 'group:%s' % perm, klass=ResourceGroup,
                                                with_superuser=False)
-        return self.filter(Q(unit__in=units) | Q(groups__in=resource_groups)).distinct()
+
+        allowed_roles = UNIT_ROLE_PERMISSIONS.get(perm)
+        units_where_role = Unit.objects.by_roles(user, allowed_roles)
+
+        return self.filter(Q(unit__in=list(units) + list(units_where_role)) | Q(groups__in=resource_groups)).distinct()
 
 
 class Resource(ModifiableModel, AutoIdentifiedModel):
@@ -531,15 +536,30 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         :rtype: bool
         """
         if not self.unit:
-            return is_general_admin(user)
+            return False
         return self.unit.is_manager(user)
+
+    def is_viewer(self, user):
+        """
+        Check if the given user is a viewer of this resource.
+
+        :type user: users.models.User
+        :rtype: bool
+        """
+        if not self.unit:
+            return False
+        return self.unit.is_viewer(user)
 
     def _has_perm(self, user, perm, allow_admin=True):
         if not is_authenticated_user(user):
             return False
-        # Admins are almighty.
-        if self.is_admin(user) and allow_admin:
+
+        if (self.is_admin(user) and allow_admin) or user.is_superuser:
             return True
+
+        return self._has_role_perm(user, perm) or self._has_explicit_perm(user, perm, allow_admin)
+
+    def _has_explicit_perm(self, user, perm, allow_admin=True):
         if hasattr(self, '_permission_checker'):
             checker = self._permission_checker
         else:
@@ -552,6 +572,22 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         resource_group_perms = [checker.has_perm('group:%s' % perm, rg) for rg in self.groups.all()]
         return any(resource_group_perms)
 
+    def _has_role_perm(self, user, perm):
+        allowed_roles = UNIT_ROLE_PERMISSIONS.get(perm)
+        is_allowed = False
+
+        if (UnitAuthorizationLevel.admin in allowed_roles
+            or UnitGroupAuthorizationLevel.admin in allowed_roles) and not is_allowed:
+            is_allowed = self.is_admin(user)
+
+        if UnitAuthorizationLevel.manager in allowed_roles and not is_allowed:
+            is_allowed = self.is_manager(user)
+
+        if UnitAuthorizationLevel.viewer in allowed_roles and not is_allowed:
+            is_allowed = self.is_viewer(user)
+
+        return is_allowed
+
     def get_users_with_perm(self, perm):
         users = {u for u in get_users_with_perms(self.unit) if u.has_perm('unit:%s' % perm, self.unit)}
         for rg in self.groups.all():
@@ -559,39 +595,33 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         return users
 
     def can_make_reservations(self, user):
-        if self.is_manager(user):
-            return True
         return self.reservable or self._has_perm(user, 'can_make_reservations')
 
     def can_modify_reservations(self, user):
-        if self.is_manager(user):
-            return True
         return self._has_perm(user, 'can_modify_reservations')
 
+    def can_comment_reservations(self, user):
+        return self._has_perm(user, 'can_comment_reservations')
+
     def can_ignore_opening_hours(self, user):
-        if self.is_manager(user):
-            return True
         return self._has_perm(user, 'can_ignore_opening_hours')
 
     def can_view_reservation_extra_fields(self, user):
-        if self.is_manager(user):
-            return True
         return self._has_perm(user, 'can_view_reservation_extra_fields')
 
+    def can_view_reservation_user(self, user):
+        return self._has_perm(user, 'can_view_reservation_user')
+
     def can_access_reservation_comments(self, user):
-        if self.is_manager(user):
-            return True
         return self._has_perm(user, 'can_access_reservation_comments')
 
-    def can_view_catering_orders(self, user):
-        if self.is_manager(user):
-            return True
+    def can_view_reservation_catering_orders(self, user):
         return self._has_perm(user, 'can_view_reservation_catering_orders')
 
-    def can_modify_catering_orders(self, user):
+    def can_modify_reservation_catering_orders(self, user):
         return self._has_perm(user, 'can_modify_reservation_catering_orders')
 
-    def can_view_product_orders(self, user):
+    def can_view_reservation_product_orders(self, user):
         return self._has_perm(user, 'can_view_reservation_product_orders', allow_admin=False)
 
     def can_modify_paid_reservations(self, user):
@@ -600,14 +630,10 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     def can_approve_reservations(self, user):
         return self._has_perm(user, 'can_approve_reservation', allow_admin=False)
 
-    def can_view_access_codes(self, user):
-        if self.is_manager(user):
-            return True
+    def can_view_reservation_access_code(self, user):
         return self._has_perm(user, 'can_view_reservation_access_code')
 
     def can_bypass_payment(self, user):
-        if self.is_manager(user) or self.is_admin(user):
-            return True
         return self._has_perm(user, 'can_bypass_payment')
 
     def is_access_code_enabled(self):

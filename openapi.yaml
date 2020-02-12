@@ -734,6 +734,7 @@ paths:
       - name: include
         in: query
         description: Include extra data to queryset. Currently accepts values `resource_detail` and `order_detail` (available only when the payment support is enabled).
+          To get more than one extra data entry, use multiple include parameters eg. `?include=resource_detail&include=order_detail`.
         schema:
           type: string
         example: resource_detail

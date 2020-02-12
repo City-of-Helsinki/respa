@@ -596,6 +596,9 @@ msgstr "Enhets administratör"
 msgid "unit manager"
 msgstr "Enhets chef"
 
+msgid "unit viewer"
+msgstr "Enhets visare"
+
 msgid "Time of modification"
 msgstr "Modifieringstidpukt"
 
@@ -784,8 +787,14 @@ msgstr "Kan se reservationers behörighetskod"
 msgid "Can view reservation extra fields"
 msgstr "Kan se reservationers extra fält"
 
+msgid "Can view reservation user"
+msgstr "Kan se reservationers användare"
+
 msgid "Can access reservation comments"
 msgstr "Kan ser kommentarer i reservationer"
+
+msgid "Can create comments for a reservation"
+msgstr "Kan skapa kommentarer för en reservation"
 
 msgid "Can view reservation catering orders"
 msgstr "Kan visa reservationer catering beställningar"
@@ -1003,7 +1012,10 @@ msgstr "Svag"
 msgid "Strong"
 msgstr "Stark"
 
-msgid "6-digit pin code"
+msgid "4-digit PIN code"
+msgstr "4-siffrig PIN-kod"
+
+msgid "6-digit PIN code"
 msgstr "6-siffrig PIN-kod"
 
 msgid "Resource type"
@@ -1309,9 +1321,11 @@ msgstr "Personalkonto"
 msgid "Allows user to grant permissions to units"
 msgstr "Tillåter användare att bevilja behörigheter till behörigheter"
 
-msgid "You can't add, change or delete permissions to unit you are not admin of"
-msgstr "Du kan inte bevilja, redigera eller radera behörigheter till enheter som du inte är administratör för"
-
+msgid ""
+"You can't add, change or delete permissions to unit you are not admin of"
+msgstr ""
+"Du kan inte bevilja, redigera eller radera behörigheter till enheter som du "
+"inte är administratör för"
 
 msgid "Log out"
 msgstr "Logga ut"
@@ -1426,6 +1440,9 @@ msgstr "Personal"
 msgid "Admin"
 msgstr "Admin"
 
+msgid "Viewer"
+msgstr "Visare"
+
 msgid "Manager"
 msgstr "Chef"
 
@@ -1527,6 +1544,9 @@ msgstr "Behörigheter"
 
 msgid "Manager/admin of unit"
 msgstr "Enhetens admin/chef"
+
+msgid "Booking form"
+msgstr "Bokningsformulär"
 
 msgid "Pricing"
 msgstr "Pris"

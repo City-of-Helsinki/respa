@@ -224,7 +224,7 @@ class Reservation(ModifiableModel):
     def can_view_access_code(self, user):
         if self.is_own(user):
             return True
-        return self.resource.can_view_access_codes(user)
+        return self.resource.can_view_reservation_access_code(user)
 
     def set_state(self, new_state, user):
         # Make sure it is a known state
@@ -311,7 +311,7 @@ class Reservation(ModifiableModel):
     def can_view_catering_orders(self, user):
         if self.is_own(user):
             return True
-        return self.resource.can_view_catering_orders(user)
+        return self.resource.can_view_reservation_catering_orders(user)
 
     def can_add_product_order(self, user):
         return self.is_own(user)
@@ -319,7 +319,7 @@ class Reservation(ModifiableModel):
     def can_view_product_orders(self, user):
         if self.is_own(user):
             return True
-        return self.resource.can_view_product_orders(user)
+        return self.resource.can_view_reservation_product_orders(user)
 
     def get_order(self):
         return getattr(self, 'order', None)
@@ -345,6 +345,9 @@ class Reservation(ModifiableModel):
         the original reservation need to be provided in kwargs as 'original_reservation', so
         that it can be excluded when checking if the resource is available.
         """
+
+        user_is_admin = self.resource.is_admin(self.user)
+
         if self.end <= self.begin:
             raise ValidationError(_("You must end the reservation after it has begun"))
 
@@ -360,7 +363,7 @@ class Reservation(ModifiableModel):
         if self.resource.check_reservation_collision(self.begin, self.end, original_reservation):
             raise ValidationError(_("The resource is already reserved for some of the period"))
 
-        if (self.end - self.begin) < self.resource.min_period:
+        if not user_is_admin and (self.end - self.begin) < self.resource.min_period:
             raise ValidationError(_("The minimum reservation length is %(min_period)s") %
                                   {'min_period': humanize_duration(self.resource.min_period)})
 

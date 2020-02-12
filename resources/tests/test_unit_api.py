@@ -7,7 +7,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from resources.models import Resource, ResourceGroup
-from .utils import assert_response_objects, check_only_safe_methods_allowed
+from .utils import assert_response_objects, check_only_safe_methods_allowed, MAX_QUERIES
 
 
 @pytest.fixture
@@ -95,3 +95,15 @@ def test_unit_has_resource_filter(api_client, test_unit,
     response = api_client.get(list_url + '?' + 'unit_has_resource=False')
     assert response.status_code == 200
     assert_response_objects(response, (test_unit))
+
+
+@pytest.mark.django_db
+def test_query_counts(user_api_client, staff_api_client, list_url, django_assert_max_num_queries):
+    """
+    Test that DB query count is less than allowed
+    """
+    with django_assert_max_num_queries(MAX_QUERIES):
+        user_api_client.get(list_url)
+
+    with django_assert_max_num_queries(MAX_QUERIES):
+        staff_api_client.get(list_url)
