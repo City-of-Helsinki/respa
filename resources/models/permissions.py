@@ -53,6 +53,7 @@ UNIT_ROLE_PERMISSIONS = {
     'can_view_reservation_user': [
         UnitGroupAuthorizationLevel.admin,
         UnitAuthorizationLevel.admin,
+        UnitAuthorizationLevel.manager,
         UnitAuthorizationLevel.viewer
         ],
     'can_access_reservation_comments': [
@@ -64,6 +65,7 @@ UNIT_ROLE_PERMISSIONS = {
     'can_comment_reservations': [
         UnitGroupAuthorizationLevel.admin,
         UnitAuthorizationLevel.admin,
+        UnitAuthorizationLevel.manager,
         UnitAuthorizationLevel.viewer
         ],
     'can_view_reservation_catering_orders': [
