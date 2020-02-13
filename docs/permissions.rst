@@ -133,6 +133,10 @@ can_modify_reservation_catering_orders
 can_view_reservation_product_orders
 can_modify_paid_reservations
 can_bypass_payment                       X       X      X      X
+can_create_staff_event                   X       X      X      X
+can_create_special_type_reservation      X       X      X      X
+can_bypass_manual_confirmation           X       X      X      X
+can_create_reservations_for_other_users  X       X      X
 ====================================== ====== ======= ====== ====== ======
 
 
@@ -179,6 +183,18 @@ can_modify_paid_reservations
 
 can_bypass_payment
   Can bypass payment when making a reservation
+
+can_create_staff_event
+  Can create a reservation that is a staff event
+
+can_create_special_type_reservation
+  Can create reservations of a non-normal type
+
+can_bypass_manual_confirmation
+  Can bypass manual confirmation requirement for resources
+
+can_create_reservations_for_other_users
+  Can create reservations for other registered users
 
 Respa Admin Permissions
 ~~~~~~~~~~~~~~~~~~~~~~~

@@ -18,6 +18,10 @@ RESOURCE_PERMISSIONS = (
     ('can_view_reservation_product_orders', _('Can view reservation product orders')),
     ('can_modify_paid_reservations', _('Can modify paid reservations')),
     ('can_bypass_payment', _('Can bypass payment for paid reservations')),
+    ('can_create_staff_event', _('Can create a reservation that is a staff event')),
+    ('can_create_special_type_reservation', _('Can create reservations of a non-normal type')),
+    ('can_bypass_manual_confirmation', _('Can bypass manual confirmation requirement for resources')),
+    ('can_create_reservations_for_other_users', _('Can create reservations for other registered users'))
 )
 
 UNIT_ROLE_PERMISSIONS = {
@@ -80,6 +84,25 @@ UNIT_ROLE_PERMISSIONS = {
         UnitGroupAuthorizationLevel.admin,
         UnitAuthorizationLevel.admin,
         UnitAuthorizationLevel.manager
+        ],
+    'can_create_staff_event': [
+        UnitGroupAuthorizationLevel.admin,
+        UnitAuthorizationLevel.admin,
+        UnitAuthorizationLevel.manager
+        ],
+    'can_create_special_type_reservation': [
+        UnitGroupAuthorizationLevel.admin,
+        UnitAuthorizationLevel.admin,
+        UnitAuthorizationLevel.manager
+        ],
+    'can_bypass_manual_confirmation': [
+        UnitGroupAuthorizationLevel.admin,
+        UnitAuthorizationLevel.admin,
+        UnitAuthorizationLevel.manager
+        ],
+    'can_create_reservations_for_other_users': [
+        UnitGroupAuthorizationLevel.admin,
+        UnitAuthorizationLevel.admin
         ]
 }
 
