@@ -2248,6 +2248,92 @@ def test_viewer_can_comment_reservations(resource_in_unit, api_client, unit_view
 
 
 @pytest.mark.django_db
+def test_admin_can_make_staff_reservation(
+        resource_in_unit, list_url, reservation_data, unit_admin_user, api_client):
+    """
+    User with admin status on the resource should be able to make staff event reservations.
+    """
+    reservation_data['staff_event'] = True
+    reservation_data['reserver_name'] = 'herra huu'
+    reservation_data['event_description'] = 'herra huun bileet'
+
+    api_client.force_authenticate(user=unit_admin_user)
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201, "Request failed with: %s" % (str(response.content, 'utf8'))
+    assert response.data.get('staff_event', False) is True
+    reservation = Reservation.objects.get(id=response.data['id'])
+    assert reservation.staff_event is True
+
+
+@pytest.mark.django_db
+def test_admin_can_create_special_type_reservation(
+        resource_in_unit, list_url, reservation_data, unit_admin_user, api_client):
+    """
+    User with admin status on the resource should be able to make special type reservations.
+    """
+    reservation_data['type'] = Reservation.TYPE_BLOCKED
+
+    api_client.force_authenticate(user=unit_admin_user)
+    response = api_client.post(list_url, data=reservation_data)
+
+    assert response.status_code == 201
+    reservation = Reservation.objects.get(id=response.data['id'])
+    assert reservation.type == Reservation.TYPE_BLOCKED
+
+
+@pytest.mark.django_db
+def test_manager_can_create_special_type_reservation(
+        resource_in_unit, list_url, reservation_data, unit_manager_user, api_client):
+    """
+    User with manager status on the resource should be able to make special type reservations.
+    """
+    reservation_data['type'] = Reservation.TYPE_BLOCKED
+
+    api_client.force_authenticate(user=unit_manager_user)
+    response = api_client.post(list_url, data=reservation_data)
+
+    assert response.status_code == 201
+    reservation = Reservation.objects.get(id=response.data['id'])
+    assert reservation.type == Reservation.TYPE_BLOCKED
+
+
+@pytest.mark.django_db
+def test_admin_can_bypass_manual_confirmation(
+        resource_in_unit, list_url, reservation_data, unit_admin_user, api_client):
+    """
+    User with admin status on the resource should be able to bypass manual confirmation.
+    """
+
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+
+    api_client.force_authenticate(user=unit_admin_user)
+    response = api_client.post(list_url, data=reservation_data)
+
+    assert response.status_code == 201
+    reservation = Reservation.objects.get(id=response.data['id'])
+    assert reservation.state != Reservation.REQUESTED
+
+
+@pytest.mark.django_db
+def test_manager_can_bypass_manual_confirmation(
+        resource_in_unit, list_url, reservation_data, unit_manager_user, api_client):
+    """
+    User with manager status on the resource should be able to bypass manual confirmation.
+    """
+
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+
+    api_client.force_authenticate(user=unit_manager_user)
+    response = api_client.post(list_url, data=reservation_data)
+
+    assert response.status_code == 201
+    reservation = Reservation.objects.get(id=response.data['id'])
+    assert reservation.state != Reservation.REQUESTED
+
+
+@pytest.mark.django_db
 def test_query_counts(user_api_client, staff_api_client, list_url, django_assert_max_num_queries):
     """
     Test that DB query count is less than allowed

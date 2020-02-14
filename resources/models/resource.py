@@ -636,6 +636,18 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     def can_bypass_payment(self, user):
         return self._has_perm(user, 'can_bypass_payment')
 
+    def can_create_staff_event(self, user):
+        return self._has_perm(user, 'can_create_staff_event')
+
+    def can_create_special_type_reservation(self, user):
+        return self._has_perm(user, 'can_create_special_type_reservation')
+
+    def can_bypass_manual_confirmation(self, user):
+        return self._has_perm(user, 'can_bypass_manual_confirmation')
+
+    def can_create_reservations_for_other_users(self, user):
+        return self._has_perm(user, 'can_create_reservations_for_other_users')
+
     def is_access_code_enabled(self):
         return self.access_code_type != Resource.ACCESS_CODE_TYPE_NONE
 
