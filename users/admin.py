@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib import admin
 from resources.models import Reservation
+from allauth.socialaccount.models import SocialAccount, EmailAddress
 
 
 User = get_user_model()
@@ -77,6 +78,9 @@ def anonymize_user_data(modeladmin, request, queryset):
         user.email = f'{user.first_name}.{user.last_name}@anonymized.net'.lower()
         user.uuid = uuid.uuid4()
         user.save()
+
+        SocialAccount.objects.filter(user=user).update(uid=user.uuid, extra_data='{}')
+        EmailAddress.objects.filter(user=user).update(email=user.email)
 
         user_reservations = Reservation.objects.filter(user=user)
         user_reservations.update(
