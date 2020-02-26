@@ -268,6 +268,13 @@ cd $HOME/respa
 ./manage.py respa_exchange_listen_notifications --log-file=$HOME/logs/exchange_sync.log --pid-file=$HOME/exchange_sync.pid --daemonize
 ```
 
+### Theme customization
+
+Theme customization, such as changing the main colors, can be done in `respa_admin/static_src/styles/application-variables.scss`.
+
+By default, color theme is imported in this file. If you want to override certain colors, take a copy of the contents of the file
+specified in the import, and customize. Remember to remove or uncomment the original import.
+
 Requirements
 ------------
 
