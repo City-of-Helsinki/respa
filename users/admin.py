@@ -84,6 +84,7 @@ def anonymize_user_data(modeladmin, request, queryset):
 
         user_reservations = Reservation.objects.filter(user=user)
         user_reservations.update(
+            state=Reservation.CANCELLED,
             event_subject='Removed',
             event_description='Sensitive data of this reservation has been anonymized by a script.',
             host_name='Removed',
