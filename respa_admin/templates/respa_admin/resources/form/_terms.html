@@ -12,6 +12,7 @@
     {% trans "Booking form" as metadata_custom_label %}
     {% include "respa_admin/forms/_select.html" with field=form.authentication %}
     {% include "respa_admin/forms/_select.html" with field=form.generic_terms %}
+    {% include "respa_admin/forms/_select.html" with field=form.payment_terms %}
     {% include "respa_admin/forms/_select.html" with field=form.reservation_metadata_set custom_label=metadata_custom_label %}
     {% include "respa_admin/forms/_select.html" with field=form.access_code_type %}
 

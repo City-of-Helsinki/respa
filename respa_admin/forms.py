@@ -21,7 +21,8 @@ from resources.models import (
     Resource,
     ResourceImage,
     Unit,
-    UnitAuthorization
+    UnitAuthorization,
+    TermsOfUse
 )
 
 from users.models import User
@@ -175,6 +176,11 @@ class ResourceForm(forms.ModelForm):
         label='Nimi [fi]',
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['generic_terms'].queryset = TermsOfUse.objects.filter(terms_type=TermsOfUse.TERMS_TYPE_GENERIC)
+        self.fields['payment_terms'].queryset = TermsOfUse.objects.filter(terms_type=TermsOfUse.TERMS_TYPE_PAYMENT)
+
     class Meta:
         model = Resource
 
@@ -224,6 +230,7 @@ class ResourceForm(forms.ModelForm):
             'max_price_per_hour',
             'min_price_per_hour',
             'generic_terms',
+            'payment_terms',
             'public',
             'reservation_metadata_set',
         ] + translated_fields
