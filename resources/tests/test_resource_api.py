@@ -80,7 +80,7 @@ def test_user_permissions_in_resource_endpoint(api_client, resource_in_unit, use
     user.is_general_admin = True
     user.save()
     api_client.force_authenticate(user=user)
-    _check_permissions_dict(api_client, resource_in_unit, is_admin=True, is_manager=True,
+    _check_permissions_dict(api_client, resource_in_unit, is_admin=True, is_manager=False,
                             is_viewer=False, can_make_reservations=True, can_ignore_opening_hours=True,
                             can_bypass_payment=True)
     user.is_general_admin = False
@@ -127,7 +127,7 @@ def test_user_permissions_in_resource_endpoint(api_client, resource_in_unit, use
     )
     user.save()
     api_client.force_authenticate(user=user)
-    _check_permissions_dict(api_client, resource_in_unit, is_admin=True, is_manager=True,
+    _check_permissions_dict(api_client, resource_in_unit, is_admin=True, is_manager=False,
                             is_viewer=False, can_make_reservations=True,can_ignore_opening_hours=True,
                             can_bypass_payment=True)
     user.unit_authorizations.all().delete()

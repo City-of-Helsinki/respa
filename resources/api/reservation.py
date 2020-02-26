@@ -108,9 +108,10 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
             required = resource.get_required_reservation_extra_field_names(cache=cache)
 
             # staff events have less requirements
+            request_user = self.context['request'].user
             is_staff_event = data.get('staff_event', False)
-            is_resource_manager = resource.is_manager(self.context['request'].user)
-            if is_staff_event and is_resource_manager:
+
+            if is_staff_event and resource.can_create_staff_event(request_user):
                 required = {'reserver_name', 'event_description'}
 
             # we don't need to remove a field here if it isn't supported, as it will be read-only and will be more
@@ -167,11 +168,7 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
         if data['end'] < timezone.now():
             raise ValidationError(_('You cannot make a reservation in the past'))
 
-        is_resource_admin = resource.is_admin(request_user)
-        is_resource_manager = resource.is_manager(request_user)
-        is_resource_viewer = resource.is_viewer(request_user)
-
-        if not is_resource_admin:
+        if not resource.can_ignore_opening_hours(request_user):
             reservable_before = resource.get_reservable_before()
             if reservable_before and data['begin'] >= reservable_before:
                 raise ValidationError(_('The resource is reservable only before %(datetime)s' %
@@ -182,18 +179,19 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
                                         {'datetime': reservable_after}))
 
         # normal users cannot make reservations for other people
-        if not is_resource_admin:
+        if not resource.can_create_reservations_for_other_users(request_user):
             data.pop('user', None)
 
         # Check user specific reservation restrictions relating to given period.
         resource.validate_reservation_period(reservation, request_user, data=data)
 
         if data.get('staff_event', False):
-            if not is_resource_manager:
+            if not resource.can_create_staff_event(request_user):
                 raise ValidationError(dict(staff_event=_('Only allowed to be set by resource managers')))
 
         if 'type' in data:
-            if data['type'] != Reservation.TYPE_NORMAL and not (is_resource_admin or is_resource_manager):
+            if (data['type'] != Reservation.TYPE_NORMAL and
+                    not resource.can_create_special_type_reservation(request_user)):
                 raise ValidationError({'type': _('You are not allowed to make a reservation of this type')})
 
         if 'comments' in data:
@@ -631,8 +629,8 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         instance = serializer.save(**override_data)
 
         resource = serializer.validated_data['resource']
-        is_resource_manager = resource.is_manager(self.request.user)
-        if resource.need_manual_confirmation and not is_resource_manager:
+
+        if resource.need_manual_confirmation and not resource.can_bypass_manual_confirmation(self.request.user):
             new_state = Reservation.REQUESTED
         else:
             if instance.get_order():
