@@ -150,7 +150,7 @@ class CateringOrderSerializer(serializers.ModelSerializer):
         if reservation:
             resource = reservation.resource
             user = self.context['request'].user
-            if reservation.user != user and not resource.can_modify_catering_orders(user):
+            if reservation.user != user and not resource.can_modify_reservation_catering_orders(user):
                 raise exceptions.PermissionDenied(_("No permission to modify this reservation's catering orders."))
 
         provider = validated_data['order_lines'][0]['product'].category.provider

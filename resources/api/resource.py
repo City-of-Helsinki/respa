@@ -18,7 +18,7 @@ from django.contrib.auth import get_user_model
 
 from resources.pagination import PurposePagination
 from rest_framework import exceptions, filters, mixins, serializers, viewsets, response, status
-from rest_framework.authentication import SessionAuthentication
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.decorators import action
 from guardian.core import ObjectPermissionChecker
 
@@ -79,7 +79,8 @@ class PurposeViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = PurposePagination
 
     def get_queryset(self):
-        if is_staff(self.request.user):
+        user = self.request.user
+        if is_staff(user) or is_general_admin(user):
             return self.queryset
         else:
             return self.queryset.filter(public=True)
@@ -770,6 +771,9 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
                       viewsets.GenericViewSet, ResourceCacheMixin):
     queryset = ResourceListViewSet.queryset
+    authentication_classes = (
+        list(drf_settings.DEFAULT_AUTHENTICATION_CLASSES) +
+        [TokenAuthentication, SessionAuthentication])
 
     def get_serializer_class(self):
         if settings.RESPA_PAYMENTS_ENABLED:

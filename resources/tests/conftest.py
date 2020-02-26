@@ -237,6 +237,21 @@ def staff_user():
 
 @pytest.mark.django_db
 @pytest.fixture
+def unit_admin_user(resource_in_unit):
+    user = get_user_model().objects.create(
+        username='test_admin_user',
+        first_name='Inspector',
+        last_name='Lestrade',
+        email='lestrade@scotlandyard.co.uk',
+        is_staff=True,
+        preferred_language='en'
+    )
+    user.unit_authorizations.create(subject=resource_in_unit.unit, level=UnitAuthorizationLevel.admin)
+    return user
+
+
+@pytest.mark.django_db
+@pytest.fixture
 def unit_manager_user(resource_in_unit):
     user = get_user_model().objects.create(
         username='test_manager_user',

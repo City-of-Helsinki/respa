@@ -99,7 +99,7 @@ class Comment(models.Model):
         elif target_model == CateringOrder:
             if user == target_object.reservation.user:
                 return True
-            if target_object.reservation.resource.can_view_catering_orders(user):
+            if target_object.reservation.resource.can_view_reservation_catering_orders(user):
                 return True
         return False
 

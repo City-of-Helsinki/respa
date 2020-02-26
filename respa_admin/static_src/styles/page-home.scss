@@ -22,32 +22,32 @@ main {
       top: 0;
       bottom: 0;
       width: 100%;
-      background-color: $hel-fog;
+      background-color: $theme-secondary-light;
       transform: rotate(180deg);
     }
 
     &.koro-basic:before {
       background-color: transparent;
-      @include koro("basic", $hel-fog, 400);
+      @include koro("basic", $theme-secondary-light, 400);
     }
 
     &.koro-pulse:before {
       background-color: transparent;
-      @include koro("pulse", $hel-fog, 400);
+      @include koro("pulse", $theme-secondary-light, 400);
     }
 
     &.koro-beat:before {
       background-color: transparent;
-      @include koro("beat", $hel-fog, 400);
+      @include koro("beat", $theme-secondary-light, 400);
     }
     &.koro-storm:before {
       background-color: transparent;
-      @include koro("storm", $hel-fog, 400);
+      @include koro("storm", $theme-secondary-light, 400);
     }
 
     &.koro-wave:before {
       background-color: transparent;
-      @include koro("wave", $hel-fog, 400);
+      @include koro("wave", $theme-secondary-light, 400);
     }
 
     .container {
