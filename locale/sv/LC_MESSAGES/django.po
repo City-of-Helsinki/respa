@@ -815,6 +815,18 @@ msgstr "Kan modifiera reservationer"
 msgid "Can bypass payment for paid reservations"
 msgstr "Kan åsidosätta betalningen av bokningen"
 
+msgid "Can create a reservation that is a staff event"
+msgstr "Kan skapa en reservation som är en personalhändelse"
+
+msgid "Can create reservations of a non-normal type"
+msgstr "Kan skapa reservationer av en icke-normal typ"
+
+msgid "Can bypass manual confirmation requirement for resources"
+msgstr "Kan kringgå manuellt bekräftelsekrav för resurser"
+
+msgid "Can create reservations for other registered users"
+msgstr "Kan skapa reservationer för andra registrerade användare"
+
 msgid "created"
 msgstr "skapad"
 
@@ -995,6 +1007,15 @@ msgstr "syfte"
 msgid "purposes"
 msgstr "syften"
 
+msgid "Payment terms"
+msgstr "Betalnings villkor"
+
+msgid "Generic terms"
+msgstr "Allmänna villkor"
+
+msgid "Terms type"
+msgstr "Typ av villkor"
+
 msgctxt "singular"
 msgid "terms of use"
 msgstr "villkor"
@@ -1062,9 +1083,6 @@ msgstr "Bokningsinfo"
 
 msgid "Responsible contact info"
 msgstr "Ansvarig person"
-
-msgid "Generic terms"
-msgstr "Allmänna villkor"
 
 msgid "Specific terms"
 msgstr "Specifika villkor"
