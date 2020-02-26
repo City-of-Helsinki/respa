@@ -346,9 +346,10 @@ class Reservation(ModifiableModel):
         that it can be excluded when checking if the resource is available.
         """
 
-        user = self.user
-        if not user and 'user' in kwargs:
+        if 'user' in kwargs:
             user = kwargs['user']
+        else:
+            user = self.user
 
         user_is_admin = user and self.resource.is_admin(user)
 
