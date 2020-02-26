@@ -34,8 +34,15 @@ function addNewPermission() {
 }
 
 function removePermission() {
-  $(this).next('span.hidden-delete-checkbox').find('input').prop("checked", true);
-  $(this).closest('.permission-item').hide()
+  let permissionValue = $(this).closest('.permission-item').find('[type="hidden"]').first().val();
+  if(permissionValue) {
+    $(this).next('span.hidden-delete-checkbox').find('input').prop("checked", true);
+    $(this).closest('.permission-item').hide();
+  }
+  else {
+    $(this).closest('.permission-item').remove();
+  }
+  initializeUserForm();
 }
 
 function initializeUserForm() {
