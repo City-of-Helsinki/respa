@@ -100,3 +100,6 @@ text-unidecode==1.2       # via faker
 tzlocal==1.5.1            # via delorean
 urllib3==1.25.8           # via requests, sentry-sdk
 xlsxwriter==1.1.2
+django-ilmoitin==0.4.0
+django-mailer==2.0
+lockfile==0.12.2

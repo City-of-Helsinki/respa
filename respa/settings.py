@@ -146,6 +146,8 @@ INSTALLED_APPS = [
     'respa_admin',
 
     'sanitized_dump',
+    'django_ilmoitin',
+    'mailer'
 ]
 
 if env('SENTRY_DSN'):

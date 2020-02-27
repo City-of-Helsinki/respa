@@ -13,8 +13,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from psycopg2.extras import DateTimeTZRange
+from django_ilmoitin.utils import send_notification
 
-from notifications.models import NotificationTemplate, NotificationTemplateException, NotificationType
 from resources.signals import (
     reservation_modified, reservation_confirmed, reservation_cancelled
 )
@@ -22,9 +22,10 @@ from .base import ModifiableModel
 from .resource import generate_access_code, validate_access_code
 from .resource import Resource
 from .utils import (
-    get_dt, save_dt, is_valid_time_slot, humanize_duration, send_respa_mail,
-    DEFAULT_LANG, localize_datetime, format_dt_range, build_reservations_ical_file
+    get_dt, save_dt, is_valid_time_slot, humanize_duration, DEFAULT_LANG,
+    localize_datetime, format_dt_range, build_reservations_ical_file
 )
+from ..notifications import NotificationType
 
 DEFAULT_TZ = pytz.timezone(settings.TIME_ZONE)
 
@@ -456,10 +457,6 @@ class Reservation(ModifiableModel):
 
         If user isn't given use self.user.
         """
-        try:
-            notification_template = NotificationTemplate.objects.get(type=notification_type)
-        except NotificationTemplate.DoesNotExist:
-            return
 
         if user:
             email_address = user.email
@@ -472,19 +469,7 @@ class Reservation(ModifiableModel):
         language = user.get_preferred_language() if user else DEFAULT_LANG
         context = self.get_notification_context(language, notification_type=notification_type)
 
-        try:
-            rendered_notification = notification_template.render(context, language)
-        except NotificationTemplateException as e:
-            logger.error(e, exc_info=True, extra={'user': user.uuid})
-            return
-
-        send_respa_mail(
-            email_address,
-            rendered_notification['subject'],
-            rendered_notification['body'],
-            rendered_notification['html_body'],
-            attachments
-        )
+        send_notification(email_address, notification_type, context, language, attachments)
 
     def send_reservation_requested_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_REQUESTED)

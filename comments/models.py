@@ -5,12 +5,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Q
 from django.utils.translation import ugettext_lazy as _
+from django_ilmoitin.utils import send_notification
+
 from caterings.models import CateringOrder
 from resources.models import Reservation, Resource
-from resources.models.utils import send_respa_mail
-from notifications.models import (
-    DEFAULT_LANG, render_notification_template, NotificationTemplateException, NotificationType
-)
+from notifications.models import DEFAULT_LANG
+from resources.notifications import NotificationType
 
 
 logger = logging.getLogger(__name__)
@@ -152,26 +152,12 @@ class Comment(models.Model):
             notification_type = NotificationType.RESERVATION_COMMENT_CREATED
 
         context = self.get_notification_context(DEFAULT_LANG)
-        try:
-            rendered_notification = render_notification_template(notification_type, context, DEFAULT_LANG)
-        except NotificationTemplateException as e:
-            logger.error(e, exc_info=True, extra={'request': request})
-            return
 
         if email:
-            send_respa_mail(
-                email,
-                rendered_notification['subject'],
-                rendered_notification['body'],
-                rendered_notification['html_body']
-            )
+            send_notification(email, notification_type, context, DEFAULT_LANG)
+
         if self.created_by != reserver and reserver.email:
-            send_respa_mail(
-                reserver.email,
-                rendered_notification['subject'],
-                rendered_notification['body'],
-                rendered_notification['html_body']
-            )
+            send_notification(reserver.email, notification_type, context, DEFAULT_LANG)
 
     def send_created_notification(self, request=None):
         self._send_notification(request)

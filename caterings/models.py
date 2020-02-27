@@ -6,12 +6,13 @@ from django.contrib.gis.db.models import Q
 from django.utils import formats, translation
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import pgettext_lazy
+from django_ilmoitin.utils import send_notification
 
 import reversion
 
-from notifications.models import NotificationType, NotificationTemplateException, render_notification_template
 from resources.models import Reservation, Resource, Unit
-from resources.models.utils import DEFAULT_LANG, send_respa_mail
+from resources.models.utils import DEFAULT_LANG
+from resources.notifications import NotificationType
 
 logger = logging.getLogger(__name__)
 
@@ -139,18 +140,8 @@ class CateringOrder(TimeStampedModel):
             return
 
         context = self.get_notification_context(DEFAULT_LANG)
-        try:
-            rendered_notification = render_notification_template(notification_type, context, DEFAULT_LANG)
-        except NotificationTemplateException as e:
-            logger.error(e, exc_info=True, extra={'request': request})
-            return
 
-        send_respa_mail(
-            email,
-            rendered_notification['subject'],
-            rendered_notification['body'],
-            rendered_notification['html_body']
-        )
+        send_notification(email, notification_type, context, DEFAULT_LANG)
 
     def send_created_notification(self, request=None):
         self._send_notification(NotificationType.CATERING_ORDER_CREATED, request)
