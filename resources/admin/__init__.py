@@ -245,6 +245,7 @@ class PurposeAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Translat
 
 
 class TermsOfUseAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):
+    list_display = ['name', 'terms_type']
     pass
 
 

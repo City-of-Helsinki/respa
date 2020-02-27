@@ -730,6 +730,18 @@ msgstr "Voi muokata maksettuja varauksia"
 msgid "Can bypass payment for paid reservations"
 msgstr "Voi ohittaa varauksen maksamisen"
 
+msgid "Can create a reservation that is a staff event"
+msgstr "Voi luoda henkilökuntavarauksen"
+
+msgid "Can create reservations of a non-normal type"
+msgstr "Voi tehdä erikoistyyppisiä varauksia"
+
+msgid "Can bypass manual confirmation requirement for resources"
+msgstr "Voi ohittaa manuaalisen vahvistuksen"
+
+msgid "Can create reservations for other registered users"
+msgstr "Voi tehdä varauksia muille käyttäjille"
+
 msgid "created"
 msgstr "luoja"
 
@@ -902,6 +914,15 @@ msgstr "käyttötarkoitus"
 msgid "purposes"
 msgstr "käyttötarkoitukset"
 
+msgid "Payment terms"
+msgstr "Maksuehdot"
+
+msgid "Generic terms"
+msgstr "Yleiset ehdot"
+
+msgid "Terms type"
+msgstr "Ehtojen tyyppi"
+
 msgctxt "singular"
 msgid "terms of use"
 msgstr "käyttöehdot"
@@ -969,9 +990,6 @@ msgstr "Varausinfo"
 
 msgid "Responsible contact info"
 msgstr "Vastuuhenkilön yhteystiedot"
-
-msgid "Generic terms"
-msgstr "Yleiset ehdot"
 
 msgid "Specific terms"
 msgstr "Resurssikohtaiset ehdot"

@@ -169,6 +169,7 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
     required_reservation_extra_fields = serializers.ReadOnlyField(source='get_required_reservation_extra_field_names')
     is_favorite = serializers.SerializerMethodField()
     generic_terms = serializers.SerializerMethodField()
+    payment_terms = serializers.SerializerMethodField()
     # deprecated, backwards compatibility
     reservable_days_in_advance = serializers.ReadOnlyField(source='get_reservable_max_days_in_advance')
     reservable_max_days_in_advance = serializers.ReadOnlyField(source='get_reservable_max_days_in_advance')
@@ -224,6 +225,10 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
 
     def get_generic_terms(self, obj):
         data = TermsOfUseSerializer(obj.generic_terms).data
+        return data['text']
+
+    def get_payment_terms(self, obj):
+        data = TermsOfUseSerializer(obj.payment_terms).data
         return data['text']
 
     def get_reservable_before(self, obj):
@@ -726,7 +731,7 @@ class ResourceCacheMixin:
 
 class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
                           viewsets.GenericViewSet, ResourceCacheMixin):
-    queryset = Resource.objects.select_related('generic_terms', 'unit', 'type', 'reservation_metadata_set')
+    queryset = Resource.objects.select_related('generic_terms', 'payment_terms', 'unit', 'type', 'reservation_metadata_set')
     queryset = queryset.prefetch_related('favorited_by', 'resource_equipment', 'resource_equipment__equipment',
                                          'purposes', 'images', 'purposes', 'groups')
     if settings.RESPA_PAYMENTS_ENABLED:

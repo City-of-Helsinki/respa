@@ -399,11 +399,16 @@ def test_api_resource_terms_of_use(api_client, resource_in_unit, detail_url):
     assert response.status_code == 200
 
     generic_terms = response.data['generic_terms']
+    payment_terms = response.data['payment_terms']
     specific_terms = response.data['specific_terms']
 
     assert set(generic_terms) == {'fi', 'en'}
     assert generic_terms['fi'] == 'kaikki on kielletty'
     assert generic_terms['en'] == 'everything is forbidden'
+
+    assert set(payment_terms) == {'fi', 'en'}
+    assert payment_terms['fi'] == 'kaikki on maksullista'
+    assert payment_terms['en'] == 'everything is chargeable'
 
     assert set(specific_terms) == {'fi', 'en'}
     assert specific_terms['fi'] == 'spesifiset käyttöehdot'
