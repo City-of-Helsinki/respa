@@ -122,29 +122,22 @@ msgid "Comments"
 msgstr "Kommentarer"
 
 msgid "installed"
-msgstr ""
+msgstr "installerat"
 
 msgid "removed"
-msgstr ""
+msgstr "tog bort"
 
-#, fuzzy
-#| msgctxt "singular"
-#| msgid "terms of use"
 msgid "State of the user"
-msgstr "villkor"
+msgstr "Användarens tillstånd"
 
-#, fuzzy
-#| msgid "Identifier"
 msgid "identifier"
-msgstr "Identifierare"
+msgstr "identifierare"
 
 msgid "Identifier of user in the access control system (if any)"
-msgstr ""
+msgstr "Identifiering av användare i åtkomstkontrollsystemet"
 
-#, fuzzy
-#| msgid "unit identifier"
 msgid "[No identifier]"
-msgstr "identifierare av enhet"
+msgstr "[Ingen identifierare]"
 
 #, python-brace-format
 msgid "{uuid}: {name}"
@@ -160,56 +153,51 @@ msgstr "begärd"
 msgid "cancelled"
 msgstr "avbruten"
 
-#, fuzzy
-#| msgid "Remove image"
 msgid "removing"
-msgstr "Radera bild"
+msgstr "avlägsnas"
 
-#, fuzzy
-#| msgid "Access code"
 msgid "access code"
-msgstr "Behörighetskod"
+msgstr "behörighetskod"
 
 msgid "State of the grant"
-msgstr ""
+msgstr "Tillståndets status"
 
 msgid "Identifier of grant in the access control system (if any)"
-msgstr ""
+msgstr "Identifierare av tillstånd i åtkomstkontrollsystemet"
 
 msgid "How many times the system has tried to install this grant and failed"
 msgstr ""
+"Hur många gånger har systemet försökt installera detta bidrag och misslyckats"
 
 msgid "How many times the system has tried to remove this grant (and failed)"
 msgstr ""
+"Hur många gånger har systemet försökt installera detta bidrag och misslyckats"
 
-#, fuzzy, python-brace-format
-#| msgid "Slot size for reservation time"
+#, python-brace-format
 msgid "{user} {reservation} ({state})"
-msgstr "Spårstorlek för bokningstid"
+msgstr "{user} {reservation} ({state})"
 
 msgid "system"
-msgstr ""
+msgstr "systemet"
 
 msgid "resource"
 msgstr "resurs"
 
 msgid "Identifier of resource in the access control system (if any)"
-msgstr ""
+msgstr "Identifierare av resursen i åtkomstkontrollsystemet"
 
 msgid "Driver-specific configuration"
-msgstr ""
+msgstr "Driver-specifik konfiguration"
 
 msgid "Internal driver data"
-msgstr ""
+msgstr "Intern driver data"
 
-#, fuzzy
-#| msgid "reservation"
 msgid "reservation leeway"
-msgstr "reservation"
+msgstr "bokningsrum"
 
 msgid ""
 "How many minutes before and after the reservation the access will be allowed"
-msgstr ""
+msgstr "Hur många minuter före och efter bokningen kommer åtkomst tillåtas"
 
 msgid "Notifications"
 msgstr "Notifikationer"
@@ -236,7 +224,7 @@ msgid "Reservation created with access code"
 msgstr "Bokning skapad med behörighetskod"
 
 msgid "Access code was created for a reservation"
-msgstr ""
+msgstr "Åtkomstkod skapades för en reservation"
 
 msgid "Catering order created"
 msgstr "Catering beställning skapad"
@@ -287,100 +275,76 @@ msgid "Notification templates"
 msgstr "Meddelande mallar"
 
 msgid "All the resources must have manual reservation confirmation disabled."
-msgstr ""
+msgstr "Alla resurser måste ha manuell bokningsbekräftelse inaktiverad"
 
 msgid "price"
-msgstr ""
+msgstr "pris"
 
 msgid "resources"
 msgstr "resurser"
 
-#, fuzzy
-#| msgid "created"
 msgid "created at"
-msgstr "skapad"
+msgstr "skapad vid"
 
-#, fuzzy
-#| msgid "Modified by"
 msgid "modified at"
-msgstr "Modifierad av"
+msgstr "modifierad kl"
 
-#, fuzzy
-#| msgid "Copy time period"
 msgid "price period"
-msgstr "Kopiera tidsperiod"
+msgstr "prisperiod"
 
-#, fuzzy
-#| msgid "resource type"
 msgid "product type"
-msgstr "typ av resurs"
+msgstr "produkttyp"
 
 msgid "price including VAT"
-msgstr ""
+msgstr "pris inklusive moms"
 
-#, fuzzy
-#| msgid "unit group"
 msgid "unit price"
-msgstr "enhetgrupp"
+msgstr "enhetspris"
 
 msgid "tax percentage"
-msgstr ""
+msgstr "skatt procent"
 
 msgid "timestamp"
-msgstr ""
+msgstr "tidsstämpel"
 
-#, fuzzy
-#| msgid "username"
 msgid "user"
-msgstr "användarnamn"
+msgstr "användar"
 
 msgid "Cannot exceed max product quantity"
-msgstr ""
+msgstr "Kan inte överskrida den maximala produktkvantiteten"
 
-#, fuzzy
-#| msgid "This field cannot have a value with this resource"
 msgid "This product isn't available on the resource."
-msgstr "Det här fältet kan inte ha ett värde med den här resursen"
+msgstr "Den här produkten är inte tillgänglig på resursen."
 
 msgid "At least one order line required."
-msgstr ""
+msgstr "Minst en beställningsrad krävs."
 
 msgid "Order lines cannot contain duplicate products."
-msgstr ""
+msgstr "Orderrader kan inte innehålla duplicerade produkter."
 
-#, fuzzy
-#| msgid "The order contains products from several providers."
 msgid "The order must contain at least one product of type \"rent\"."
-msgstr "Ordern innehåller produkter från flera leverantörer."
+msgstr "Beställningen måste innehålla minst en produkt av typen \"hyra\"."
 
-#, fuzzy
-#| msgid "Parent"
 msgid "rent"
-msgstr "Förälder"
+msgstr "hyra"
 
 msgid "extra"
-msgstr ""
+msgstr "extra"
 
-#, fuzzy
-#| msgid "period"
 msgid "per period"
-msgstr "period"
+msgstr "per period"
 
 msgid "fixed"
-msgstr ""
+msgstr "fixerad"
 
-#, fuzzy
-#| msgid "Catering product"
 msgid "internal product ID"
-msgstr "Catering produkt"
+msgstr "intern produkt-ID"
 
 msgid "archived_at"
-msgstr ""
+msgstr "arkiverades kl"
 
-#, fuzzy
-#| msgid "Main type"
 msgid "type"
-msgstr "Huvudtyp"
+msgstr "typ"
 
 msgid "SKU"
 msgstr ""
@@ -391,96 +355,73 @@ msgstr "namn"
 msgid "description"
 msgstr "beskrivning"
 
-#, fuzzy
-#| msgid "resource type"
 msgid "price type"
-msgstr "typ av resurs"
+msgstr "pris typ"
 
-#, fuzzy
-#| msgid "Quantity"
 msgid "max quantity"
-msgstr "Kvantitet"
+msgstr "max kvantitet"
 
-#, fuzzy
-#| msgid "Product"
 msgid "product"
-msgstr "Produkt"
+msgstr "produkt"
 
-#, fuzzy
-#| msgid "Product"
 msgid "products"
-msgstr "Produkt"
+msgstr "produkter"
 
 msgid "This field requires a non-zero value when price type is \"per period\"."
 msgstr ""
+"Detta fält kräver ett värde som inte är noll när pristypen är per period"
 
 msgid "waiting"
-msgstr ""
+msgstr "väntar"
 
 msgid "confirmed"
 msgstr "godkänd"
 
 msgid "rejected"
-msgstr ""
+msgstr "avvisade"
 
 msgid "expired"
-msgstr ""
+msgstr "utgånget"
 
-#, fuzzy
-#| msgid "State"
 msgid "state"
-msgstr "Tillstånd"
+msgstr "län"
 
-#, fuzzy
-#| msgid "Phone number"
 msgid "order number"
-msgstr "Telefonnummer"
+msgstr "ordernummer"
 
 msgid "reservation"
 msgstr "reservation"
 
-#, fuzzy
-#| msgid "Order"
 msgid "order"
-msgstr "Beställning"
+msgstr "beställning"
 
-#, fuzzy
-#| msgid "Order"
 msgid "orders"
-msgstr "Beställning"
+msgstr "beställningar"
 
-#, fuzzy
-#| msgid "Quantity"
 msgid "quantity"
-msgstr "Kvantitet"
+msgstr "kvantitet"
 
-#, fuzzy
-#| msgid "Catering order line"
 msgid "order line"
-msgstr "Catering beställning linje"
+msgstr "orderrad"
 
-#, fuzzy
-#| msgid "Catering order lines"
 msgid "order lines"
-msgstr "Catering beställning linjer"
+msgstr "beställningslinjer"
 
 msgid "order log entry"
-msgstr ""
+msgstr "beställ logg post"
 
-#, fuzzy
-#| msgid "Illegal state change"
 msgid "state change"
-msgstr "Otillåten förändring av tillstånd"
+msgstr "statlig förändring"
 
 msgid "order log entries"
-msgstr ""
+msgstr "beställ loggposter"
 
 msgid "hour"
-msgstr ""
+msgstr "timme"
 
 #, python-brace-format
 msgid "{hours} hours"
-msgstr ""
+msgstr "{hours} timmar"
 
 msgid "No reservations."
 msgstr "Ingen bokning"
@@ -524,10 +465,10 @@ msgid "Resource groups"
 msgstr "Resursgrupper"
 
 msgid "Import Service Map"
-msgstr ""
+msgstr "Importera servicekarta"
 
 msgid "Import Kirkanta"
-msgstr ""
+msgstr "Importera Kirkanta"
 
 msgid "Required fields must be a subset of supported fields"
 msgstr "Obligatoriska fält måste vara en delmängd av stödda fält"
@@ -552,11 +493,11 @@ msgstr "Det går inte att göra reservationer i det förgångna."
 
 #, python-format
 msgid "The resource is reservable only before %(datetime)s"
-msgstr ""
+msgstr "Resursen kan endast reserveras före %(datetime)s"
 
 #, python-format
 msgid "The resource is reservable only after %(datetime)s"
-msgstr ""
+msgstr "Resursen kan endast reserveras efter %(datetime)s"
 
 msgid "Only allowed to be set by resource managers"
 msgstr "Tillåts endast ställas in av resurshanterare"
@@ -602,68 +543,44 @@ msgstr "Enhets visare"
 msgid "Time of modification"
 msgstr "Modifieringstidpukt"
 
-#, fuzzy
-#| msgid "Accessibility"
 msgid "accessibility viewpoint"
-msgstr "Tillgänglighet"
+msgstr "syn på tillgänglighet"
 
-#, fuzzy
-#| msgid "Accessibility"
 msgid "accessibility viewpoints"
-msgstr "Tillgänglighet"
+msgstr "synpunkter på tillgänglighet"
 
-#, fuzzy
-#| msgid "Accessibility"
 msgid "Accessibility summary value"
-msgstr "Tillgänglighet"
+msgstr "Sammanfattningsvärde för tillgänglighet"
 
-#, fuzzy
-#| msgid "Catering product"
 msgid "Ordering priority"
-msgstr "Catering produkt"
+msgstr "Ordning prioritet"
 
-#, fuzzy
-#| msgid "Accessibility"
 msgid "accessibility value"
-msgstr "Tillgänglighet"
+msgstr "tillgänglighetsvärde"
 
-#, fuzzy
-#| msgid "Accessibility"
 msgid "accessibility values"
-msgstr "Tillgänglighet"
+msgstr "tillgänglighetsvärden"
 
-#, fuzzy
-#| msgid "Accessibility"
 msgid "Resource Accessibility"
-msgstr "Tillgänglighet"
+msgstr "Resurstillgänglighet"
 
 msgid "Resource"
 msgstr "Resurs"
 
-#, fuzzy
-#| msgid "Resource group"
 msgid "Resource ordering priority"
-msgstr "Resursgrupp"
+msgstr "Resursordningsprioritet"
 
-#, fuzzy
-#| msgid "Enter accessibility data"
 msgid "resource accessibility summary"
-msgstr "Ange tillgänglighetsdata"
+msgstr "resurstillgänglighetsöversikt"
 
-#, fuzzy
-#| msgid "Enter accessibility data"
 msgid "resource accessibility summaries"
-msgstr "Ange tillgänglighetsdata"
+msgstr "resurstillgänglighetsöversikter"
 
-#, fuzzy
-#| msgid "Enter accessibility data"
 msgid "unit accessibility summary"
-msgstr "Ange tillgänglighetsdata"
+msgstr "enhettillgänglighetsöversikt"
 
-#, fuzzy
-#| msgid "Enter accessibility data"
 msgid "unit accessibility summaries"
-msgstr "Ange tillgänglighetsdata"
+msgstr "enhettillgänglighetsöversikter"
 
 msgid "open"
 msgstr "öppen"
@@ -802,15 +719,11 @@ msgstr "Kan visa reservationer catering beställningar"
 msgid "Can modify reservation catering orders"
 msgstr "Kan redigera reservation catering beställningar"
 
-#, fuzzy
-#| msgid "Can view reservation catering orders"
 msgid "Can view reservation product orders"
-msgstr "Kan visa reservationer catering beställningar"
+msgstr "Kan visa reservationer produkt beställningar"
 
-#, fuzzy
-#| msgid "Can modify reservations"
 msgid "Can modify paid reservations"
-msgstr "Kan modifiera reservationer"
+msgstr "Kan modifiera betalda reservationer"
 
 msgid "Can bypass payment for paid reservations"
 msgstr "Kan åsidosätta betalningen av bokningen"
@@ -834,7 +747,7 @@ msgid "denied"
 msgstr "nekad"
 
 msgid "waiting for payment"
-msgstr ""
+msgstr "väntar på utbetalning"
 
 msgid "Normal reservation"
 msgstr "Normal reservation"
@@ -908,25 +821,17 @@ msgstr "Reserverares postort"
 msgid "Company"
 msgstr "Företag"
 
-#, fuzzy
-#| msgid "Billing address street"
 msgid "Billing first name"
-msgstr "Fakturering gatuadress"
+msgstr "Fakturering förnamn"
 
-#, fuzzy
-#| msgid "Billing address street"
 msgid "Billing last name"
-msgstr "Fakturering gatuadress"
+msgstr "Fakturering efternamn"
 
-#, fuzzy
-#| msgid "Billing address zip"
 msgid "Billing email address"
-msgstr "Fakturering gatuadress postnummer"
+msgstr "Fakturering e-postadress"
 
-#, fuzzy
-#| msgid "Phone number"
 msgid "Billing phone number"
-msgstr "Telefonnummer"
+msgstr "Fakturering telefonnummer"
 
 msgid "Billing address street"
 msgstr "Fakturering gatuadress"
@@ -951,28 +856,32 @@ msgstr "Resursen är redan reserverad under en del av perioden"
 
 #, python-format
 msgid "The minimum reservation length is %(min_period)s"
-msgstr ""
+msgstr "Minsta bokningstid är %(min_period)s"
+
+#, python-format
+msgid "The minimum reservation length is %(slot_size)s"
+msgstr "Minsta bokningstid är %(slot_size)s"
 
 msgid "Field name"
-msgstr ""
+msgstr "namnfält"
 
 msgid "Reservation metadata field"
-msgstr ""
+msgstr "Metadatafält för reservation"
 
 msgid "Reservation metadata fields"
-msgstr ""
+msgstr "Metadatafält för reservation"
 
 msgid "Supported fields"
-msgstr ""
+msgstr "Fält som stöds"
 
 msgid "Required fields"
-msgstr ""
+msgstr "Obligatoriska fält"
 
 msgid "Reservation metadata set"
-msgstr ""
+msgstr "Metadata för reservation"
 
 msgid "Reservation metadata sets"
-msgstr ""
+msgstr "Metadatauppsättningar för reservation"
 
 msgid "Invalid value"
 msgstr "Ogiltigt värde"
@@ -1102,13 +1011,11 @@ msgstr "Högsta pris per timme"
 msgid "Access code type"
 msgstr "Typ av behörighetskod"
 
-#, fuzzy
-#| msgid "Can view reservation access code"
 msgid "Generate access codes"
-msgstr "Kan se reservationers behörighetskod"
+msgstr "Generera behörighetskoder"
 
 msgid "Should access codes generated by the general system"
-msgstr ""
+msgstr "Bör åtkomstkoder genereras av det allmänna systemet"
 
 msgid "Reservable max. days in advance"
 msgstr "Bokningsbar dagar i förväg"
@@ -1127,26 +1034,26 @@ msgstr ""
 "annorstädes"
 
 msgid "You cannot make a multi day reservation"
-msgstr ""
+msgstr "Du kan inte boka flera dagar"
 
 msgid "You must start and end the reservation during opening hours"
-msgstr ""
+msgstr "Du måste starta och avsluta bokningen under öppettiderna"
 
 #, python-format
 msgid "The maximum reservation length is %(max_period)s"
-msgstr ""
+msgstr "Den maximala bokningslängden är %(max_period)s"
 
 msgid "Maximum number of active reservations for this resource exceeded."
-msgstr ""
+msgstr "Maximalt antal aktiva reservationer för denna resurs överskred"
 
 msgid "This value cannot be greater than max price per hour"
-msgstr ""
+msgstr "Detta värde kan inte vara högre än maxpriset per timme"
 
 msgid "This value must be a multiple of slot_size"
 msgstr "Detta värde måste vara ett flertal av slot_size"
 
 msgid "This cannot be enabled because the resource has product(s)."
-msgstr ""
+msgstr "Detta kan inte aktiveras eftersom resursen har produkter"
 
 msgid "Main photo"
 msgstr "Huvudbild"
@@ -1241,19 +1148,19 @@ msgid "units"
 msgstr "enheter"
 
 msgid "subject of the authorization"
-msgstr ""
+msgstr "föremål för auktoriserad"
 
 msgid "authorization level"
-msgstr ""
+msgstr "auktoriseringsnivå"
 
 msgid "authorized user"
-msgstr ""
+msgstr "auktoriserad användare"
 
 msgid "unit authorization"
-msgstr ""
+msgstr "enhetsbehörighet"
 
 msgid "unit authorizations"
-msgstr ""
+msgstr "enhetstillstånd"
 
 msgid "Namespace"
 msgstr ""
@@ -1274,40 +1181,40 @@ msgid "unit groups"
 msgstr "enhetgrupper"
 
 msgid "unit group authorization"
-msgstr ""
+msgstr "enhetsgruppstillstånd"
 
 msgid "unit group authorizations"
-msgstr ""
+msgstr "enhetsgruppstillstånd"
 
 #, python-format
 msgid "%(count)d hour"
 msgid_plural "%(count)d hours"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "timme"
+msgstr[1] "timmar"
 
 #, python-format
 msgid "%(count)d minute"
 msgid_plural "%(count)d minutes"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "minut"
+msgstr[1] "minuter"
 
 msgid "Home"
 msgstr "Hem"
 
 msgid "Add Another"
-msgstr ""
+msgstr "Lägg till"
 
 msgid "Delete Item"
-msgstr ""
+msgstr "Radera sak"
 
 msgid "Finnish"
-msgstr ""
+msgstr "finska"
 
 msgid "English"
-msgstr ""
+msgstr "engelsk"
 
 msgid "Swedish"
-msgstr ""
+msgstr "svenska"
 
 msgid "yyyy-mm-dd"
 msgstr "dd.mm.yyyy"
@@ -1387,10 +1294,8 @@ msgstr "Radera bild"
 msgid "Log in"
 msgstr "Logga in"
 
-#, fuzzy
-#| msgid "You are not allowed to make reservations in this resource."
 msgid "You are not allowed to use Respa Admin."
-msgstr "Du får inte göra reservationer i denna resurs."
+msgstr "Du får inte använda Respa Admin."
 
 #, python-format
 msgid ""
@@ -1403,15 +1308,11 @@ msgstr ""
 msgid "Login failed"
 msgstr "Inloggningen misslyckades"
 
-#, fuzzy
-#| msgid "username"
 msgid "Username"
-msgstr "användarnamn"
+msgstr "Användarnamn"
 
-#, fuzzy
-#| msgid "password"
 msgid "Password"
-msgstr "lösenord"
+msgstr "Lösenord"
 
 msgid "Log in with Django account"
 msgstr "Logga in med Django konto"
@@ -1600,7 +1501,7 @@ msgid "View unit"
 msgstr "Visa enhet"
 
 msgid "Search for users"
-msgstr ""
+msgstr "Sök efter användare"
 
 msgid "You can't remove staff status from user with existing permissions"
 msgstr ""

@@ -28,7 +28,7 @@ def test_period_formset_with_invalid_period_data(valid_resource_form_data):
         period_formset_with_days = get_period_formset(request)
     assert period_formset_with_days.is_valid() is False
     assert period_formset_with_days.errors == [{
-        '__all__': ["Aseta 'resource' tai 'unit'"],
+        '__all__': ["Aseta 'start' ja 'end'"],
         'start': ['Tämä kenttä vaaditaan.'],
     }]
 
