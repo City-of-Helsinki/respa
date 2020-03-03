@@ -85,14 +85,14 @@
           a {
 
             &:hover {
-              color: $hel-coat;
+              color: $theme-primary-dark;
               font-weight: bold;
             }
     
             &:after {
               height: 3px;
               border: 0;
-              background-color: $hel-coat;
+              background-color: $theme-primary-dark;
               bottom: 0;
             }
           }

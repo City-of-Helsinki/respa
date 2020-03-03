@@ -118,9 +118,18 @@ class Purpose(ModifiableModel, NameIdentifiedModel):
 
 
 class TermsOfUse(ModifiableModel, AutoIdentifiedModel):
+    TERMS_TYPE_PAYMENT = 'payment_terms'
+    TERMS_TYPE_GENERIC = 'generic_terms'
+
+    TERMS_TYPES = (
+        (TERMS_TYPE_PAYMENT, _('Payment terms')),
+        (TERMS_TYPE_GENERIC, _('Generic terms'))
+    )
+
     id = models.CharField(primary_key=True, max_length=100)
     name = models.CharField(verbose_name=_('Name'), max_length=200)
     text = models.TextField(verbose_name=_('Text'))
+    terms_type = models.CharField(blank=False, verbose_name=_('Terms type'), max_length=40, choices=TERMS_TYPES, default=TERMS_TYPE_GENERIC)
 
     class Meta:
         verbose_name = pgettext_lazy('singular', 'terms of use')
@@ -205,7 +214,9 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     reservation_info = models.TextField(verbose_name=_('Reservation info'), null=True, blank=True)
     responsible_contact_info = models.TextField(verbose_name=_('Responsible contact info'), blank=True)
     generic_terms = models.ForeignKey(TermsOfUse, verbose_name=_('Generic terms'), null=True, blank=True,
-                                      on_delete=models.SET_NULL)
+                                      on_delete=models.SET_NULL, related_name='resources_where_generic_terms')
+    payment_terms = models.ForeignKey(TermsOfUse, verbose_name=_('Payment terms'), null=True, blank=True,
+                                      on_delete=models.SET_NULL, related_name='resources_where_payment_terms')
     specific_terms = models.TextField(verbose_name=_('Specific terms'), blank=True)
     reservation_requested_notification_extra = models.TextField(verbose_name=_(
         'Extra content to "reservation requested" notification'), blank=True)

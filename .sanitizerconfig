@@ -353,6 +353,7 @@ strategy:
     description_fi: null
     description_sv: null
     generic_terms_id: null
+    payment_terms_id: null
     id: null
     location: null
     max_period: null

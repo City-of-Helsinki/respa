@@ -39,7 +39,7 @@ Who is using Respa
 - [City of Helsinki](https://api.hel.fi/respa/v1/) - for [Varaamo UI](https://varaamo.hel.fi/) & [Huvaja UI](https://huonevaraus.hel.fi/)
 - [City of Tampere](https://respa.tampere.fi/v1/) - for [Varaamo UI](https://varaamo.tampere.fi/) - [GitHub repo](https://github.com/Tampere/respa)
 - [City of Lappeenranta](https://varaamo.lappeenranta.fi/respa/v1/) - for [Varaamo UI](https://varaamo.lappeenranta.fi/) - [GitHub repo](https://github.com/City-of-Lappeenranta/Respa)
-- City of Turku - for [Varaamo UI](https://varaamo.turku.fi/) - [GitHub repo](https://github.com/digipointtku/respaTku)
+- [City of Turku](https://respa.turku.fi/v1/) - for [Varaamo UI](https://varaamo.turku.fi/) - [GitHub repo](https://github.com/codepointtku/respa)
 - [City of Hämeenlinna](https://varaukset.hameenlinna.fi/v1) - for [Varaamo UI](https://varaukset.hameenlinna.fi/varaamo/) and [Berth Reservation UI](https://varaukset.hameenlinna.fi/)  - [GitHub repo](https://github.com/CityOfHameenlinna/respa)
 - [City of Espoo](https://api.hel.fi/respa/v1/) - for [Varaamo UI](https://varaamo.espoo.fi/)
 - [City of Vantaa](https://api.hel.fi/respa/v1/) - for [Varaamo UI](https://varaamo.vantaa.fi/)
@@ -81,7 +81,7 @@ sudo -u postgres psql respa -c "CREATE EXTENSION postgis;"
 
 ### Build Respa Admin static resources
 
-Make sure you have Node 8 or LTS and yarn installed.
+Make sure you have Node 8 or LTS and npm installed.
 
 ```shell
 ./build-resources
@@ -89,12 +89,10 @@ Make sure you have Node 8 or LTS and yarn installed.
 
 ### Dev environment configuration
 
-Create a file `respa/.env` to configure the dev environment e.g.:
+Copy `.env.example` to `respa/.env`. Make sure the config matches your database setup.
 
 ```
-DEBUG=1
-INTERNAL_IPS='127.0.0.1'
-DATABASE_URL='postgis://respa:password@localhost:5432/respa'
+cp .env.example respa/.env
 ```
 
 ### Run Django migrations and import data
@@ -269,6 +267,13 @@ The helper script `run-exchange-sync.sh` activates a virtualenv and starts the l
 cd $HOME/respa
 ./manage.py respa_exchange_listen_notifications --log-file=$HOME/logs/exchange_sync.log --pid-file=$HOME/exchange_sync.pid --daemonize
 ```
+
+### Theme customization
+
+Theme customization, such as changing the main colors, can be done in `respa_admin/static_src/styles/application-variables.scss`.
+
+By default, color theme is imported in this file. If you want to override certain colors, take a copy of the contents of the file
+specified in the import, and customize. Remember to remove or uncomment the original import.
 
 Requirements
 ------------

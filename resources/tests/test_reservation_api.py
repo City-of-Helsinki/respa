@@ -2343,3 +2343,38 @@ def test_query_counts(user_api_client, staff_api_client, list_url, django_assert
 
     with django_assert_max_num_queries(MAX_QUERIES):
         staff_api_client.get(list_url)
+
+
+@pytest.mark.django_db
+def test_admin_may_bypass_min_period(resource_in_unit, user, user_api_client, list_url):
+    # min_period is bypassed respecting slot_size restriction
+    resource_in_unit.min_period = datetime.timedelta(hours=1)
+    resource_in_unit.slot_size = datetime.timedelta(minutes=30)
+    resource_in_unit.save()
+
+    UnitAuthorization.objects.create(
+        subject=resource_in_unit.unit,
+        level=UnitAuthorizationLevel.admin,
+        authorized=user,
+    )
+
+    tz = timezone.get_current_timezone()
+    begin = tz.localize(datetime.datetime(2115, 6, 1, 8, 0, 0))
+    end = begin + datetime.timedelta(hours=0, minutes=30)
+
+    reservation_data = {
+        'resource': resource_in_unit.pk,
+        'begin': begin,
+        'end': end,
+    }
+
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+    Reservation.objects.all().delete()
+
+    # min_period is bypassed and slot_size restriction is violated
+    resource_in_unit.slot_size = datetime.timedelta(minutes=25)
+    resource_in_unit.save()
+
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 400

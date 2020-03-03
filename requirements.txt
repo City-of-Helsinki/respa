@@ -22,7 +22,7 @@ database-sanitizer==0.4.0
 defusedxml==0.5.0         # via python3-openid
 delorean==1.0.0
 django-admin-json-editor==0.1.5
-django-allauth==0.38.0
+django-allauth==0.41.0
 django-anymail==5.0
 django-appconf==1.0.2     # via django-image-cropping
 django-cors-headers==2.4.0
@@ -43,7 +43,7 @@ django-parler-rest==2.0   # via django-munigeo
 django-parler==1.9.2
 django-reversion==3.0.2
 django-sanitized-dump==0.2.2
-django==2.2.9
+django==2.2.10
 djangorestframework-jwt==1.11.0
 djangorestframework==3.9.1
 drf-oidc-auth==0.9        # via django-helusers
@@ -91,12 +91,12 @@ pyyaml==5.1               # via database-sanitizer, django-munigeo, django-sanit
 requests-cache==0.4.13    # via django-munigeo
 requests-ntlm==1.1.0
 requests-oauthlib==1.2.0  # via django-allauth
-requests==2.22.0
+requests==2.23.0
 rsa==4.0                  # via python-jose
-sentry-sdk==0.14.0
+sentry-sdk==0.14.1
 six==1.12.0
 sqlparse==0.3.0           # via django
 text-unidecode==1.2       # via faker
 tzlocal==1.5.1            # via delorean
-urllib3==1.24.2           # via requests, sentry-sdk
+urllib3==1.25.8           # via requests, sentry-sdk
 xlsxwriter==1.1.2
