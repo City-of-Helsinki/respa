@@ -8,7 +8,8 @@ from resources.tests.utils import assert_response_objects, check_disallowed_meth
 from resources.models import Reservation
 from resources.models.utils import DEFAULT_LANG
 from caterings.models import CateringOrder, CateringOrderLine, CateringProduct
-from notifications.models import NotificationTemplate, NotificationType
+from django_ilmoitin.models import NotificationTemplate
+from resources.notifications import NotificationType
 from notifications.tests.utils import check_received_mail_exists
 
 
@@ -339,9 +340,8 @@ Order lines: {% for line in order_lines %}
     ]
     NotificationTemplate.objects.language(DEFAULT_LANG).create(
         type=NotificationType.CATERING_ORDER_CREATED,
-        short_message="Catering order for {{ resource }} created",
         subject="Catering order for {{ resource }} created",
-        body=CREATED_BODY
+        body_text=CREATED_BODY
     )
 
     response = user_api_client.post(LIST_URL, data=new_order_data, format='json')
@@ -370,9 +370,8 @@ Order lines: {% for line in order_lines %}
     )
     NotificationTemplate.objects.language(DEFAULT_LANG).create(
         type=NotificationType.CATERING_ORDER_MODIFIED,
-        short_message="Catering order for {{ resource }} modified",
         subject="Catering order for {{ resource }} modified",
-        body=CREATED_BODY
+        body_text=CREATED_BODY
     )
     strings = [
         "  3x Kahvi\n"
@@ -404,9 +403,8 @@ Order lines: {% for line in order_lines %}
     #
     NotificationTemplate.objects.language(DEFAULT_LANG).create(
         type=NotificationType.CATERING_ORDER_DELETED,
-        short_message="Catering order for {{ resource }} deleted",
         subject="Catering order for {{ resource }} deleted",
-        body=""
+        body_text=""
     )
 
     response = user_api_client.delete(detail_url, data=new_order_data, format='json')

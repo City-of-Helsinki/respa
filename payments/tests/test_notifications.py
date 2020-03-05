@@ -3,7 +3,8 @@ from django.core import mail
 from django.test import override_settings
 from django.utils import translation
 
-from notifications.models import NotificationTemplate, NotificationType
+from django_ilmoitin.models import NotificationTemplate
+from resources.notifications import NotificationType
 from notifications.tests.utils import check_received_mail_exists
 from payments.utils import get_price_period_display
 from resources.models import Reservation
@@ -67,9 +68,8 @@ def reservation_created_notification():
     with translation.override('fi'):
         return NotificationTemplate.objects.create(
             type=NotificationType.RESERVATION_CREATED,
-            short_message='Reservation created short message.',
             subject='Reservation created subject.',
-            body='Reservation created body. \n' + get_body_with_all_template_vars()
+            body_text='Reservation created body. \n' + get_body_with_all_template_vars()
         )
 
 
@@ -79,9 +79,8 @@ def reservation_cancelled_notification():
     with translation.override('fi'):
         return NotificationTemplate.objects.create(
             type=NotificationType.RESERVATION_CANCELLED,
-            short_message='Reservation cancelled short message.',
             subject='Reservation cancelled subject.',
-            body='Reservation cancelled body. \n' + get_body_with_all_template_vars()
+            body_text='Reservation cancelled body. \n' + get_body_with_all_template_vars()
         )
 
 

@@ -16,7 +16,8 @@ from caterings.models import CateringOrder, CateringProvider
 from resources.enums import UnitAuthorizationLevel
 from resources.models import (Period, Day, Reservation, Resource, ResourceGroup, ReservationMetadataField,
                               ReservationMetadataSet, UnitAuthorization)
-from notifications.models import NotificationTemplate, NotificationType
+from django_ilmoitin.models import NotificationTemplate
+from resources.notifications import NotificationType
 from notifications.tests.utils import check_received_mail_exists
 from .utils import check_disallowed_methods, assert_non_field_errors_contain, assert_response_objects, MAX_QUERIES
 
@@ -167,9 +168,8 @@ def reservation_created_notification():
     with translation.override('en'):
         return NotificationTemplate.objects.create(
             type=NotificationType.RESERVATION_CREATED,
-            short_message='Normal reservation created short message.',
             subject='Normal reservation created subject.',
-            body='Normal reservation created body.',
+            body_text='Normal reservation created body.',
         )
 
 
@@ -1328,8 +1328,8 @@ def test_reservation_mail_empty_text_body_should_become_html_body_without_tags(u
                                                                                reservation_data, user,
                                                                                reservation_created_notification):
     with switch_language(reservation_created_notification, 'en'):
-        reservation_created_notification.body = ''
-        reservation_created_notification.html_body = '<b>HTML</b> body'
+        reservation_created_notification.body_text = ''
+        reservation_created_notification.body_html = '<b>HTML</b> body'
         reservation_created_notification.save()
 
     response = user_api_client.post(list_url, data=reservation_data, format='json')
@@ -1349,8 +1349,8 @@ def test_reservation_mail_empty_text_body_should_become_html_body_without_tags(u
 def test_reservation_mail_can_have_subject_only(user_api_client, list_url, reservation_data, user,
                                                 reservation_created_notification):
     with switch_language(reservation_created_notification, 'en'):
-        reservation_created_notification.body = ''
-        reservation_created_notification.html_body = ''
+        reservation_created_notification.body_text = ''
+        reservation_created_notification.body_html = ''
         reservation_created_notification.save()
 
     response = user_api_client.post(list_url, data=reservation_data, format='json')
@@ -1383,8 +1383,8 @@ def test_reservation_mail_images(user_api_client, user, list_url, reservation_da
     from resources.models.resource import ResourceImage
 
     with switch_language(reservation_created_notification, 'en'):
-        reservation_created_notification.body = 'image url: {{ resource_main_image_url }}'
-        reservation_created_notification.html_body = 'image: <img src="{{ resource_ground_plan_image_url }}">'
+        reservation_created_notification.body_text = 'image url: {{ resource_main_image_url }}'
+        reservation_created_notification.body_html = 'image: <img src="{{ resource_ground_plan_image_url }}">'
         reservation_created_notification.save()
 
     main_image = ResourceImage.objects.create(resource=resource_in_unit, type='main')
