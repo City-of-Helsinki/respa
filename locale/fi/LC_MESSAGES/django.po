@@ -1448,6 +1448,9 @@ msgstr "Kuva"
 msgid "You can only choose one main image."
 msgstr "Voit valita vain yhden pääkuvan."
 
+msgid "You must save resource before adding images."
+msgstr "Resurssi on tallennettava ennen kuvien lisäämistä."
+
 msgid "Add image"
 msgstr "Lisää kuva"
 

@@ -1440,6 +1440,9 @@ msgstr "Bilder"
 msgid "You can only choose one main image."
 msgstr "Du kan endast välja en huvudbild."
 
+msgid "You must save resource before adding images."
+msgstr "Du måste spara resurs innan du lägger till bilder."
+
 msgid "Add image"
 msgstr "Lägg till bild"
 

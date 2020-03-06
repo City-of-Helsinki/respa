@@ -6,9 +6,14 @@
         <span class="pull-right">{% trans "*Mandatory fields" %}</span>
     </div>
 
-    <p>{% trans "You can only choose one main image." %}</p>
+    <p>
+        {% if not form.instance.pk %}
+            {% trans "You must save resource before adding images." %}
+        {% endif %}
+        {% trans "You can only choose one main image." %}
+    </p>
 
-    <button id="image-picker" type="button" class="resources-button">
+    <button id="image-picker" type="button" class="resources-button" {% if not form.instance.pk %}disabled{% endif %}>
         {% trans "Add image" %}
     </button>
 

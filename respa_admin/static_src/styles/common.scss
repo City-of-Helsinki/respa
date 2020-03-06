@@ -45,6 +45,11 @@
     text-decoration: none;
     color: $white;
   }
+
+  &:disabled {
+    background-color: #ccccf2;
+    cursor: not-allowed;
+  }
 }
 
 .accordion-item {
