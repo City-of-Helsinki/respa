@@ -63,7 +63,7 @@ def parse_query_time_range(params):
 
 def get_resource_reservations_queryset(begin, end):
     qs = Reservation.objects.filter(begin__lte=end, end__gte=begin).current()
-    qs = qs.order_by('begin').prefetch_related('catering_orders').select_related('user')
+    qs = qs.order_by('begin').prefetch_related('catering_orders').select_related('user', 'order')
     return qs
 
 
@@ -794,6 +794,14 @@ class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context.update(self._get_cache_context())
+
+        request_user = self.request.user
+        if request_user.is_authenticated:
+            prefetched_user = get_user_model().objects.prefetch_related('unit_authorizations', 'unit_group_authorizations__subject__members').\
+                get(pk=request_user.pk)
+
+            context['prefetched_user'] = prefetched_user
+
         return context
 
     def get_queryset(self):
