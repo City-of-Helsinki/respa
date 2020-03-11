@@ -221,9 +221,9 @@ def send_renewal_email(reservation, notification_type=None):
     end_date = reservation.reservation.end
     end_date_finnish = str(end_date.day) + '.' + str(end_date.month) + '.' + str(end_date.year)
     code = reservation.renewal_code
-    renewal_link = 'https://varaukset.hameenlinna.fi/#renewal/' + code
+    renewal_link = 'https://varaukset.hameenlinna.fi/venepaikat/#renewal/' + code
     if settings.DEBUG:
-        renewal_link = 'https://varaukset.haltudemo.fi/#renewal/' + code
+        renewal_link = 'https://varaukset.haltudemo.fi/venepaikat/#renewal/' + code
 
     #body_html = _('<h2>Greetings %(full_name)s,</h2><br><br>Your berth reservation will end %(end_date_finnish)s. You can renew your reservation from the link eblow. If you don\'t renew your reservation before it ends the berth will be unlocked for everyone to reserve.<br><br>Renew your berth reservation <a href="%(renewal_link)s"> here</a>') % {'full_name': full_name, 'end_date_finnish': end_date_finnish, 'renewal_link': renewal_link}
     #body_plain = _('Greetings %(full_name)s\n\nYour berth reservation will end %(end_date_finnish)s. You can renew your reservation from the link below. If you don\'t renew your reservation before it ends the berth will be unlocked for everyone to reserve. \n\nRenew your berth reservation here: %(renewal_link)s') % {'full_name': full_name, 'end_date_finnish': end_date_finnish, 'renewal_link': renewal_link}
@@ -274,9 +274,9 @@ def send_renewal_sms(reservation):
     end_date = reservation.reservation.end
     end_date_finnish = str(end_date.day) + '.' + str(end_date.month) + '.' + str(end_date.year)
     code = reservation.renewal_code
-    renewal_link = 'https://varaukset.hameenlinna.fi/#renewal/' + code
+    renewal_link = 'https://varaukset.hameenlinna.fi/venepaikat/#renewal/' + code
     if settings.DEBUG:
-        renewal_link = 'https://varaukset.haltudemo.fi/#renewal/' + code
+        renewal_link = 'https://varaukset.haltudemo.fi/venepaikat/#renewal/' + code
     phone_number = str(reservation.reservation.reserver_phone_number)
     if phone_number[0] == '0':
         phone_number = '+358' + phone_number[1:]
