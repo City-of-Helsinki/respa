@@ -285,7 +285,14 @@ class UnitForm(forms.ModelForm):
             'address_zip',
             'municipality',
             'phone',
+            'disallow_overlapping_reservations'
         ] + translated_fields
+
+        widgets = {
+            'disallow_overlapping_reservations': RespaRadioSelect(
+                choices=((True, _('Yes')), (False, _('No')))
+            ),
+        }
 
 
 class PeriodFormset(forms.BaseInlineFormSet):

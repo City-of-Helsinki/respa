@@ -1,0 +1,12 @@
+{% load i18n %}
+
+<div id="settings">
+    <div class="form-section-header">
+        <h2>{% trans "Settings"  %}</h2>
+        <span class="pull-right">{% trans "*Mandatory Fields" %}</span>
+    </div>
+    <div class="disallow-overlapping">
+        <span class="control-label input-label">{{ form.disallow_overlapping_reservations.label }}</span>
+        {{ form.disallow_overlapping_reservations }}
+    </div>
+</div>

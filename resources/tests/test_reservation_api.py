@@ -2447,15 +2447,15 @@ def test_disallow_overlapping_reservations(resource_in_unit, resource_in_unit2, 
         'end': '2115-04-04T13:00:00+02:00'
     }
 
-    response2 = user_api_client.post(list_url, reservation_data2)
+    response2 = user_api_client.post(list_url, reservation_data2, HTTP_ACCEPT_LANGUAGE='en')
     assert response2.data['non_field_errors'][0] == expected_error
     assert response2.status_code == 400
 
-    response3 = user_api_client.post(list_url, reservation_data3)
+    response3 = user_api_client.post(list_url, reservation_data3, HTTP_ACCEPT_LANGUAGE='en')
     assert response3.data['non_field_errors'][0] == expected_error
     assert response3.status_code == 400
 
-    response4 = user_api_client.post(list_url, reservation_data4)
+    response4 = user_api_client.post(list_url, reservation_data4, HTTP_ACCEPT_LANGUAGE='en')
     assert response4.data['non_field_errors'][0] == expected_error
     assert response4.status_code == 400
 
