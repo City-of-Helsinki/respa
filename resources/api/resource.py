@@ -778,7 +778,8 @@ class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
     queryset = ResourceListViewSet.queryset
     authentication_classes = (
         list(drf_settings.DEFAULT_AUTHENTICATION_CLASSES) +
-        [SessionAuthentication])
+        [SessionAuthentication] +
+        ([TokenAuthentication] if settings.ENABLE_RESOURCE_TOKEN_AUTH else []))
 
     def get_serializer_class(self):
         if settings.RESPA_PAYMENTS_ENABLED:
