@@ -176,6 +176,16 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
     reservable_before = serializers.SerializerMethodField()
     reservable_min_days_in_advance = serializers.ReadOnlyField(source='get_reservable_min_days_in_advance')
     reservable_after = serializers.SerializerMethodField()
+    max_price_per_hour = serializers.SerializerMethodField()
+    min_price_per_hour = serializers.SerializerMethodField()
+
+    def get_max_price_per_hour(self, obj):
+        """Backwards compatibility for 'max_price_per_hour' field that is now deprecated"""
+        return obj.max_price if obj.price_type == Resource.PRICE_TYPE_HOURLY else None
+
+    def get_min_price_per_hour(self, obj):
+        """Backwards compatibility for 'min_price_per_hour' field that is now deprecated"""
+        return obj.min_price if obj.price_type == Resource.PRICE_TYPE_HOURLY else None
 
     def get_extra_fields(self, includes, context):
         """ Define extra fields that can be included via query parameters. Method from ExtraDataMixin."""
@@ -471,7 +481,7 @@ class ResourceFilterSet(django_filters.FilterSet):
             return queryset.exclude(favorited_by=self.user)
 
     def filter_free_of_charge(self, queryset, name, value):
-        qs = Q(min_price_per_hour__lte=0) | Q(min_price_per_hour__isnull=True)
+        qs = Q(min_price__lte=0) | Q(min_price__isnull=True)
         if value:
             return queryset.filter(qs)
         else:
@@ -607,7 +617,7 @@ class ResourceFilterSet(django_filters.FilterSet):
 
     class Meta:
         model = Resource
-        fields = ['purpose', 'type', 'people', 'need_manual_confirmation', 'is_favorite', 'unit', 'available_between', 'min_price_per_hour']
+        fields = ['purpose', 'type', 'people', 'need_manual_confirmation', 'is_favorite', 'unit', 'available_between', 'min_price']
 
 
 class ResourceFilterBackend(filters.BaseFilterBackend):

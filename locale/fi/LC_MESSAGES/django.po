@@ -958,6 +958,18 @@ msgstr "4-numeroinen pin-koodi"
 msgid "6-digit PIN code"
 msgstr "6-numeroinen pin-koodi"
 
+msgid "Hourly"
+msgstr "Per tunti"
+
+msgid "Daily"
+msgstr "Per päivä"
+
+msgid "Weekly"
+msgstr "Per viikko"
+
+msgid "Fixed"
+msgstr "Kiinteä"
+
 msgid "Resource type"
 msgstr "Resurssityyppi"
 
@@ -1012,11 +1024,11 @@ msgstr "Lisäsisältö \"alustava varaus\"-ilmoitukseen"
 msgid "Extra content to \"reservation confirmed\" notification"
 msgstr "Lisäsisältö \"varaus vahvistettu\"-ilmoitukseen"
 
-msgid "Min price per hour"
-msgstr "Minimituntihinta"
+msgid "Min price"
+msgstr "Minimihinta"
 
-msgid "Max price per hour"
-msgstr "Maksimituntihinta"
+msgid "Max price"
+msgstr "Maksimihinta"
 
 msgid "Access code type"
 msgstr "Pääsykoodityyppi"
@@ -1055,8 +1067,8 @@ msgstr "Varauksen maksimikesto on %(max_period)s"
 msgid "Maximum number of active reservations for this resource exceeded."
 msgstr "Liikaa voimassa olevia varauksia tähän tilaan."
 
-msgid "This value cannot be greater than max price per hour"
-msgstr "Tämä arvo ei voi olla suurempi kuin maksimituntihinta"
+msgid "This value cannot be greater than max price"
+msgstr "Tämä arvo ei voi olla suurempi kuin maksimihinta"
 
 msgid "This value must be a multiple of slot_size"
 msgstr "Tämän arvon täytyy olla slot_size arvon moninkerta"
