@@ -659,6 +659,9 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     def can_create_reservations_for_other_users(self, user):
         return self._has_perm(user, 'can_create_reservations_for_other_users')
 
+    def can_create_overlapping_reservations(self, user):
+        return self._has_perm(user, 'can_create_overlapping_reservations')
+
     def is_access_code_enabled(self):
         return self.access_code_type != Resource.ACCESS_CODE_TYPE_NONE
 

@@ -364,6 +364,22 @@ class Reservation(ModifiableModel):
             if day and not is_valid_time_slot(dt, self.resource.slot_size, day['opens']):
                 raise ValidationError(_("Begin and end time must match time slots"), code='invalid_time_slot')
 
+        # Check if Unit has disallow_overlapping_reservations value of True
+        if (
+            self.resource.unit.disallow_overlapping_reservations and not
+            self.resource.can_create_overlapping_reservations(user)
+        ):
+            reservations_for_same_unit = Reservation.objects.filter(user=user, resource__unit=self.resource.unit)
+            valid_reservations_for_same_unit = reservations_for_same_unit.exclude(state=Reservation.CANCELLED)
+            user_has_conflicting_reservations = valid_reservations_for_same_unit.filter(
+                Q(begin__gt=self.begin, begin__lt=self.end) | Q(begin__lt=self.begin, end__gt=self.begin)
+            )
+            if user_has_conflicting_reservations:
+                raise ValidationError(
+                    _('This unit does not allow overlapping reservations for its resources'),
+                    code='conflicting_reservation'
+                )
+
         original_reservation = self if self.pk else kwargs.get('original_reservation', None)
         if self.resource.check_reservation_collision(self.begin, self.end, original_reservation):
             raise ValidationError(_("The resource is already reserved for some of the period"))

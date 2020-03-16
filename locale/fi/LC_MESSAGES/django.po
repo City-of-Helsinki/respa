@@ -744,6 +744,9 @@ msgstr "Voi ohittaa manuaalisen vahvistuksen"
 msgid "Can create reservations for other registered users"
 msgstr "Voi tehdä varauksia muille käyttäjille"
 
+msgid "Can create overlapping reservations"
+msgstr "Voi luoda päällekkäisiä varauksia"
+
 msgid "created"
 msgstr "luoja"
 
@@ -854,6 +857,9 @@ msgstr "Varauksen loppuaika ei voi olla ennen alkuaikaa"
 
 msgid "Begin and end time must match time slots"
 msgstr "Alku- ja loppuajan täytyy osua aikaikkunoihin"
+
+msgid "This unit does not allow overlapping reservations for its resources"
+msgstr "Tämä toimipiste ei salli päällekkäisiä varauksia resurssien välillä"
 
 msgid "The resource is already reserved for some of the period"
 msgstr "Tila on jo varattu ainakin osan ajanjaksosta"
@@ -1143,6 +1149,9 @@ msgstr "Ulkoinen tietolähde"
 
 msgid "External data source for opening hours"
 msgstr "Ulkoinen tietolähde aukioloajoille"
+
+msgid "Disallow overlapping reservations in this unit"
+msgstr "Estä toimipisteen sisäiset päällekkäiset varaukset"
 
 msgid "unit"
 msgstr "toimipiste"
@@ -1507,6 +1516,9 @@ msgstr "Yhteystiedot"
 
 msgid "View unit"
 msgstr "Tarkastele toimipistettä"
+
+msgid "Settings"
+msgstr "Asetukset"
 
 msgid "Search for users"
 msgstr "Hae käyttäjiä"
