@@ -2480,3 +2480,16 @@ def test_disallow_overlapping_reservations(resource_in_unit, resource_in_unit2, 
     )
     response_manager = user_api_client.post(list_url, reservation_data2)
     assert response_manager.status_code == 201
+
+    # Cancelled reservations should not be taken into account
+    UnitAuthorization.objects.all().delete()
+    Reservation.objects.all().delete()
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+    reservation = Reservation.objects.all()[0]
+    reservation.set_state(Reservation.CANCELLED, user)
+
+    assert reservation.state == Reservation.CANCELLED
+
+    response2 = user_api_client.post(list_url, reservation_data2)
+    assert response2.status_code == 201
