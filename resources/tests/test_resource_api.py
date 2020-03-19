@@ -416,16 +416,19 @@ def test_api_resource_terms_of_use(api_client, resource_in_unit, detail_url):
 
 
 @pytest.mark.django_db
-def test_price_per_hour_fields(api_client, resource_in_unit, detail_url):
-    resource_in_unit.min_price_per_hour = '5.05'
-    resource_in_unit.max_price_per_hour = None
+def test_price_fields(api_client, resource_in_unit, detail_url):
+    resource_in_unit.min_price = '5.05'
+    resource_in_unit.max_price = None
+    resource_in_unit.price_type = resource_in_unit.PRICE_TYPE_HOURLY
+
     resource_in_unit.save()
 
     response = api_client.get(detail_url)
     assert response.status_code == 200
 
-    assert response.data['min_price_per_hour'] == '5.05'
-    assert response.data['max_price_per_hour'] is None
+    assert response.data['min_price'] == '5.05'
+    assert response.data['max_price'] is None
+    assert response.data['price_type'] == resource_in_unit.PRICE_TYPE_HOURLY
 
 
 @freeze_time('2016-10-25')
@@ -798,9 +801,9 @@ def test_filtering_free_of_charge(list_url, api_client, resource_in_unit,
     free_resource2 = resource_in_unit2
     not_free_resource = resource_in_unit3
 
-    free_resource.min_price_per_hour = 0
+    free_resource.min_price = 0
     free_resource.save()
-    not_free_resource.min_price_per_hour = 9001
+    not_free_resource.min_price = 9001
     not_free_resource.save()
 
     response = api_client.get('{0}?free_of_charge=true'.format(list_url))

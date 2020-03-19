@@ -87,22 +87,22 @@ def test_invalid_image(space_resource):
 def test_price_validations(resource_in_unit):
     activate('en')
 
-    resource_in_unit.min_price_per_hour = Decimal(1)
-    resource_in_unit.max_price_per_hour = None
+    resource_in_unit.min_price = Decimal(1)
+    resource_in_unit.max_price = None
     resource_in_unit.full_clean()  # should not raise
 
-    resource_in_unit.min_price_per_hour = Decimal(8)
-    resource_in_unit.max_price_per_hour = Decimal(5)
+    resource_in_unit.min_price = Decimal(8)
+    resource_in_unit.max_price = Decimal(5)
     with pytest.raises(ValidationError) as ei:
         resource_in_unit.full_clean()
-    assert 'This value cannot be greater than max price per hour' in get_field_errors(ei.value, 'min_price_per_hour')
+    assert 'This value cannot be greater than max price' in get_field_errors(ei.value, 'min_price')
 
-    resource_in_unit.min_price_per_hour = Decimal(-5)
-    resource_in_unit.max_price_per_hour = Decimal(-8)
+    resource_in_unit.min_price = Decimal(-5)
+    resource_in_unit.max_price = Decimal(-8)
     with pytest.raises(ValidationError) as ei:
         resource_in_unit.full_clean()
-    assert 'Ensure this value is greater than or equal to 0.00.' in get_field_errors(ei.value, 'min_price_per_hour')
-    assert 'Ensure this value is greater than or equal to 0.00.' in get_field_errors(ei.value, 'max_price_per_hour')
+    assert 'Ensure this value is greater than or equal to 0.00.' in get_field_errors(ei.value, 'min_price')
+    assert 'Ensure this value is greater than or equal to 0.00.' in get_field_errors(ei.value, 'max_price')
 
 
 @pytest.mark.django_db

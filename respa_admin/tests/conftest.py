@@ -48,8 +48,9 @@ EMPTY_RESOURCE_FORM_DATA = {
     'need_manual_confirmation': '',
     'authentication': '',
     'access_code_type': '',
-    'max_price_per_hour': '',
-    'min_price_per_hour': '',
+    'max_price': '',
+    'min_price': '',
+    'price_type': '',
     'generic_terms': '',
     'payment_terms': '',
     'specific_terms': '',
@@ -156,6 +157,7 @@ def valid_resource_form_data(
         'days-periods-0-0-opens': '08:00',
         'days-periods-0-0-closes': '12:00',
         'days-periods-0-0-weekday': '1',
+        'price_type': 'hourly'
     })
     return data
 

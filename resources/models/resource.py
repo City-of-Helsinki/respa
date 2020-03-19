@@ -183,6 +183,17 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         (ACCESS_CODE_TYPE_PIN4, _('4-digit PIN code')),
         (ACCESS_CODE_TYPE_PIN6, _('6-digit PIN code')),
     )
+
+    PRICE_TYPE_HOURLY = 'hourly'
+    PRICE_TYPE_DAILY = 'daily'
+    PRICE_TYPE_WEEKLY = 'weekly'
+    PRICE_TYPE_FIXED = 'fixed'
+    PRICE_TYPE_CHOICES = (
+        (PRICE_TYPE_HOURLY, _('Hourly')),
+        (PRICE_TYPE_DAILY, _('Daily')),
+        (PRICE_TYPE_WEEKLY, _('Weekly')),
+        (PRICE_TYPE_FIXED, _('Fixed')),
+    )
     id = models.CharField(primary_key=True, max_length=100)
     public = models.BooleanField(default=True, verbose_name=_('Public'))
     unit = models.ForeignKey('Unit', verbose_name=_('Unit'), db_index=True, null=True, blank=True,
@@ -222,10 +233,14 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         'Extra content to "reservation requested" notification'), blank=True)
     reservation_confirmed_notification_extra = models.TextField(verbose_name=_(
         'Extra content to "reservation confirmed" notification'), blank=True)
-    min_price_per_hour = models.DecimalField(verbose_name=_('Min price per hour'), max_digits=8, decimal_places=2,
+    min_price = models.DecimalField(verbose_name=_('Min price'), max_digits=8, decimal_places=2,
                                              blank=True, null=True, validators=[MinValueValidator(Decimal('0.00'))])
-    max_price_per_hour = models.DecimalField(verbose_name=_('Max price per hour'), max_digits=8, decimal_places=2,
+    max_price = models.DecimalField(verbose_name=_('Max price'), max_digits=8, decimal_places=2,
                                              blank=True, null=True, validators=[MinValueValidator(Decimal('0.00'))])
+
+    price_type = models.CharField(
+        max_length=32, verbose_name=_('price type'), choices=PRICE_TYPE_CHOICES, default=PRICE_TYPE_HOURLY
+    )
 
     access_code_type = models.CharField(verbose_name=_('Access code type'), max_length=20, choices=ACCESS_CODE_TYPES,
                                         default=ACCESS_CODE_TYPE_NONE)
@@ -699,11 +714,10 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         return [x.field_name for x in metadata_set.required_fields.all()]
 
     def clean(self):
-        if self.min_price_per_hour is not None and self.max_price_per_hour is not None:
-            if self.min_price_per_hour > self.max_price_per_hour:
-                raise ValidationError(
-                    {'min_price_per_hour': _('This value cannot be greater than max price per hour')}
-                )
+        if self.min_price is not None and self.max_price is not None and self.min_price > self.max_price:
+            raise ValidationError(
+                {'min_price': _('This value cannot be greater than max price')}
+            )
         if self.min_period % self.slot_size != datetime.timedelta(0):
             raise ValidationError({'min_period': _('This value must be a multiple of slot_size')})
 
