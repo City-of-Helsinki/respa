@@ -6,17 +6,17 @@ from django.db import migrations
 def copy_templates(apps, schema_editor):
     OldNotificationTemplate = apps.get_model('notifications', 'NotificationTemplate')
     NotificationTemplate = apps.get_model('django_ilmoitin', 'NotificationTemplate')
+    NotificationTemplateTranslation = apps.get_model('django_ilmoitin', 'NotificationTemplateTranslation')
     all_notification_templates = OldNotificationTemplate.objects.all()
 
-    for old_tmpl in OldNotificationTemplate.objects.language('fi').all():
-        new_tmpl = NotificationTemplate()
-        new_tmpl.type = old_tmpl.type
-
-        new_tmpl.set_current_language('fi')
-        new_tmpl.subject = old_tmpl.subject
-        new_tmpl.body_text = old_tmpl.body
-        new_tmpl.body_html = old_tmpl.html_body
-        new_tmpl.save()
+    for old_tmpl in OldNotificationTemplate.objects.all():
+        new_tmpl = NotificationTemplate.objects.create(type=old_tmpl.type)
+        for trans in old_tmpl.translations.values():
+            new_tmpl.set_current_language(trans['language_code'])
+            new_tmpl.subject = trans['subject']
+            new_tmpl.body_text = trans['body']
+            new_tmpl.body_html = trans['html_body']
+            new_tmpl.save()
 
 class Migration(migrations.Migration):
 
