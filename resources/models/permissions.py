@@ -22,7 +22,9 @@ RESOURCE_PERMISSIONS = (
     ('can_create_special_type_reservation', _('Can create reservations of a non-normal type')),
     ('can_bypass_manual_confirmation', _('Can bypass manual confirmation requirement for resources')),
     ('can_create_reservations_for_other_users', _('Can create reservations for other registered users')),
-    ('can_create_overlapping_reservations', _('Can create overlapping reservations'))
+    ('can_create_overlapping_reservations', _('Can create overlapping reservations')),
+    ('can_ignore_max_reservations_per_user', _('Can ignore resources max reservations per user rule')),
+    ('can_ignore_max_period', _('Can ignore resources max period rule')),
 )
 
 UNIT_ROLE_PERMISSIONS = {
@@ -106,6 +108,16 @@ UNIT_ROLE_PERMISSIONS = {
         UnitAuthorizationLevel.admin
     ],
     'can_create_overlapping_reservations': [
+        UnitGroupAuthorizationLevel.admin,
+        UnitAuthorizationLevel.admin,
+        UnitAuthorizationLevel.manager
+    ],
+    'can_ignore_max_reservations_per_user': [
+        UnitGroupAuthorizationLevel.admin,
+        UnitAuthorizationLevel.admin,
+        UnitAuthorizationLevel.manager
+    ],
+    'can_ignore_max_period': [
         UnitGroupAuthorizationLevel.admin,
         UnitAuthorizationLevel.admin,
         UnitAuthorizationLevel.manager

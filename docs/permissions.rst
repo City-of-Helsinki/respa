@@ -137,6 +137,9 @@ can_create_staff_event                   X       X      X      X
 can_create_special_type_reservation      X       X      X      X
 can_bypass_manual_confirmation           X       X      X      X
 can_create_reservations_for_other_users  X       X      X
+can_create_overlapping_reservations      X       X      X      X
+can_ignore_max_reservations_per_user     X       X      X      X
+can_ignore_max_period                    X       X      X      X
 ====================================== ====== ======= ====== ====== ======
 
 
@@ -195,6 +198,16 @@ can_bypass_manual_confirmation
 
 can_create_reservations_for_other_users
   Can create reservations for other registered users
+
+can_create_overlapping_reservations
+  Can create overlapping reservations for different resources in single unit even if restricted
+
+can_ignore_max_reservations_per_user
+  Can ignore resources max reservations per user rule
+
+can_ignore_max_period
+  Can ignore resources max period rule
+
 
 Respa Admin Permissions
 ~~~~~~~~~~~~~~~~~~~~~~~
