@@ -35,6 +35,8 @@ from .base import (
     ExtraDataMixin
 )
 
+from respa.renderers import ResourcesBrowsableAPIRenderer
+
 User = get_user_model()
 
 # FIXME: Make this configurable?
@@ -562,7 +564,7 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
                        NeedManualConfirmationFilterBackend, StateFilterBackend, CanApproveFilterBackend)
     filterset_class = ReservationFilterSet
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
-    renderer_classes = (renderers.JSONRenderer, renderers.BrowsableAPIRenderer, ReservationExcelRenderer)
+    renderer_classes = (renderers.JSONRenderer, ResourcesBrowsableAPIRenderer, ReservationExcelRenderer)
     pagination_class = ReservationPagination
     authentication_classes = (
         list(drf_settings.DEFAULT_AUTHENTICATION_CLASSES) +
