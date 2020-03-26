@@ -2382,6 +2382,106 @@ def test_admin_may_bypass_min_period(resource_in_unit, user, user_api_client, li
 
 
 @pytest.mark.django_db
+def test_can_ignore_max_period(resource_with_opening_hours, user, user_api_client, list_url):
+    resource_with_opening_hours.max_period = datetime.timedelta(hours=1)
+    resource_with_opening_hours.save()
+
+    tz = timezone.get_current_timezone()
+    begin = tz.localize(datetime.datetime(2115, 6, 1, 8, 0, 0))
+    end = begin + datetime.timedelta(hours=2)
+
+    reservation_data = {
+        'resource': resource_with_opening_hours.pk,
+        'begin': begin,
+        'end': end,
+    }
+
+    # Normal user can not ignore max_period
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 400
+
+    UnitAuthorization.objects.create(
+        subject=resource_with_opening_hours.unit,
+        level=UnitAuthorizationLevel.admin,
+        authorized=user,
+    )
+
+    # Admin can ignore max_period
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+    UnitAuthorization.objects.filter(authorized=user).delete()
+    Reservation.objects.filter(user=user, resource=resource_with_opening_hours).delete()
+
+    UnitAuthorization.objects.create(
+        subject=resource_with_opening_hours.unit,
+        level=UnitAuthorizationLevel.manager,
+        authorized=user,
+    )
+
+    # Manager can ignore max_period
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+
+
+@pytest.mark.django_db
+def test_can_ignore_max_reservations_per_user(resource_with_opening_hours, user, user_api_client, list_url):
+    resource_with_opening_hours.max_reservations_per_user = 1
+    resource_with_opening_hours.save()
+
+    tz = timezone.get_current_timezone()
+    begin = tz.localize(datetime.datetime(2115, 6, 1, 8, 0, 0))
+    end = begin + datetime.timedelta(hours=1)
+
+    reservation_data = {
+        'resource': resource_with_opening_hours.pk,
+        'begin': begin,
+        'end': end,
+    }
+
+    begin2 = tz.localize(datetime.datetime(2115, 6, 2, 8, 0, 0))
+    end2 = begin2 + datetime.timedelta(hours=1)
+
+    reservation_data_2 = {
+        'resource': resource_with_opening_hours.pk,
+        'begin': begin2,
+        'end': end2,
+    }
+
+    # Normal user can not ignore max_reservations_per_user
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+    response = user_api_client.post(list_url, reservation_data_2)
+    assert response.status_code == 400
+    Reservation.objects.filter(user=user, resource=resource_with_opening_hours).delete()
+
+    UnitAuthorization.objects.create(
+        subject=resource_with_opening_hours.unit,
+        level=UnitAuthorizationLevel.admin,
+        authorized=user,
+    )
+
+    # Admin can ignore max_reservations_per_user
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+    response = user_api_client.post(list_url, reservation_data_2)
+    assert response.status_code == 201
+    Reservation.objects.filter(user=user, resource=resource_with_opening_hours).delete()
+    UnitAuthorization.objects.filter(authorized=user).delete()
+
+    UnitAuthorization.objects.create(
+        subject=resource_with_opening_hours.unit,
+        level=UnitAuthorizationLevel.manager,
+        authorized=user,
+    )
+
+    # Manager can ignore max_reservations_per_user
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+    response = user_api_client.post(list_url, reservation_data_2)
+    assert response.status_code == 201
+
+
+@pytest.mark.django_db
 def test_disallow_overlapping_reservations(resource_in_unit, resource_in_unit2, user, user_api_client, list_url):
     expected_error = ErrorDetail(
         string="['This unit does not allow overlapping reservations for its resources']",

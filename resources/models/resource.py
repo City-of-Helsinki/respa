@@ -336,7 +336,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             if days is None or not any(day['opens'] and begin >= day['opens'] and end <= day['closes'] for day in days):
                 raise ValidationError(_("You must start and end the reservation during opening hours"))
 
-        if self.max_period and (end - begin) > self.max_period:
+        if not self.can_ignore_max_period(user) and (self.max_period and (end - begin) > self.max_period):
             raise ValidationError(_("The maximum reservation length is %(max_period)s") %
                                   {'max_period': humanize_duration(self.max_period)})
 
@@ -349,7 +349,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
         :type user: User
         """
-        if self.is_admin(user):
+        if self.can_ignore_max_reservations_per_user(user):
             return
 
         max_count = self.max_reservations_per_user
@@ -676,6 +676,12 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
     def can_create_overlapping_reservations(self, user):
         return self._has_perm(user, 'can_create_overlapping_reservations')
+
+    def can_ignore_max_reservations_per_user(self, user):
+        return self._has_perm(user, 'can_ignore_max_reservations_per_user')
+
+    def can_ignore_max_period(self, user):
+        return self._has_perm(user, 'can_ignore_max_period')
 
     def is_access_code_enabled(self):
         return self.access_code_type != Resource.ACCESS_CODE_TYPE_NONE
