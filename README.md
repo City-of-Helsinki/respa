@@ -29,7 +29,7 @@ Table of Contents
 Contributing
 ------------
 
-Your contributions are always welcome! 
+Your contributions are always welcome!
 
 Our main issue tracking is in [Jira](https://helsinkisolutionoffice.atlassian.net/projects/RESPA/issues). However, we also monitor this repository's issues and import them to Jira. If you want to report a bug or see a new feature feel free to create a [new issue](https://github.com/City-of-Helsinki/respa/issues/new) on GitHub or discuss it with us on [Gitter](https://gitter.im/City-of-Helsinki/heldev). Alternatively, you can create a pull request (develop branch). Your PR will be reviewed by the project tech lead.
 
@@ -125,7 +125,7 @@ Settings are done either by setting environment variables named after the settin
 - `STATIC_URL`: Static URL is address (URL) where users can access files in STATIC_ROOT through http. Same factors apply as to MEDIA_URL. [Django setting](https://docs.djangoproject.com/en/2.2/ref/settings/#static-url).
 - `SENTRY_DSN`: Sentry is an error tracking sentry (sentry.io) that can be self hosted or purchased as PaaS. SENTRY_DSN setting specifies the URL where reports for this Respa instance should be sent. You can find this in your Sentry interface (or through its API). Example value `'http://your.sentry.here/fsdafads/13'`.
 - `SENTRY_ENVIRONMENT`: Sentry environment is an optional tag that can be included in sentry reports. It is used to separate deployments within Sentry UI.
-- `COOKIE_PREFIX`: Cookie prefix is added to the every cookie set by Respa. These are mostly used when accessing the internal Django admin site. This applies to django session cookie and csrf cookie. Django setting: prepended to `CSRF_COOKIE_NAME` and `SESSION_COOKIE_NAME`. 
+- `COOKIE_PREFIX`: Cookie prefix is added to the every cookie set by Respa. These are mostly used when accessing the internal Django admin site. This applies to django session cookie and csrf cookie. Django setting: prepended to `CSRF_COOKIE_NAME` and `SESSION_COOKIE_NAME`.
 - `INTERNAL_IPS`: Django INTERNAL_IPS setting allows some debugging aids for the addresses specified here. [Django setting](https://docs.djangoproject.com/en/2.2/ref/settings/#internal-ips). Example value `'127.0.0.1'`.
 - `MAIL_ENABLED`: Whether sending emails to users is enabled or not.
 - `MAIL_DEFAULT_FROM`: Specifies the from-address for emails sent to users.
@@ -141,7 +141,8 @@ Settings are done either by setting environment variables named after the settin
 - `RESPA_ADMIN_VIEW_RESOURCE_URL`: URL for a "view changes" link in Respa Admin through which the user can view changes made to a given resource. Example value: `'https://varaamo.hel.fi/resource/'`.
 - `RESPA_ADMIN_LOGO`: Name of the logo file to be displayed in Respa Admin UI. Logo file is assumed to be located in `respa_admin/static_src/img/`. Example value: `ra-logo.svg`.
 - `RESPA_ADMIN_KORO_STYLE`: Defines the style of koro-shape used in login page and resources page. Accepts values: `koro-basic`, `koro-pulse`, `koro-beat`, `koro-storm`, `koro-wave`.
-
+- `ENABLE_RESOURCE_TOKEN_AUTH`: Enable Django Rest Frameworks token authentication method for Resource endpoint.
+- `DISABLE_SERVER_SIDE_CURSORS`: Disable server side cursors. Useful when using pgBouncer for example. See Django docs for more information: [Django setting](https://docs.djangoproject.com/en/3.0/ref/databases/#transaction-pooling-server-side-cursors).
 
 ### Setting up PostGIS/GEOS/GDAL on Windows (x64) / Python 3
 
