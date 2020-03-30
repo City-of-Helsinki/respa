@@ -2546,6 +2546,16 @@ def test_disallow_overlapping_reservations(resource_in_unit, resource_in_unit2, 
         'begin': '2115-04-04T12:30:00+02:00',
         'end': '2115-04-04T13:00:00+02:00'
     }
+    reservation_data5 = {
+        'resource': resource_in_unit2.pk,
+        'begin': '2115-04-04T12:00:00+02:00',
+        'end': '2115-04-04T14:00:00+02:00'
+    }
+    reservation_data6 = {
+        'resource': resource_in_unit2.pk,
+        'begin': '2115-04-04T12:30:00+02:00',
+        'end': '2115-04-04T13:00:00+02:00'
+    }
 
     response2 = user_api_client.post(list_url, reservation_data2, HTTP_ACCEPT_LANGUAGE='en')
     assert response2.data['non_field_errors'][0] == expected_error
@@ -2558,6 +2568,14 @@ def test_disallow_overlapping_reservations(resource_in_unit, resource_in_unit2, 
     response4 = user_api_client.post(list_url, reservation_data4, HTTP_ACCEPT_LANGUAGE='en')
     assert response4.data['non_field_errors'][0] == expected_error
     assert response4.status_code == 400
+
+    response5 = user_api_client.post(list_url, reservation_data5, HTTP_ACCEPT_LANGUAGE='en')
+    assert response5.data['non_field_errors'][0] == expected_error
+    assert response5.status_code == 400
+
+    response6 = user_api_client.post(list_url, reservation_data6, HTTP_ACCEPT_LANGUAGE='en')
+    assert response6.data['non_field_errors'][0] == expected_error
+    assert response6.status_code == 400
 
     # Admin user should be allowed to overlap reservations
     UnitAuthorization.objects.create(
