@@ -234,10 +234,7 @@ class Reservation(ModifiableModel):
         user_is_staff = self.user is not None and self.user.is_staff
 
         # Notifications
-        if new_state == Reservation.REQUESTED:
-            self.send_reservation_requested_mail()
-            self.send_reservation_requested_mail_to_officials()
-        elif new_state == Reservation.CONFIRMED:
+        if new_state == Reservation.CONFIRMED:
             if self.need_manual_confirmation():
                 self.send_reservation_confirmed_mail()
             elif self.resource.is_access_code_enabled():
