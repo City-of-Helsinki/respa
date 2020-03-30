@@ -372,8 +372,11 @@ class Reservation(ModifiableModel):
             reservations_for_same_unit = Reservation.objects.filter(user=user, resource__unit=self.resource.unit)
             valid_reservations_for_same_unit = reservations_for_same_unit.exclude(state=Reservation.CANCELLED)
             user_has_conflicting_reservations = valid_reservations_for_same_unit.filter(
-                Q(begin__gt=self.begin, begin__lt=self.end) | Q(begin__lt=self.begin, end__gt=self.begin)
+                Q(begin__gt=self.begin, begin__lt=self.end)
+                | Q(begin__lt=self.begin, end__gt=self.begin)
+                | Q(begin__gte=self.begin, end__lte=self.end)
             )
+
             if user_has_conflicting_reservations:
                 raise ValidationError(
                     _('This unit does not allow overlapping reservations for its resources'),
