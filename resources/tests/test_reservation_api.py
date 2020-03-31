@@ -10,6 +10,7 @@ from guardian.shortcuts import assign_perm, remove_perm
 from freezegun import freeze_time
 from icalendar import Calendar
 from parler.utils.context import switch_language
+from rest_framework.exceptions import ErrorDetail
 
 from caterings.models import CateringOrder, CateringProvider
 
@@ -2378,3 +2379,235 @@ def test_admin_may_bypass_min_period(resource_in_unit, user, user_api_client, li
 
     response = user_api_client.post(list_url, reservation_data)
     assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_can_ignore_max_period(resource_with_opening_hours, user, user_api_client, list_url):
+    resource_with_opening_hours.max_period = datetime.timedelta(hours=1)
+    resource_with_opening_hours.save()
+
+    tz = timezone.get_current_timezone()
+    begin = tz.localize(datetime.datetime(2115, 6, 1, 8, 0, 0))
+    end = begin + datetime.timedelta(hours=2)
+
+    reservation_data = {
+        'resource': resource_with_opening_hours.pk,
+        'begin': begin,
+        'end': end,
+    }
+
+    # Normal user can not ignore max_period
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 400
+
+    UnitAuthorization.objects.create(
+        subject=resource_with_opening_hours.unit,
+        level=UnitAuthorizationLevel.admin,
+        authorized=user,
+    )
+
+    # Admin can ignore max_period
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+    UnitAuthorization.objects.filter(authorized=user).delete()
+    Reservation.objects.filter(user=user, resource=resource_with_opening_hours).delete()
+
+    UnitAuthorization.objects.create(
+        subject=resource_with_opening_hours.unit,
+        level=UnitAuthorizationLevel.manager,
+        authorized=user,
+    )
+
+    # Manager can ignore max_period
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+
+
+@pytest.mark.django_db
+def test_can_ignore_max_reservations_per_user(resource_with_opening_hours, user, user_api_client, list_url):
+    resource_with_opening_hours.max_reservations_per_user = 1
+    resource_with_opening_hours.save()
+
+    tz = timezone.get_current_timezone()
+    begin = tz.localize(datetime.datetime(2115, 6, 1, 8, 0, 0))
+    end = begin + datetime.timedelta(hours=1)
+
+    reservation_data = {
+        'resource': resource_with_opening_hours.pk,
+        'begin': begin,
+        'end': end,
+    }
+
+    begin2 = tz.localize(datetime.datetime(2115, 6, 2, 8, 0, 0))
+    end2 = begin2 + datetime.timedelta(hours=1)
+
+    reservation_data_2 = {
+        'resource': resource_with_opening_hours.pk,
+        'begin': begin2,
+        'end': end2,
+    }
+
+    # Normal user can not ignore max_reservations_per_user
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+    response = user_api_client.post(list_url, reservation_data_2)
+    assert response.status_code == 400
+    Reservation.objects.filter(user=user, resource=resource_with_opening_hours).delete()
+
+    UnitAuthorization.objects.create(
+        subject=resource_with_opening_hours.unit,
+        level=UnitAuthorizationLevel.admin,
+        authorized=user,
+    )
+
+    # Admin can ignore max_reservations_per_user
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+    response = user_api_client.post(list_url, reservation_data_2)
+    assert response.status_code == 201
+    Reservation.objects.filter(user=user, resource=resource_with_opening_hours).delete()
+    UnitAuthorization.objects.filter(authorized=user).delete()
+
+    UnitAuthorization.objects.create(
+        subject=resource_with_opening_hours.unit,
+        level=UnitAuthorizationLevel.manager,
+        authorized=user,
+    )
+
+    # Manager can ignore max_reservations_per_user
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+    response = user_api_client.post(list_url, reservation_data_2)
+    assert response.status_code == 201
+
+
+@pytest.mark.django_db
+def test_disallow_overlapping_reservations(resource_in_unit, resource_in_unit2, user, user_api_client, list_url):
+    expected_error = ErrorDetail(
+        string="['This unit does not allow overlapping reservations for its resources']",
+        code='conflicting_reservation'
+    )
+    resource_in_unit.unit.disallow_overlapping_reservations = True
+    resource_in_unit.unit.save()
+
+    period = Period.objects.create(
+        start=datetime.date(2115, 1, 1),
+        end=datetime.date(2115, 12, 31),
+        resource=resource_in_unit, name='regular hours'
+    )
+    period2 = Period.objects.create(
+        start=datetime.date(2115, 1, 1),
+        end=datetime.date(2115, 12, 31),
+        resource=resource_in_unit2, name='regular hours'
+    )
+
+    for weekday in range(0, 7):
+        Day.objects.create(
+            period=period,
+            weekday=weekday,
+            opens=datetime.time(8, 0),
+            closes=datetime.time(18, 0)
+        )
+        Day.objects.create(
+            period=period2,
+            weekday=weekday,
+            opens=datetime.time(8, 0),
+            closes=datetime.time(18, 0)
+        )
+
+    resource_in_unit.update_opening_hours()
+    resource_in_unit2.update_opening_hours()
+
+    resource_in_unit2.unit = resource_in_unit.unit
+    resource_in_unit2.save()
+
+    # Initial reservation, which should be created normally
+    reservation_data = {
+        'resource': resource_in_unit.pk,
+        'begin': '2115-04-04T12:00:00+02:00',
+        'end': '2115-04-04T14:00:00+02:00'
+    }
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+
+    # Try every possibility to overlap existing reservation
+    reservation_data2 = {
+        'resource': resource_in_unit2.pk,
+        'begin': '2115-04-04T11:00:00+02:00',
+        'end': '2115-04-04T12:30:00+02:00'
+    }
+    reservation_data3 = {
+        'resource': resource_in_unit2.pk,
+        'begin': '2115-04-04T13:30:00+02:00',
+        'end': '2115-04-04T14:30:00+02:00'
+    }
+    reservation_data4 = {
+        'resource': resource_in_unit2.pk,
+        'begin': '2115-04-04T12:30:00+02:00',
+        'end': '2115-04-04T13:00:00+02:00'
+    }
+    reservation_data5 = {
+        'resource': resource_in_unit2.pk,
+        'begin': '2115-04-04T12:00:00+02:00',
+        'end': '2115-04-04T14:00:00+02:00'
+    }
+    reservation_data6 = {
+        'resource': resource_in_unit2.pk,
+        'begin': '2115-04-04T12:30:00+02:00',
+        'end': '2115-04-04T13:00:00+02:00'
+    }
+
+    response2 = user_api_client.post(list_url, reservation_data2, HTTP_ACCEPT_LANGUAGE='en')
+    assert response2.data['non_field_errors'][0] == expected_error
+    assert response2.status_code == 400
+
+    response3 = user_api_client.post(list_url, reservation_data3, HTTP_ACCEPT_LANGUAGE='en')
+    assert response3.data['non_field_errors'][0] == expected_error
+    assert response3.status_code == 400
+
+    response4 = user_api_client.post(list_url, reservation_data4, HTTP_ACCEPT_LANGUAGE='en')
+    assert response4.data['non_field_errors'][0] == expected_error
+    assert response4.status_code == 400
+
+    response5 = user_api_client.post(list_url, reservation_data5, HTTP_ACCEPT_LANGUAGE='en')
+    assert response5.data['non_field_errors'][0] == expected_error
+    assert response5.status_code == 400
+
+    response6 = user_api_client.post(list_url, reservation_data6, HTTP_ACCEPT_LANGUAGE='en')
+    assert response6.data['non_field_errors'][0] == expected_error
+    assert response6.status_code == 400
+
+    # Admin user should be allowed to overlap reservations
+    UnitAuthorization.objects.create(
+        subject=resource_in_unit.unit,
+        level=UnitAuthorizationLevel.admin,
+        authorized=user,
+    )
+    response_admin = user_api_client.post(list_url, reservation_data2)
+    assert response_admin.status_code == 201
+
+    created_reservation = Reservation.objects.get(id=response_admin.data['id'])
+    created_reservation.delete()
+
+    # Manager user should be allowed to overlap reservations as well
+    UnitAuthorization.objects.all().delete()
+    UnitAuthorization.objects.create(
+        subject=resource_in_unit.unit,
+        level=UnitAuthorizationLevel.manager,
+        authorized=user,
+    )
+    response_manager = user_api_client.post(list_url, reservation_data2)
+    assert response_manager.status_code == 201
+
+    # Cancelled reservations should not be taken into account
+    UnitAuthorization.objects.all().delete()
+    Reservation.objects.all().delete()
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+    reservation = Reservation.objects.all()[0]
+    reservation.set_state(Reservation.CANCELLED, user)
+
+    assert reservation.state == Reservation.CANCELLED
+
+    response2 = user_api_client.post(list_url, reservation_data2)
+    assert response2.status_code == 201

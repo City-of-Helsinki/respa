@@ -511,8 +511,8 @@ paths:
       - name: free_of_charge
         in: query
         description: If given boolean is `true`, returns only resources that have
-          their `min_price_per_hour` value of `0` or `None`. If given boolean is `false`,
-          returns resources that have their `min_price_per_hour` greater than 0.
+          their `min_price` value of `0` or `None`. If given boolean is `false`,
+          returns resources that have their `min_price` greater than 0.
         schema:
           type: boolean
       - name: municipality

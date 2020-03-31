@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-11-09 16:45+0200\n"
+"POT-Creation-Date: 2020-03-12 09:22+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -740,6 +740,9 @@ msgstr "Kan kringgå manuellt bekräftelsekrav för resurser"
 msgid "Can create reservations for other registered users"
 msgstr "Kan skapa reservationer för andra registrerade användare"
 
+msgid "Can create overlapping reservations"
+msgstr "Kan skapa överlappande reservationer"
+
 msgid "created"
 msgstr "skapad"
 
@@ -851,6 +854,10 @@ msgstr "Du måste avsluta bokningen när den har börjat"
 msgid "Begin and end time must match time slots"
 msgstr "Början och sluttiden måste matcha tidsluckor"
 
+msgid "This unit does not allow overlapping reservations for its resources"
+msgstr ""
+"Den här enheten tillåter inte överlappande reservationer för sina resurser"
+
 msgid "The resource is already reserved for some of the period"
 msgstr "Resursen är redan reserverad under en del av perioden"
 
@@ -948,6 +955,18 @@ msgstr "4-siffrig PIN-kod"
 msgid "6-digit PIN code"
 msgstr "6-siffrig PIN-kod"
 
+msgid "Hourly"
+msgstr "Per timme"
+
+msgid "Daily"
+msgstr "Per dag"
+
+msgid "Weekly"
+msgstr "Per vecka"
+
+msgid "Fixed"
+msgstr "Fixerad"
+
 msgid "Resource type"
 msgstr "Resurs typ"
 
@@ -1002,11 +1021,11 @@ msgstr "Extra innehåll till \"reservation begärd\" anmälan"
 msgid "Extra content to \"reservation confirmed\" notification"
 msgstr "Extra innehåll till \"reservation godkänd\" anmälan"
 
-msgid "Min price per hour"
-msgstr "Lägsta pris per timme"
+msgid "Min price"
+msgstr "Lägsta pris"
 
-msgid "Max price per hour"
-msgstr "Högsta pris per timme"
+msgid "Max price"
+msgstr "Maxpris"
 
 msgid "Access code type"
 msgstr "Typ av behörighetskod"
@@ -1046,8 +1065,8 @@ msgstr "Den maximala bokningslängden är %(max_period)s"
 msgid "Maximum number of active reservations for this resource exceeded."
 msgstr "Maximalt antal aktiva reservationer för denna resurs överskred"
 
-msgid "This value cannot be greater than max price per hour"
-msgstr "Detta värde kan inte vara högre än maxpriset per timme"
+msgid "This value cannot be greater than max price"
+msgstr "Detta värde kan inte vara högre än maxpriset"
 
 msgid "This value must be a multiple of slot_size"
 msgstr "Detta värde måste vara ett flertal av slot_size"
@@ -1140,6 +1159,9 @@ msgstr "Extern datakälla"
 
 msgid "External data source for opening hours"
 msgstr "Extern datakälla för öppettider"
+
+msgid "Disallow overlapping reservations in this unit"
+msgstr "Blockera överlappande reservationer i den här enheten"
 
 msgid "unit"
 msgstr "enhet"
@@ -1500,6 +1522,9 @@ msgstr "Kontaktuppgifter"
 msgid "View unit"
 msgstr "Visa enhet"
 
+msgid "Settings"
+msgstr "Inställningar"
+
 msgid "Search for users"
 msgstr "Sök efter användare"
 
@@ -1628,6 +1653,3 @@ msgid ""
 msgstr ""
 "anger om användaren är en General Administrator med särskilda behörigheter "
 "för många objekt inom Respa"
-
-#~ msgid "Extra questions"
-#~ msgstr "Extra frågor"

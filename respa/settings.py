@@ -73,6 +73,8 @@ env = environ.Env(
     RESPA_PAYMENTS_ENABLED=(bool, False),
     RESPA_PAYMENTS_PROVIDER_CLASS=(str, ''),
     RESPA_PAYMENTS_PAYMENT_WAITING_TIME=(int, 15),
+    ENABLE_RESOURCE_TOKEN_AUTH=(bool, False),
+    DISABLE_SERVER_SIDE_CURSORS=(bool, False)
 )
 environ.Env.read_env()
 
@@ -94,6 +96,8 @@ DATABASES = {
 DATABASES['default']['ATOMIC_REQUESTS'] = True
 
 SECURE_PROXY_SSL_HEADER = env('SECURE_PROXY_SSL_HEADER')
+
+DISABLE_SERVER_SIDE_CURSORS = env('DISABLE_SERVER_SIDE_CURSORS')
 
 SITE_ID = 1
 
@@ -270,6 +274,8 @@ SOCIALACCOUNT_ADAPTER = 'helusers.adapter.SocialAccountAdapter'
 
 # REST Framework
 # http://www.django-rest-framework.org
+
+ENABLE_RESOURCE_TOKEN_AUTH = env('ENABLE_RESOURCE_TOKEN_AUTH')
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
