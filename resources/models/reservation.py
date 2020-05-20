@@ -480,7 +480,9 @@ class Reservation(ModifiableModel):
         except NotificationTemplate.DoesNotExist:
             return
 
-        if user:
+        if getattr(self, 'order', None) and self.billing_email_address:
+            email_address = self.billing_email_address
+        elif user:
             email_address = user.email
         else:
             if not (self.reserver_email_address or self.user):
