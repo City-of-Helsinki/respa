@@ -26,7 +26,7 @@
     </div>
     <div class="contact-person">
         <h4>{% trans "Contact person" %}</h4>
-        <p>{% trans "Contact person information is only for internal use." %}</p>
+        <p>{% trans "Contact person information is shown when customer cancels manually handled reservations." %}</p>
         {% include "respa_admin/forms/_textarea_input.html" with field=form.responsible_contact_info_fi %}
         {% include "respa_admin/forms/_textarea_input.html" with field=form.responsible_contact_info_en %}
         {% include "respa_admin/forms/_textarea_input.html" with field=form.responsible_contact_info_sv %}
