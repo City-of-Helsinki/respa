@@ -743,6 +743,12 @@ msgstr "Kan skapa reservationer för andra registrerade användare"
 msgid "Can create overlapping reservations"
 msgstr "Kan skapa överlappande reservationer"
 
+msgid "Can ignore resources max reservations per user rule"
+msgstr "Kan ignorera resurser max reservationer per användarregel"
+
+msgid "Can ignore resources max period rule"
+msgstr "Kan ignorera resursens maximala periodregel"
+
 msgid "created"
 msgstr "skapad"
 
@@ -1450,8 +1456,10 @@ msgstr "Namn och beskrivning"
 msgid "Contact person"
 msgstr "Kontaktperson"
 
-msgid "Contact person information is only for internal use."
-msgstr "Kontaktperson information är endast för internt bruk."
+msgid ""
+"Contact person information is shown when customer cancels manually handled "
+"reservations."
+msgstr "Kontaktpersoninformation visas när kunden avbokar manuellt reservationer."
 
 msgid "External calendar"
 msgstr "Externt kalendersystem"

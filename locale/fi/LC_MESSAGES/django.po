@@ -747,6 +747,12 @@ msgstr "Voi tehdä varauksia muille käyttäjille"
 msgid "Can create overlapping reservations"
 msgstr "Voi luoda päällekkäisiä varauksia"
 
+msgid "Can ignore resources max reservations per user rule"
+msgstr "Voi ohittaa käyttäjäkohtaisen varausylärajan"
+
+msgid "Can ignore resources max period rule"
+msgstr "Voi ohittaa resurssin varauspituuden ylärajan"
+
 msgid "created"
 msgstr "luoja"
 
@@ -1457,8 +1463,10 @@ msgstr "Nimi ja kuvaus"
 msgid "Contact person"
 msgstr "Yhteyshenkilö"
 
-msgid "Contact person information is only for internal use."
-msgstr "Yhteyshenkilön tiedot ovat vain sisäiseen käyttöön."
+msgid ""
+"Contact person information is shown when customer cancels manually handled "
+"reservations."
+msgstr "Yhteyshenkilön tiedot näytetään asiakkaan peruessa käsiteltäviä varauksia."
 
 msgid "External calendar"
 msgstr "Ulkoinen kalenterijärjestelmä"
