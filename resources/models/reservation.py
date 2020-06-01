@@ -441,7 +441,7 @@ class Reservation(ModifiableModel):
             if self.can_view_access_code(user) and self.access_code:
                 context['access_code'] = self.access_code
 
-            if notification_type == NotificationType.RESERVATION_CONFIRMED:
+            if notification_type in [NotificationType.RESERVATION_CONFIRMED, NotificationType.RESERVATION_CREATED]:
                 if self.resource.reservation_confirmed_notification_extra:
                     context['extra_content'] = self.resource.reservation_confirmed_notification_extra
             elif notification_type == NotificationType.RESERVATION_REQUESTED:
@@ -480,7 +480,9 @@ class Reservation(ModifiableModel):
         except NotificationTemplate.DoesNotExist:
             return
 
-        if user:
+        if getattr(self, 'order', None) and self.billing_email_address:
+            email_address = self.billing_email_address
+        elif user:
             email_address = user.email
         else:
             if not (self.reserver_email_address or self.user):
