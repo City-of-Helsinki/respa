@@ -43,7 +43,7 @@ django-parler-rest==2.0   # via django-munigeo
 django-parler==1.9.2      # via -r requirements.in, django-munigeo, django-parler-rest
 django-reversion==3.0.2   # via -r requirements.in
 django-sanitized-dump==0.2.2  # via -r requirements.in
-django==2.2.11            # via -r requirements.in, django-admin-json-editor, django-allauth, django-anymail, django-cors-headers, django-filter, django-helusers, django-jinja, django-mptt, django-munigeo, django-reversion, drf-oidc-auth, easy-thumbnails
+django==2.2.13            # via -r requirements.in, django-admin-json-editor, django-allauth, django-anymail, django-cors-headers, django-filter, django-helusers, django-jinja, django-mptt, django-munigeo, django-reversion, drf-oidc-auth, easy-thumbnails
 djangorestframework-jwt==1.11.0  # via -r requirements.in
 djangorestframework==3.9.1  # via -r requirements.in, django-parler-rest, drf-oidc-auth
 drf-oidc-auth==0.9        # via django-helusers
