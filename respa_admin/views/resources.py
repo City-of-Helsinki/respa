@@ -54,7 +54,7 @@ class ResourceListView(ExtraContextMixin, ListView):
             pk__in=resources.values('type'))
         context['units'] = Unit.objects.filter(
             pk__in=resources.values('unit'))
-        context['search_query'] = self.search_query
+        context['search_query'] = self.search_query or ''
         context['selected_resource_type'] = self.resource_type or ''
         context['selected_resource_unit'] = self.resource_unit or ''
         context['order_by'] = self.order_by or ''
