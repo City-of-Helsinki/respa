@@ -1,3 +1,4 @@
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -23,6 +24,14 @@ class PriceEndpointOrderSerializer(OrderSerializerBase):
         super().__init__(*args, **kwargs)
         # None means "all", we don't want product availability validation
         self.context['available_products'] = None
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        begin = attrs['begin']
+        end = attrs['end']
+        if end < begin:
+            raise serializers.ValidationError(_('Begin time must be before end time'), code='invalid_date_range')
+        return attrs
 
 
 class OrderViewSet(viewsets.ViewSet):

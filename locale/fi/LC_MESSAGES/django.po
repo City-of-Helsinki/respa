@@ -317,6 +317,9 @@ msgstr "Maksimilukumäärää ei voi ylittää"
 msgid "This product isn't available on the resource."
 msgstr "Tämä tuote ei ole saatavilla tällä resurssilla."
 
+msgid "Begin time must be before end time"
+msgstr "Alkamisajan täytyy olla päättymisaikaa aiempi"
+
 msgid "At least one order line required."
 msgstr "Vähintään yksi tilausrivi tarvitaan."
 
