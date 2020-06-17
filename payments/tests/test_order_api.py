@@ -68,3 +68,24 @@ def test_order_price_check_success(user_api_client, product, two_hour_reservatio
 
     # Check order count didn't change
     assert order_count_before == Order.objects.count()
+
+
+def test_order_price_check_begin_time_after_end_time(user_api_client, product, two_hour_reservation):
+    """Test the endpoint returns 400 for bad time input"""
+
+    order_count_before = Order.objects.count()
+
+    price_check_data = {
+        "order_lines": [
+            {
+                "product": product.product_id,
+            }
+        ],
+        # Begin and end input swapped to cause ValidationError
+        "begin": str(two_hour_reservation.end),
+        "end": str(two_hour_reservation.begin),
+    }
+
+    response = user_api_client.post(CHECK_PRICE_URL, price_check_data)
+    assert response.status_code == 400
+

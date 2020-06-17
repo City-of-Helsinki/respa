@@ -316,6 +316,9 @@ msgstr "Kan inte överskrida den maximala produktkvantiteten"
 msgid "This product isn't available on the resource."
 msgstr "Den här produkten är inte tillgänglig på resursen."
 
+msgid "Begin time must be before end time"
+msgstr "Starttid måste vara före sluttid"
+
 msgid "At least one order line required."
 msgstr "Minst en beställningsrad krävs."
 
