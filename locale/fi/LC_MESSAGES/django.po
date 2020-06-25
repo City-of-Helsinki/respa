@@ -521,6 +521,10 @@ msgstr "Tällä kentällä ei voi olla arvoa tällä resurssilla"
 msgid "This field cannot be changed"
 msgstr "Tätä arvoa ei voi muuttaa"
 
+#, python-format
+msgid "Patching of field %(field)s is not allowed"
+msgstr "Kentän %(field)s päivittäminen PATCH-metodilla ei ole sallittu"
+
 #, python-brace-format
 msgid "Invalid pk \"{pk_value}\" - object does not exist."
 msgstr "Virheellinen pk \"{pk_value}\" - kohdetta ei ole olemassa."
@@ -901,6 +905,30 @@ msgstr "Varauksen metatietojoukko"
 
 msgid "Reservation metadata sets"
 msgstr "Varauksen metatietojoukot"
+
+msgid "Confirmed reservation"
+msgstr "Vahvistettu varaus"
+
+msgid "Requested reservation"
+msgstr "Alustava varaus"
+
+msgid "Own reservation"
+msgstr "Oma varaus"
+
+msgid "Reservation type"
+msgstr "Varaustyyppi"
+
+msgid "Reservation cancellation reason category"
+msgstr "Varauksen peruutussyykategoria"
+
+msgid "Reservation cancellation reason categories"
+msgstr "Varauksen peruutussyykategoriat"
+
+msgid "Reservation cancellation reason"
+msgstr "Varauksen peruutussyy"
+
+msgid "Reservation cancellation reasons"
+msgstr "Varauksen peruutussyyt"
 
 msgid "Invalid value"
 msgstr "Epäkelpo arvo"
@@ -1469,7 +1497,8 @@ msgstr "Yhteyshenkilö"
 msgid ""
 "Contact person information is shown when customer cancels manually handled "
 "reservations."
-msgstr "Yhteyshenkilön tiedot näytetään asiakkaan peruessa käsiteltäviä varauksia."
+msgstr ""
+"Yhteyshenkilön tiedot näytetään asiakkaan peruessa käsiteltäviä varauksia."
 
 msgid "External calendar"
 msgstr "Ulkoinen kalenterijärjestelmä"
