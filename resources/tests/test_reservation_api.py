@@ -1,9 +1,11 @@
+import os
 import pytest
 import datetime
 import re
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.core import mail
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test.utils import override_settings
 from django.utils import dateparse, timezone, translation
 from guardian.shortcuts import assign_perm, remove_perm
@@ -17,7 +19,7 @@ from caterings.models import CateringOrder, CateringProvider
 from resources.enums import UnitAuthorizationLevel
 from resources.models import (Period, Day, Reservation, Resource, ResourceGroup, ReservationMetadataField,
                               ReservationMetadataSet, UnitAuthorization, ReservationCancelReasonCategory,
-                              ReservationCancelReason)
+                              ReservationCancelReason, Attachment)
 from notifications.models import NotificationTemplate, NotificationType
 from notifications.tests.utils import check_received_mail_exists
 from .utils import check_disallowed_methods, assert_non_field_errors_contain, assert_response_objects, MAX_QUERIES
@@ -1118,6 +1120,13 @@ def test_reservation_mails(
     resource = Resource.objects.get(id=reservation_data_extra['resource'])
     resource.need_manual_confirmation = True
     resource.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
+    # create attachments for resource
+    attachment_file = SimpleUploadedFile('testi.pdf', b'file_content', content_type='application/pdf')
+    attachment_object = Attachment.objects.create(
+        name='Testi PDF',
+        attachment_file=attachment_file
+    )
+    resource.attachments.add(attachment_object)
     resource.save()
     if perm_type == 'unit':
         assign_perm('unit:can_approve_reservation',
@@ -1186,6 +1195,8 @@ def test_reservation_mails(
         'has been confirmed.',
         clear_outbox=False
     )
+    file_name = os.path.basename(attachment_object.attachment_file.name)
+    assert file_name in mail.outbox[0].attachments[1]
     assert 'this resource rocks' in str(mail.outbox[0].message())
     mail.outbox = []
 
