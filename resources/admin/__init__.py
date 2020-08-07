@@ -23,7 +23,7 @@ from .base import ExtraReadonlyFieldsOnUpdateMixin, CommonExcludeMixin, Populate
 from resources.admin.period_inline import PeriodInline
 
 from ..models import (
-    AccessibilityValue, AccessibilityViewpoint, Day, Equipment, EquipmentAlias, EquipmentCategory, Purpose,
+    AccessibilityValue, AccessibilityViewpoint, Attachment, Day, Equipment, EquipmentAlias, EquipmentCategory, Purpose,
     Reservation, ReservationMetadataField, ReservationMetadataSet, Resource, ResourceAccessibility,
     ResourceEquipment, ResourceGroup, ResourceImage, ResourceType, TermsOfUse,
     Unit, UnitAuthorization, UnitIdentifier, UnitGroup, UnitGroupAuthorization,
@@ -96,6 +96,11 @@ class UnitIdentifierInline(admin.StackedInline):
     model = UnitIdentifier
     fields = ('namespace', 'value')
     extra = 0
+
+
+@admin.register(Attachment)
+class AttachmentAdmin(admin.ModelAdmin):
+    readonly_fields = ['created_at', 'created_by', 'modified_at', 'modified_by']
 
 
 class ResourceAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin, HttpsFriendlyGeoAdmin):
