@@ -24,9 +24,9 @@ from resources.admin.period_inline import PeriodInline
 
 from ..models import (
     AccessibilityValue, AccessibilityViewpoint, Attachment, Day, Equipment, EquipmentAlias, EquipmentCategory, Purpose,
-    Reservation, ReservationMetadataField, ReservationMetadataSet, Resource, ResourceAccessibility,
-    ResourceEquipment, ResourceGroup, ResourceImage, ResourceType, TermsOfUse,
-    Unit, UnitAuthorization, UnitIdentifier, UnitGroup, UnitGroupAuthorization,
+    Reservation, ReservationMetadataField, ReservationMetadataSet, Resource, ResourceAccessibility, Period,
+    ResourceEquipment, ResourceGroup, ResourceImage, ResourceType, TermsOfUse, MultidaySettings,
+    Unit, UnitAuthorization, UnitIdentifier, UnitGroup, UnitGroupAuthorization, MultidayStartDay,
     ReservationCancelReason, ReservationCancelReasonCategory)
 from munigeo.models import Municipality
 from rest_framework.authtoken.admin import Token
@@ -390,12 +390,23 @@ class RespaTokenAdmin(admin.ModelAdmin):
     raw_id_fields = ('user',)
 
 
+class MultidayStartDayInline(admin.TabularInline):
+    model = MultidayStartDay
+
+class MultidaySettingsAdmin(admin.ModelAdmin):
+    inlines = [
+        MultidayStartDayInline,
+    ]
+    raw_id_fields = ('period',)
+
+admin_site.register(MultidaySettings, MultidaySettingsAdmin)
 admin_site.register(ResourceImage, ResourceImageAdmin)
 admin_site.register(Resource, ResourceAdmin)
 admin_site.register(Reservation, ReservationAdmin)
 admin_site.register(ResourceType, ResourceTypeAdmin)
 admin_site.register(Purpose, PurposeAdmin)
 admin_site.register(Day)
+admin_site.register(Period)
 admin_site.register(Unit, UnitAdmin)
 admin_site.register(Equipment, EquipmentAdmin)
 admin_site.register(ResourceEquipment, ResourceEquipmentAdmin)

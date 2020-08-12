@@ -107,6 +107,18 @@ class Period(models.Model):
     A period of time to express state of open or closed
     Days that specifies the actual activity hours link here
     """
+
+    LENGTH_WITHIN_DAY = 'within_day'
+    LENGTH_WHOLE_DAY = 'whole_day'
+    LENGTH_OVER_NIGHT = 'over_night'
+    RESERVATION_LENGHT_TYPE_CHOICES = (
+        (LENGTH_WITHIN_DAY, _('within day')),
+        (LENGTH_WHOLE_DAY, _('whole day')),
+        (LENGTH_OVER_NIGHT, _('over night')),
+    )
+
+    reservation_length_type = models.CharField(max_length=16, choices=RESERVATION_LENGHT_TYPE_CHOICES,
+                                               verbose_name=_('Reservations length type'), default=LENGTH_WITHIN_DAY)
     resource = models.ForeignKey('Resource', verbose_name=_('Resource'), db_index=True,
                                  null=True, blank=True, related_name='periods', on_delete=models.CASCADE)
     unit = models.ForeignKey('Unit', verbose_name=_('Unit'), db_index=True,
@@ -126,7 +138,9 @@ class Period(models.Model):
 
     def __str__(self):
         # FIXME: output date in locale-specific format
-        return "{0}, {3}: {1:%d.%m.%Y} - {2:%d.%m.%Y}".format(self.name, self.start, self.end, STATE_BOOLS[self.closed])
+        return "{4}, {0}, {3}: {1:%d.%m.%Y} - {2:%d.%m.%Y}".format(self.name, self.start, self.end,
+                                                                   STATE_BOOLS[self.closed],
+                                                                   self.resource.name if self.resource else self.unit)
 
     def _validate_belonging(self):
         if not (self.resource_id or self.unit_id):
@@ -142,6 +156,9 @@ class Period(models.Model):
             self.closed = not self.days.filter(closed=False).exists()
         else:  # Unsaved period, thus has no days, thus is closed.
             self.closed = True
+
+    def has_multiday_settings(self):
+        return hasattr(self, 'multiday_settings')
 
     def clean(self, ignore_overlap=False):
         super(Period, self).clean()
@@ -167,6 +184,53 @@ class Period(models.Model):
         """
         self._check_closed()
         self.save(force_update=True, update_fields=("closed",))
+
+
+class MultidaySettings(models.Model):
+    DURATION_UNIT_DAY = 'day'
+    DURATION_UNIT_WEEK = 'week'
+    DURATION_UNIT_MONTH = 'month'
+
+    DURATION_UNIT_CHOICES = (
+        (DURATION_UNIT_DAY, _('Day')),
+        (DURATION_UNIT_WEEK, _('Week')),
+        (DURATION_UNIT_MONTH, _('Month')),
+    )
+
+    period = models.OneToOneField(
+        Period,
+        on_delete=models.CASCADE,
+        related_name='multiday_settings'
+    )
+    max_duration = models.IntegerField(verbose_name=_('Max duration'))
+    min_duration = models.IntegerField(verbose_name=_('Min duration'))
+
+    duration_unit = models.CharField(max_length=5, choices=DURATION_UNIT_CHOICES,
+                                     verbose_name=_('Duration type'), default=DURATION_UNIT_DAY)
+
+    check_in_time = models.TimeField(verbose_name=_('Check-in time'), null=True, blank=True)
+    check_out_time = models.TimeField(verbose_name=_('Check-out time'), null=True, blank=True)
+
+    must_end_on_start_day = models.BooleanField(verbose_name=_('Must end on start day'), default=False)
+
+    class Meta:
+        verbose_name = _('Multiday settings')
+
+    def __str__(self):
+        return '{}({} - {})'.format(self.period.resource.name, self.period.start, self.period.end)
+
+
+class MultidayStartDay(models.Model):
+    multiday_settings = models.ForeignKey(MultidaySettings, verbose_name=_('Multiday settings'), db_index=True,
+                                          related_name='start_days', on_delete=models.CASCADE)
+    day = models.DateField(verbose_name=_('Start day'))
+
+    class Meta:
+        verbose_name = _('Multiday settings start day')
+
+    def __str__(self):
+        return '{}({}:{} - {})'.format(self.day, self.multiday_settings.period.resource.name,
+                                     self.multiday_settings.period.start, self.multiday_settings.period.end)
 
 
 class Day(models.Model):

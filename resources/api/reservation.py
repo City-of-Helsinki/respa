@@ -107,7 +107,7 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
         model = Reservation
         fields = [
             'url', 'id', 'resource', 'user', 'begin', 'end', 'comments', 'is_own', 'state', 'need_manual_confirmation',
-            'staff_event', 'access_code', 'user_permissions', 'type', 'cancel_reason'
+            'staff_event', 'access_code', 'user_permissions', 'type', 'cancel_reason', 'length_type'
         ] + list(RESERVATION_EXTRA_FIELDS)
         read_only_fields = list(RESERVATION_EXTRA_FIELDS)
 

@@ -19,7 +19,7 @@ from caterings.models import CateringOrder, CateringProvider
 from resources.enums import UnitAuthorizationLevel
 from resources.models import (Period, Day, Reservation, Resource, ResourceGroup, ReservationMetadataField,
                               ReservationMetadataSet, UnitAuthorization, ReservationCancelReasonCategory,
-                              ReservationCancelReason, Attachment)
+                              ReservationCancelReason, Attachment, MultidaySettings)
 from notifications.models import NotificationTemplate, NotificationType
 from notifications.tests.utils import check_received_mail_exists
 from .utils import check_disallowed_methods, assert_non_field_errors_contain, assert_response_objects, MAX_QUERIES
@@ -2712,3 +2712,155 @@ def test_reservation_cancellation_with_message(user_api_client, api_client, gene
     assert cancel_reason_category.description_en in mail_body
     assert cancel_with_message_data['cancel_reason']['description'] in mail_body
 
+
+@pytest.mark.django_db
+def test_over_night_reservation(user, resource_in_unit, api_client, list_url):
+    """
+    Tests that an authenticated user can create a multiday reservation of type over_night.
+    """
+
+    resource_in_unit.periods.all().delete()
+    # Create period for resource
+    period = Period.objects.create(resource=resource_in_unit, start='2115-04-01', end='2115-04-30', reservation_length_type='over_night')
+    # Create multiday settings for previously created period
+    settings = MultidaySettings.objects.create(period=period, min_duration=7, max_duration=7, duration_unit=MultidaySettings.DURATION_UNIT_DAY, check_in_time='14:00', check_out_time='12:00')
+    # Create first available start day to beginning of period
+    settings.start_days.create(day='2115-04-04')
+    settings.start_days.create(day='2115-04-11')
+
+    # Test making a reservation with duration unit day
+    reservation_data = {
+        'resource': resource_in_unit.pk,
+        'begin': '2115-04-04T12:00:00+02:00',
+        'end': '2115-04-11T12:00:00+02:00'
+    }
+
+    api_client.force_authenticate(user=user)
+
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201, "Request failed with: %s" % (str(response.content, 'utf8'))
+    reservation = Reservation.objects.filter(user=user).latest('created_at')
+    assert reservation.resource == resource_in_unit
+    assert reservation.begin == dateparse.parse_datetime('2115-04-04T12:00:00+02:00')
+    assert reservation.end == dateparse.parse_datetime('2115-04-11T12:00:00+02:00')
+    assert reservation.length_type == period.reservation_length_type
+    reservation.delete()
+
+    # Test making a reservation with duration type week
+    reservation_data = {
+        'resource': resource_in_unit.pk,
+        'begin': '2115-04-01T12:00:00+02:00',
+        'end': '2115-04-08T12:00:00+02:00'
+    }
+
+    settings.min_duration = 1
+    settings.max_duration = 2
+    settings.duration_unit = MultidaySettings.DURATION_UNIT_WEEK
+    settings.save()
+
+    settings.start_days.create(day='2115-04-01')
+    settings.start_days.create(day='2115-04-08')
+    settings.start_days.create(day='2115-04-15')
+
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201, "Request failed with: %s" % (str(response.content, 'utf8'))
+    reservation = Reservation.objects.filter(user=user).latest('created_at')
+    assert reservation.resource == resource_in_unit
+    assert reservation.begin == dateparse.parse_datetime('2115-04-01T12:00:00+02:00')
+    assert reservation.end == dateparse.parse_datetime('2115-04-08T12:00:00+02:00')
+    reservation.delete()
+
+    # Test making a reservation with duration type month
+    reservation_data = {
+        'resource': resource_in_unit.pk,
+        'begin': '2115-04-01T12:00:00+02:00',
+        'end': '2115-06-01T12:00:00+02:00'
+    }
+
+    period.start = '2115-01-01'
+    period.end = '2115-12-30'
+    period.save()
+
+    settings.min_duration = 1
+    settings.max_duration = 3
+    settings.duration_unit = MultidaySettings.DURATION_UNIT_MONTH
+    settings.save()
+
+    settings.start_days.create(day='2115-04-01')
+    settings.start_days.create(day='2115-06-01')
+
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201, "Request failed with: %s" % (str(response.content, 'utf8'))
+    reservation = Reservation.objects.filter(user=user).latest('created_at')
+    assert reservation.resource == resource_in_unit
+    assert reservation.begin == dateparse.parse_datetime('2115-04-01T12:00:00+02:00')
+    assert reservation.end == dateparse.parse_datetime('2115-06-01T12:00:00+02:00')
+
+
+@pytest.mark.django_db
+def test_over_night_reservation_with_incorrect_settings(user, resource_in_unit, api_client, list_url):
+    """
+    Tests that an authenticated user can't create a multiday reservation if multiday settings are missing or ha.
+    """
+
+    api_client.force_authenticate(user=user)
+
+    # No settings at all
+    reservation_data = {
+        'resource': resource_in_unit.pk,
+        'begin': '2115-04-04T12:00:00+02:00',
+        'end': '2115-04-11T12:00:00+02:00'
+    }
+
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+
+
+    resource_in_unit.periods.all().delete()
+    period = Period.objects.create(resource=resource_in_unit, start='2115-04-01', end='2115-04-30', reservation_length_type='over_night')
+    settings = MultidaySettings.objects.create(period=period, min_duration=7, max_duration=7, duration_unit=MultidaySettings.DURATION_UNIT_DAY, check_in_time='14:00', check_out_time='12:00')
+    settings.start_days.create(day='2115-04-04')
+
+    # Invalid start date
+    reservation_data = {
+        'resource': resource_in_unit.pk,
+        'begin': '2115-04-01T12:00:00+02:00',
+        'end': '2115-04-18T12:00:00+02:00'
+    }
+
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+
+
+    # Dates outside period
+    reservation_data = {
+        'resource': resource_in_unit.pk,
+        'begin': '2115-03-31T12:00:00+02:00',
+        'end': '2115-04-07T12:00:00+02:00'
+    }
+
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+
+    # Invalid reservation length
+    reservation_data = {
+        'resource': resource_in_unit.pk,
+        'begin': '2115-04-04T12:00:00+02:00',
+        'end': '2115-04-12T12:00:00+02:00'
+    }
+
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+
+    # Reservation doesn't end on start day
+    settings.must_end_on_start_day = True
+    settings.save()
+
+    reservation_data = {
+        'resource': resource_in_unit.pk,
+        'begin': '2115-04-04T12:00:00+02:00',
+        'end': '2115-04-11T12:00:00+02:00'
+    }
+
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400

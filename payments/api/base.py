@@ -18,7 +18,7 @@ class ProductSerializer(TranslatedModelSerializer):
         )
 
     def get_price(self, obj):
-        if obj.price_type not in (Product.PRICE_FIXED, Product.PRICE_PER_PERIOD):
+        if obj.price_type not in (Product.PRICE_FIXED, Product.PRICE_PER_PERIOD, Product.PRICE_PER_MULTIDAY_DURATION_UNIT):
             raise ValueError('{} has invalid price type "{}"'.format(obj, obj.price_type))
 
         ret = {

@@ -3,13 +3,13 @@ import pytest
 from copy import deepcopy
 from django.urls import reverse
 from django.contrib.gis.geos import Point
-from django.utils import timezone
+from django.utils import timezone, dateparse
 from freezegun import freeze_time
 from guardian.shortcuts import assign_perm, remove_perm
 from ..enums import UnitAuthorizationLevel, UnitGroupAuthorizationLevel
 
 from resources.models import (Day, Equipment, Period, Reservation, ReservationMetadataSet, ResourceEquipment,
-                              ResourceType, Unit, UnitAuthorization, UnitGroup)
+                              ResourceType, Unit, UnitAuthorization, UnitGroup, MultidaySettings)
 from .utils import assert_response_objects, check_only_safe_methods_allowed, is_partial_dict_in_list, MAX_QUERIES
 
 
@@ -37,7 +37,6 @@ def _check_permissions_dict(api_client, resource, is_admin, is_manager, is_viewe
 
     url = reverse('resource-detail', kwargs={'pk': resource.pk})
     response = api_client.get(url)
-    print(response.data)
     assert response.status_code == 200
     permissions = response.data['user_permissions']
     assert len(permissions) == 6
@@ -1133,3 +1132,36 @@ def test_query_counts(user_api_client, staff_api_client, list_url, django_assert
 
     with django_assert_max_num_queries(MAX_QUERIES):
         staff_api_client.get(list_url)
+
+
+@pytest.mark.django_db
+def test_get_resource_with_multiday_settings(user, api_client, detail_url, resource_in_unit):
+    """
+    Test fetching a resource with multiday settings included
+    """
+
+    resource_in_unit.periods.all().delete()
+    # Create period for resource
+    period = Period.objects.create(resource=resource_in_unit, start='2115-04-01', end='2115-04-30', reservation_length_type='over_night')
+    # Create multiday settings for previously created period
+    settings = MultidaySettings.objects.create(period=period, min_duration=7, max_duration=7, duration_unit=MultidaySettings.DURATION_UNIT_DAY, check_in_time='14:00', check_out_time='12:00')
+    # Create first available start day to beginning of period
+    settings.start_days.create(day='2115-04-04')
+
+    api_client.force_authenticate(user=user)
+
+    response = api_client.get(detail_url + '?start=2115-04-01T06:37:47.178Z&end=2115-04-30T21:59:59.999Z')
+
+    assert 'periods' in response.data
+    response_period = response.data['periods'][0]
+    assert response_period['reservation_length_type'] == period.reservation_length_type
+    assert response_period['start'] == period.start
+    assert response_period['end'] == period.end
+
+    assert 'multiday_settings' in response_period
+    response_settings = response_period['multiday_settings']
+    assert response_settings['min_duration'] == settings.min_duration
+    assert response_settings['max_duration'] == settings.max_duration
+    assert response_settings['must_end_on_start_day'] == False
+    assert dateparse.parse_time(response_settings['check_in_time']) == dateparse.parse_time(settings.check_in_time)
+    assert dateparse.parse_time(response_settings['check_out_time']) == dateparse.parse_time(settings.check_out_time)
