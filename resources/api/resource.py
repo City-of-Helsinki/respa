@@ -26,7 +26,7 @@ from munigeo import api as munigeo_api
 from resources.models import (
     AccessibilityValue, AccessibilityViewpoint, Purpose, Reservation, Resource, ResourceAccessibility,
     ResourceImage, ResourceType, ResourceEquipment, TermsOfUse, Equipment, ReservationMetadataSet,
-    ResourceDailyOpeningHours, UnitAccessibility
+    ResourceDailyOpeningHours, UnitAccessibility, MultidaySettings, Period
 )
 from resources.models.resource import determine_hours_time_range
 
@@ -153,6 +153,23 @@ class TermsOfUseSerializer(TranslatedModelSerializer):
         fields = ('text',)
 
 
+class MultidaySettingsSerializer(serializers.ModelSerializer):
+    start_days = serializers.SerializerMethodField()
+    class Meta:
+        model = MultidaySettings
+        fields = ['max_days', 'min_days', 'check_in_time', 'check_out_time', 'start_days']
+
+    def get_start_days(self, obj):
+        return list(map(lambda start_day: start_day.day, obj.start_days.all()))
+
+
+class PeriodSerializer(serializers.ModelSerializer):
+    multiday_settings = MultidaySettingsSerializer()
+    class Meta:
+        model = Period
+        fields = ['start', 'end', 'reservation_length_type', 'multiday_settings']
+
+
 class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.GeoModelSerializer):
     purposes = PurposeSerializer(many=True)
     images = NestedResourceImageSerializer(many=True)
@@ -163,6 +180,7 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
     # FIXME: Enable available_hours when it's more performant
     # available_hours = serializers.SerializerMethodField()
     opening_hours = serializers.SerializerMethodField()
+    periods = serializers.SerializerMethodField()
     reservations = serializers.SerializerMethodField()
     user_permissions = serializers.SerializerMethodField()
     supported_reservation_extra_fields = serializers.ReadOnlyField(source='get_supported_reservation_extra_field_names')
@@ -334,6 +352,18 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
                 d.update(x[1][0])
             ret.append(d)
         return ret
+
+    def get_periods(self, obj):
+        start = self.context.get('start', None)
+        end = self.context.get('end', None)
+
+        if not start or not end:
+            return None
+
+        periods = obj.get_overlapping_periods_for_timespan(start, end)
+
+        return PeriodSerializer(periods, many=True).data
+
 
     def get_reservations(self, obj):
         if 'start' not in self.context:

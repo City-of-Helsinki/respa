@@ -1,5 +1,5 @@
 from .accessibility import AccessibilityValue, AccessibilityViewpoint, ResourceAccessibility, UnitAccessibility
-from .availability import Day, Period, get_opening_hours
+from .availability import Day, Period, get_opening_hours, MultidaySettings, MultidayStartDay
 from .reservation import (
     ReservationMetadataField, ReservationMetadataSet, Reservation, RESERVATION_EXTRA_FIELDS,
     ReservationCancelReasonCategory, ReservationCancelReason)
@@ -20,6 +20,8 @@ __all__ = [
     'EquipmentCategory',
     'Period',
     'Purpose',
+    'MultidaySettings',
+    'MultidayStartDay',
     'RESERVATION_EXTRA_FIELDS',
     'Reservation',
     'ReservationMetadataField',

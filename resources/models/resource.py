@@ -37,7 +37,7 @@ from .base import AutoIdentifiedModel, NameIdentifiedModel, ModifiableModel
 from .utils import create_datetime_days_from_now, get_translated, get_translated_name, humanize_duration
 from .equipment import Equipment
 from .unit import Unit
-from .availability import get_opening_hours
+from .availability import get_opening_hours, Period
 from .permissions import RESOURCE_GROUP_PERMISSIONS, UNIT_ROLE_PERMISSIONS
 from ..enums import UnitAuthorizationLevel, UnitGroupAuthorizationLevel
 
@@ -293,6 +293,15 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
         return resource_image.image if resource_image else None
 
+    def get_period_for_timespan(self, start_date, end_date):
+        try:
+            return self.periods.get(start__lte=start_date, end__gte=end_date)
+        except:
+            return None
+
+    def get_overlapping_periods_for_timespan(self, start_date, end_date):
+        return self.periods.filter(end__gt=start_date, start__lt=end_date)
+
     def validate_reservation_period(self, reservation, user, data=None):
         """
         Check that given reservation if valid for given user.
@@ -336,18 +345,40 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         else:
             end = tz.localize(end)
 
-        if begin.date() != end.date():
+        period = self.get_period_for_timespan(begin.date(), end.date())
+        is_within_day_reservation = begin.date() == end.date()
+
+
+        if (not period or period.reservation_length_type == Period.LENGTH_WITHIN_DAY) and not is_within_day_reservation:
             raise ValidationError(_("You cannot make a multi day reservation"))
 
-        if not self.can_ignore_opening_hours(user):
-            opening_hours = self.get_opening_hours(begin.date(), end.date())
-            days = opening_hours.get(begin.date(), None)
-            if days is None or not any(day['opens'] and begin >= day['opens'] and end <= day['closes'] for day in days):
-                raise ValidationError(_("You must start and end the reservation during opening hours"))
+        if is_within_day_reservation:
+            # Restrictions for a reservation thats start and end is within a single day
+            if not self.can_ignore_opening_hours(user):
+                opening_hours = self.get_opening_hours(begin.date(), end.date())
+                days = opening_hours.get(begin.date(), None)
+                if days is None or not any(day['opens'] and begin >= day['opens'] and end <= day['closes'] for day in days):
+                    raise ValidationError(_("You must start and end the reservation during opening hours"))
 
-        if not self.can_ignore_max_period(user) and (self.max_period and (end - begin) > self.max_period):
-            raise ValidationError(_("The maximum reservation length is %(max_period)s") %
-                                  {'max_period': humanize_duration(self.max_period)})
+            if not self.can_ignore_max_period(user) and (self.max_period and (end - begin) > self.max_period):
+                raise ValidationError(_("The maximum reservation length is %(max_period)s") %
+                                    {'max_period': humanize_duration(self.max_period)})
+        else:
+            # Restrictions for a multi day reservation
+            if not period or not period.has_multiday_settings():
+                raise ValidationError(_("This resource has not been configured for multi day reservations"))
+
+            multiday_settings = period.multiday_settings
+            reservation_length_days = (end.date() - begin.date()).days
+
+            if reservation_length_days < multiday_settings.min_days:
+                raise ValidationError(_("Reservation length is shorter than minimun allowed"))
+            if reservation_length_days > multiday_settings.max_days:
+                raise ValidationError(_("Reservation length is longer than maximum allowed"))
+
+            if not multiday_settings.start_days.filter(day=begin.date()):
+                raise ValidationError(_("Reservation start date is not allowed"))
+
 
     def validate_max_reservations_per_user(self, user):
         """

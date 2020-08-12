@@ -106,6 +106,15 @@ class Reservation(ModifiableModel):
         (TYPE_BLOCKED, _('Resource blocked')),
     )
 
+    LENGTH_WITHIN_DAY = 'within_day'
+    LENGTH_WHOLE_DAY = 'whole_day'
+    LENGTH_OVER_NIGHT = 'over_night'
+    RESERVATION_LENGTH_TYPE_CHOICES = (
+        (LENGTH_WITHIN_DAY, _('within day')),
+        (LENGTH_WHOLE_DAY, _('whole day')),
+        (LENGTH_OVER_NIGHT, _('over night')),
+    )
+
     resource = models.ForeignKey('Resource', verbose_name=_('Resource'), db_index=True, related_name='reservations',
                                  on_delete=models.PROTECT)
     begin = models.DateTimeField(verbose_name=_('Begin time'))
@@ -122,6 +131,9 @@ class Reservation(ModifiableModel):
     staff_event = models.BooleanField(verbose_name=_('Is staff event'), default=False)
     type = models.CharField(
         blank=False, verbose_name=_('Type'), max_length=32, choices=TYPE_CHOICES, default=TYPE_NORMAL)
+
+    reservation_length_type = models.CharField(max_length=16, choices=RESERVATION_LENGTH_TYPE_CHOICES,
+                                            verbose_name=_('Length type'), default=LENGTH_WITHIN_DAY)
 
     # access-related fields
     access_code = models.CharField(verbose_name=_('Access code'), max_length=32, null=True, blank=True)
