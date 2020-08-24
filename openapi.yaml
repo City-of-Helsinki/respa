@@ -90,6 +90,12 @@ paths:
           based on the boolean value given.
         schema:
           type: boolean
+      - name: include
+        in: query
+        description: Include extra data to queryset. Currently accepts value `accessibility_summaries`.
+        schema:
+          type: string
+        example: accessibility_summaries
       responses:
         200:
           description: Successful response
@@ -526,14 +532,20 @@ paths:
         in: query
         description: Order queryset by given resource fields, accepted values are
           `resource_name_fi`, `resource_name_en`, `resource_name_sv`, `unit_name_fi`,
-          `unit_name_en`, `unit_name_sv`, `type`, `people_capacity`. Prefix parameter
+          `unit_name_en`, `unit_name_sv`, `type`, `people_capacity`, `accessibility`. Prefix parameter
           value with `-` to get reverse ordering.
         schema:
           type: string
         example: resource_name_fi
+      - name: accessibility_viewpoint
+        in: query
+        description: Use together with `order_by` `accessibility`. Determines the viewpoint for accessibility ordering using the viewpoint ID.
+        schema:
+          type: number
+        example: 11
       - name: include
         in: query
-        description: Include extra data to queryset. Currently accepts value `unit_detail`.
+        description: Include extra data to queryset. Currently accepts values `unit_detail`, `accessibility_summaries`.
         schema:
           type: string
         example: unit_detail
