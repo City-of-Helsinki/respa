@@ -51,6 +51,7 @@ class ResourceAccessibility(AutoIdentifiedModel):
                                  verbose_name=_('Resource'), db_index=True, on_delete=models.CASCADE)
     value = models.ForeignKey(AccessibilityValue, verbose_name=_('Accessibility summary value'),
                               on_delete=models.CASCADE)
+    shortage_count = models.IntegerField(verbose_name=_('Accessibility shortage count'))
     order = models.IntegerField(verbose_name=_('Resource ordering priority'))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Time of creation'))
     modified_at = models.DateTimeField(auto_now=True, verbose_name=_('Time of modification'))
@@ -76,6 +77,7 @@ class UnitAccessibility(AutoIdentifiedModel):
                              verbose_name=_('Resource'), db_index=True, on_delete=models.CASCADE)
     value = models.ForeignKey(AccessibilityValue, verbose_name=_('Accessibility summary value'),
                               on_delete=models.CASCADE)
+    shortage_count = models.IntegerField(verbose_name=_('Accessibility shortage count'))
     order = models.IntegerField(verbose_name=_('Resource ordering priority'))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Time of creation'))
     modified_at = models.DateTimeField(auto_now=True, verbose_name=_('Time of modification'))

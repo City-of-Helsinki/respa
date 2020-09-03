@@ -574,6 +574,9 @@ msgstr "Resurstillgänglighet"
 msgid "Resource"
 msgstr "Resurs"
 
+msgid "Accessibility shortage count"
+msgstr "Antal tillgänglighetsbrister"
+
 msgid "Resource ordering priority"
 msgstr "Resursordningsprioritet"
 
