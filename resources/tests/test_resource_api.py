@@ -9,7 +9,7 @@ from guardian.shortcuts import assign_perm, remove_perm
 from ..enums import UnitAuthorizationLevel, UnitGroupAuthorizationLevel
 
 from resources.models import (Day, Equipment, Period, Reservation, ReservationMetadataSet, ResourceEquipment,
-                              ResourceType, Unit, UnitAuthorization, UnitGroup)
+                              ResourceType, Unit, UnitAuthorization, UnitGroup, MultidaySettings)
 from .utils import assert_response_objects, check_only_safe_methods_allowed, is_partial_dict_in_list, MAX_QUERIES
 
 
@@ -1091,3 +1091,25 @@ def test_query_counts(user_api_client, staff_api_client, list_url, django_assert
 
     with django_assert_max_num_queries(MAX_QUERIES):
         staff_api_client.get(list_url)
+
+
+@pytest.mark.django_db
+def test_get_resource_with_multiday_settings(user, api_client, detail_url, resource_in_unit):
+    """
+    Test fetching a resource with multiday settings included
+    """
+
+    resource_in_unit.periods.all().delete()
+    # Create period for resource
+    period = Period.objects.create(resource=resource_in_unit, start='2115-04-01', end='2115-04-30', reservation_length_type='over_night')
+    # Create multiday settings for previously created period
+    settings = MultidaySettings.objects.create(period=period, min_days=7, max_days=7, check_in_time='14:00', check_out_time='12:00')
+    # Create first available start day to beginning of period
+    settings.start_days.create(day='2115-04-04')
+
+    api_client.force_authenticate(user=user)
+
+    response = api_client.get(detail_url + '?start=2115-04-01T06:37:47.178Z&end=2115-04-30T21:59:59.999Z')
+
+    # TODO: Finish this test
+    assert False == True

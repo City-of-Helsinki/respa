@@ -348,7 +348,6 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         period = self.get_period_for_timespan(begin.date(), end.date())
         is_within_day_reservation = begin.date() == end.date()
 
-
         if (not period or period.reservation_length_type == Period.LENGTH_WITHIN_DAY) and not is_within_day_reservation:
             raise ValidationError(_("You cannot make a multi day reservation"))
 
