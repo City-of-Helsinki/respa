@@ -3,7 +3,7 @@ import pytest
 from copy import deepcopy
 from django.urls import reverse
 from django.contrib.gis.geos import Point
-from django.utils import timezone
+from django.utils import timezone, dateparse
 from freezegun import freeze_time
 from guardian.shortcuts import assign_perm, remove_perm
 from ..enums import UnitAuthorizationLevel, UnitGroupAuthorizationLevel
@@ -1111,5 +1111,15 @@ def test_get_resource_with_multiday_settings(user, api_client, detail_url, resou
 
     response = api_client.get(detail_url + '?start=2115-04-01T06:37:47.178Z&end=2115-04-30T21:59:59.999Z')
 
-    # TODO: Finish this test
-    assert False == True
+    assert 'periods' in response.data
+    response_period = response.data['periods'][0]
+    assert response_period['reservation_length_type'] == period.reservation_length_type
+    assert response_period['start'] == period.start
+    assert response_period['end'] == period.end
+
+    assert 'multiday_settings' in response_period
+    response_settings = response_period['multiday_settings']
+    assert response_settings['min_days'] == settings.min_days
+    assert response_settings['max_days'] == settings.max_days
+    assert dateparse.parse_time(response_settings['check_in_time']) == dateparse.parse_time(settings.check_in_time)
+    assert dateparse.parse_time(response_settings['check_out_time']) == dateparse.parse_time(settings.check_out_time)

@@ -200,7 +200,7 @@ class MultidaySettings(models.Model):
         verbose_name = _('Multiday period settings')
 
     def __str__(self):
-        return self.period.resource.name
+        return '{}({}-{})'.format(self.period.resource.name, self.period.start, self.period.end)
 
 
 class MultidayStartDay(models.Model):
