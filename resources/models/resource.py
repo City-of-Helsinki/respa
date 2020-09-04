@@ -273,7 +273,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         help_text=_('A link to an external reservation system if this resource is managed elsewhere'),
         null=True, blank=True)
     reservation_extra_questions = models.TextField(verbose_name=_('Reservation extra questions'), blank=True)
-    attachments = models.ManyToManyField(Attachment, verbose_name=_('Attachments'),)
+    attachments = models.ManyToManyField(Attachment, verbose_name=_('Attachments'), blank=True)
 
     objects = ResourceQuerySet.as_manager()
 
