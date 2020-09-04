@@ -1,7 +1,35 @@
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext as _
 from .base import AutoIdentifiedModel
+
+
+def get_resource_accessibility_url(resource):
+    url = '{base_url}api/v1/accessibility/targets/{system_id}/{servicepoint_id}'
+    url = url.format(
+        base_url=settings.RESPA_ACCESSIBILITY_API_BASE_URL,
+        system_id=settings.RESPA_ACCESSIBILITY_API_SYSTEM_ID,
+        servicepoint_id=resource.id,
+    )
+    return url
+
+
+def get_unit_accessibility_url(unit):
+    unit_internal_identifier = None
+    for identifier in unit.identifiers.all():
+        if identifier.namespace == 'internal':
+            unit_internal_identifier = identifier.value
+            break
+    if unit_internal_identifier is None:
+        return None
+    url = '{base_url}api/v1/accessibility/targets/{system_id}/{servicepoint_id}'
+    url = url.format(
+        base_url=settings.RESPA_ACCESSIBILITY_API_BASE_URL,
+        system_id=settings.RESPA_ACCESSIBILITY_API_UNIT_SYSTEM_ID,
+        servicepoint_id=unit_internal_identifier,
+    )
+    return url
 
 
 class AccessibilityViewpoint(AutoIdentifiedModel):

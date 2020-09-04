@@ -28,6 +28,7 @@ from resources.models import (
     ResourceImage, ResourceType, ResourceEquipment, TermsOfUse, Equipment, ReservationMetadataSet,
     ResourceDailyOpeningHours, UnitAccessibility
 )
+from resources.models.accessibility import get_resource_accessibility_url
 from resources.models.resource import determine_hours_time_range
 
 from ..auth import is_general_admin, is_staff
@@ -170,6 +171,7 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
     is_favorite = serializers.SerializerMethodField()
     generic_terms = serializers.SerializerMethodField()
     payment_terms = serializers.SerializerMethodField()
+    accessibility_base_url = serializers.SerializerMethodField()
     # deprecated, backwards compatibility
     reservable_days_in_advance = serializers.ReadOnlyField(source='get_reservable_max_days_in_advance')
     reservable_max_days_in_advance = serializers.ReadOnlyField(source='get_reservable_max_days_in_advance')
@@ -218,6 +220,9 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
             for vp in accessibility_viewpoints
         ]
         return [ResourceAccessibilitySerializer(summary).data for summary in summaries]
+
+    def get_accessibility_base_url(self, obj):
+        return get_resource_accessibility_url(obj)
 
     def get_user_permissions(self, obj):
         request = self.context.get('request', None)
