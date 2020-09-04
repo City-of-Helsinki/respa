@@ -95,13 +95,18 @@ class Command(BaseCommand):
                     accessibility_data['viewpointId']))
                 continue
             value = self.get_or_create_value(accessibility_data['isAccessible'])
+            shortage_count = accessibility_data.get('shortageCount', 0)
+            resource_attributes = {
+                'value': value,
+                'shortage_count': shortage_count,
+            }
             resource_accessibility, created = ResourceAccessibility.objects.get_or_create(
-                resource=resource, viewpoint=viewpoint, defaults={'value': value}
+                resource=resource, viewpoint=viewpoint, defaults=resource_attributes
             )
             if created:
                 self.stdout.write('Created ResourceAccessibility {}'.format(str(resource_accessibility)))
             else:
-                dirty_fields = self.update_model_attributes(resource_accessibility, {'value': value})
+                dirty_fields = self.update_model_attributes(resource_accessibility, resource_attributes)
                 if len(dirty_fields) > 0:
                     resource_accessibility.save()
                     self.stdout.write('Updated ResourceAccessibility {}: {}'.format(
@@ -133,13 +138,18 @@ class Command(BaseCommand):
                         viewpoint_data['viewpointId']))
                     continue
                 value = self.get_or_create_value(viewpoint_data['isAccessible'])
+                shortage_count = viewpoint_data.get('shortageCount', 0)
+                unit_attributes = {
+                    'value': value,
+                    'shortage_count': shortage_count,
+                }
                 unit_accessibility, created = UnitAccessibility.objects.get_or_create(
-                    unit=unit, viewpoint=viewpoint, defaults={'value': value}
+                    unit=unit, viewpoint=viewpoint, defaults=unit_attributes
                 )
                 if created:
                     self.stdout.write('Created UnitAccessibility {}'.format(str(unit_accessibility)))
                 else:
-                    dirty_fields = self.update_model_attributes(unit_accessibility, {'value': value})
+                    dirty_fields = self.update_model_attributes(unit_accessibility, unit_attributes)
                     if len(dirty_fields) > 0:
                         unit_accessibility.save()
                         self.stdout.write('Updated UnitAccessibility {}: {}'.format(

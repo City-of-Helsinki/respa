@@ -578,6 +578,9 @@ msgstr "Resurssin saavutettavuus"
 msgid "Resource"
 msgstr "Resurssi"
 
+msgid "Accessibility shortage count"
+msgstr "Saavutettavuuspuutteiden määrä"
+
 msgid "Resource ordering priority"
 msgstr "Resurssin järjestysprioriteetti"
 

@@ -209,8 +209,14 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
             summaries_by_viewpoint.get(
                 vp.id,
                 ResourceAccessibility(
-                    viewpoint=vp, resource=obj, value=AccessibilityValue(value=AccessibilityValue.UNKNOWN_VALUE)))
-            for vp in accessibility_viewpoints]
+                    viewpoint=vp,
+                    resource=obj,
+                    value=AccessibilityValue(value=AccessibilityValue.UNKNOWN_VALUE),
+                    shortage_count=0,
+                )
+            )
+            for vp in accessibility_viewpoints
+        ]
         return [ResourceAccessibilitySerializer(summary).data for summary in summaries]
 
     def get_user_permissions(self, obj):

@@ -376,22 +376,26 @@ def resource_with_accessibility_data(resource_in_unit, accessibility_viewpoint_w
     ResourceAccessibility.objects.create(
         resource=resource_in_unit,
         viewpoint=accessibility_viewpoint_wheelchair,
-        value=accessibility_value_green
+        value=accessibility_value_green,
+        shortage_count=0,
     )
     ResourceAccessibility.objects.create(
         resource=resource_in_unit,
         viewpoint=accessibility_viewpoint_hearing,
-        value=accessibility_value_red
+        value=accessibility_value_red,
+        shortage_count=0,
     )
     UnitAccessibility.objects.create(
         unit=resource_in_unit.unit,
         viewpoint=accessibility_viewpoint_wheelchair,
-        value=accessibility_value_green
+        value=accessibility_value_green,
+        shortage_count=0,
     )
     UnitAccessibility.objects.create(
         unit=resource_in_unit.unit,
         viewpoint=accessibility_viewpoint_hearing,
-        value=accessibility_value_green
+        value=accessibility_value_green,
+        shortage_count=0,
     )
     return resource_in_unit
 
@@ -404,22 +408,26 @@ def resource_with_accessibility_data2(resource_in_unit2, accessibility_viewpoint
     ResourceAccessibility.objects.create(
         resource=resource_in_unit2,
         viewpoint=accessibility_viewpoint_wheelchair,
-        value=accessibility_value_red
+        value=accessibility_value_red,
+        shortage_count=0,
     )
     ResourceAccessibility.objects.create(
         resource=resource_in_unit2,
         viewpoint=accessibility_viewpoint_hearing,
-        value=accessibility_value_green
+        value=accessibility_value_green,
+        shortage_count=0,
     )
     UnitAccessibility.objects.create(
         unit=resource_in_unit2.unit,
         viewpoint=accessibility_viewpoint_wheelchair,
-        value=accessibility_value_green
+        value=accessibility_value_green,
+        shortage_count=0,
     )
     UnitAccessibility.objects.create(
         unit=resource_in_unit2.unit,
         viewpoint=accessibility_viewpoint_hearing,
-        value=accessibility_value_green
+        value=accessibility_value_green,
+        shortage_count=0,
     )
     return resource_in_unit2
 
@@ -432,22 +440,26 @@ def resource_with_accessibility_data3(resource_in_unit3, accessibility_viewpoint
     ResourceAccessibility.objects.create(
         resource=resource_in_unit3,
         viewpoint=accessibility_viewpoint_wheelchair,
-        value=accessibility_value_green
+        value=accessibility_value_green,
+        shortage_count=0,
     )
     ResourceAccessibility.objects.create(
         resource=resource_in_unit3,
         viewpoint=accessibility_viewpoint_hearing,
-        value=accessibility_value_green
+        value=accessibility_value_green,
+        shortage_count=0,
     )
     UnitAccessibility.objects.create(
         unit=resource_in_unit3.unit,
         viewpoint=accessibility_viewpoint_wheelchair,
-        value=accessibility_value_red
+        value=accessibility_value_red,
+        shortage_count=0,
     )
     UnitAccessibility.objects.create(
         unit=resource_in_unit3.unit,
         viewpoint=accessibility_viewpoint_hearing,
-        value=accessibility_value_red
+        value=accessibility_value_red,
+        shortage_count=0,
     )
     return resource_in_unit3
 
