@@ -1103,7 +1103,7 @@ def test_get_resource_with_multiday_settings(user, api_client, detail_url, resou
     # Create period for resource
     period = Period.objects.create(resource=resource_in_unit, start='2115-04-01', end='2115-04-30', reservation_length_type='over_night')
     # Create multiday settings for previously created period
-    settings = MultidaySettings.objects.create(period=period, min_days=7, max_days=7, check_in_time='14:00', check_out_time='12:00')
+    settings = MultidaySettings.objects.create(period=period, min_duration=7, max_duration=7, duration_unit=MultidaySettings.DURATION_UNIT_DAY, check_in_time='14:00', check_out_time='12:00')
     # Create first available start day to beginning of period
     settings.start_days.create(day='2115-04-04')
 
@@ -1119,7 +1119,7 @@ def test_get_resource_with_multiday_settings(user, api_client, detail_url, resou
 
     assert 'multiday_settings' in response_period
     response_settings = response_period['multiday_settings']
-    assert response_settings['min_days'] == settings.min_days
-    assert response_settings['max_days'] == settings.max_days
+    assert response_settings['min_duration'] == settings.min_duration
+    assert response_settings['max_duration'] == settings.max_duration
     assert dateparse.parse_time(response_settings['check_in_time']) == dateparse.parse_time(settings.check_in_time)
     assert dateparse.parse_time(response_settings['check_out_time']) == dateparse.parse_time(settings.check_out_time)

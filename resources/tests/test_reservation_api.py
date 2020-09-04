@@ -2710,7 +2710,7 @@ def test_over_night_reservation(user, resource_in_unit, api_client, list_url):
     # Create period for resource
     period = Period.objects.create(resource=resource_in_unit, start='2115-04-01', end='2115-04-30', reservation_length_type='over_night')
     # Create multiday settings for previously created period
-    settings = MultidaySettings.objects.create(period=period, min_days=7, max_days=7, check_in_time='14:00', check_out_time='12:00')
+    settings = MultidaySettings.objects.create(period=period, min_duration=7, max_duration=7, duration_unit=MultidaySettings.DURATION_UNIT_DAY, check_in_time='14:00', check_out_time='12:00')
     # Create first available start day to beginning of period
     settings.start_days.create(day='2115-04-04')
 
@@ -2750,7 +2750,7 @@ def test_over_night_reservation_with_incorrect_settings(user, resource_in_unit, 
 
     resource_in_unit.periods.all().delete()
     period = Period.objects.create(resource=resource_in_unit, start='2115-04-01', end='2115-04-30', reservation_length_type='over_night')
-    settings = MultidaySettings.objects.create(period=period, min_days=7, max_days=7, check_in_time='14:00', check_out_time='12:00')
+    settings = MultidaySettings.objects.create(period=period, min_duration=7, max_duration=7, duration_unit=MultidaySettings.DURATION_UNIT_DAY, check_in_time='14:00', check_out_time='12:00')
     settings.start_days.create(day='2115-04-04')
 
     # Invalid start date

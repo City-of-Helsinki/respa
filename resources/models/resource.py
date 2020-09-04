@@ -368,12 +368,13 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                 raise ValidationError(_("This resource has not been configured for multi day reservations"))
 
             multiday_settings = period.multiday_settings
-            reservation_length_days = (end.date() - begin.date()).days
 
-            if reservation_length_days < multiday_settings.min_days:
-                raise ValidationError(_("Reservation length is shorter than minimun allowed"))
-            if reservation_length_days > multiday_settings.max_days:
-                raise ValidationError(_("Reservation length is longer than maximum allowed"))
+            if multiday_settings.duration_unit == 'day':
+                reservation_length_days = (end.date() - begin.date()).days
+                if reservation_length_days < multiday_settings.min_duration:
+                    raise ValidationError(_("Reservation length is shorter than minimun allowed"))
+                if reservation_length_days > multiday_settings.max_duration:
+                    raise ValidationError(_("Reservation length is longer than maximum allowed"))
 
             if not multiday_settings.start_days.filter(day=begin.date()):
                 raise ValidationError(_("Reservation start date is not allowed"))

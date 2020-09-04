@@ -185,13 +185,26 @@ class Period(models.Model):
 
 
 class MultidaySettings(models.Model):
+    DURATION_UNIT_DAY = 'day'
+    DURATION_UNIT_WEEK = 'week'
+    DURATION_UNIT_MONTH = 'month'
+
+    DURATION_UNIT_CHOICES = (
+        (DURATION_UNIT_DAY, _('Day')),
+        (DURATION_UNIT_WEEK, _('Week')),
+        (DURATION_UNIT_MONTH, _('Month')),
+    )
+
     period = models.OneToOneField(
         Period,
         on_delete=models.CASCADE,
         related_name='multiday_settings'
     )
-    max_days = models.IntegerField(verbose_name=_('Max days'))
-    min_days = models.IntegerField(verbose_name=_('Min days'))
+    max_duration = models.IntegerField(verbose_name=_('Max duration'))
+    min_duration = models.IntegerField(verbose_name=_('Min duration'))
+
+    duration_unit = models.CharField(max_length=5, choices=DURATION_UNIT_CHOICES,
+                                               verbose_name=_('Duration type'), default=DURATION_UNIT_DAY)
 
     check_in_time = models.TimeField(verbose_name=_('Check-in time'), null=True, blank=True)
     check_out_time = models.TimeField(verbose_name=_('Check-out time'), null=True, blank=True)

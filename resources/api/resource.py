@@ -157,7 +157,7 @@ class MultidaySettingsSerializer(serializers.ModelSerializer):
     start_days = serializers.SerializerMethodField()
     class Meta:
         model = MultidaySettings
-        fields = ['max_days', 'min_days', 'check_in_time', 'check_out_time', 'start_days']
+        fields = ['max_duration', 'min_duration', 'duration_unit', 'check_in_time', 'check_out_time', 'start_days']
 
     def get_start_days(self, obj):
         return list(map(lambda start_day: start_day.day, obj.start_days.all()))
