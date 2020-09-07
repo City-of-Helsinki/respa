@@ -2713,6 +2713,7 @@ def test_over_night_reservation(user, resource_in_unit, api_client, list_url):
     settings = MultidaySettings.objects.create(period=period, min_duration=7, max_duration=7, duration_unit=MultidaySettings.DURATION_UNIT_DAY, check_in_time='14:00', check_out_time='12:00')
     # Create first available start day to beginning of period
     settings.start_days.create(day='2115-04-04')
+    settings.start_days.create(day='2115-04-11')
 
     reservation_data = {
         'resource': resource_in_unit.pk,
@@ -2728,6 +2729,34 @@ def test_over_night_reservation(user, resource_in_unit, api_client, list_url):
     assert reservation.resource == resource_in_unit
     assert reservation.begin == dateparse.parse_datetime('2115-04-04T12:00:00+02:00')
     assert reservation.end == dateparse.parse_datetime('2115-04-11T12:00:00+02:00')
+    reservation.delete()
+
+    # Test monthly reservations
+    reservation_data = {
+        'resource': resource_in_unit.pk,
+        'begin': '2115-04-01T12:00:00+02:00',
+        'end': '2115-06-01T12:00:00+02:00'
+    }
+
+    period.start = '2115-01-01'
+    period.end = '2115-12-30'
+    period.save()
+
+    settings.min_duration = 1
+    settings.max_duration = 3
+    settings.duration_unit = MultidaySettings.DURATION_UNIT_MONTH
+    settings.save()
+
+    settings.start_days.create(day='2115-04-01')
+    settings.start_days.create(day='2115-06-01')
+
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201, "Request failed with: %s" % (str(response.content, 'utf8'))
+    reservation = Reservation.objects.filter(user=user).latest('created_at')
+    assert reservation.resource == resource_in_unit
+    assert reservation.begin == dateparse.parse_datetime('2115-04-01T12:00:00+02:00')
+    assert reservation.end == dateparse.parse_datetime('2115-06-01T12:00:00+02:00')
+
 
 @pytest.mark.django_db
 def test_over_night_reservation_with_incorrect_settings(user, resource_in_unit, api_client, list_url):
