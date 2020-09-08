@@ -4,6 +4,7 @@ import django_filters
 from munigeo import api as munigeo_api
 from resources.api.base import NullableDateTimeField, TranslatedModelSerializer, register_view, DRFFilterBooleanWidget
 from resources.models import Unit
+from resources.models.accessibility import get_unit_accessibility_url
 from .accessibility import UnitAccessibilitySerializer
 from .base import ExtraDataMixin
 
@@ -35,6 +36,7 @@ class UnitSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.GeoM
     reservable_before = serializers.SerializerMethodField()
     reservable_min_days_in_advance = serializers.ReadOnlyField()
     reservable_after = serializers.SerializerMethodField()
+    accessibility_base_url = serializers.SerializerMethodField()
 
     def get_extra_fields(self, includes, context):
         """ Define extra fields that can be included via query parameters. Method from ExtraDataMixin."""
@@ -44,6 +46,9 @@ class UnitSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.GeoM
             extra_fields['accessibility_summaries'] = UnitAccessibilitySerializer(
                 many=True, read_only=True, context=context)
         return extra_fields
+
+    def get_accessibility_base_url(self, obj):
+        return get_unit_accessibility_url(obj)
 
     def get_reservable_before(self, obj):
         request = self.context.get('request')
@@ -69,7 +74,7 @@ class UnitSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.GeoM
 
 
 class UnitViewSet(munigeo_api.GeoModelAPIView, viewsets.ReadOnlyModelViewSet):
-    queryset = Unit.objects.all()
+    queryset = Unit.objects.all().prefetch_related('identifiers')
     serializer_class = UnitSerializer
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
     filterset_class = UnitFilterSet

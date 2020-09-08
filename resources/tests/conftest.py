@@ -6,7 +6,7 @@ from django.contrib.auth.models import Group
 from rest_framework.test import APIClient, APIRequestFactory
 
 from resources.enums import UnitAuthorizationLevel
-from resources.models import Resource, ResourceType, Unit, Purpose, Day, Period
+from resources.models import Resource, ResourceType, Unit, UnitIdentifier, Purpose, Day, Period
 from resources.models import Equipment, EquipmentAlias, ResourceEquipment, EquipmentCategory, TermsOfUse, ResourceGroup
 from resources.models import AccessibilityValue, AccessibilityViewpoint, ResourceAccessibility, UnitAccessibility
 from munigeo.models import Municipality
@@ -69,7 +69,9 @@ def test_unit2():
 
 @pytest.fixture
 def test_unit3():
-    return Unit.objects.create(name="unit 3", time_zone='Europe/Helsinki')
+    unit = Unit.objects.create(name="unit 3", time_zone='Europe/Helsinki')
+    UnitIdentifier.objects.create(unit=unit, namespace='internal', value=1)
+    return unit
 
 
 @pytest.fixture
