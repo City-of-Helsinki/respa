@@ -398,7 +398,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             if not multiday_settings.start_days.filter(day=begin.date()):
                 raise ValidationError(_('Reservation start date is not allowed'))
 
-            if not multiday_settings.start_days.filter(day=end.date()):
+            if multiday_settings.must_end_on_start_day and not multiday_settings.start_days.filter(day=end.date()):
                 raise ValidationError(_('Reservation must end on available start day'))
 
 

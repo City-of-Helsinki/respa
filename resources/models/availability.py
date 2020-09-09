@@ -204,10 +204,12 @@ class MultidaySettings(models.Model):
     min_duration = models.IntegerField(verbose_name=_('Min duration'))
 
     duration_unit = models.CharField(max_length=5, choices=DURATION_UNIT_CHOICES,
-                                               verbose_name=_('Duration type'), default=DURATION_UNIT_DAY)
+                                     verbose_name=_('Duration type'), default=DURATION_UNIT_DAY)
 
     check_in_time = models.TimeField(verbose_name=_('Check-in time'), null=True, blank=True)
     check_out_time = models.TimeField(verbose_name=_('Check-out time'), null=True, blank=True)
+
+    must_end_on_start_day = models.BooleanField(verbose_name=_('Must end on start day'), default=False)
 
     class Meta:
         verbose_name = _('Multiday period settings')
@@ -217,15 +219,15 @@ class MultidaySettings(models.Model):
 
 
 class MultidayStartDay(models.Model):
-    multiday_settings = models.ForeignKey(MultidaySettings, verbose_name=_('Multiday settings'), db_index=True, related_name='start_days',
-                               on_delete=models.CASCADE)
+    multiday_settings = models.ForeignKey(MultidaySettings, verbose_name=_('Multiday settings'), db_index=True,
+                                          related_name='start_days', on_delete=models.CASCADE)
     day = models.DateField(verbose_name=_('Start day'))
 
     class Meta:
         verbose_name = _('Multiday start settings')
 
     def __str__(self):
-        return self.day
+        return '{}({}:{}-{})'.format(self.day, self.period.resource.name, self.period.start, self.period.end)
 
 
 class Day(models.Model):
