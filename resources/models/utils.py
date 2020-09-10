@@ -39,6 +39,8 @@ def save_dt(obj, attr, dt, orig_tz="UTC"):
 def get_dt(obj, attr, tz):
     return arrow.get(getattr(obj, attr)).to(tz).datetime
 
+def diff_month(d1, d2):
+    return (d1.year - d2.year) * 12 + d1.month - d2.month
 
 def get_translated(obj, attr):
     key = "%s_%s" % (attr, DEFAULT_LANG)

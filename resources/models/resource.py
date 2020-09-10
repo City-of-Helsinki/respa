@@ -34,7 +34,7 @@ from ..errors import InvalidImage
 from ..fields import EquipmentField
 from .accessibility import AccessibilityValue, AccessibilityViewpoint, ResourceAccessibility
 from .base import AutoIdentifiedModel, NameIdentifiedModel, ModifiableModel
-from .utils import create_datetime_days_from_now, get_translated, get_translated_name, humanize_duration
+from .utils import create_datetime_days_from_now, get_translated, get_translated_name, humanize_duration, diff_month
 from .equipment import Equipment
 from .unit import Unit
 from .availability import get_opening_hours, Period
@@ -382,18 +382,16 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                 reservation_length_weeks = reservation_length_days / 7
                 if reservation_length_days % 7 != 0:
                     raise ValidationError(_('Reservation length is not multiple of duration unit'))
-                if begin.date().weekday() != 0 or end.date().weekday() != 0:
-                    raise ValidationError(_('Only whole calendar week reservations are allowed (monday to monday)'))
                 if reservation_length_weeks < multiday_settings.min_duration:
                     raise ValidationError(_('Reservation length is shorter than minimun allowed'))
                 if reservation_length_weeks > multiday_settings.max_duration:
                     raise ValidationError(_('Reservation length is longer than maximum allowed'))
             elif multiday_settings.duration_unit == multiday_settings.DURATION_UNIT_MONTH:
                 # Validations of reservation length if duration unit is month
-                if begin.date().day != 1 or end.date().day != 1:
-                    raise ValidationError(
-                        _('Only whole calendar month reservations are allowed (first day to first day of month)')
-                        )
+                if diff_month(end.date(), begin.date()) < multiday_settings.min_duration:
+                    raise ValidationError(_('Reservation length is shorter than minimun allowed'))
+                if diff_month(end.date(), begin.date()) > multiday_settings.max_duration:
+                    raise ValidationError(_('Reservation length is longer than maximum allowed'))
 
             if not multiday_settings.start_days.filter(day=begin.date()):
                 raise ValidationError(_('Reservation start date is not allowed'))

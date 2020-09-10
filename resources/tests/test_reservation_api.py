@@ -2715,6 +2715,7 @@ def test_over_night_reservation(user, resource_in_unit, api_client, list_url):
     settings.start_days.create(day='2115-04-04')
     settings.start_days.create(day='2115-04-11')
 
+    # Test making a reservation with duration unit day
     reservation_data = {
         'resource': resource_in_unit.pk,
         'begin': '2115-04-04T12:00:00+02:00',
@@ -2731,7 +2732,31 @@ def test_over_night_reservation(user, resource_in_unit, api_client, list_url):
     assert reservation.end == dateparse.parse_datetime('2115-04-11T12:00:00+02:00')
     reservation.delete()
 
-    # Test monthly reservations
+    # Test making a reservation with duration type week
+    reservation_data = {
+        'resource': resource_in_unit.pk,
+        'begin': '2115-04-01T12:00:00+02:00',
+        'end': '2115-04-08T12:00:00+02:00'
+    }
+
+    settings.min_duration = 1
+    settings.max_duration = 2
+    settings.duration_unit = MultidaySettings.DURATION_UNIT_WEEK
+    settings.save()
+
+    settings.start_days.create(day='2115-04-01')
+    settings.start_days.create(day='2115-04-08')
+    settings.start_days.create(day='2115-04-15')
+
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201, "Request failed with: %s" % (str(response.content, 'utf8'))
+    reservation = Reservation.objects.filter(user=user).latest('created_at')
+    assert reservation.resource == resource_in_unit
+    assert reservation.begin == dateparse.parse_datetime('2115-04-01T12:00:00+02:00')
+    assert reservation.end == dateparse.parse_datetime('2115-04-08T12:00:00+02:00')
+    reservation.delete()
+
+    # Test making a reservation with duration type month
     reservation_data = {
         'resource': resource_in_unit.pk,
         'begin': '2115-04-01T12:00:00+02:00',
@@ -2808,6 +2833,19 @@ def test_over_night_reservation_with_incorrect_settings(user, resource_in_unit, 
         'resource': resource_in_unit.pk,
         'begin': '2115-04-04T12:00:00+02:00',
         'end': '2115-04-12T12:00:00+02:00'
+    }
+
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+
+    # Reservation doesn't end on start day
+    settings.must_end_on_start_day = True
+    settings.save()
+
+    reservation_data = {
+        'resource': resource_in_unit.pk,
+        'begin': '2115-04-04T12:00:00+02:00',
+        'end': '2115-04-11T12:00:00+02:00'
     }
 
     response = api_client.post(list_url, data=reservation_data)
