@@ -31,6 +31,28 @@
     <div class="panel-collapse collapse" role="tabpanel" id="collapse{{id}}" aria-labelledby="heading{{id}}">
         <div class="container-fluid hours-wrapper">
             <div class="hours-table-header" id="period-list">
+                {% include "respa_admin/forms/_select.html" with field=period.reservation_length_type extra_classes="reservation-length-type" %}
+                <h4>{% trans "Start date" %}</h4>
+                <div class="input-row">
+                    {{ period.recurrence_types }}
+                </div>
+                <div class="input-row">
+                    {% include "respa_admin/forms/_select.html" with field=multiday_settings_form.duration_unit %}
+                </div>
+                <div class="input-row">
+                    {% include "respa_admin/forms/_input.html" with field=multiday_settings_form.min_duration %}
+                    {% include "respa_admin/forms/_input.html" with field=multiday_settings_form.max_duration %}
+                </div>
+                <div class="input-row">
+                    {% include "respa_admin/forms/_input.html" with field=multiday_settings_form.check_in_time placeholder="hh:mm"%}
+                    {% include "respa_admin/forms/_input.html" with field=multiday_settings_form.check_out_time placeholder="hh:mm"%}
+                </div>
+                <div class="input-row">
+                    <span class="control-label input-label">
+                        {{ form.need_manual_confirmation.label }}
+                    </span>
+                    {{ multiday_settings_form.must_end_on_start_day }}
+                </div>
                 <div class="input-row period-input" id="period-input-{{ id }}">
                     <div class="form-group schedule">
                         <label class="control-label input-label">{% trans "Name" %} *</label>

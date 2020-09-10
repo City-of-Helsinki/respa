@@ -529,3 +529,27 @@ function copyTimeToNext(event) {
     nextTimeInputs[i].value = timeInputs[i].value;
   }
 }
+
+/*
+* Listener to reservation_length_type
+*/
+export function reservationLengthTypeListener(event) {
+  let lengthTypeDropdowns = document.querySelectorAll('.reservation-length-type select');
+
+  lengthTypeDropdowns.forEach(dropdown => {
+    if(dropdown.value === 'over_night') {
+      changeReservationLengthType(dropdown);
+    }
+    dropdown.addEventListener('change', (event) => changeReservationLengthType(event.target), false);
+  });
+}
+
+function changeReservationLengthType(dropdown) {
+  let timeInputs = $(dropdown).closest('.accordion-item').find('.time-input-row input');
+  if(dropdown.value === 'over_night') {
+    timeInputs.prop("readonly", true);
+  }
+  else {
+    timeInputs.prop("readonly", false);
+  }
+}

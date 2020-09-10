@@ -22,7 +22,8 @@ from resources.models import (
     ResourceImage,
     Unit,
     UnitAuthorization,
-    TermsOfUse
+    TermsOfUse,
+    MultidaySettings,
 )
 
 from users.models import User
@@ -117,6 +118,16 @@ class DaysForm(forms.ModelForm):
 
 
 class PeriodForm(forms.ModelForm):
+    RECURRENCE_TYPES = (
+        ('first_days_of_the_months', 'First days of the months'),
+        ('every_monday', 'Every monday'),
+        ('every_tuesday', 'Every tuesday'),
+        ('every_wednesday', 'Every wednesday'),
+        ('every_thursday', 'Every thursday'),
+        ('every_friday', 'Every friday'),
+        ('every_saturday', 'Every saturday'),
+        ('every_sunday', 'Every sunday'),
+    )
     name = forms.CharField(
         required=True,
         widget=forms.TextInput(attrs={'class': 'text-input form-control'})
@@ -134,6 +145,12 @@ class PeriodForm(forms.ModelForm):
         )
     )
 
+    recurrence_types = forms.MultipleChoiceField(
+        widget=RespaCheckboxSelect,
+        choices=RECURRENCE_TYPES,
+        required=False,
+    )
+
     end = forms.DateField(
         required=True,
         widget=forms.DateInput(
@@ -148,7 +165,26 @@ class PeriodForm(forms.ModelForm):
 
     class Meta:
         model = Period
-        fields = ['name', 'start', 'end']
+        fields = ['name', 'start', 'end', 'reservation_length_type', 'recurrence_types']
+
+
+class MultidaySettingsForm(forms.ModelForm):
+        class Meta:
+            model = MultidaySettings
+            fields = [
+                'min_duration',
+                'max_duration',
+                'duration_unit',
+                'check_in_time',
+                'check_out_time',
+                'must_end_on_start_day'
+            ]
+
+            widgets = {
+                'must_end_on_start_day': RespaRadioSelect(
+                    choices=((True, _('Yes')), (False, _('No')))
+                ),
+            }
 
 
 class ImageForm(forms.ModelForm):
