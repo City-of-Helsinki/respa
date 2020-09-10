@@ -3,6 +3,9 @@ from django import forms
 from django.contrib.admin.options import InlineModelAdmin
 from django.utils.translation import ugettext_lazy
 from resources.models import Day, Period, Resource, Unit
+from django.urls import reverse
+from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy as _
 
 DAYS_OF_WEEK_MAP = dict(Day.DAYS_OF_WEEK)
 WEEKDAY_PREFIX = "wd-"
@@ -70,11 +73,22 @@ class PeriodModelForm(forms.ModelForm):
     """
     class Meta:
         model = Period
-        fields = ("start", "end", "name")
+        fields = ("start", "end", "name", "reservation_length_type")
 
     def __init__(self, **kwargs):
         super(PeriodModelForm, self).__init__(**kwargs)
         self.setup_day_fields()
+
+    def multiday_settings_link(self):
+        hyperlink_snippet = '<a href="{}" target="_blank">{}</a>'
+
+        if self.instance.has_multiday_settings():
+            url = hyperlink_snippet.format(reverse('admin:resources_multidaysettings_change',
+                                           args=(self.instance.multiday_settings.pk,)), _('Multiday settings'))
+        else:
+            url = hyperlink_snippet.format(reverse('admin:resources_multidaysettings_add'), _('Multiday settings'))
+
+        return mark_safe(url)
 
     def setup_day_fields(self):
         period_days = {wd: Day(period=self.instance, weekday=wd) for wd in DAYS_OF_WEEK_MAP}
@@ -107,7 +121,7 @@ class PeriodModelForm(forms.ModelForm):
 class PeriodInline(InlineModelAdmin):
     model = Period
     # DRY (PMF should be testable on its own, but Inlines override the form's fields/excludes with this)
-    fields = PeriodModelForm._meta.fields
+    fields = PeriodModelForm._meta.fields + ('multiday_settings_link',)
     exclude = PeriodModelForm._meta.exclude
     form = PeriodModelForm
     template = "admin/resources/period_inline.html"

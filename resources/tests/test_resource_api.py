@@ -1121,5 +1121,6 @@ def test_get_resource_with_multiday_settings(user, api_client, detail_url, resou
     response_settings = response_period['multiday_settings']
     assert response_settings['min_duration'] == settings.min_duration
     assert response_settings['max_duration'] == settings.max_duration
+    assert response_settings['must_end_on_start_day'] == False
     assert dateparse.parse_time(response_settings['check_in_time']) == dateparse.parse_time(settings.check_in_time)
     assert dateparse.parse_time(response_settings['check_out_time']) == dateparse.parse_time(settings.check_out_time)

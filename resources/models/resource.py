@@ -4,6 +4,7 @@ import re
 import pytz
 from collections import OrderedDict
 from decimal import Decimal
+from dateutil.relativedelta import relativedelta
 
 import arrow
 import django.db.models as dbm
@@ -345,8 +346,11 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         else:
             end = tz.localize(end)
 
-        period = self.get_period_for_timespan(begin.date(), end.date())
-        is_within_day_reservation = begin.date() == end.date()
+        begin_date = begin.date()
+        end_date = end.date()
+
+        period = self.get_period_for_timespan(begin_date, end_date)
+        is_within_day_reservation = begin_date == end_date
 
         if (not period or period.reservation_length_type == Period.LENGTH_WITHIN_DAY) and not is_within_day_reservation:
             raise ValidationError(_('You cannot make a multi day reservation'))
@@ -354,8 +358,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         if is_within_day_reservation:
             # Restrictions for a reservation thats start and end is within a single day
             if not self.can_ignore_opening_hours(user):
-                opening_hours = self.get_opening_hours(begin.date(), end.date())
-                days = opening_hours.get(begin.date(), None)
+                opening_hours = self.get_opening_hours(begin_date, end_date)
+                days = opening_hours.get(begin_date, None)
                 if days is None or not any(day['opens'] and begin >= day['opens'] and end <= day['closes'] for day in days):
                     raise ValidationError(_('You must start and end the reservation during opening hours'))
 
@@ -369,7 +373,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
             multiday_settings = period.multiday_settings
 
-            reservation_length_days = (end.date() - begin.date()).days
+            reservation_length_days = (end_date - begin_date).days
 
             if multiday_settings.duration_unit == multiday_settings.DURATION_UNIT_DAY:
                 # Validations of reservation length if duration unit is day
@@ -388,15 +392,18 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                     raise ValidationError(_('Reservation length is longer than maximum allowed'))
             elif multiday_settings.duration_unit == multiday_settings.DURATION_UNIT_MONTH:
                 # Validations of reservation length if duration unit is month
-                if diff_month(end.date(), begin.date()) < multiday_settings.min_duration:
+                month_diff = diff_month(end_date, begin_date)
+                if end_date != begin_date + relativedelta(months=+month_diff):
+                    raise ValidationError(_('Reservation length must be full months'))
+                if month_diff < multiday_settings.min_duration:
                     raise ValidationError(_('Reservation length is shorter than minimun allowed'))
-                if diff_month(end.date(), begin.date()) > multiday_settings.max_duration:
+                if month_diff > multiday_settings.max_duration:
                     raise ValidationError(_('Reservation length is longer than maximum allowed'))
 
-            if not multiday_settings.start_days.filter(day=begin.date()):
+            if not multiday_settings.start_days.filter(day=begin_date):
                 raise ValidationError(_('Reservation start date is not allowed'))
 
-            if multiday_settings.must_end_on_start_day and not multiday_settings.start_days.filter(day=end.date()):
+            if multiday_settings.must_end_on_start_day and not multiday_settings.start_days.filter(day=end_date):
                 raise ValidationError(_('Reservation must end on available start day'))
 
 

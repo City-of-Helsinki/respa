@@ -136,9 +136,9 @@ class Period(models.Model):
         verbose_name = _("period")
         verbose_name_plural = _("periods")
 
-    #def __str__(self):
-    #    # FIXME: output date in locale-specific format
-    #    return "{0}, {3}: {1:%d.%m.%Y} - {2:%d.%m.%Y}".format(self.name, self.start, self.end, STATE_BOOLS[self.closed])
+    def __str__(self):
+        # FIXME: output date in locale-specific format
+        return "{0}, {3}: {1:%d.%m.%Y} - {2:%d.%m.%Y}".format(self.name, self.start, self.end, STATE_BOOLS[self.closed])
 
     def _validate_belonging(self):
         if not (self.resource_id or self.unit_id):
@@ -212,10 +212,10 @@ class MultidaySettings(models.Model):
     must_end_on_start_day = models.BooleanField(verbose_name=_('Must end on start day'), default=False)
 
     class Meta:
-        verbose_name = _('Multiday period settings')
+        verbose_name = _('Multiday settings')
 
     def __str__(self):
-        return '{}({}-{})'.format(self.period.resource.name, self.period.start, self.period.end)
+        return '{}({} - {})'.format(self.period.resource.name, self.period.start, self.period.end)
 
 
 class MultidayStartDay(models.Model):
@@ -224,10 +224,11 @@ class MultidayStartDay(models.Model):
     day = models.DateField(verbose_name=_('Start day'))
 
     class Meta:
-        verbose_name = _('Multiday start settings')
+        verbose_name = _('Multiday settings start day')
 
     def __str__(self):
-        return '{}({}:{}-{})'.format(self.day, self.period.resource.name, self.period.start, self.period.end)
+        return '{}({}:{} - {})'.format(self.day, self.multiday_settings.period.resource.name,
+                                     self.multiday_settings.period.start, self.multiday_settings.period.end)
 
 
 class Day(models.Model):

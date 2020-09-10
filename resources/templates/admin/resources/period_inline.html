@@ -20,6 +20,8 @@
                         <th>{{ inline_admin_form.form.start.label }}</th>
                         <th>{{ inline_admin_form.form.end.label }}</th>
                         <th>{{ inline_admin_form.form.name.label }}</th>
+                        <th>{{ inline_admin_form.form.reservation_length_type.label }}</th>
+                        <th>{% trans 'Multiday settings' %}</th>
                         <th>{{ inline_admin_form.form.exception.label }}</th>
                         <th></th>
                     </tr>
@@ -28,6 +30,8 @@
                         <td>{% include "admin/resources/_period_days_field.html" with field=inline_admin_form.form.start %}</td>
                         <td>{% include "admin/resources/_period_days_field.html" with field=inline_admin_form.form.end %}</td>
                         <td>{% include "admin/resources/_period_days_field.html" with field=inline_admin_form.form.name %}</td>
+                        <td>{% include "admin/resources/_period_days_field.html" with field=inline_admin_form.form.reservation_length_type %}</td>
+                        <td> {{ inline_admin_form.form.multiday_settings_link }} </td>
                         <td>{% include "admin/resources/_period_days_field.html" with field=inline_admin_form.form.exception %}</td>
                         <td>
                             {% if inline_admin_form.form.non_field_errors %}{{ inline_admin_form.form.non_field_errors }}{% endif %}
@@ -109,5 +113,8 @@
     }
     .hide-delete {
         display: none;
+    }
+    td,th {
+        padding: 2px 4px 2px 4px;
     }
 </style>
