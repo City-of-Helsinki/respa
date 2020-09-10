@@ -9,18 +9,22 @@
                     {{ error }}
                 </li>
             {% endfor %}
-
+            {% if not resource_image_formset.is_valid %}
+            <li>
+            {% trans "Resource image errors" %}
             {% for error in resource_image_formset.errors %}
-                <li>
-                    {{ error }}
-                </li>
+                {{ error }}
             {% endfor %}
-
+            </li>
+            {% endif %}
+            {% if not period_formset_with_days.is_valid %}
+            <li>
+            {% trans "Time period errors" %}
             {% for error in period_formset_with_days.errors %}
-                <li>
-                    {{ error }}
-                </li>
+                {{ error }}
             {% endfor %}
+            </li>
+            {% endif %}
         </ul>
     </div>
 {% endif %}

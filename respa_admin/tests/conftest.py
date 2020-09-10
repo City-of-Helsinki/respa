@@ -16,6 +16,7 @@ from resources.tests.conftest import (
     resource_in_unit,
     resource_in_unit2,
 )
+from resources.models.availability import Period
 
 
 EMPTY_RESOURCE_FORM_DATA = {
@@ -66,6 +67,7 @@ EMPTY_RESOURCE_FORM_DATA = {
     'periods-0-end': '',
     'periods-0-id': '',
     'periods-0-resource': '',
+    'periods-0-reservation_length_type': '',
 
     'days-periods-0-TOTAL_FORMS': ['1'],
     'days-periods-0-INITIAL_FORMS': ['0'],
@@ -77,7 +79,19 @@ EMPTY_RESOURCE_FORM_DATA = {
     'days-periods-0-0-closes': '',
     'days-periods-0-0-closed': '',
     'days-periods-0-0-id': '',
-    'days-periods-0-0-period': ''
+    'days-periods-0-0-period': '',
+
+    'multidaysettings-periods-0-0-check_in_time': '',
+    'multidaysettings-periods-0-0-check_out_time': '',
+    'multidaysettings-periods-0-0-duration_unit': '',
+    'multidaysettings-periods-0-0-id': '',
+    'multidaysettings-periods-0-0-max_duration': '',
+    'multidaysettings-periods-0-0-min_duration': '',
+    'multidaysettings-periods-0-0-must_end_on_start_day': '',
+    'multidaysettings-periods-0-INITIAL_FORMS': ['0'],
+    'multidaysettings-periods-0-MAX_NUM_FORMS': ['1'],
+    'multidaysettings-periods-0-MIN_NUM_FORMS': ['0'],
+    'multidaysettings-periods-0-TOTAL_FORMS': ['1'],
 }
 
 
@@ -113,7 +127,19 @@ EMPTY_PERIOD_FORM_DATA = {
     'days-periods-0-0-closes': '',
     'days-periods-0-0-closed': '',
     'days-periods-0-0-id': '',
-    'days-periods-0-0-period': ''
+    'days-periods-0-0-period': '',
+
+    'multidaysettings-periods-0-0-check_in_time': '',
+    'multidaysettings-periods-0-0-check_out_time': '',
+    'multidaysettings-periods-0-0-duration_unit': '',
+    'multidaysettings-periods-0-0-id': '',
+    'multidaysettings-periods-0-0-max_duration': '',
+    'multidaysettings-periods-0-0-min_duration': '',
+    'multidaysettings-periods-0-0-must_end_on_start_day': '',
+    'multidaysettings-periods-0-INITIAL_FORMS': ['0'],
+    'multidaysettings-periods-0-MAX_NUM_FORMS': ['1'],
+    'multidaysettings-periods-0-MIN_NUM_FORMS': ['0'],
+    'multidaysettings-periods-0-TOTAL_FORMS': ['1'],
 }
 
 
@@ -154,10 +180,14 @@ def valid_resource_form_data(
         'periods-0-name': 'Kesäkausi',
         'periods-0-start': '2018-06-06',
         'periods-0-end': '2018-08-01',
+        'periods-0-reservation_length_type': Period.LENGTH_WITHIN_DAY,
         'days-periods-0-0-opens': '08:00',
         'days-periods-0-0-closes': '12:00',
         'days-periods-0-0-weekday': '1',
-        'price_type': 'hourly'
+        'price_type': 'hourly',
+        'multidaysettings-periods-0-0-duration_unit': 'week',
+        'multidaysettings-periods-0-0-max_duration': '7',
+        'multidaysettings-periods-0-0-min_duration': '1',
     })
     return data
 

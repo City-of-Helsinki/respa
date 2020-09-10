@@ -9,3 +9,17 @@
   padding-right: 0;
   pointer-events: none;
 }
+
+.datepicker-container {
+  display: flex;
+  margin-bottom: 16px;
+  margin-top: 16px;
+}
+
+.datepicker-action-buttons {
+  display: flex;
+  flex-direction: column;
+  .resources-button {
+    margin: 0 0 5px 50px;
+  }
+}

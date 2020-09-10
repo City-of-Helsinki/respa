@@ -6,6 +6,8 @@ export function initializePeriods() {
   enableAddNewPeriod();
   setPeriodAndDayItems();
   initialSortPeriodDays();
+  initializeDatepickers();
+  initializeDatepickerButtonListeners();
 }
 
 function getEmptyPeriodItem() {
@@ -25,6 +27,8 @@ function initialSortPeriodDays() {
 
   for (let i = 0; i < periods.length; i++) {
     sortPeriodDays($(periods[i]));
+    const $dates = $('#date-inputs-' + i);
+    modifyDays($(periods[i]), $dates)
   }
 }
 
@@ -98,8 +102,7 @@ function updatePeriodInputIds() {
   let periods = $('#current-periods-list').children();
 
   periods.each(function (i, periodItem) {
-    let inputs = $(periodItem).find('input');
-
+    let inputs = $(periodItem).find('input[name]').not('.input-start-date');
     inputs.each(function (inputIndex, input) {
       $(input).attr('id', $(input).attr('id').replace(/-(\d+)-/, "-" + i + "-"));
       $(input).attr('name', $(input).attr('name').replace(/-(\d+)-/, "-" + i + "-"));
@@ -428,11 +431,13 @@ function addNewPeriod() {
   if (emptyPeriodItem) {
     let newItem = emptyPeriodItem.clone();
     $periodList.append(newItem);
-
     updatePeriodsTotalForms();
     removePeriodExtraDays(newItem);
     updatePeriodInputIds();
     attachPeriodEventHandlers(newItem);
+    initializeDatepicker(newItem);
+    initializeDatepickerButtonListeners();
+    reservationLengthTypeListener();
   }
 }
 
@@ -528,4 +533,107 @@ function copyTimeToNext(event) {
   for (let i = 0; i < timeInputs.length; i++) {
     nextTimeInputs[i].value = timeInputs[i].value;
   }
+}
+
+/*
+* Listener to reservation_length_type
+*/
+export function reservationLengthTypeListener(event) {
+  let lengthTypeDropdowns = document.querySelectorAll('.reservation-length-type select');
+
+  lengthTypeDropdowns.forEach(dropdown => {
+    if(dropdown.value === 'over_night') {
+      changeReservationLengthType(dropdown);
+    }
+    dropdown.removeEventListener('change', (event) => changeReservationLengthType(event.target));
+    dropdown.addEventListener('change', (event) => changeReservationLengthType(event.target), false);
+  });
+}
+
+function changeReservationLengthType(dropdown) {
+  let timeInputs = $(dropdown).closest('.accordion-item').find('.time-input-row input');
+  if(dropdown.value === 'over_night') {
+    timeInputs.prop("readonly", true);
+  }
+  else {
+    timeInputs.prop("readonly", false);
+  }
+}
+
+function initializeDatepickers() {
+  window.foo = $;
+  $('.accordion-item').each(function() {
+    initializeDatepicker($(this));
+  })
+}
+
+function initializeDatepicker(periodItem) {
+  const startDateInput = periodItem.find('.period-start');
+  const endDateInput = periodItem.find('.period-end');
+  const startDateCalendar = periodItem.find('.datepicker-start-date');
+  const startDatesContainer = periodItem.find('.start-dates');
+  const initialStartDatesContainer = periodItem.find('.initial-start-dates').find('input');
+  const initialStartDates = initialStartDatesContainer.map((index, input) => input.value).get();
+
+  startDateCalendar.datepicker({
+    startDate: startDateInput.datepicker('getDate'),
+    endDate: endDateInput.datepicker('getDate'),
+    format: 'yyyy-mm-dd',
+    multidate: true,
+    multidateSeparator: ',',
+    language: 'fi',
+  }).datepicker('setDates', initialStartDates).on('changeDate', function(event) {
+    startDatesContainer.empty();
+    event.dates.forEach((date, index) => {
+      const dateInput = $('<input>').addClass('input-start-date').attr('type', 'hidden').attr('name', 'start_dates').val(event.format(index));
+      startDatesContainer.append(dateInput);
+    })
+  });
+  [startDateInput, endDateInput].forEach(elem => {
+    elem.on('change', function(e) {
+      startDateCalendar.datepicker('setStartDate', startDateInput.datepicker('getDate'));
+      startDateCalendar.datepicker('setEndDate', endDateInput.datepicker('getDate'));
+    })
+  })
+}
+
+function initializeDatepickerButtonListeners() {
+  const periods = getPeriodsList();
+  for(const period of periods) {
+    const actionButtonsContainer = $(period).find('div.datepicker-action-buttons').children();
+    Array.from(actionButtonsContainer).forEach(button => {
+      button.addEventListener('click', () => updateCalendar(period, button.value), false);
+    })
+  }
+}
+
+function updateCalendar(period, value) {
+
+  const datepicker = $(period).find('.datepicker-start-date');
+  const startDateInput = $(period).find('.period-start').first();
+  const endDateInput = $(period).find('.period-end').first();
+  const startDatesContainer = $(period).find('.start-dates');
+  const startDate = new Date(convertDateFormat(startDateInput.val()));
+  const endDate = new Date(convertDateFormat(endDateInput.val()));
+  const dates = [];
+
+  for (const d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
+    const day = new Date(d);
+    if(value == 'first-days-of-the-months') {
+      if(day.getDate() == 1) {
+        dates.push(day);
+      }
+    }
+    else if(value == 'clear-all-selections') {
+      datepicker.datepicker('setDates', []);
+      startDatesContainer.empty();
+      return;
+    }
+    else {
+      if(day.getDay() == value) {
+        dates.push(day);
+      }
+    }
+  }
+  datepicker.datepicker('setDates', dates.concat(datepicker.datepicker('getDates')));
 }

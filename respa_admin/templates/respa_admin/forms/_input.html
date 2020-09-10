@@ -17,6 +17,9 @@
             value="{{ field.value|stringformat:'s' }}"
         {% endif %}
         class="form-control text-input"
+        {% if placeholder %}
+            placeholder="{{ placeholder }}"
+        {% endif %}
         {% include "django/forms/widgets/attrs.html" %}
     >
     {% if prefix_text %}

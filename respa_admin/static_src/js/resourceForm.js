@@ -6,6 +6,8 @@ import {
 
 import {
   initializePeriods,
+  reservationLengthTypeListener,
+  initializeDatepickers,
 } from './periods';
 
 import {
@@ -18,6 +20,7 @@ export function initializeResourceForm() {
   initializeEventHandlers();
   initializePeriods();
   setImageItem();
+  reservationLengthTypeListener();
 }
 
 /*

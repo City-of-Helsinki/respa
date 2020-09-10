@@ -30,25 +30,75 @@
 
     <div class="panel-collapse collapse" role="tabpanel" id="collapse{{id}}" aria-labelledby="heading{{id}}">
         <div class="container-fluid hours-wrapper">
-            <div class="hours-table-header" id="period-list">
-                <div class="input-row period-input" id="period-input-{{ id }}">
-                    <div class="form-group schedule">
-                        <label class="control-label input-label">{% trans "Name" %} *</label>
-                        {{ period.name }}
-                    </div>
-                    <div class="form-group time-interval">
-                        <label class="control-label input-label">{% trans "Time interval" %}</label>
-                        <div class="input-row range-input date-input" id="date-inputs-{{ id }}">
-                            {{ period.start }}
-                            <span class="glyphicon glyphicon-minus"></span>
-                            {{ period.end }}
-                        </div>
+            <h4>{% trans "General information" %}</h4>
+            <div class="input-row period-input" id="period-input-{{ id }}">
+                <div class="form-group schedule">
+                    <label class="control-label input-label">{% trans "Name" %} *</label>
+                    {{ period.name }}
+                </div>
+                <div class="form-group time-interval">
+                    <label class="control-label input-label">{% trans "Time interval" %}</label>
+                    <div class="input-row range-input date-input" id="date-inputs-{{ id }}">
+                        {{ period.start }}
+                        <span class="glyphicon glyphicon-minus"></span>
+                        {{ period.end }}
                     </div>
                 </div>
             </div>
-
+            <div class="hours-table-header" id="period-list">
+                {% include "respa_admin/forms/_select.html" with field=period.reservation_length_type extra_classes="reservation-length-type" %}
+                <h4>{% trans "Allowed reservation start days" %}</h4>
+                {% with period.multidaysettings.0 as multiday_settings_form %}
+                {{ multiday_settings_form.id }}
+                <div class="datepicker-container">
+                    <div class="datepicker-start-date"></div>
+                    <div class="datepicker-action-buttons">
+                        <button class="datepicker-select-mondays resources-button mb-5" value="1" type="button">{% trans "Select every mondays" %}</button>
+                        <button class="datepicker-select-mondays resources-button mb-3" value="2" type="button">{% trans "Select every tuesdays" %}</button>
+                        <button class="datepicker-select-mondays resources-button" value="3" type="button">{% trans "Select every wednesdays" %}</button>
+                        <button class="datepicker-select-mondays resources-button" value="4" type="button">{% trans "Select every thursdays" %}</button>
+                    </div>
+                    <div class="datepicker-action-buttons">
+                        <button class="datepicker-select-mondays resources-button" value="5" type="button">{% trans "Select every fridays" %}</button>
+                        <button class="datepicker-select-mondays resources-button" value="6" type="button">{% trans "Select every saturdays" %}</button>
+                        <button class="datepicker-select-mondays resources-button" value="0" type="button">{% trans "Select every sundays" %}</button>
+                        <button class="datepicker-select-mondays resources-button" value="first-days-of-the-months" type="button">{% trans "Select every first days of the month" %}</button>
+                        <button class="datepicker-select-mondays resources-button" value="clear-all-selections" type="button">{% trans "Clear all selections" %}</button>
+                    </div>
+                </div>
+                <div class="initial-start-dates">
+                    {% for initial_start_date in multiday_settings_form.initial_start_dates %}
+                        <input type="hidden" value="{{ initial_start_date }}">
+                    {% endfor %}
+                </div>
+                <div class="start-dates"></div>
+                <h4>{% trans "Allowed reservation duration" %}</h4>
+                <div class="input-row">
+                    {% include "respa_admin/forms/_select.html" with field=multiday_settings_form.duration_unit %}
+                </div>
+                <div class="input-row">
+                    {% include "respa_admin/forms/_input.html" with field=multiday_settings_form.min_duration %}
+                    {% include "respa_admin/forms/_input.html" with field=multiday_settings_form.max_duration %}
+                </div>
+                <div class="input-row">
+                    {% include "respa_admin/forms/_input.html" with field=multiday_settings_form.check_in_time placeholder="hh:mm"%}
+                    {% include "respa_admin/forms/_input.html" with field=multiday_settings_form.check_out_time placeholder="hh:mm"%}
+                </div>
+                <div class="input-row">
+                    <span class="control-label input-label">
+                        {{ multiday_settings_form.must_end_on_start_day.label }}
+                    </span>
+                    {{ multiday_settings_form.must_end_on_start_day }}
+                </div>
+                {% endwith %}
+            </div>
+            <h4>{% trans "Opening hours" %}</h4>
             <div class="hidden" id="days-management-form">
                 {{ period.days.management_form }}
+            </div>
+
+            <div class="hidden" id="multidaysettings-management-form">
+                {{ period.multidaysettings.management_form }}
             </div>
 
             <div id="period-days-list">

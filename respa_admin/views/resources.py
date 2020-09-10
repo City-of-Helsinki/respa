@@ -26,6 +26,7 @@ from respa_admin import accessibility_api, forms
 from respa_admin.forms import (
     ResourceForm,
     UserForm,
+    MultidaySettingsForm,
     get_period_formset,
     get_resource_image_formset,
     get_unit_authorization_formset
