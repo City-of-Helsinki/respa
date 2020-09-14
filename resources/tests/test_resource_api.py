@@ -1043,6 +1043,48 @@ def test_order_by_accessibility(list_url, api_client, resource_with_accessibilit
 
 
 @pytest.mark.django_db
+def test_order_by_accessibility_multiple_viewpoints(
+        list_url, api_client, resource_with_accessibility_data,
+        resource_with_accessibility_data4, accessibility_viewpoint_wheelchair,
+        accessibility_viewpoint_hearing):
+    """ resource_with_accessibility_data4 should rank higher as it is accessible from both viewpoints
+    """
+    response = api_client.get(
+        (
+            '{}?order_by=-accessibility'
+            '&accessibility_viewpoint={}'
+            '&accessibility_viewpoint={}'
+        ).format(
+            list_url,
+            accessibility_viewpoint_wheelchair.id,
+            accessibility_viewpoint_hearing.id,
+        )
+    )
+    assert response.status_code == 200
+
+    assert_response_objects(response, [resource_with_accessibility_data, resource_with_accessibility_data4])
+    assert response.data['results'][0]['name']['fi'] == resource_with_accessibility_data4.name_fi
+    assert response.data['results'][1]['name']['fi'] == resource_with_accessibility_data.name_fi
+
+    response = api_client.get(
+        (
+            '{}?order_by=accessibility'
+            '&accessibility_viewpoint={}'
+            '&accessibility_viewpoint={}'
+        ).format(
+            list_url,
+            accessibility_viewpoint_wheelchair.id,
+            accessibility_viewpoint_hearing.id,
+        )
+    )
+    assert response.status_code == 200
+
+    assert_response_objects(response, [resource_with_accessibility_data, resource_with_accessibility_data4])
+    assert response.data['results'][0]['name']['fi'] == resource_with_accessibility_data.name_fi
+    assert response.data['results'][1]['name']['fi'] == resource_with_accessibility_data4.name_fi
+
+
+@pytest.mark.django_db
 def test_order_by_accessibility_inaccessible_unit(list_url, api_client, resource_with_accessibility_data,
                                                   resource_with_accessibility_data3,
                                                   accessibility_viewpoint_wheelchair):

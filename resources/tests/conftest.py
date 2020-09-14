@@ -62,11 +62,13 @@ def test_unit():
     return Unit.objects.create(name="unit", time_zone='Europe/Helsinki')
 
 
+@pytest.mark.django_db
 @pytest.fixture
 def test_unit2():
     return Unit.objects.create(name="unit 2", time_zone='Europe/Helsinki')
 
 
+@pytest.mark.django_db
 @pytest.fixture
 def test_unit3():
     unit = Unit.objects.create(name="unit 3", time_zone='Europe/Helsinki')
@@ -74,6 +76,15 @@ def test_unit3():
     return unit
 
 
+@pytest.mark.django_db
+@pytest.fixture
+def test_unit4():
+    unit = Unit.objects.create(name="unit 4", time_zone='Europe/Helsinki')
+    UnitIdentifier.objects.create(unit=unit, namespace='internal', value=1)
+    return unit
+
+
+@pytest.mark.django_db
 @pytest.fixture
 def generic_terms():
     return TermsOfUse.objects.create(
@@ -84,6 +95,7 @@ def generic_terms():
     )
 
 
+@pytest.mark.django_db
 @pytest.fixture
 def payment_terms():
     return TermsOfUse.objects.create(
@@ -136,6 +148,20 @@ def resource_in_unit3(space_resource_type, test_unit3):
         authentication="none",
         name="resource in unit 3",
         unit=test_unit3,
+        max_reservations_per_user=2,
+        max_period=datetime.timedelta(hours=4),
+        reservable=True,
+    )
+
+
+@pytest.mark.django_db
+@pytest.fixture
+def resource_in_unit4(space_resource_type, test_unit4):
+    return Resource.objects.create(
+        type=space_resource_type,
+        authentication="none",
+        name="resource in unit 4",
+        unit=test_unit4,
         max_reservations_per_user=2,
         max_period=datetime.timedelta(hours=4),
         reservable=True,
@@ -464,4 +490,35 @@ def resource_with_accessibility_data3(resource_in_unit3, accessibility_viewpoint
         shortage_count=0,
     )
     return resource_in_unit3
+
+
+@pytest.fixture
+def resource_with_accessibility_data4(resource_in_unit4, accessibility_viewpoint_wheelchair,
+                                      accessibility_viewpoint_hearing, accessibility_value_green):
+    """ Resource is accessible, unit is accessible """
+    ResourceAccessibility.objects.create(
+        resource=resource_in_unit4,
+        viewpoint=accessibility_viewpoint_wheelchair,
+        value=accessibility_value_green,
+        shortage_count=0,
+    )
+    ResourceAccessibility.objects.create(
+        resource=resource_in_unit4,
+        viewpoint=accessibility_viewpoint_hearing,
+        value=accessibility_value_green,
+        shortage_count=0,
+    )
+    UnitAccessibility.objects.create(
+        unit=resource_in_unit4.unit,
+        viewpoint=accessibility_viewpoint_wheelchair,
+        value=accessibility_value_green,
+        shortage_count=0,
+    )
+    UnitAccessibility.objects.create(
+        unit=resource_in_unit4.unit,
+        viewpoint=accessibility_viewpoint_hearing,
+        value=accessibility_value_green,
+        shortage_count=0,
+    )
+    return resource_in_unit4
 
