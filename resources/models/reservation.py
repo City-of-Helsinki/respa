@@ -580,6 +580,10 @@ class Reservation(ModifiableModel):
     def save(self, *args, **kwargs):
         self.duration = DateTimeTZRange(self.begin, self.end, '[)')
 
+        period = self.resource.get_period_for_timespan(self.begin, self.end)
+        if period:
+            self.length_type = period.reservation_length_type
+
         if not self.access_code:
             access_code_type = self.resource.access_code_type
             if self.resource.is_access_code_enabled() and self.resource.generate_access_codes:

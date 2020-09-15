@@ -2730,6 +2730,7 @@ def test_over_night_reservation(user, resource_in_unit, api_client, list_url):
     assert reservation.resource == resource_in_unit
     assert reservation.begin == dateparse.parse_datetime('2115-04-04T12:00:00+02:00')
     assert reservation.end == dateparse.parse_datetime('2115-04-11T12:00:00+02:00')
+    assert reservation.length_type == period.reservation_length_type
     reservation.delete()
 
     # Test making a reservation with duration type week
