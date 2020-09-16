@@ -534,14 +534,8 @@ class Reservation(ModifiableModel):
         reservations = [self]
         ical_file = build_reservations_ical_file(reservations)
         ics_attachment = ('reservation.ics', ical_file, 'text/calendar')
-        attachments = [ics_attachment]
-        if self.resource.attachments.exists():
-            for attachment in self.resource.attachments.all():
-                file_name = os.path.basename(attachment.attachment_file.name)
-                file_type = mimetypes.guess_type(attachment.attachment_file.url)[0]
-                if not file_type:
-                    continue
-                attachments.append((file_name, attachment.attachment_file.read(), file_type))
+        attachments = [ics_attachment] + self.get_resource_email_attachments()
+
         self.send_reservation_mail(NotificationType.RESERVATION_CONFIRMED,
                                    attachments=attachments)
 
@@ -551,16 +545,30 @@ class Reservation(ModifiableModel):
     def send_reservation_created_mail(self):
         reservations = [self]
         ical_file = build_reservations_ical_file(reservations)
-        attachment = 'reservation.ics', ical_file, 'text/calendar'
+        ics_attachment = ('reservation.ics', ical_file, 'text/calendar')
+        attachments = [ics_attachment] + self.get_resource_email_attachments()
+
         self.send_reservation_mail(NotificationType.RESERVATION_CREATED,
-                                   attachments=[attachment])
+                                   attachments=attachments)
 
     def send_reservation_created_with_access_code_mail(self):
         reservations = [self]
         ical_file = build_reservations_ical_file(reservations)
-        attachment = 'reservation.ics', ical_file, 'text/calendar'
+        ics_attachment = ('reservation.ics', ical_file, 'text/calendar')
+        attachments = [ics_attachment] + self.get_resource_email_attachments()
         self.send_reservation_mail(NotificationType.RESERVATION_CREATED_WITH_ACCESS_CODE,
-                                   attachments=[attachment])
+                                   attachments=attachments)
+
+    def get_resource_email_attachments(self):
+        attachments = []
+        for attachment in self.resource.attachments.all():
+            file_name = os.path.basename(attachment.attachment_file.name)
+            file_type = mimetypes.guess_type(attachment.attachment_file.url)[0]
+            if not file_type:
+                continue
+            attachments.append((file_name, attachment.attachment_file.read(), file_type))
+
+        return attachments
 
     def send_access_code_created_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_ACCESS_CODE_CREATED)

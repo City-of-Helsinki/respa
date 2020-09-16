@@ -1316,12 +1316,25 @@ def test_reservation_created_mail(user_api_client, resource_in_unit, list_url, r
         reservation_created_notification.body += '{{ extra_content }}'
         reservation_created_notification.save()
 
+    # create attachments for resource
+    resource = Resource.objects.get(id=reservation_data['resource'])
+    attachment_file = SimpleUploadedFile('testi.pdf', b'file_content', content_type='application/pdf')
+    attachment_object = Attachment.objects.create(
+        name='Testi PDF',
+        attachment_file=attachment_file
+    )
+    resource.attachments.add(attachment_object)
+
     response = user_api_client.post(list_url, data=reservation_data, format='json')
-    file_name, ical_file, mimetype = mail.outbox[0].attachments[0]
     assert response.status_code == 201
-    assert len(mail.outbox[0].attachments) == 1
-    Calendar.from_ical(ical_file)
     assert len(mail.outbox) == 1
+    assert len(mail.outbox[0].attachments) == 2
+
+    attachment_file_name = os.path.basename(attachment_object.attachment_file.name)
+    ical_file_name, ical_file, mimetype = mail.outbox[0].attachments[0]
+    assert attachment_file_name in mail.outbox[0].attachments[1]
+    Calendar.from_ical(ical_file)
+
     check_received_mail_exists(
         'Normal reservation created subject.',
         user.email,
