@@ -24,6 +24,7 @@ from resources.models import (
     UnitAuthorization,
     TermsOfUse,
     MultidaySettings,
+    MultidayStartDay,
 )
 
 from users.models import User
@@ -118,16 +119,6 @@ class DaysForm(forms.ModelForm):
 
 
 class PeriodForm(forms.ModelForm):
-    RECURRENCE_TYPES = (
-        ('first_days_of_the_months', 'First days of the months'),
-        ('every_monday', 'Every monday'),
-        ('every_tuesday', 'Every tuesday'),
-        ('every_wednesday', 'Every wednesday'),
-        ('every_thursday', 'Every thursday'),
-        ('every_friday', 'Every friday'),
-        ('every_saturday', 'Every saturday'),
-        ('every_sunday', 'Every sunday'),
-    )
     name = forms.CharField(
         required=True,
         widget=forms.TextInput(attrs={'class': 'text-input form-control'})
@@ -137,7 +128,7 @@ class PeriodForm(forms.ModelForm):
         required=True,
         widget=forms.DateInput(
             attrs={
-                'class': 'text-input form-control datepicker',
+                'class': 'text-input form-control datepicker period-start',
                 'data-provide': 'datepicker',
                 'data-date-format': _("yyyy-mm-dd"),
                 'data-date-language': 'fi',
@@ -145,17 +136,11 @@ class PeriodForm(forms.ModelForm):
         )
     )
 
-    recurrence_types = forms.MultipleChoiceField(
-        widget=RespaCheckboxSelect,
-        choices=RECURRENCE_TYPES,
-        required=False,
-    )
-
     end = forms.DateField(
         required=True,
         widget=forms.DateInput(
             attrs={
-                'class': 'text-input form-control datepicker',
+                'class': 'text-input form-control datepicker period-end',
                 'data-provide': 'datepicker',
                 'data-date-format': _("yyyy-mm-dd"),
                 'data-date-language': 'fi',
@@ -165,26 +150,46 @@ class PeriodForm(forms.ModelForm):
 
     class Meta:
         model = Period
-        fields = ['name', 'start', 'end', 'reservation_length_type', 'recurrence_types']
+        fields = ['name', 'start', 'end', 'reservation_length_type']
 
 
 class MultidaySettingsForm(forms.ModelForm):
-        class Meta:
-            model = MultidaySettings
-            fields = [
-                'min_duration',
-                'max_duration',
-                'duration_unit',
-                'check_in_time',
-                'check_out_time',
-                'must_end_on_start_day'
-            ]
 
-            widgets = {
-                'must_end_on_start_day': RespaRadioSelect(
-                    choices=((True, _('Yes')), (False, _('No')))
-                ),
-            }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get('instance', None)
+        if instance is not None:
+            self.initial_start_dates = [start_day.day.isoformat() for start_day in instance.start_days.all()]
+
+    def save(self, commit=True):
+        saved_form = super().save(commit=commit)
+        if 'start_dates' in self.data:
+            start_dates = self.data.getlist('start_dates')
+            self.instance.start_days.all().delete()
+            for start_date in start_dates:
+                MultidayStartDay.objects.create(multiday_settings=self.instance, day=start_date)
+        return saved_form
+
+    def has_changed(self):
+        """Return True if data differs from initial."""
+        start_dates_changed = 'start_dates' in self.data
+        return bool(self.changed_data) or start_dates_changed
+
+    class Meta:
+        model = MultidaySettings
+        fields = [
+            'min_duration',
+            'max_duration',
+            'duration_unit',
+            'check_in_time',
+            'check_out_time',
+            'must_end_on_start_day',
+        ]
+        widgets = {
+            'must_end_on_start_day': RespaRadioSelect(
+                choices=((True, _('Yes')), (False, _('No')))
+            ),
+        }
 
 
 class ImageForm(forms.ModelForm):
@@ -351,9 +356,27 @@ class PeriodFormset(forms.BaseInlineFormSet):
             ),
         )
 
+    def _get_multidaysettings_formset(self, form):
+        multidaysettings_formset = inlineformset_factory(
+            Period,
+            MultidaySettings,
+            form=MultidaySettingsForm,
+            extra=1,
+            validate_max=True
+        )
+
+        return multidaysettings_formset(
+            instance=form.instance,
+            data=form.data if form.is_bound else None,
+            prefix='multidaysettings-%s' % (
+                form.prefix,
+            ),
+        )
+
     def add_fields(self, form, index):
         super(PeriodFormset, self).add_fields(form, index)
         form.days = self._get_days_formset(form=form)
+        form.multidaysettings = self._get_multidaysettings_formset(form=form)
 
     def is_valid(self):
         valid_form = super(PeriodFormset, self).is_valid()
@@ -368,7 +391,13 @@ class PeriodFormset(forms.BaseInlineFormSet):
             if not form.days.is_valid():
                 form.add_error(None, _('Please check the opening hours.'))
 
-        return valid_form and all(valid_days)
+        valid_multidaysettings = []
+        for form in self.forms:
+            valid_multidaysettings.append(form.multidaysettings.is_valid())
+            if not form.multidaysettings.is_valid():
+                form.add_error(None, _('Please check the multiday settings.'))
+
+        return valid_form and all(valid_days) and all(valid_multidaysettings)
 
     def save(self, commit=True):
         saved_form = super(PeriodFormset, self).save(commit=commit)
@@ -378,7 +407,8 @@ class PeriodFormset(forms.BaseInlineFormSet):
                 form.save(commit=commit)
                 if hasattr(form, 'days'):
                     form.days.save(commit=commit)
-
+                if hasattr(form, 'multidaysettings'):
+                    form.multidaysettings.save(commit=commit)
         return saved_form
 
 

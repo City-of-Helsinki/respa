@@ -290,8 +290,6 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
             instance=self.object,
         )
 
-        multiday_settings_form = MultidaySettingsForm()
-
         trans_fields = forms.get_translated_field_count(resource_image_formset)
 
         accessibility_data_link = self._get_accessibility_data_link(request)
@@ -303,7 +301,6 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
                 resource_image_formset=resource_image_formset,
                 trans_fields=trans_fields,
                 page_headline=page_headline,
-                multiday_settings_form=multiday_settings_form,
             )
         )
 

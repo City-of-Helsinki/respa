@@ -33,9 +33,15 @@
             <div class="hours-table-header" id="period-list">
                 {% include "respa_admin/forms/_select.html" with field=period.reservation_length_type extra_classes="reservation-length-type" %}
                 <h4>{% trans "Start date" %}</h4>
-                <div class="input-row">
-                    {{ period.recurrence_types }}
+                {% with period.multidaysettings.0 as multiday_settings_form %}
+                {{ multiday_settings_form.id }}
+                <div class="input-row datepicker-start-date"></div>
+                <div class="initial-start-dates">
+                    {% for initial_start_date in multiday_settings_form.initial_start_dates %}
+                        <input name="initial-start-date" class="hidden" value="{{ initial_start_date }}">
+                    {% endfor %}
                 </div>
+                <div class="start-dates"></div>
                 <div class="input-row">
                     {% include "respa_admin/forms/_select.html" with field=multiday_settings_form.duration_unit %}
                 </div>
@@ -49,10 +55,11 @@
                 </div>
                 <div class="input-row">
                     <span class="control-label input-label">
-                        {{ form.need_manual_confirmation.label }}
+                        {{ multiday_settings_form.must_end_on_start_day.label }}
                     </span>
                     {{ multiday_settings_form.must_end_on_start_day }}
                 </div>
+                {% endwith %}
                 <div class="input-row period-input" id="period-input-{{ id }}">
                     <div class="form-group schedule">
                         <label class="control-label input-label">{% trans "Name" %} *</label>
@@ -71,6 +78,10 @@
 
             <div class="hidden" id="days-management-form">
                 {{ period.days.management_form }}
+            </div>
+
+            <div class="hidden" id="multidaysettings-management-form">
+                {{ period.multidaysettings.management_form }}
             </div>
 
             <div id="period-days-list">
