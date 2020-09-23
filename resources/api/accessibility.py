@@ -16,7 +16,7 @@ class ResourceAccessibilitySerializer(TranslatedModelSerializer):
 
     class Meta:
         model = ResourceAccessibility
-        fields = ('viewpoint_id', 'viewpoint_name', 'value')
+        fields = ('viewpoint_id', 'viewpoint_name', 'value', 'shortage_count')
 
     def get_value(self, obj):
         return obj.value.value
@@ -35,7 +35,7 @@ class UnitAccessibilitySerializer(TranslatedModelSerializer):
 
     class Meta:
         model = UnitAccessibility
-        fields = ('viewpoint_id', 'viewpoint_name', 'value')
+        fields = ('viewpoint_id', 'viewpoint_name', 'value', 'shortage_count')
 
     def get_value(self, obj):
         return obj.value.value

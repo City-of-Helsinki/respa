@@ -1,9 +1,11 @@
+import os
 import pytest
 import datetime
 import re
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.core import mail
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test.utils import override_settings
 from django.utils import dateparse, timezone, translation
 from guardian.shortcuts import assign_perm, remove_perm
@@ -16,7 +18,8 @@ from caterings.models import CateringOrder, CateringProvider
 
 from resources.enums import UnitAuthorizationLevel
 from resources.models import (Period, Day, Reservation, Resource, ResourceGroup, ReservationMetadataField,
-                              ReservationMetadataSet, UnitAuthorization)
+                              ReservationMetadataSet, UnitAuthorization, ReservationCancelReasonCategory,
+                              ReservationCancelReason, Attachment)
 from notifications.models import NotificationTemplate, NotificationType
 from notifications.tests.utils import check_received_mail_exists
 from .utils import check_disallowed_methods, assert_non_field_errors_contain, assert_response_objects, MAX_QUERIES
@@ -172,6 +175,24 @@ def reservation_created_notification():
             subject='Normal reservation created subject.',
             body='Normal reservation created body.',
         )
+
+
+@pytest.fixture
+def reservation_cancelled_notification():
+    with translation.override('en'):
+        tmpl = NotificationTemplate.objects.get(type=NotificationType.RESERVATION_CANCELLED)
+        tmpl.body += '{{ extra_content }}'
+        tmpl.save()
+        return tmpl
+
+
+@pytest.fixture
+def reservation_denied_notification():
+    with translation.override('en'):
+        tmpl = NotificationTemplate.objects.get(type=NotificationType.RESERVATION_DENIED)
+        tmpl.body += '{{ extra_content }}'
+        tmpl.save()
+        return tmpl
 
 
 @pytest.mark.django_db
@@ -1099,6 +1120,13 @@ def test_reservation_mails(
     resource = Resource.objects.get(id=reservation_data_extra['resource'])
     resource.need_manual_confirmation = True
     resource.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
+    # create attachments for resource
+    attachment_file = SimpleUploadedFile('testi.pdf', b'file_content', content_type='application/pdf')
+    attachment_object = Attachment.objects.create(
+        name='Testi PDF',
+        attachment_file=attachment_file
+    )
+    resource.attachments.add(attachment_object)
     resource.save()
     if perm_type == 'unit':
         assign_perm('unit:can_approve_reservation',
@@ -1167,6 +1195,8 @@ def test_reservation_mails(
         'has been confirmed.',
         clear_outbox=False
     )
+    file_name = os.path.basename(attachment_object.attachment_file.name)
+    assert file_name in mail.outbox[0].attachments[1]
     assert 'this resource rocks' in str(mail.outbox[0].message())
     mail.outbox = []
 
@@ -1286,12 +1316,25 @@ def test_reservation_created_mail(user_api_client, resource_in_unit, list_url, r
         reservation_created_notification.body += '{{ extra_content }}'
         reservation_created_notification.save()
 
+    # create attachments for resource
+    resource = Resource.objects.get(id=reservation_data['resource'])
+    attachment_file = SimpleUploadedFile('testi.pdf', b'file_content', content_type='application/pdf')
+    attachment_object = Attachment.objects.create(
+        name='Testi PDF',
+        attachment_file=attachment_file
+    )
+    resource.attachments.add(attachment_object)
+
     response = user_api_client.post(list_url, data=reservation_data, format='json')
-    file_name, ical_file, mimetype = mail.outbox[0].attachments[0]
     assert response.status_code == 201
-    assert len(mail.outbox[0].attachments) == 1
-    Calendar.from_ical(ical_file)
     assert len(mail.outbox) == 1
+    assert len(mail.outbox[0].attachments) == 2
+
+    attachment_file_name = os.path.basename(attachment_object.attachment_file.name)
+    ical_file_name, ical_file, mimetype = mail.outbox[0].attachments[0]
+    assert attachment_file_name in mail.outbox[0].attachments[1]
+    Calendar.from_ical(ical_file)
+
     check_received_mail_exists(
         'Normal reservation created subject.',
         user.email,
@@ -2615,3 +2658,57 @@ def test_disallow_overlapping_reservations(resource_in_unit, resource_in_unit2, 
 
     response2 = user_api_client.post(list_url, reservation_data2)
     assert response2.status_code == 201
+
+
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
+def test_reservation_cancellation_with_message(user_api_client, api_client, general_admin, detail_url,
+    reservation_denied_notification, reservation_cancelled_notification):
+
+    cancel_reason_category = ReservationCancelReasonCategory.objects.create(
+        name_fi='Testikategoria',
+        name_en='Testcategory',
+        name_sv='Testkategori',
+        description_fi='Tämä on testikategoria',
+        description_en='This is a test category',
+        description_sv='Den här är testkategori',
+        reservation_type=ReservationCancelReasonCategory.CONFIRMED
+    )
+
+    cancel_with_message_data = {
+        "state": "cancelled",
+        "cancel_reason": {
+            "description": "Free text for cancellation",
+            "category_id": cancel_reason_category.pk
+        }
+    }
+
+    api_client.force_authenticate(user=general_admin)
+    response = api_client.patch(detail_url, data=cancel_with_message_data, format='json')
+
+    assert response.status_code == 200
+    assert len(mail.outbox) == 1
+    mail_body = mail.outbox[0].body
+    assert cancel_reason_category.description_en in mail_body
+    assert cancel_with_message_data['cancel_reason']['description'] in mail_body
+
+    reservation_id = response.data['id']
+    reservation = Reservation.objects.get(id=reservation_id)
+    reservation.cancel_reason.delete()
+    reservation.state = 'requested'
+    reservation.save()
+
+    cancel_reason_category.reservation_type = ReservationCancelReasonCategory.REQUESTED
+    cancel_reason_category.save()
+    cancel_with_message_data['state'] = 'denied'
+    assign_perm('unit:can_approve_reservation', general_admin, reservation.resource.unit)
+
+    api_client.force_authenticate(user=general_admin)
+    response = api_client.patch(detail_url, data=cancel_with_message_data, format='json')
+
+    assert response.status_code == 200
+    assert len(mail.outbox) == 2
+    mail_body = mail.outbox[1].body
+    assert cancel_reason_category.description_en in mail_body
+    assert cancel_with_message_data['cancel_reason']['description'] in mail_body
+

@@ -9,7 +9,7 @@ from arrow.parser import ParserError
 
 from django import forms
 from django.conf import settings
-from django.db.models import OuterRef, Prefetch, Q, Subquery, Value
+from django.db.models import OuterRef, Prefetch, Q, Subquery, Value, Sum
 from django.db.models.functions import Coalesce, Least
 from django.urls import reverse
 from django.contrib.gis.db.models.functions import Distance
@@ -28,6 +28,7 @@ from resources.models import (
     ResourceImage, ResourceType, ResourceEquipment, TermsOfUse, Equipment, ReservationMetadataSet,
     ResourceDailyOpeningHours, UnitAccessibility
 )
+from resources.models.accessibility import get_resource_accessibility_url
 from resources.models.resource import determine_hours_time_range
 
 from ..auth import is_general_admin, is_staff
@@ -170,6 +171,7 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
     is_favorite = serializers.SerializerMethodField()
     generic_terms = serializers.SerializerMethodField()
     payment_terms = serializers.SerializerMethodField()
+    accessibility_base_url = serializers.SerializerMethodField()
     # deprecated, backwards compatibility
     reservable_days_in_advance = serializers.ReadOnlyField(source='get_reservable_max_days_in_advance')
     reservable_max_days_in_advance = serializers.ReadOnlyField(source='get_reservable_max_days_in_advance')
@@ -209,9 +211,18 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
             summaries_by_viewpoint.get(
                 vp.id,
                 ResourceAccessibility(
-                    viewpoint=vp, resource=obj, value=AccessibilityValue(value=AccessibilityValue.UNKNOWN_VALUE)))
-            for vp in accessibility_viewpoints]
+                    viewpoint=vp,
+                    resource=obj,
+                    value=AccessibilityValue(value=AccessibilityValue.UNKNOWN_VALUE),
+                    shortage_count=0,
+                )
+            )
+            for vp in accessibility_viewpoints
+        ]
         return [ResourceAccessibilitySerializer(summary).data for summary in summaries]
+
+    def get_accessibility_base_url(self, obj):
+        return get_resource_accessibility_url(obj)
 
     def get_user_permissions(self, obj):
         request = self.context.get('request', None)
@@ -402,32 +413,50 @@ class ResourceOrderingFilter(django_filters.OrderingFilter):
 
     def filter(self, qs, value):
         if value and ('accessibility' in value or '-accessibility' in value):
-            viewpoint_id = self.parent.data.get('accessibility_viewpoint')
+            viewpoint_ids = self.parent.data.getlist('accessibility_viewpoint', [])
             try:
-                accessibility_viewpoint = AccessibilityViewpoint.objects.get(id=viewpoint_id)
+                accessibility_viewpoints = AccessibilityViewpoint.objects.filter(id__in=viewpoint_ids)
             except AccessibilityViewpoint.DoesNotExist:
-                accessibility_viewpoint = AccessibilityViewpoint.objects.first()
-            if accessibility_viewpoint is None:
+                accessibility_viewpoints = AccessibilityViewpoint.objects.all()[:1]
+            if len(accessibility_viewpoints) == 0:
                 logging.error('Accessibility Viewpoints are not imported from Accessibility database')
                 value = [val for val in value if val != 'accessibility' and val != '-accessibility']
                 return super().filter(qs, value)
 
-            # annotate the queryset with accessibility priority from selected viewpoint.
+            # annotate the queryset with accessibility priority from selected viewpoints.
             # use the worse value of the resource and unit accessibilities.
             # missing accessibility data is considered same priority as UNKNOWN.
+            # order_by must be cleared in subquery for values() to trigger correct GROUP BY.
             resource_accessibility_summary = ResourceAccessibility.objects.filter(
-                resource_id=OuterRef('pk'), viewpoint_id=accessibility_viewpoint.id)
-            resource_accessibility_order = Subquery(resource_accessibility_summary.values('order')[:1])
+                resource_id=OuterRef('pk'),
+                viewpoint__in=accessibility_viewpoints,
+            ).order_by().values(
+                'resource_id',
+            ).annotate(
+                order_sum=Sum(
+                    Coalesce('order', Value(AccessibilityValue.UNKNOWN_ORDERING))
+                )
+            )
+            resource_accessibility_order = Subquery(resource_accessibility_summary.values('order_sum'))
             unit_accessibility_summary = UnitAccessibility.objects.filter(
-                unit_id=OuterRef('unit_id'), viewpoint_id=accessibility_viewpoint.id)
-            unit_accessibility_order = Subquery(unit_accessibility_summary.values('order')[:1])
+                unit_id=OuterRef('unit_id'),
+                viewpoint__in=accessibility_viewpoints,
+            ).order_by().values(
+                'unit_id',
+            ).annotate(
+                order_sum=Sum(
+                    Coalesce('order', Value(AccessibilityValue.UNKNOWN_ORDERING))
+                )
+            )
+            unit_accessibility_order = Subquery(unit_accessibility_summary.values('order_sum'))
             qs = qs.annotate(
                 accessibility_priority=Least(
-                    Coalesce(resource_accessibility_order, Value(AccessibilityValue.UNKNOWN_ORDERING)),
-                    Coalesce(unit_accessibility_order, Value(AccessibilityValue.UNKNOWN_ORDERING))
-                )
+                    resource_accessibility_order,
+                    unit_accessibility_order,
+                ),
             ).prefetch_related('accessibility_summaries')
-        return super().filter(qs, value)
+        qs = super().filter(qs, value)
+        return qs
 
 
 class ResourceFilterSet(django_filters.FilterSet):

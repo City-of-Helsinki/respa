@@ -316,6 +316,9 @@ msgstr "Kan inte överskrida den maximala produktkvantiteten"
 msgid "This product isn't available on the resource."
 msgstr "Den här produkten är inte tillgänglig på resursen."
 
+msgid "Begin time must be before end time"
+msgstr "Starttid måste vara före sluttid"
+
 msgid "At least one order line required."
 msgstr "Minst en beställningsrad krävs."
 
@@ -514,6 +517,10 @@ msgstr "Det här fältet kan inte ha ett värde med den här resursen"
 msgid "This field cannot be changed"
 msgstr "Detta fält kan inte modifieras"
 
+#, python-format
+msgid "Patching of field %(field)s is not allowed"
+msgstr "Uppdatering av fältet %(field)s är inte tillåtet med patch-metoden"
+
 #, python-brace-format
 msgid "Invalid pk \"{pk_value}\" - object does not exist."
 msgstr "Felaktig pk \"{pk_value}\" - objektet existerar inte."
@@ -566,6 +573,9 @@ msgstr "Resurstillgänglighet"
 
 msgid "Resource"
 msgstr "Resurs"
+
+msgid "Accessibility shortage count"
+msgstr "Antal tillgänglighetsbrister"
 
 msgid "Resource ordering priority"
 msgstr "Resursordningsprioritet"
@@ -895,6 +905,30 @@ msgstr "Metadata för reservation"
 
 msgid "Reservation metadata sets"
 msgstr "Metadatauppsättningar för reservation"
+
+msgid "Confirmed reservation"
+msgstr "Bekräftad reservation"
+
+msgid "Requested reservation"
+msgstr "Begärd bokning"
+
+msgid "Own reservation"
+msgstr "Egen reservation"
+
+msgid "Reservation type"
+msgstr "Bokningstyp"
+
+msgid "Reservation cancellation reason category"
+msgstr "Skälkategori för annullering av bokning"
+
+msgid "Reservation cancellation reason categories"
+msgstr "Skälkategorier för annullering av bokning"
+
+msgid "Reservation cancellation reason"
+msgstr "Skäl för annullering av bokning"
+
+msgid "Reservation cancellation reasons"
+msgstr "Skäl för annullering av bokning"
 
 msgid "Invalid value"
 msgstr "Ogiltigt värde"
@@ -1459,7 +1493,8 @@ msgstr "Kontaktperson"
 msgid ""
 "Contact person information is shown when customer cancels manually handled "
 "reservations."
-msgstr "Kontaktpersoninformation visas när kunden avbokar manuellt reservationer."
+msgstr ""
+"Kontaktpersoninformation visas när kunden avbokar manuellt reservationer."
 
 msgid "External calendar"
 msgstr "Externt kalendersystem"

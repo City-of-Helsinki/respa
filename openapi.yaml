@@ -3,7 +3,7 @@ info:
   title: Respa
   description: The Respa API provides categorized data on resources available for reservation within a city or metropolitan area
     and enables the reservation of these resources. The API provides data in the JSON format, in a RESTful fashion.
-  version: 1.6.1
+  version: 1.6.2
 servers:
 - url: https://api.hel.fi/respa/v1
 - url: https://respa.koe.hel.ninja/v1
@@ -90,6 +90,12 @@ paths:
           based on the boolean value given.
         schema:
           type: boolean
+      - name: include
+        in: query
+        description: Include extra data to queryset. Currently accepts value `accessibility_summaries`.
+        schema:
+          type: string
+        example: accessibility_summaries
       responses:
         200:
           description: Successful response
@@ -526,14 +532,20 @@ paths:
         in: query
         description: Order queryset by given resource fields, accepted values are
           `resource_name_fi`, `resource_name_en`, `resource_name_sv`, `unit_name_fi`,
-          `unit_name_en`, `unit_name_sv`, `type`, `people_capacity`. Prefix parameter
+          `unit_name_en`, `unit_name_sv`, `type`, `people_capacity`, `accessibility`. Prefix parameter
           value with `-` to get reverse ordering.
         schema:
           type: string
         example: resource_name_fi
+      - name: accessibility_viewpoint
+        in: query
+        description: Use together with `order_by` `accessibility`. Determines the viewpoint for accessibility ordering using the viewpoint ID.
+        schema:
+          type: number
+        example: 11
       - name: include
         in: query
-        description: Include extra data to queryset. Currently accepts value `unit_detail`.
+        description: Include extra data to queryset. Currently accepts values `unit_detail`, `accessibility_summaries`.
         schema:
           type: string
         example: unit_detail
@@ -852,6 +864,51 @@ paths:
                   non_field_errors:
                     type: string
                     description: The reason the change was not accepted
+    patch:
+      tags:
+      - reservation
+      description: The reservation endpoint allows changing state of reservation with a reason message
+      parameters:
+      - name: id
+        in: path
+        description: Unique identifier of the reservation in the reservation system.
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: The reservation data you wish to edit. State and cancel reason currently allowed with patch.
+        content:
+          'application/json':
+            schema:
+              properties:
+                  state:
+                    description: New state for the reservation
+                    type: string
+                  cancel_reason:
+                    description: Reason object for reservation cancellation / denial
+                    type: object
+                    $ref: '#/components/schemas/cancel_reason_write'
+              required:
+                - status
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/reservation'
+                  - $ref: '#/components/schemas/order_just_id'
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  non_field_errors:
+                    type: string
+                    description: The reason the change was not accepted
     delete:
       tags:
       - reservation
@@ -885,6 +942,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/order_check_price_response'
+  /cancel_reason_category/:
+    get:
+      tags:
+      - cancel_reason
+      description: Predefined categories for cancellation reason for reservations. Includes predefined notification messages in all languages.
+      parameters:
+      - name: reservation_type
+        in: query
+        description: "Filtering parameter for type of reservation for which this cancel reason category is used. Choices: confirmed, requested, own."
+        schema:
+          type: string
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/cancel_reason_category'
 
 components:
   schemas:
@@ -1251,6 +1326,8 @@ components:
         reserver_email_address:
           type: string
           description: Reserver email address
+        cancel_reason:
+          $ref: '#/components/schemas/cancel_reason_read'
     equipment:
       type: object
       properties:
@@ -1496,3 +1573,53 @@ components:
       allOf:
         - $ref: '#/components/schemas/order_response_base'
         - $ref: '#/components/schemas/order_check_price_base'
+    cancel_reason_write:
+      type: object
+      properties:
+        description:
+          type: string
+          description: Free description of reason of reservations cancellation
+        category_id:
+          type: integer
+          description: Id of reservation cancellation reason category to be used for cancellation
+    cancel_reason_read:
+      type: object
+      properties:
+        description:
+          type: string
+          description: Free description of reason of reservations cancellation
+        category:
+          $ref: '#/components/schemas/cancel_reason_category'
+    cancel_reason_category:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Id of the category
+        reservation_type:
+          type: string
+          description: "Type of reservation for which this cancel reason category is used. Choices: confirmed, requested, own."
+        name:
+          type: object
+          properties:
+            sv:
+              type: string
+              description: Swedish name for the cancel reason category
+            fi:
+              type: string
+              description: Finnish name for the cancel reason category
+            en:
+              type: string
+              description: English name for the cancel reason category
+        description:
+          type: object
+          properties:
+            sv:
+              type: string
+              description: Swedish full description for the cancel reason category
+            fi:
+              type: string
+              description: Finnish full description for the cancel reason category
+            en:
+              type: string
+              description: English full description for the cancel reason category

@@ -2,7 +2,7 @@ from modeltranslation.translator import TranslationOptions, register
 
 from .models import (
     AccessibilityViewpoint, Equipment, EquipmentCategory, Purpose, Resource, ResourceEquipment,
-    ResourceImage, ResourceType, TermsOfUse, Unit, UnitGroup)
+    ResourceImage, ResourceType, TermsOfUse, Unit, UnitGroup, ReservationCancelReasonCategory)
 
 
 @register(UnitGroup)
@@ -63,3 +63,8 @@ class TermsOfUserTranslationOptions(TranslationOptions):
 @register(AccessibilityViewpoint)
 class AccessibilityViewpointTranslationOptions(TranslationOptions):
     fields = ('name',)
+
+
+@register(ReservationCancelReasonCategory)
+class ReservationCancelReasonCategoryTranslationOptions(TranslationOptions):
+    fields = ('name', 'description')

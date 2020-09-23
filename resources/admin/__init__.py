@@ -23,10 +23,11 @@ from .base import ExtraReadonlyFieldsOnUpdateMixin, CommonExcludeMixin, Populate
 from resources.admin.period_inline import PeriodInline
 
 from ..models import (
-    AccessibilityValue, AccessibilityViewpoint, Day, Equipment, EquipmentAlias, EquipmentCategory, Purpose,
+    AccessibilityValue, AccessibilityViewpoint, Attachment, Day, Equipment, EquipmentAlias, EquipmentCategory, Purpose,
     Reservation, ReservationMetadataField, ReservationMetadataSet, Resource, ResourceAccessibility,
     ResourceEquipment, ResourceGroup, ResourceImage, ResourceType, TermsOfUse,
-    Unit, UnitAuthorization, UnitIdentifier, UnitGroup, UnitGroupAuthorization)
+    Unit, UnitAuthorization, UnitIdentifier, UnitGroup, UnitGroupAuthorization,
+    ReservationCancelReason, ReservationCancelReasonCategory)
 from munigeo.models import Municipality
 from rest_framework.authtoken.admin import Token
 
@@ -95,6 +96,11 @@ class UnitIdentifierInline(admin.StackedInline):
     model = UnitIdentifier
     fields = ('namespace', 'value')
     extra = 0
+
+
+@admin.register(Attachment)
+class AttachmentAdmin(admin.ModelAdmin):
+    readonly_fields = ['created_at', 'created_by', 'modified_at', 'modified_by']
 
 
 class ResourceAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin, HttpsFriendlyGeoAdmin):
@@ -230,6 +236,15 @@ class ReservationAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Extr
     list_filter = ('type',)
     search_fields = ('user__first_name', 'user__last_name', 'user__username', 'user__email')
     raw_id_fields = ('user', 'resource')
+
+
+class ReservationCancelReasonCategoryAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):
+    pass
+
+
+class ReservationCancelReasonAdmin(PopulateCreatedAndModifiedMixin, admin.ModelAdmin):
+    raw_id_fields = ('reservation',)
+    readonly_fields = ('created_by', 'modified_by')
 
 
 class ResourceTypeAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):
@@ -399,3 +414,6 @@ admin.site.register(ResourceAccessibility, ResourceAccessibilityAdmin)
 if admin.site.is_registered(Token):
     admin.site.unregister(Token)
 admin_site.register(Token, RespaTokenAdmin)
+
+admin_site.register(ReservationCancelReason, ReservationCancelReasonAdmin)
+admin_site.register(ReservationCancelReasonCategory, ReservationCancelReasonCategoryAdmin)

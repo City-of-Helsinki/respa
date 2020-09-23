@@ -169,6 +169,14 @@ class ResourceQuerySet(models.QuerySet):
         return self.filter(Q(unit__in=list(units) + list(units_where_role)) | Q(groups__in=resource_groups)).distinct()
 
 
+class Attachment(ModifiableModel, AutoIdentifiedModel):
+    name = models.CharField(verbose_name=_('Name'), max_length=200)
+    attachment_file = models.FileField(verbose_name=_('File'), upload_to='attachment_files')
+
+    def __str__(self):
+        return self.name
+
+
 class Resource(ModifiableModel, AutoIdentifiedModel):
     AUTHENTICATION_TYPES = (
         ('none', _('None')),
@@ -265,6 +273,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         help_text=_('A link to an external reservation system if this resource is managed elsewhere'),
         null=True, blank=True)
     reservation_extra_questions = models.TextField(verbose_name=_('Reservation extra questions'), blank=True)
+    attachments = models.ManyToManyField(Attachment, verbose_name=_('Attachments'), blank=True)
 
     objects = ResourceQuerySet.as_manager()
 
