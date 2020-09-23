@@ -98,8 +98,7 @@ function updatePeriodInputIds() {
   let periods = $('#current-periods-list').children();
 
   periods.each(function (i, periodItem) {
-    let inputs = $(periodItem).find('input');
-
+    let inputs = $(periodItem).find('input[name]');
     inputs.each(function (inputIndex, input) {
       $(input).attr('id', $(input).attr('id').replace(/-(\d+)-/, "-" + i + "-"));
       $(input).attr('name', $(input).attr('name').replace(/-(\d+)-/, "-" + i + "-"));

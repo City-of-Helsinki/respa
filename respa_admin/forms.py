@@ -171,7 +171,7 @@ class MultidaySettingsForm(forms.ModelForm):
         return saved_form
 
     def has_changed(self):
-        """Return True if data differs from initial."""
+        """Override inherited has_changed to take start_dates into account"""
         start_dates_changed = 'start_dates' in self.data
         return bool(self.changed_data) or start_dates_changed
 

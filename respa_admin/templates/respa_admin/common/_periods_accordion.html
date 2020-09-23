@@ -38,7 +38,7 @@
                 <div class="input-row datepicker-start-date"></div>
                 <div class="initial-start-dates">
                     {% for initial_start_date in multiday_settings_form.initial_start_dates %}
-                        <input name="initial-start-date" class="hidden" value="{{ initial_start_date }}">
+                        <input type="hidden" value="{{ initial_start_date }}">
                     {% endfor %}
                 </div>
                 <div class="start-dates"></div>
