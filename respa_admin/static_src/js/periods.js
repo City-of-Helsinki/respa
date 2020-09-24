@@ -427,11 +427,11 @@ function addNewPeriod() {
   if (emptyPeriodItem) {
     let newItem = emptyPeriodItem.clone();
     $periodList.append(newItem);
-
     updatePeriodsTotalForms();
     removePeriodExtraDays(newItem);
     updatePeriodInputIds();
     attachPeriodEventHandlers(newItem);
+    initializeDatepicker(newItem);
   }
 }
 
@@ -553,33 +553,37 @@ function changeReservationLengthType(dropdown) {
   }
 }
 
-export function initializeDatepicker() {
+export function initializeDatepickers() {
   $('.accordion-item').each(function() {
-    const startDateInput = $(this).find('.period-start');
-    const endDateInput = $(this).find('.period-end');
-    const startDateCalendar = $(this).find('.datepicker-start-date');
-    const startDatesContainer = $(this).find('.start-dates');
-    const initialStartDatesContainer = $(this).find('.initial-start-dates').find('input');
-    const initialStartDates = initialStartDatesContainer.map((index, input) => input.value).get();
-    startDateCalendar.datepicker({
-      startDate: startDateInput.val(),
-      endDate: endDateInput.val(),
-      format: 'yyyy-mm-dd',
-      multidate: true,
-      multidateSeparator: ',',
-    }).datepicker('setDates', initialStartDates).on('changeDate', function(event) {
-      startDatesContainer.empty();
-      event.dates.forEach((date, index) => {
-        console.log(event.format(index));
-        const dateInput = $('<input>').attr('type', 'hidden').attr('name', 'start_dates').val(event.format(index));
-        startDatesContainer.append(dateInput);
-      })
-    });
-    [startDateInput, endDateInput].forEach(elem => {
-      elem.on('change', function(e) {
-        startDateCalendar.datepicker('setStartDate', startDateInput.val());
-        startDateCalendar.datepicker('setEndDate', endDateInput.val());
-      })
+    initializeDatepicker($(this));
+  })
+}
+
+function initializeDatepicker(periodItem) {
+  const startDateInput = periodItem.find('.period-start');
+  const endDateInput = periodItem.find('.period-end');
+  const startDateCalendar = periodItem.find('.datepicker-start-date');
+  const startDatesContainer = periodItem.find('.start-dates');
+  const initialStartDatesContainer = periodItem.find('.initial-start-dates').find('input');
+  const initialStartDates = initialStartDatesContainer.map((index, input) => input.value).get();
+
+  startDateCalendar.datepicker({
+    startDate: startDateInput.val(),
+    endDate: endDateInput.val(),
+    format: 'yyyy-mm-dd',
+    multidate: true,
+    multidateSeparator: ',',
+  }).datepicker('setDates', initialStartDates).on('changeDate', function(event) {
+    startDatesContainer.empty();
+    event.dates.forEach((date, index) => {
+      const dateInput = $('<input>').attr('type', 'hidden').attr('name', 'start_dates').val(event.format(index));
+      startDatesContainer.append(dateInput);
+    })
+  });
+  [startDateInput, endDateInput].forEach(elem => {
+    elem.on('change', function(e) {
+      startDateCalendar.datepicker('setStartDate', startDateInput.val());
+      startDateCalendar.datepicker('setEndDate', endDateInput.val());
     })
   })
 }

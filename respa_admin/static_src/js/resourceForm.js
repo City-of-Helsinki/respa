@@ -7,7 +7,7 @@ import {
 import {
   initializePeriods,
   reservationLengthTypeListener,
-  initializeDatepicker,
+  initializeDatepickers,
 } from './periods';
 
 import {
@@ -21,7 +21,7 @@ export function initializeResourceForm() {
   initializePeriods();
   setImageItem();
   reservationLengthTypeListener();
-  initializeDatepicker();
+  initializeDatepickers();
 }
 
 /*
