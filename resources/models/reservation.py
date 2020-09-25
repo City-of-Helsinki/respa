@@ -339,6 +339,9 @@ class Reservation(ModifiableModel):
     def get_order(self):
         return getattr(self, 'order', None)
 
+    def get_period_for_reservation(self):
+        return self.resource.get_period_for_timespan(self.begin, self.end)
+
     def format_time(self):
         tz = self.resource.unit.get_tz()
         begin = self.begin.astimezone(tz)

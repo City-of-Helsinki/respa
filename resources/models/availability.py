@@ -138,7 +138,9 @@ class Period(models.Model):
 
     def __str__(self):
         # FIXME: output date in locale-specific format
-        return "{0}, {3}: {1:%d.%m.%Y} - {2:%d.%m.%Y}".format(self.name, self.start, self.end, STATE_BOOLS[self.closed])
+        return "{4}, {0}, {3}: {1:%d.%m.%Y} - {2:%d.%m.%Y}".format(self.name, self.start, self.end,
+                                                                   STATE_BOOLS[self.closed],
+                                                                   self.resource.name if self.resource else self.unit)
 
     def _validate_belonging(self):
         if not (self.resource_id or self.unit_id):

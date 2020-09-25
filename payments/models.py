@@ -14,7 +14,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
 from resources.models import Reservation, Resource
-from resources.models.utils import generate_id
+from resources.models.utils import generate_id, diff_month
 
 from .exceptions import OrderStateTransitionError
 from .utils import convert_aftertax_to_pretax, get_price_period_display, rounded
@@ -50,9 +50,11 @@ class Product(models.Model):
         (EXTRA, _('extra')),
     )
 
+    PRICE_PER_MULTIDAY_DURATION_UNIT = 'per_multiday_duration_unit'
     PRICE_PER_PERIOD = 'per_period'
     PRICE_FIXED = 'fixed'
     PRICE_TYPE_CHOICES = (
+        (PRICE_PER_MULTIDAY_DURATION_UNIT, _('per multiday duration unit')),
         (PRICE_PER_PERIOD, _('per period')),
         (PRICE_FIXED, _('fixed')),
     )
@@ -152,11 +154,49 @@ class Product(models.Model):
         else:
             raise NotImplementedError('Cannot calculate price, unknown price type "{}".'.format(self.price_type))
 
+    @rounded
+    def get_pretax_price_for_multiday_reservation(self, reservation: Reservation) -> Decimal:
+        return convert_aftertax_to_pretax(self.get_price_for_multiday_reservation(reservation))
+
+    @rounded
+    def get_price_for_multiday_reservation(self, reservation: Reservation) -> Decimal:
+        period =  reservation.get_period_for_reservation()
+
+        if not period or not period.has_multiday_settings():
+            raise ValidationError(_('This reservation doesn\'t have multiday settings!'))
+
+        multiday_settings = period.multiday_settings
+
+        reservation_length_days = (reservation.end.date() - reservation.begin.date()).days
+
+        print(reservation_length_days)
+
+        if multiday_settings.duration_unit == multiday_settings.DURATION_UNIT_DAY:
+            length_in_duration_unit = reservation_length_days
+            print('mennaan paivaan')
+        elif multiday_settings.duration_unit == multiday_settings.DURATION_UNIT_WEEK:
+            length_in_duration_unit = reservation_length_days / 7
+            print('mennaan viikkoon')
+        elif multiday_settings.duration_unit == multiday_settings.DURATION_UNIT_MONTH:
+            length_in_duration_unit = diff_month(reservation.end.date(), reservation.begin.date())
+            print('mennaan kk')
+
+        print(length_in_duration_unit)
+        print(self.price)
+
+        return Decimal(Decimal(length_in_duration_unit) * self.price)
+
     def get_pretax_price_for_reservation(self, reservation: Reservation, rounded: bool = True) -> Decimal:
-        return self.get_pretax_price_for_time_range(reservation.begin, reservation.end, rounded=rounded)
+        if self.price_type == Product.PRICE_PER_MULTIDAY_DURATION_UNIT:
+            return self.get_price_for_multiday_reservation(reservation)
+        else:
+            return self.get_pretax_price_for_time_range(reservation.begin, reservation.end, rounded=rounded)
 
     def get_price_for_reservation(self, reservation: Reservation, rounded: bool = True) -> Decimal:
-        return self.get_price_for_time_range(reservation.begin, reservation.end, rounded=rounded)
+        if self.price_type == Product.PRICE_PER_MULTIDAY_DURATION_UNIT:
+            return self.get_price_for_multiday_reservation(reservation)
+        else:
+            return self.get_price_for_time_range(reservation.begin, reservation.end, rounded=rounded)
 
 
 class OrderQuerySet(models.QuerySet):

@@ -397,6 +397,7 @@ class MultidaySettingsAdmin(admin.ModelAdmin):
     inlines = [
         MultidayStartDayInline,
     ]
+    raw_id_fields = ('period',)
 
 admin_site.register(MultidaySettings, MultidaySettingsAdmin)
 admin_site.register(ResourceImage, ResourceImageAdmin)
@@ -405,6 +406,7 @@ admin_site.register(Reservation, ReservationAdmin)
 admin_site.register(ResourceType, ResourceTypeAdmin)
 admin_site.register(Purpose, PurposeAdmin)
 admin_site.register(Day)
+admin_site.register(Period)
 admin_site.register(Unit, UnitAdmin)
 admin_site.register(Equipment, EquipmentAdmin)
 admin_site.register(ResourceEquipment, ResourceEquipmentAdmin)
