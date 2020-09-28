@@ -387,16 +387,16 @@ class PeriodFormset(forms.BaseInlineFormSet):
         # validate that nested days are also valid
         valid_days = []
         for form in self.forms:
-            valid_days.append(form.days.is_valid())
-            if not form.days.is_valid():
-                form.add_error(None, _('Please check the opening hours.'))
+            if form.cleaned_data['reservation_length_type'] != Period.LENGTH_OVER_NIGHT:
+                valid_days.append(form.days.is_valid())
+                if not form.days.is_valid():
+                    form.add_error(None, _('Please check the opening hours.'))
 
         valid_multidaysettings = []
         for form in self.forms:
             valid_multidaysettings.append(form.multidaysettings.is_valid())
             if not form.multidaysettings.is_valid():
                 form.add_error(None, _('Please check the multiday settings.'))
-
         return valid_form and all(valid_days) and all(valid_multidaysettings)
 
     def save(self, commit=True):
@@ -405,7 +405,7 @@ class PeriodFormset(forms.BaseInlineFormSet):
         if saved_form or self.forms:
             for form in self.forms:
                 form.save(commit=commit)
-                if hasattr(form, 'days'):
+                if hasattr(form, 'days') and form.cleaned_data['reservation_length_type'] != Period.LENGTH_OVER_NIGHT:
                     form.days.save(commit=commit)
                 if hasattr(form, 'multidaysettings'):
                     form.multidaysettings.save(commit=commit)
