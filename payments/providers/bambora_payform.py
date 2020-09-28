@@ -1,6 +1,7 @@
 import hashlib
 import hmac
 import logging
+from datetime import datetime, timedelta
 
 import requests
 from django.http import HttpResponse
@@ -21,6 +22,7 @@ RESPA_PAYMENTS_BAMBORA_API_URL = 'RESPA_PAYMENTS_BAMBORA_API_URL'
 RESPA_PAYMENTS_BAMBORA_API_KEY = 'RESPA_PAYMENTS_BAMBORA_API_KEY'
 RESPA_PAYMENTS_BAMBORA_API_SECRET = 'RESPA_PAYMENTS_BAMBORA_API_SECRET'
 RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS = 'RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS'
+RESPA_PAYMENTS_BAMBORA_TOKEN_VALID_DAYS = 'RESPA_PAYMENTS_BAMBORA_TOKEN_VALID_DAYS'
 
 
 class BamboraPayformProvider(PaymentProvider):
@@ -42,11 +44,15 @@ class BamboraPayformProvider(PaymentProvider):
             RESPA_PAYMENTS_BAMBORA_API_URL: (str, 'https://payform.bambora.com/pbwapi'),
             RESPA_PAYMENTS_BAMBORA_API_KEY: str,
             RESPA_PAYMENTS_BAMBORA_API_SECRET: str,
-            RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS: list
+            RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS: list,
+            RESPA_PAYMENTS_BAMBORA_TOKEN_VALID_DAYS: (int, 3)
         }
 
     def initiate_payment(self, order) -> str:
         """Initiate payment by constructing the payload with necessary items"""
+
+        token_valid_days = self.config.get(RESPA_PAYMENTS_BAMBORA_TOKEN_VALID_DAYS)
+        token_valid_until = datetime.now() + timedelta(days=token_valid_days)
 
         payload = {
             'version': 'w3.1',
@@ -55,7 +61,8 @@ class BamboraPayformProvider(PaymentProvider):
                 'type': 'e-payment',
                 'return_url': self.get_success_url(),
                 'notify_url': self.get_notify_url(),
-                'selected': self.config.get(RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS)
+                'selected': self.config.get(RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS),
+                'token_valid_until': int(token_valid_until.timestamp())
             },
             'currency': 'EUR',
             'order_number': str(order.order_number)

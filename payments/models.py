@@ -173,7 +173,8 @@ class OrderQuerySet(models.QuerySet):
         earliest_allowed_timestamp = now() - timedelta(minutes=settings.RESPA_PAYMENTS_PAYMENT_WAITING_TIME)
         log_entry_timestamps = OrderLogEntry.objects.filter(order=OuterRef('pk')).order_by('id').values('timestamp')
         too_old_waiting_orders = self.filter(
-            state=Order.WAITING
+            state=Order.WAITING,
+            is_requested_order=False
         ).annotate(
             created_at=Subquery(
                 log_entry_timestamps[:1]
@@ -184,7 +185,18 @@ class OrderQuerySet(models.QuerySet):
         for order in too_old_waiting_orders:
             order.set_state(Order.EXPIRED)
 
-        return too_old_waiting_orders.count()
+        earliest_allowed_requested = now() - timedelta(hours=settings.RESPA_PAYMENTS_PAYMENT_REQUESTED_WAITING_TIME)
+
+        too_old_waiting_requested_orders = self.filter(
+            state=Order.WAITING,
+            is_requested_order=True
+        ).filter(
+            confirmed_by_staff_at__lt=earliest_allowed_requested
+        )
+        for order in too_old_waiting_requested_orders:
+            order.set_state(Order.EXPIRED)
+
+        return too_old_waiting_orders.count() + too_old_waiting_requested_orders.count()
 
 
 class Order(models.Model):
@@ -207,6 +219,9 @@ class Order(models.Model):
     reservation = models.OneToOneField(
         Reservation, verbose_name=_('reservation'), related_name='order', on_delete=models.PROTECT
     )
+    payment_url = models.CharField(max_length=200, verbose_name=_('payment url'), blank=True, default='')
+    is_requested_order = models.BooleanField(verbose_name=_('is requested order'), default=False)
+    confirmed_by_staff_at = models.DateTimeField(verbose_name=_('confirmed by staff at'), blank=True, null=True)
 
     objects = OrderQuerySet.as_manager()
 
@@ -229,6 +244,10 @@ class Order(models.Model):
 
         if is_new:
             self.create_log_entry(state_change=self.state, message='Created.')
+
+    def set_confirmed_by_staff(self):
+        self.confirmed_by_staff_at = datetime.now()
+        self.save()
 
     def get_order_lines(self):
         # This allows us to do price calculations using order line objects that

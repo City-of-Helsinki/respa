@@ -171,7 +171,8 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
             return value
 
         if instance.resource.can_approve_reservations(request_user):
-            allowed_states = (Reservation.REQUESTED, Reservation.CONFIRMED, Reservation.DENIED)
+            allowed_states = (Reservation.REQUESTED, Reservation.CONFIRMED,
+                              Reservation.DENIED, Reservation.WAITING_FOR_PAYMENT)
             if instance.state in allowed_states and value in allowed_states:
                 return value
 
@@ -351,6 +352,9 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
             cancel_reason['reservation'] = reservation
             reservation.cancel_reason = ReservationCancelReason(**cancel_reason)
             reservation.cancel_reason.save()
+
+        # This instance is somehow missing order relation after calling super().update(). Refreshing fixes this.
+        reservation.refresh_from_db()
 
         reservation.set_state(new_state, request.user)
 
