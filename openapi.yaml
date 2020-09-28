@@ -1081,6 +1081,10 @@ components:
           items:
             type: object
             properties: {}
+        periods:
+          type: array
+          items:
+            $ref: '#/components/schemas/period'
         reservable:
           type: boolean
           description: Is it possible to create or modify reservations for this resource
@@ -1553,6 +1557,9 @@ components:
         end:
           type: string
           description: End timestamp, format hh:mm:ss
+        resource:
+          type: string
+          description: Unique identifier of the reserved resource
     order_check_price_request:
       allOf:
         - $ref: '#/components/schemas/order_request_base'
@@ -1578,6 +1585,44 @@ components:
           description: Free description of reason of reservations cancellation
         category:
           $ref: '#/components/schemas/cancel_reason_category'
+    period:
+      type: object
+      properties:
+        start:
+          type: string
+          description: Start date of period when these settings apply
+        end:
+          type: string
+          description: End date of period when these settings apply
+        reservation_length_type:
+          type: string
+          description: Type of this period. Certain rules apply to certain types. Choices are within_day, whole_day and over_night.
+        multiday_settings:
+          type: object
+          properties:
+            min_duration:
+              type: string
+              description: Minimum allowed length of reservations during this period.
+            max_duration:
+              type: string
+              description: Maximum allowed length of reservations during this period.
+            duration_unit:
+              type: string
+              description: Determines unit of max_duration and min_duration fields
+            check_in_time:
+              type: string
+              description: Time of day when reserver must check in. Specified only if reservation type is over_night.
+            check_out_time:
+              type: string
+              description: Time of day when reserver must check out. Specified only if reservation type is over_night.
+            must_end_on_start_day:
+              type: boolean
+              description: Reservations must always end on a start day defined in start_days -field
+            start_days:
+              type: array
+              description: Array of allowed start dates of reservation. Reservations are only allowed to begin on these days.
+              items:
+                type: string
     cancel_reason_category:
       type: object
       properties:
