@@ -38,26 +38,19 @@ for calculating the price because multiday settings and
 specified when calling */v1/order/check\_price/*-endpoint.
 
 Example body:
+```json
+{
+    "resource": "awicmityf3fa",
+    "begin": "2020-10-25T10:00:00.000Z",
+    "end": "2020-11-01T09:00:00.000Z",
+    "order_lines": [
+        {
+            "product": "awybz77rqqza"
+        }
+    ]
+}
+```
 
-*{*
-
-*"resource": "awicmityf3fa",*
-
-*"begin": "2020-10-25T10:00:00.000Z",*
-
-*"end": "2020-11-01T09:00:00.000Z",*
-
-*"order\_lines": \[*
-
-*{*
-
-*"product": "awybz77rqqza"*
-
-*}*
-
-*\]*
-
-*}*
 
 Get multi day settings
 ----------------------
@@ -72,64 +65,38 @@ with start and end parameters, reservation periods including multi day
 reservation settings will be returned.
 
 Example JSON of multiday settings:
+```json
+{
+    "start": "2020-06-25",
+    "end": "2022-06-25",
+    "reservation_length_type": "over_night",
+    "multiday_settings": {
+        "max_duration": 3,
+        "min_duration": 1,
+        "duration_unit": "week",
+        "check_in_time": "12:00:00",
+        "check_out_time": "11:00:00",
+        "start_days": [
+            "2020-09-17",
+            "2020-10-01",
+            "2020-10-12",
+            "2020-10-04",
+            "2020-10-11",
+            "2020-10-18",
+            "2020-10-25",
+            "2020-11-01",
+            "2020-11-08",
+            "2020-11-15",
+            "2020-12-01",
+            "2020-12-08",
+            "2020-12-15",
+            "2020-09-22"
+        ],
+        "must_end_on_start_day": false
+    }
+}
 
-*{*
-
-*"start": "2020-06-25",*
-
-*"end": "2022-06-25",*
-
-*"reservation\_length\_type": "over\_night",*
-
-*"multiday\_settings": {*
-
-*"max\_duration": 3,*
-
-*"min\_duration": 1,*
-
-*"duration\_unit": "week",*
-
-*"check\_in\_time": "12:00:00",*
-
-*"check\_out\_time": "11:00:00",*
-
-*"start\_days": \[*
-
-*"2020-09-17",*
-
-*"2020-10-01",*
-
-*"2020-10-12",*
-
-*"2020-10-04",*
-
-*"2020-10-11",*
-
-*"2020-10-18",*
-
-*"2020-10-25",*
-
-*"2020-11-01",*
-
-*"2020-11-08",*
-
-*"2020-11-15",*
-
-*"2020-12-01",*
-
-*"2020-12-08",*
-
-*"2020-12-15",*
-
-*"2020-09-22"*
-
-*\],*
-
-*"must\_end\_on\_start\_day": false*
-
-*}*
-
-*}*
+```
 
 -   **start** - Start date of period when these settings apply
 
