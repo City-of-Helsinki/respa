@@ -25,6 +25,8 @@ function initialSortPeriodDays() {
 
   for (let i = 0; i < periods.length; i++) {
     sortPeriodDays($(periods[i]));
+    const $dates = $('#date-inputs-' + i);
+    modifyDays($(periods[i]), $dates)
   }
 }
 
