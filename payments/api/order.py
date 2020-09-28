@@ -37,6 +37,7 @@ class PriceEndpointOrderSerializer(OrderSerializerBase):
 class OrderViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['POST'])
     def check_price(self, request):
+        resource = request.data.pop('resource', None)
         # validate incoming Order and OrderLine data
         write_serializer = PriceEndpointOrderSerializer(data=request.data)
         write_serializer.is_valid(raise_exception=True)
@@ -53,9 +54,17 @@ class OrderViewSet(viewsets.ViewSet):
         # those when calculating prices
         order._in_memory_order_lines = order_lines
 
+
+
         # order line price calculations need a dummy reservation from which they
         # get begin and end times from
+
         reservation = Reservation(begin=begin, end=end)
+
+        # If this is multiday reservation it needs resource for price calculation
+        if resource:
+            reservation.resource_id = resource
+
         order.reservation = reservation
 
         # serialize the in-memory objects

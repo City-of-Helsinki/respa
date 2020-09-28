@@ -37,7 +37,6 @@ def _check_permissions_dict(api_client, resource, is_admin, is_manager, is_viewe
 
     url = reverse('resource-detail', kwargs={'pk': resource.pk})
     response = api_client.get(url)
-    print(response.data)
     assert response.status_code == 200
     permissions = response.data['user_permissions']
     assert len(permissions) == 6

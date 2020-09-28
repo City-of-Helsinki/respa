@@ -169,20 +169,12 @@ class Product(models.Model):
 
         reservation_length_days = (reservation.end.date() - reservation.begin.date()).days
 
-        print(reservation_length_days)
-
         if multiday_settings.duration_unit == multiday_settings.DURATION_UNIT_DAY:
             length_in_duration_unit = reservation_length_days
-            print('mennaan paivaan')
         elif multiday_settings.duration_unit == multiday_settings.DURATION_UNIT_WEEK:
             length_in_duration_unit = reservation_length_days / 7
-            print('mennaan viikkoon')
         elif multiday_settings.duration_unit == multiday_settings.DURATION_UNIT_MONTH:
             length_in_duration_unit = diff_month(reservation.end.date(), reservation.begin.date())
-            print('mennaan kk')
-
-        print(length_in_duration_unit)
-        print(self.price)
 
         return Decimal(Decimal(length_in_duration_unit) * self.price)
 
