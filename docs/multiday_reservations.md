@@ -64,7 +64,7 @@ We will use this also for multi day reservations. After making request
 with start and end parameters, reservation periods including multi day
 reservation settings will be returned.
 
-Example JSON of multiday settings:
+Example JSON of period with multiday settings:
 ```json
 {
     "start": "2020-06-25",
