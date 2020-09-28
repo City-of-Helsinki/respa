@@ -1521,6 +1521,8 @@ components:
             $ref: '#/components/schemas/order_line_read'
         price:
           type: string
+        order_number:
+          type: string
     order_creation_request:
       type: object
       properties:

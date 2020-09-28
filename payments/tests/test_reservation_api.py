@@ -18,7 +18,7 @@ from .test_order_api import ORDER_LINE_FIELDS, PRODUCT_FIELDS
 
 LIST_URL = reverse('reservation-list')
 
-ORDER_FIELDS = {'id', 'state', 'price', 'order_lines'}
+ORDER_FIELDS = {'id', 'state', 'price', 'order_number', 'order_lines'}
 
 
 def get_detail_url(reservation):
