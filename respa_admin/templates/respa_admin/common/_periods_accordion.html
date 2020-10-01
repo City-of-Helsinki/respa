@@ -36,6 +36,15 @@
                 {% with period.multidaysettings.0 as multiday_settings_form %}
                 {{ multiday_settings_form.id }}
                 <div class="input-row datepicker-start-date"></div>
+                <div class="datepicker-action-buttons">
+                    <button class="datepicker-select-mondays" value="1" type="button">Select every mondays</button>
+                    <button class="datepicker-select-mondays" value="2" type="button">Select every tuesdays</button>
+                    <button class="datepicker-select-mondays" value="3" type="button">Select every wednesdays</button>
+                    <button class="datepicker-select-mondays" value="4" type="button">Select every thursdays</button>
+                    <button class="datepicker-select-mondays" value="5" type="button">Select every fridays</button>
+                    <button class="datepicker-select-mondays" value="6" type="button">Select every saturdays</button>
+                    <button class="datepicker-select-mondays" value="0" type="button">Select every sundays</button>
+                </div>
                 <div class="initial-start-dates">
                     {% for initial_start_date in multiday_settings_form.initial_start_dates %}
                         <input type="hidden" value="{{ initial_start_date }}">

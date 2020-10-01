@@ -21,6 +21,9 @@ module.exports = {
     filename: '[name]-bundle.js',
     path: path.resolve(__dirname, './static/respa_admin/'),
   },
+  optimization: {
+		minimize: false
+	},
   module: {
     // Add loader
     rules: [

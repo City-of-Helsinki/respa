@@ -6,6 +6,7 @@ export function initializePeriods() {
   enableAddNewPeriod();
   setPeriodAndDayItems();
   initialSortPeriodDays();
+  initializeDatepickerButtonListeners();
 }
 
 function getEmptyPeriodItem() {
@@ -588,4 +589,32 @@ function initializeDatepicker(periodItem) {
       startDateCalendar.datepicker('setEndDate', endDateInput.val());
     })
   })
+}
+
+function initializeDatepickerButtonListeners() {
+  const periods = getPeriodsList();
+  for(const period of periods) {
+    const datepicker = $(period).find('.datepicker-start-date');
+    const actionButtonsContainer = $(period).find('div.datepicker-action-buttons').children();
+    const startDateString = $(period).find('.period-start').first().val();
+    const endDateString = $(period).find('.period-end').first().val();
+    Array.from(actionButtonsContainer).forEach(button => {
+      button.addEventListener('click', () => updateCalendar(datepicker, button.value, startDateString, endDateString), false);
+    })
+  }
+}
+
+function updateCalendar(datepicker, dayOfTheWeek, startDateString, endDateString) {
+  const startDate = new Date(startDateString);
+  const endDate = new Date(endDateString);
+  const dates = [];
+
+  for (const d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
+    const day = new Date(d);
+    if(day.getDay() == dayOfTheWeek) {
+      dates.push(day);
+    }
+  }
+
+  datepicker.datepicker('setDates', dates.concat(datepicker.datepicker('getDates')));
 }
