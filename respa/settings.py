@@ -73,6 +73,8 @@ env = environ.Env(
     RESPA_PAYMENTS_ENABLED=(bool, False),
     RESPA_PAYMENTS_PROVIDER_CLASS=(str, ''),
     RESPA_PAYMENTS_PAYMENT_WAITING_TIME=(int, 15),
+    ENABLE_RESOURCE_TOKEN_AUTH=(bool, False),
+    DISABLE_SERVER_SIDE_CURSORS=(bool, False)
 )
 environ.Env.read_env()
 
@@ -92,6 +94,7 @@ DATABASES = {
     'default': env.db()
 }
 DATABASES['default']['ATOMIC_REQUESTS'] = True
+DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = env('DISABLE_SERVER_SIDE_CURSORS')
 
 SECURE_PROXY_SSL_HEADER = env('SECURE_PROXY_SSL_HEADER')
 
@@ -100,6 +103,7 @@ SITE_ID = 1
 # Application definition
 INSTALLED_APPS = [
     'helusers',
+    'resources',
     'modeltranslation',
     'grappelli',
     'helusers.apps.HelusersAdminConfig',
@@ -134,7 +138,6 @@ INSTALLED_APPS = [
     'munigeo',
 
     'reports',
-    'resources',
     'users',
     'caterings',
     'comments',
@@ -271,6 +274,8 @@ SOCIALACCOUNT_ADAPTER = 'helusers.adapter.SocialAccountAdapter'
 # REST Framework
 # http://www.django-rest-framework.org
 
+ENABLE_RESOURCE_TOKEN_AUTH = env('ENABLE_RESOURCE_TOKEN_AUTH')
+
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
@@ -283,6 +288,10 @@ REST_FRAMEWORK = {
     ] if DEBUG else []),
     'DEFAULT_PAGINATION_CLASS': 'resources.pagination.DefaultPagination',
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+        'respa.renderers.ResourcesBrowsableAPIRenderer',
+    )
 }
 
 JWT_AUTH = {

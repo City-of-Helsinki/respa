@@ -1,21 +1,25 @@
+import os
 import pytest
 import datetime
 import re
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.core import mail
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test.utils import override_settings
 from django.utils import dateparse, timezone, translation
 from guardian.shortcuts import assign_perm, remove_perm
 from freezegun import freeze_time
 from icalendar import Calendar
 from parler.utils.context import switch_language
+from rest_framework.exceptions import ErrorDetail
 
 from caterings.models import CateringOrder, CateringProvider
 
 from resources.enums import UnitAuthorizationLevel
 from resources.models import (Period, Day, Reservation, Resource, ResourceGroup, ReservationMetadataField,
-                              ReservationMetadataSet, UnitAuthorization)
+                              ReservationMetadataSet, UnitAuthorization, ReservationCancelReasonCategory,
+                              ReservationCancelReason, Attachment)
 from notifications.models import NotificationTemplate, NotificationType
 from notifications.tests.utils import check_received_mail_exists
 from .utils import check_disallowed_methods, assert_non_field_errors_contain, assert_response_objects, MAX_QUERIES
@@ -171,6 +175,24 @@ def reservation_created_notification():
             subject='Normal reservation created subject.',
             body='Normal reservation created body.',
         )
+
+
+@pytest.fixture
+def reservation_cancelled_notification():
+    with translation.override('en'):
+        tmpl = NotificationTemplate.objects.get(type=NotificationType.RESERVATION_CANCELLED)
+        tmpl.body += '{{ extra_content }}'
+        tmpl.save()
+        return tmpl
+
+
+@pytest.fixture
+def reservation_denied_notification():
+    with translation.override('en'):
+        tmpl = NotificationTemplate.objects.get(type=NotificationType.RESERVATION_DENIED)
+        tmpl.body += '{{ extra_content }}'
+        tmpl.save()
+        return tmpl
 
 
 @pytest.mark.django_db
@@ -1098,6 +1120,13 @@ def test_reservation_mails(
     resource = Resource.objects.get(id=reservation_data_extra['resource'])
     resource.need_manual_confirmation = True
     resource.reservation_metadata_set = ReservationMetadataSet.objects.get(name='default')
+    # create attachments for resource
+    attachment_file = SimpleUploadedFile('testi.pdf', b'file_content', content_type='application/pdf')
+    attachment_object = Attachment.objects.create(
+        name='Testi PDF',
+        attachment_file=attachment_file
+    )
+    resource.attachments.add(attachment_object)
     resource.save()
     if perm_type == 'unit':
         assign_perm('unit:can_approve_reservation',
@@ -1166,6 +1195,8 @@ def test_reservation_mails(
         'has been confirmed.',
         clear_outbox=False
     )
+    file_name = os.path.basename(attachment_object.attachment_file.name)
+    assert file_name in mail.outbox[0].attachments[1]
     assert 'this resource rocks' in str(mail.outbox[0].message())
     mail.outbox = []
 
@@ -1280,17 +1311,34 @@ def test_reservation_mails_in_finnish(
 
 @override_settings(RESPA_MAILS_ENABLED=True)
 @pytest.mark.django_db
-def test_reservation_created_mail(user_api_client, list_url, reservation_data, user, reservation_created_notification):
+def test_reservation_created_mail(user_api_client, resource_in_unit, list_url, reservation_data, user, reservation_created_notification):
+    with switch_language(reservation_created_notification, 'en'):
+        reservation_created_notification.body += '{{ extra_content }}'
+        reservation_created_notification.save()
+
+    # create attachments for resource
+    resource = Resource.objects.get(id=reservation_data['resource'])
+    attachment_file = SimpleUploadedFile('testi.pdf', b'file_content', content_type='application/pdf')
+    attachment_object = Attachment.objects.create(
+        name='Testi PDF',
+        attachment_file=attachment_file
+    )
+    resource.attachments.add(attachment_object)
+
     response = user_api_client.post(list_url, data=reservation_data, format='json')
-    file_name, ical_file, mimetype = mail.outbox[0].attachments[0]
     assert response.status_code == 201
-    assert len(mail.outbox[0].attachments) == 1
-    Calendar.from_ical(ical_file)
     assert len(mail.outbox) == 1
+    assert len(mail.outbox[0].attachments) == 2
+
+    attachment_file_name = os.path.basename(attachment_object.attachment_file.name)
+    ical_file_name, ical_file, mimetype = mail.outbox[0].attachments[0]
+    assert attachment_file_name in mail.outbox[0].attachments[1]
+    Calendar.from_ical(ical_file)
+
     check_received_mail_exists(
         'Normal reservation created subject.',
         user.email,
-        'Normal reservation created body.',
+        'Normal reservation created body.' + resource_in_unit.reservation_confirmed_notification_extra,
     )
 
 
@@ -2248,6 +2296,92 @@ def test_viewer_can_comment_reservations(resource_in_unit, api_client, unit_view
 
 
 @pytest.mark.django_db
+def test_admin_can_make_staff_reservation(
+        resource_in_unit, list_url, reservation_data, unit_admin_user, api_client):
+    """
+    User with admin status on the resource should be able to make staff event reservations.
+    """
+    reservation_data['staff_event'] = True
+    reservation_data['reserver_name'] = 'herra huu'
+    reservation_data['event_description'] = 'herra huun bileet'
+
+    api_client.force_authenticate(user=unit_admin_user)
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201, "Request failed with: %s" % (str(response.content, 'utf8'))
+    assert response.data.get('staff_event', False) is True
+    reservation = Reservation.objects.get(id=response.data['id'])
+    assert reservation.staff_event is True
+
+
+@pytest.mark.django_db
+def test_admin_can_create_special_type_reservation(
+        resource_in_unit, list_url, reservation_data, unit_admin_user, api_client):
+    """
+    User with admin status on the resource should be able to make special type reservations.
+    """
+    reservation_data['type'] = Reservation.TYPE_BLOCKED
+
+    api_client.force_authenticate(user=unit_admin_user)
+    response = api_client.post(list_url, data=reservation_data)
+
+    assert response.status_code == 201
+    reservation = Reservation.objects.get(id=response.data['id'])
+    assert reservation.type == Reservation.TYPE_BLOCKED
+
+
+@pytest.mark.django_db
+def test_manager_can_create_special_type_reservation(
+        resource_in_unit, list_url, reservation_data, unit_manager_user, api_client):
+    """
+    User with manager status on the resource should be able to make special type reservations.
+    """
+    reservation_data['type'] = Reservation.TYPE_BLOCKED
+
+    api_client.force_authenticate(user=unit_manager_user)
+    response = api_client.post(list_url, data=reservation_data)
+
+    assert response.status_code == 201
+    reservation = Reservation.objects.get(id=response.data['id'])
+    assert reservation.type == Reservation.TYPE_BLOCKED
+
+
+@pytest.mark.django_db
+def test_admin_can_bypass_manual_confirmation(
+        resource_in_unit, list_url, reservation_data, unit_admin_user, api_client):
+    """
+    User with admin status on the resource should be able to bypass manual confirmation.
+    """
+
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+
+    api_client.force_authenticate(user=unit_admin_user)
+    response = api_client.post(list_url, data=reservation_data)
+
+    assert response.status_code == 201
+    reservation = Reservation.objects.get(id=response.data['id'])
+    assert reservation.state != Reservation.REQUESTED
+
+
+@pytest.mark.django_db
+def test_manager_can_bypass_manual_confirmation(
+        resource_in_unit, list_url, reservation_data, unit_manager_user, api_client):
+    """
+    User with manager status on the resource should be able to bypass manual confirmation.
+    """
+
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+
+    api_client.force_authenticate(user=unit_manager_user)
+    response = api_client.post(list_url, data=reservation_data)
+
+    assert response.status_code == 201
+    reservation = Reservation.objects.get(id=response.data['id'])
+    assert reservation.state != Reservation.REQUESTED
+
+
+@pytest.mark.django_db
 def test_query_counts(user_api_client, staff_api_client, list_url, django_assert_max_num_queries):
     """
     Test that DB query count is less than allowed
@@ -2257,3 +2391,324 @@ def test_query_counts(user_api_client, staff_api_client, list_url, django_assert
 
     with django_assert_max_num_queries(MAX_QUERIES):
         staff_api_client.get(list_url)
+
+
+@pytest.mark.django_db
+def test_admin_may_bypass_min_period(resource_in_unit, user, user_api_client, list_url):
+    # min_period is bypassed respecting slot_size restriction
+    resource_in_unit.min_period = datetime.timedelta(hours=1)
+    resource_in_unit.slot_size = datetime.timedelta(minutes=30)
+    resource_in_unit.save()
+
+    UnitAuthorization.objects.create(
+        subject=resource_in_unit.unit,
+        level=UnitAuthorizationLevel.admin,
+        authorized=user,
+    )
+
+    tz = timezone.get_current_timezone()
+    begin = tz.localize(datetime.datetime(2115, 6, 1, 8, 0, 0))
+    end = begin + datetime.timedelta(hours=0, minutes=30)
+
+    reservation_data = {
+        'resource': resource_in_unit.pk,
+        'begin': begin,
+        'end': end,
+    }
+
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+    Reservation.objects.all().delete()
+
+    # min_period is bypassed and slot_size restriction is violated
+    resource_in_unit.slot_size = datetime.timedelta(minutes=25)
+    resource_in_unit.save()
+
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_can_ignore_max_period(resource_with_opening_hours, user, user_api_client, list_url):
+    resource_with_opening_hours.max_period = datetime.timedelta(hours=1)
+    resource_with_opening_hours.save()
+
+    tz = timezone.get_current_timezone()
+    begin = tz.localize(datetime.datetime(2115, 6, 1, 8, 0, 0))
+    end = begin + datetime.timedelta(hours=2)
+
+    reservation_data = {
+        'resource': resource_with_opening_hours.pk,
+        'begin': begin,
+        'end': end,
+    }
+
+    # Normal user can not ignore max_period
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 400
+
+    UnitAuthorization.objects.create(
+        subject=resource_with_opening_hours.unit,
+        level=UnitAuthorizationLevel.admin,
+        authorized=user,
+    )
+
+    # Admin can ignore max_period
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+    UnitAuthorization.objects.filter(authorized=user).delete()
+    Reservation.objects.filter(user=user, resource=resource_with_opening_hours).delete()
+
+    UnitAuthorization.objects.create(
+        subject=resource_with_opening_hours.unit,
+        level=UnitAuthorizationLevel.manager,
+        authorized=user,
+    )
+
+    # Manager can ignore max_period
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+
+
+@pytest.mark.django_db
+def test_can_ignore_max_reservations_per_user(resource_with_opening_hours, user, user_api_client, list_url):
+    resource_with_opening_hours.max_reservations_per_user = 1
+    resource_with_opening_hours.save()
+
+    tz = timezone.get_current_timezone()
+    begin = tz.localize(datetime.datetime(2115, 6, 1, 8, 0, 0))
+    end = begin + datetime.timedelta(hours=1)
+
+    reservation_data = {
+        'resource': resource_with_opening_hours.pk,
+        'begin': begin,
+        'end': end,
+    }
+
+    begin2 = tz.localize(datetime.datetime(2115, 6, 2, 8, 0, 0))
+    end2 = begin2 + datetime.timedelta(hours=1)
+
+    reservation_data_2 = {
+        'resource': resource_with_opening_hours.pk,
+        'begin': begin2,
+        'end': end2,
+    }
+
+    # Normal user can not ignore max_reservations_per_user
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+    response = user_api_client.post(list_url, reservation_data_2)
+    assert response.status_code == 400
+    Reservation.objects.filter(user=user, resource=resource_with_opening_hours).delete()
+
+    UnitAuthorization.objects.create(
+        subject=resource_with_opening_hours.unit,
+        level=UnitAuthorizationLevel.admin,
+        authorized=user,
+    )
+
+    # Admin can ignore max_reservations_per_user
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+    response = user_api_client.post(list_url, reservation_data_2)
+    assert response.status_code == 201
+    Reservation.objects.filter(user=user, resource=resource_with_opening_hours).delete()
+    UnitAuthorization.objects.filter(authorized=user).delete()
+
+    UnitAuthorization.objects.create(
+        subject=resource_with_opening_hours.unit,
+        level=UnitAuthorizationLevel.manager,
+        authorized=user,
+    )
+
+    # Manager can ignore max_reservations_per_user
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+    response = user_api_client.post(list_url, reservation_data_2)
+    assert response.status_code == 201
+
+
+@pytest.mark.django_db
+def test_disallow_overlapping_reservations(resource_in_unit, resource_in_unit2, user, user_api_client, list_url):
+    expected_error = ErrorDetail(
+        string="['This unit does not allow overlapping reservations for its resources']",
+        code='conflicting_reservation'
+    )
+    resource_in_unit.unit.disallow_overlapping_reservations = True
+    resource_in_unit.unit.save()
+
+    period = Period.objects.create(
+        start=datetime.date(2115, 1, 1),
+        end=datetime.date(2115, 12, 31),
+        resource=resource_in_unit, name='regular hours'
+    )
+    period2 = Period.objects.create(
+        start=datetime.date(2115, 1, 1),
+        end=datetime.date(2115, 12, 31),
+        resource=resource_in_unit2, name='regular hours'
+    )
+
+    for weekday in range(0, 7):
+        Day.objects.create(
+            period=period,
+            weekday=weekday,
+            opens=datetime.time(8, 0),
+            closes=datetime.time(18, 0)
+        )
+        Day.objects.create(
+            period=period2,
+            weekday=weekday,
+            opens=datetime.time(8, 0),
+            closes=datetime.time(18, 0)
+        )
+
+    resource_in_unit.update_opening_hours()
+    resource_in_unit2.update_opening_hours()
+
+    resource_in_unit2.unit = resource_in_unit.unit
+    resource_in_unit2.save()
+
+    # Initial reservation, which should be created normally
+    reservation_data = {
+        'resource': resource_in_unit.pk,
+        'begin': '2115-04-04T12:00:00+02:00',
+        'end': '2115-04-04T14:00:00+02:00'
+    }
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+
+    # Try every possibility to overlap existing reservation
+    reservation_data2 = {
+        'resource': resource_in_unit2.pk,
+        'begin': '2115-04-04T11:00:00+02:00',
+        'end': '2115-04-04T12:30:00+02:00'
+    }
+    reservation_data3 = {
+        'resource': resource_in_unit2.pk,
+        'begin': '2115-04-04T13:30:00+02:00',
+        'end': '2115-04-04T14:30:00+02:00'
+    }
+    reservation_data4 = {
+        'resource': resource_in_unit2.pk,
+        'begin': '2115-04-04T12:30:00+02:00',
+        'end': '2115-04-04T13:00:00+02:00'
+    }
+    reservation_data5 = {
+        'resource': resource_in_unit2.pk,
+        'begin': '2115-04-04T12:00:00+02:00',
+        'end': '2115-04-04T14:00:00+02:00'
+    }
+    reservation_data6 = {
+        'resource': resource_in_unit2.pk,
+        'begin': '2115-04-04T12:30:00+02:00',
+        'end': '2115-04-04T13:00:00+02:00'
+    }
+
+    response2 = user_api_client.post(list_url, reservation_data2, HTTP_ACCEPT_LANGUAGE='en')
+    assert response2.data['non_field_errors'][0] == expected_error
+    assert response2.status_code == 400
+
+    response3 = user_api_client.post(list_url, reservation_data3, HTTP_ACCEPT_LANGUAGE='en')
+    assert response3.data['non_field_errors'][0] == expected_error
+    assert response3.status_code == 400
+
+    response4 = user_api_client.post(list_url, reservation_data4, HTTP_ACCEPT_LANGUAGE='en')
+    assert response4.data['non_field_errors'][0] == expected_error
+    assert response4.status_code == 400
+
+    response5 = user_api_client.post(list_url, reservation_data5, HTTP_ACCEPT_LANGUAGE='en')
+    assert response5.data['non_field_errors'][0] == expected_error
+    assert response5.status_code == 400
+
+    response6 = user_api_client.post(list_url, reservation_data6, HTTP_ACCEPT_LANGUAGE='en')
+    assert response6.data['non_field_errors'][0] == expected_error
+    assert response6.status_code == 400
+
+    # Admin user should be allowed to overlap reservations
+    UnitAuthorization.objects.create(
+        subject=resource_in_unit.unit,
+        level=UnitAuthorizationLevel.admin,
+        authorized=user,
+    )
+    response_admin = user_api_client.post(list_url, reservation_data2)
+    assert response_admin.status_code == 201
+
+    created_reservation = Reservation.objects.get(id=response_admin.data['id'])
+    created_reservation.delete()
+
+    # Manager user should be allowed to overlap reservations as well
+    UnitAuthorization.objects.all().delete()
+    UnitAuthorization.objects.create(
+        subject=resource_in_unit.unit,
+        level=UnitAuthorizationLevel.manager,
+        authorized=user,
+    )
+    response_manager = user_api_client.post(list_url, reservation_data2)
+    assert response_manager.status_code == 201
+
+    # Cancelled reservations should not be taken into account
+    UnitAuthorization.objects.all().delete()
+    Reservation.objects.all().delete()
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == 201
+    reservation = Reservation.objects.all()[0]
+    reservation.set_state(Reservation.CANCELLED, user)
+
+    assert reservation.state == Reservation.CANCELLED
+
+    response2 = user_api_client.post(list_url, reservation_data2)
+    assert response2.status_code == 201
+
+
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
+def test_reservation_cancellation_with_message(user_api_client, api_client, general_admin, detail_url,
+    reservation_denied_notification, reservation_cancelled_notification):
+
+    cancel_reason_category = ReservationCancelReasonCategory.objects.create(
+        name_fi='Testikategoria',
+        name_en='Testcategory',
+        name_sv='Testkategori',
+        description_fi='Tämä on testikategoria',
+        description_en='This is a test category',
+        description_sv='Den här är testkategori',
+        reservation_type=ReservationCancelReasonCategory.CONFIRMED
+    )
+
+    cancel_with_message_data = {
+        "state": "cancelled",
+        "cancel_reason": {
+            "description": "Free text for cancellation",
+            "category_id": cancel_reason_category.pk
+        }
+    }
+
+    api_client.force_authenticate(user=general_admin)
+    response = api_client.patch(detail_url, data=cancel_with_message_data, format='json')
+
+    assert response.status_code == 200
+    assert len(mail.outbox) == 1
+    mail_body = mail.outbox[0].body
+    assert cancel_reason_category.description_en in mail_body
+    assert cancel_with_message_data['cancel_reason']['description'] in mail_body
+
+    reservation_id = response.data['id']
+    reservation = Reservation.objects.get(id=reservation_id)
+    reservation.cancel_reason.delete()
+    reservation.state = 'requested'
+    reservation.save()
+
+    cancel_reason_category.reservation_type = ReservationCancelReasonCategory.REQUESTED
+    cancel_reason_category.save()
+    cancel_with_message_data['state'] = 'denied'
+    assign_perm('unit:can_approve_reservation', general_admin, reservation.resource.unit)
+
+    api_client.force_authenticate(user=general_admin)
+    response = api_client.patch(detail_url, data=cancel_with_message_data, format='json')
+
+    assert response.status_code == 200
+    assert len(mail.outbox) == 2
+    mail_body = mail.outbox[1].body
+    assert cancel_reason_category.description_en in mail_body
+    assert cancel_with_message_data['cancel_reason']['description'] in mail_body
+

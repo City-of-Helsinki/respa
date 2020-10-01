@@ -1,9 +1,11 @@
 from .accessibility import AccessibilityValue, AccessibilityViewpoint, ResourceAccessibility, UnitAccessibility
 from .availability import Day, Period, get_opening_hours
-from .reservation import ReservationMetadataField, ReservationMetadataSet, Reservation, RESERVATION_EXTRA_FIELDS
+from .reservation import (
+    ReservationMetadataField, ReservationMetadataSet, Reservation, RESERVATION_EXTRA_FIELDS,
+    ReservationCancelReasonCategory, ReservationCancelReason)
 from .resource import (
     Purpose, Resource, ResourceType, ResourceImage, ResourceEquipment, ResourceGroup,
-    ResourceDailyOpeningHours, TermsOfUse
+    ResourceDailyOpeningHours, TermsOfUse, Attachment
 )
 from .equipment import Equipment, EquipmentAlias, EquipmentCategory
 from .unit import Unit, UnitAuthorization, UnitIdentifier
@@ -22,6 +24,8 @@ __all__ = [
     'Reservation',
     'ReservationMetadataField',
     'ReservationMetadataSet',
+    'ReservationCancelReasonCategory',
+    'ReservationCancelReason',
     'Resource',
     'ResourceAccessibility',
     'ResourceDailyOpeningHours',
@@ -37,4 +41,5 @@ __all__ = [
     'UnitGroupAuthorization',
     'UnitIdentifier',
     'get_opening_hours',
+    'Attachment'
 ]

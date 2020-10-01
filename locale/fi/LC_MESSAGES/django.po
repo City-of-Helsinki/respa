@@ -121,22 +121,22 @@ msgid "Comments"
 msgstr "Kommentit"
 
 msgid "installed"
-msgstr ""
+msgstr "asennettu"
 
 msgid "removed"
-msgstr ""
+msgstr "poistettu"
 
 msgid "State of the user"
-msgstr ""
+msgstr "Käyttäjän tila"
 
 msgid "identifier"
-msgstr ""
+msgstr "tunniste"
 
 msgid "Identifier of user in the access control system (if any)"
-msgstr ""
+msgstr "Käyttäjän tunniste kulunvalvontajärjestelmässä (jos olemassa)"
 
 msgid "[No identifier]"
-msgstr ""
+msgstr "[Ei tunnistetta]"
 
 #, python-brace-format
 msgid "{uuid}: {name}"
@@ -153,48 +153,50 @@ msgid "cancelled"
 msgstr "peruttu"
 
 msgid "removing"
-msgstr ""
+msgstr "poistetaan"
 
 msgid "access code"
-msgstr ""
+msgstr "pääsykoodi"
 
 msgid "State of the grant"
-msgstr ""
+msgstr "Luvan tila"
 
 msgid "Identifier of grant in the access control system (if any)"
-msgstr ""
+msgstr "Luvan tunniste kulunvalvontajärjestelmässä (jos olemassa)"
 
 msgid "How many times the system has tried to install this grant and failed"
 msgstr ""
+"Kuinka monta kertaa järjestelmä on yrittänyt asentaa luvan ja epäonnistunut"
 
 msgid "How many times the system has tried to remove this grant (and failed)"
 msgstr ""
+"Kuinka monta kertaa järjestelmä on yrittänyt poistaa luvan ja epäonnistunut"
 
 #, python-brace-format
 msgid "{user} {reservation} ({state})"
 msgstr ""
 
 msgid "system"
-msgstr ""
+msgstr "järjestelmä"
 
 msgid "resource"
 msgstr "resurssi"
 
 msgid "Identifier of resource in the access control system (if any)"
-msgstr ""
+msgstr "Resurssin tunniste kulunvalvontajärjestelmässä (jos olemassa)"
 
 msgid "Driver-specific configuration"
-msgstr ""
+msgstr "Ajurikohtainen konfiguraatio"
 
 msgid "Internal driver data"
-msgstr ""
+msgstr "Sisäinen ajuridata"
 
 msgid "reservation leeway"
 msgstr ""
 
 msgid ""
 "How many minutes before and after the reservation the access will be allowed"
-msgstr ""
+msgstr "Kuinka monta minuuttia ennen ja jälkeen varauksen pääsy on sallittu"
 
 msgid "Notifications"
 msgstr "Herätteet"
@@ -221,7 +223,7 @@ msgid "Reservation created with access code"
 msgstr "Varaus pääsykoodin kanssa tehty"
 
 msgid "Access code was created for a reservation"
-msgstr ""
+msgstr "Pääsykoodi luotiin varaukselle"
 
 msgid "Catering order created"
 msgstr "Tarjoilutilaus luotu"
@@ -314,6 +316,9 @@ msgstr "Maksimilukumäärää ei voi ylittää"
 
 msgid "This product isn't available on the resource."
 msgstr "Tämä tuote ei ole saatavilla tällä resurssilla."
+
+msgid "Begin time must be before end time"
+msgstr "Alkamisajan täytyy olla päättymisaikaa aiempi"
 
 msgid "At least one order line required."
 msgstr "Vähintään yksi tilausrivi tarvitaan."
@@ -435,7 +440,7 @@ msgstr "Ei varauksia"
 
 #, python-brace-format
 msgid "Unit \"{pk_value}\" does not exist."
-msgstr ""
+msgstr "Toimipaikkaa \"{pk_value}\" ei ole olemassa."
 
 msgid "Either unit or a valid resource id is required."
 msgstr "Joko unit tai resource on pakollinen."
@@ -502,7 +507,7 @@ msgid "The resource is reservable only after %(datetime)s"
 msgstr "Tila on varattavissa vain %(datetime)s jälkeen"
 
 msgid "Only allowed to be set by resource managers"
-msgstr ""
+msgstr "Ainoastaan hoitajat saavat asettaa"
 
 msgid "You are not allowed to make a reservation of this type"
 msgstr "Et voi tehdä tämän tyyppistä varausta"
@@ -516,9 +521,13 @@ msgstr "Tällä kentällä ei voi olla arvoa tällä resurssilla"
 msgid "This field cannot be changed"
 msgstr "Tätä arvoa ei voi muuttaa"
 
+#, python-format
+msgid "Patching of field %(field)s is not allowed"
+msgstr "Kentän %(field)s päivittäminen PATCH-metodilla ei ole sallittu"
+
 #, python-brace-format
 msgid "Invalid pk \"{pk_value}\" - object does not exist."
-msgstr ""
+msgstr "Virheellinen pk \"{pk_value}\" - kohdetta ei ole olemassa."
 
 #, python-format
 msgid "Invalid value in filter %(filter)s"
@@ -546,43 +555,46 @@ msgid "Time of modification"
 msgstr "Muokkausaika"
 
 msgid "accessibility viewpoint"
-msgstr ""
+msgstr "saavutettavuusnäkökulma"
 
 msgid "accessibility viewpoints"
-msgstr ""
+msgstr "saavutettavuusnäkökulmat"
 
 msgid "Accessibility summary value"
-msgstr ""
+msgstr "Saavutettavuusyhteenvedon arvo"
 
 msgid "Ordering priority"
-msgstr ""
+msgstr "Järjestysprioriteetti"
 
 msgid "accessibility value"
-msgstr ""
+msgstr "saavutettavuusarvo"
 
 msgid "accessibility values"
-msgstr ""
+msgstr "saavutettavuusarvot"
 
 msgid "Resource Accessibility"
-msgstr ""
+msgstr "Resurssin saavutettavuus"
 
 msgid "Resource"
 msgstr "Resurssi"
 
+msgid "Accessibility shortage count"
+msgstr "Saavutettavuuspuutteiden määrä"
+
 msgid "Resource ordering priority"
-msgstr ""
+msgstr "Resurssin järjestysprioriteetti"
 
 msgid "resource accessibility summary"
-msgstr ""
+msgstr "resurssin saavutettavuuden yhteenveto"
 
 msgid "resource accessibility summaries"
-msgstr ""
+msgstr "resurssin saavutettavuuden yhteenvedot"
 
 msgid "unit accessibility summary"
-msgstr ""
+msgstr "toimipisteen saavutettavuuden yhteenveto"
 
 msgid "unit accessibility summaries"
-msgstr ""
+msgstr "toimipisteen saavutettavuuden yhteenvedot"
 
 msgid "open"
 msgstr "auki"
@@ -618,7 +630,7 @@ msgid "You must set either 'resource' or 'unit', but not both"
 msgstr "Aseta 'resource' tai 'unit', älä molempia"
 
 msgid "You must set 'start' and 'end' fields."
-msgstr "Aseta 'resource' tai 'unit'"
+msgstr "Aseta 'start' ja 'end'"
 
 msgid "Monday"
 msgstr "maanantai"
@@ -729,6 +741,27 @@ msgstr "Voi muokata maksettuja varauksia"
 
 msgid "Can bypass payment for paid reservations"
 msgstr "Voi ohittaa varauksen maksamisen"
+
+msgid "Can create a reservation that is a staff event"
+msgstr "Voi luoda henkilökuntavarauksen"
+
+msgid "Can create reservations of a non-normal type"
+msgstr "Voi tehdä erikoistyyppisiä varauksia"
+
+msgid "Can bypass manual confirmation requirement for resources"
+msgstr "Voi ohittaa manuaalisen vahvistuksen"
+
+msgid "Can create reservations for other registered users"
+msgstr "Voi tehdä varauksia muille käyttäjille"
+
+msgid "Can create overlapping reservations"
+msgstr "Voi luoda päällekkäisiä varauksia"
+
+msgid "Can ignore resources max reservations per user rule"
+msgstr "Voi ohittaa käyttäjäkohtaisen varausylärajan"
+
+msgid "Can ignore resources max period rule"
+msgstr "Voi ohittaa resurssin varauspituuden ylärajan"
 
 msgid "created"
 msgstr "luoja"
@@ -841,12 +874,19 @@ msgstr "Varauksen loppuaika ei voi olla ennen alkuaikaa"
 msgid "Begin and end time must match time slots"
 msgstr "Alku- ja loppuajan täytyy osua aikaikkunoihin"
 
+msgid "This unit does not allow overlapping reservations for its resources"
+msgstr "Tämä toimipiste ei salli päällekkäisiä varauksia resurssien välillä"
+
 msgid "The resource is already reserved for some of the period"
 msgstr "Tila on jo varattu ainakin osan ajanjaksosta"
 
 #, python-format
 msgid "The minimum reservation length is %(min_period)s"
 msgstr "Varauksen minimikesto on %(min_period)s"
+
+#, python-format
+msgid "The minimum reservation length is %(slot_size)s"
+msgstr "Varauksen minimikesto on %(slot_size)s"
 
 msgid "Field name"
 msgstr "Kentän nimi"
@@ -868,6 +908,30 @@ msgstr "Varauksen metatietojoukko"
 
 msgid "Reservation metadata sets"
 msgstr "Varauksen metatietojoukot"
+
+msgid "Confirmed reservation"
+msgstr "Vahvistettu varaus"
+
+msgid "Requested reservation"
+msgstr "Alustava varaus"
+
+msgid "Own reservation"
+msgstr "Oma varaus"
+
+msgid "Reservation type"
+msgstr "Varaustyyppi"
+
+msgid "Reservation cancellation reason category"
+msgstr "Varauksen peruutussyykategoria"
+
+msgid "Reservation cancellation reason categories"
+msgstr "Varauksen peruutussyykategoriat"
+
+msgid "Reservation cancellation reason"
+msgstr "Varauksen peruutussyy"
+
+msgid "Reservation cancellation reasons"
+msgstr "Varauksen peruutussyyt"
 
 msgid "Invalid value"
 msgstr "Epäkelpo arvo"
@@ -902,6 +966,15 @@ msgstr "käyttötarkoitus"
 msgid "purposes"
 msgstr "käyttötarkoitukset"
 
+msgid "Payment terms"
+msgstr "Maksuehdot"
+
+msgid "Generic terms"
+msgstr "Yleiset ehdot"
+
+msgid "Terms type"
+msgstr "Ehtojen tyyppi"
+
 msgctxt "singular"
 msgid "terms of use"
 msgstr "käyttöehdot"
@@ -924,6 +997,18 @@ msgstr "4-numeroinen pin-koodi"
 
 msgid "6-digit PIN code"
 msgstr "6-numeroinen pin-koodi"
+
+msgid "Hourly"
+msgstr "Per tunti"
+
+msgid "Daily"
+msgstr "Per päivä"
+
+msgid "Weekly"
+msgstr "Per viikko"
+
+msgid "Fixed"
+msgstr "Kiinteä"
 
 msgid "Resource type"
 msgstr "Resurssityyppi"
@@ -970,9 +1055,6 @@ msgstr "Varausinfo"
 msgid "Responsible contact info"
 msgstr "Vastuuhenkilön yhteystiedot"
 
-msgid "Generic terms"
-msgstr "Yleiset ehdot"
-
 msgid "Specific terms"
 msgstr "Resurssikohtaiset ehdot"
 
@@ -982,11 +1064,11 @@ msgstr "Lisäsisältö \"alustava varaus\"-ilmoitukseen"
 msgid "Extra content to \"reservation confirmed\" notification"
 msgstr "Lisäsisältö \"varaus vahvistettu\"-ilmoitukseen"
 
-msgid "Min price per hour"
-msgstr "Minimituntihinta"
+msgid "Min price"
+msgstr "Minimihinta"
 
-msgid "Max price per hour"
-msgstr "Maksimituntihinta"
+msgid "Max price"
+msgstr "Maksimihinta"
 
 msgid "Access code type"
 msgstr "Pääsykoodityyppi"
@@ -1025,8 +1107,8 @@ msgstr "Varauksen maksimikesto on %(max_period)s"
 msgid "Maximum number of active reservations for this resource exceeded."
 msgstr "Liikaa voimassa olevia varauksia tähän tilaan."
 
-msgid "This value cannot be greater than max price per hour"
-msgstr "Tämä arvo ei voi olla suurempi kuin maksimituntihinta"
+msgid "This value cannot be greater than max price"
+msgstr "Tämä arvo ei voi olla suurempi kuin maksimihinta"
 
 msgid "This value must be a multiple of slot_size"
 msgstr "Tämän arvon täytyy olla slot_size arvon moninkerta"
@@ -1120,6 +1202,9 @@ msgstr "Ulkoinen tietolähde"
 msgid "External data source for opening hours"
 msgstr "Ulkoinen tietolähde aukioloajoille"
 
+msgid "Disallow overlapping reservations in this unit"
+msgstr "Estä toimipisteen sisäiset päällekkäiset varaukset"
+
 msgid "unit"
 msgstr "toimipiste"
 
@@ -1178,7 +1263,7 @@ msgstr[0] "%(count)d minuutti"
 msgstr[1] "%(count)d minuuttia"
 
 msgid "Home"
-msgstr ""
+msgstr "Koti"
 
 msgid "Add Another"
 msgstr "Lisää toinen"
@@ -1412,8 +1497,11 @@ msgstr "Nimi ja kuvaus"
 msgid "Contact person"
 msgstr "Yhteyshenkilö"
 
-msgid "Contact person information is only for internal use."
-msgstr "Yhteyshenkilön tiedot ovat vain sisäiseen käyttöön."
+msgid ""
+"Contact person information is shown when customer cancels manually handled "
+"reservations."
+msgstr ""
+"Yhteyshenkilön tiedot näytetään asiakkaan peruessa käsiteltäviä varauksia."
 
 msgid "External calendar"
 msgstr "Ulkoinen kalenterijärjestelmä"
@@ -1483,6 +1571,9 @@ msgstr "Yhteystiedot"
 
 msgid "View unit"
 msgstr "Tarkastele toimipistettä"
+
+msgid "Settings"
+msgstr "Asetukset"
 
 msgid "Search for users"
 msgstr "Hae käyttäjiä"

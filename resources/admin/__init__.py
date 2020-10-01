@@ -23,11 +23,13 @@ from .base import ExtraReadonlyFieldsOnUpdateMixin, CommonExcludeMixin, Populate
 from resources.admin.period_inline import PeriodInline
 
 from ..models import (
-    AccessibilityValue, AccessibilityViewpoint, Day, Equipment, EquipmentAlias, EquipmentCategory, Purpose,
+    AccessibilityValue, AccessibilityViewpoint, Attachment, Day, Equipment, EquipmentAlias, EquipmentCategory, Purpose,
     Reservation, ReservationMetadataField, ReservationMetadataSet, Resource, ResourceAccessibility,
     ResourceEquipment, ResourceGroup, ResourceImage, ResourceType, TermsOfUse,
-    Unit, UnitAuthorization, UnitIdentifier, UnitGroup, UnitGroupAuthorization)
+    Unit, UnitAuthorization, UnitIdentifier, UnitGroup, UnitGroupAuthorization,
+    ReservationCancelReason, ReservationCancelReasonCategory)
 from munigeo.models import Municipality
+from rest_framework.authtoken.admin import Token
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +96,11 @@ class UnitIdentifierInline(admin.StackedInline):
     model = UnitIdentifier
     fields = ('namespace', 'value')
     extra = 0
+
+
+@admin.register(Attachment)
+class AttachmentAdmin(admin.ModelAdmin):
+    readonly_fields = ['created_at', 'created_by', 'modified_at', 'modified_by']
 
 
 class ResourceAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin, HttpsFriendlyGeoAdmin):
@@ -231,6 +238,15 @@ class ReservationAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Extr
     raw_id_fields = ('user', 'resource')
 
 
+class ReservationCancelReasonCategoryAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):
+    pass
+
+
+class ReservationCancelReasonAdmin(PopulateCreatedAndModifiedMixin, admin.ModelAdmin):
+    raw_id_fields = ('reservation',)
+    readonly_fields = ('created_by', 'modified_by')
+
+
 class ResourceTypeAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):
     pass
 
@@ -244,6 +260,7 @@ class PurposeAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Translat
 
 
 class TermsOfUseAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin):
+    list_display = ['name', 'terms_type']
     pass
 
 
@@ -364,6 +381,15 @@ class ReservationMetadataFieldAdmin(admin.ModelAdmin):
         return super().formfield_for_dbfield(db_field, **kwargs)
 
 
+# Override TokenAdmin of django rest framework
+# to use raw_id_field on user
+class RespaTokenAdmin(admin.ModelAdmin):
+    list_display = ('key', 'user', 'created')
+    fields = ('user',)
+    ordering = ('-created',)
+    raw_id_fields = ('user',)
+
+
 admin_site.register(ResourceImage, ResourceImageAdmin)
 admin_site.register(Resource, ResourceAdmin)
 admin_site.register(Reservation, ReservationAdmin)
@@ -384,3 +410,10 @@ admin.site.register(Municipality, MunicipalityAdmin)
 admin.site.register(AccessibilityViewpoint, AccessibilityViewpointAdmin)
 admin.site.register(AccessibilityValue)
 admin.site.register(ResourceAccessibility, ResourceAccessibilityAdmin)
+
+if admin.site.is_registered(Token):
+    admin.site.unregister(Token)
+admin_site.register(Token, RespaTokenAdmin)
+
+admin_site.register(ReservationCancelReason, ReservationCancelReasonAdmin)
+admin_site.register(ReservationCancelReasonCategory, ReservationCancelReasonCategoryAdmin)

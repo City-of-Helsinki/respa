@@ -21,3 +21,4 @@ perf*csv
 /src
 .env
 /.vscode
+.pytest_cache

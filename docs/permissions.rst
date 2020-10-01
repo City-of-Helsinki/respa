@@ -125,14 +125,21 @@ can_modify_reservations                  X       X      X      X      X
 can_ignore_opening_hours                 X       X      X      X
 can_view_reservation_access_code         X       X      X      X      X
 can_view_reservation_extra_fields        X       X      X      X      X
-can_view_reservation_user                X       X      X             X
+can_view_reservation_user                X       X      X      X      X
 can_access_reservation_comments          X       X      X      X      X
-can_comment_reservations                 X       X      X             X
+can_comment_reservations                 X       X      X      X      X
 can_view_reservation_catering_orders     X       X      X      X
 can_modify_reservation_catering_orders
 can_view_reservation_product_orders
 can_modify_paid_reservations
 can_bypass_payment                       X       X      X      X
+can_create_staff_event                   X       X      X      X
+can_create_special_type_reservation      X       X      X      X
+can_bypass_manual_confirmation           X       X      X      X
+can_create_reservations_for_other_users  X       X      X
+can_create_overlapping_reservations      X       X      X      X
+can_ignore_max_reservations_per_user     X       X      X      X
+can_ignore_max_period                    X       X      X      X
 ====================================== ====== ======= ====== ====== ======
 
 
@@ -179,6 +186,28 @@ can_modify_paid_reservations
 
 can_bypass_payment
   Can bypass payment when making a reservation
+
+can_create_staff_event
+  Can create a reservation that is a staff event
+
+can_create_special_type_reservation
+  Can create reservations of a non-normal type
+
+can_bypass_manual_confirmation
+  Can bypass manual confirmation requirement for resources
+
+can_create_reservations_for_other_users
+  Can create reservations for other registered users
+
+can_create_overlapping_reservations
+  Can create overlapping reservations for different resources in single unit even if restricted
+
+can_ignore_max_reservations_per_user
+  Can ignore resources max reservations per user rule
+
+can_ignore_max_period
+  Can ignore resources max period rule
+
 
 Respa Admin Permissions
 ~~~~~~~~~~~~~~~~~~~~~~~

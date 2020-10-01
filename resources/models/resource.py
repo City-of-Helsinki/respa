@@ -118,9 +118,18 @@ class Purpose(ModifiableModel, NameIdentifiedModel):
 
 
 class TermsOfUse(ModifiableModel, AutoIdentifiedModel):
+    TERMS_TYPE_PAYMENT = 'payment_terms'
+    TERMS_TYPE_GENERIC = 'generic_terms'
+
+    TERMS_TYPES = (
+        (TERMS_TYPE_PAYMENT, _('Payment terms')),
+        (TERMS_TYPE_GENERIC, _('Generic terms'))
+    )
+
     id = models.CharField(primary_key=True, max_length=100)
     name = models.CharField(verbose_name=_('Name'), max_length=200)
     text = models.TextField(verbose_name=_('Text'))
+    terms_type = models.CharField(blank=False, verbose_name=_('Terms type'), max_length=40, choices=TERMS_TYPES, default=TERMS_TYPE_GENERIC)
 
     class Meta:
         verbose_name = pgettext_lazy('singular', 'terms of use')
@@ -160,6 +169,14 @@ class ResourceQuerySet(models.QuerySet):
         return self.filter(Q(unit__in=list(units) + list(units_where_role)) | Q(groups__in=resource_groups)).distinct()
 
 
+class Attachment(ModifiableModel, AutoIdentifiedModel):
+    name = models.CharField(verbose_name=_('Name'), max_length=200)
+    attachment_file = models.FileField(verbose_name=_('File'), upload_to='attachment_files')
+
+    def __str__(self):
+        return self.name
+
+
 class Resource(ModifiableModel, AutoIdentifiedModel):
     AUTHENTICATION_TYPES = (
         ('none', _('None')),
@@ -173,6 +190,17 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         (ACCESS_CODE_TYPE_NONE, _('None')),
         (ACCESS_CODE_TYPE_PIN4, _('4-digit PIN code')),
         (ACCESS_CODE_TYPE_PIN6, _('6-digit PIN code')),
+    )
+
+    PRICE_TYPE_HOURLY = 'hourly'
+    PRICE_TYPE_DAILY = 'daily'
+    PRICE_TYPE_WEEKLY = 'weekly'
+    PRICE_TYPE_FIXED = 'fixed'
+    PRICE_TYPE_CHOICES = (
+        (PRICE_TYPE_HOURLY, _('Hourly')),
+        (PRICE_TYPE_DAILY, _('Daily')),
+        (PRICE_TYPE_WEEKLY, _('Weekly')),
+        (PRICE_TYPE_FIXED, _('Fixed')),
     )
     id = models.CharField(primary_key=True, max_length=100)
     public = models.BooleanField(default=True, verbose_name=_('Public'))
@@ -205,16 +233,22 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     reservation_info = models.TextField(verbose_name=_('Reservation info'), null=True, blank=True)
     responsible_contact_info = models.TextField(verbose_name=_('Responsible contact info'), blank=True)
     generic_terms = models.ForeignKey(TermsOfUse, verbose_name=_('Generic terms'), null=True, blank=True,
-                                      on_delete=models.SET_NULL)
+                                      on_delete=models.SET_NULL, related_name='resources_where_generic_terms')
+    payment_terms = models.ForeignKey(TermsOfUse, verbose_name=_('Payment terms'), null=True, blank=True,
+                                      on_delete=models.SET_NULL, related_name='resources_where_payment_terms')
     specific_terms = models.TextField(verbose_name=_('Specific terms'), blank=True)
     reservation_requested_notification_extra = models.TextField(verbose_name=_(
         'Extra content to "reservation requested" notification'), blank=True)
     reservation_confirmed_notification_extra = models.TextField(verbose_name=_(
         'Extra content to "reservation confirmed" notification'), blank=True)
-    min_price_per_hour = models.DecimalField(verbose_name=_('Min price per hour'), max_digits=8, decimal_places=2,
+    min_price = models.DecimalField(verbose_name=_('Min price'), max_digits=8, decimal_places=2,
                                              blank=True, null=True, validators=[MinValueValidator(Decimal('0.00'))])
-    max_price_per_hour = models.DecimalField(verbose_name=_('Max price per hour'), max_digits=8, decimal_places=2,
+    max_price = models.DecimalField(verbose_name=_('Max price'), max_digits=8, decimal_places=2,
                                              blank=True, null=True, validators=[MinValueValidator(Decimal('0.00'))])
+
+    price_type = models.CharField(
+        max_length=32, verbose_name=_('price type'), choices=PRICE_TYPE_CHOICES, default=PRICE_TYPE_HOURLY
+    )
 
     access_code_type = models.CharField(verbose_name=_('Access code type'), max_length=20, choices=ACCESS_CODE_TYPES,
                                         default=ACCESS_CODE_TYPE_NONE)
@@ -239,6 +273,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         help_text=_('A link to an external reservation system if this resource is managed elsewhere'),
         null=True, blank=True)
     reservation_extra_questions = models.TextField(verbose_name=_('Reservation extra questions'), blank=True)
+    attachments = models.ManyToManyField(Attachment, verbose_name=_('Attachments'), blank=True)
 
     objects = ResourceQuerySet.as_manager()
 
@@ -310,7 +345,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             if days is None or not any(day['opens'] and begin >= day['opens'] and end <= day['closes'] for day in days):
                 raise ValidationError(_("You must start and end the reservation during opening hours"))
 
-        if self.max_period and (end - begin) > self.max_period:
+        if not self.can_ignore_max_period(user) and (self.max_period and (end - begin) > self.max_period):
             raise ValidationError(_("The maximum reservation length is %(max_period)s") %
                                   {'max_period': humanize_duration(self.max_period)})
 
@@ -323,7 +358,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
         :type user: User
         """
-        if self.is_admin(user):
+        if self.can_ignore_max_reservations_per_user(user):
             return
 
         max_count = self.max_reservations_per_user
@@ -636,6 +671,27 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     def can_bypass_payment(self, user):
         return self._has_perm(user, 'can_bypass_payment')
 
+    def can_create_staff_event(self, user):
+        return self._has_perm(user, 'can_create_staff_event')
+
+    def can_create_special_type_reservation(self, user):
+        return self._has_perm(user, 'can_create_special_type_reservation')
+
+    def can_bypass_manual_confirmation(self, user):
+        return self._has_perm(user, 'can_bypass_manual_confirmation')
+
+    def can_create_reservations_for_other_users(self, user):
+        return self._has_perm(user, 'can_create_reservations_for_other_users')
+
+    def can_create_overlapping_reservations(self, user):
+        return self._has_perm(user, 'can_create_overlapping_reservations')
+
+    def can_ignore_max_reservations_per_user(self, user):
+        return self._has_perm(user, 'can_ignore_max_reservations_per_user')
+
+    def can_ignore_max_period(self, user):
+        return self._has_perm(user, 'can_ignore_max_period')
+
     def is_access_code_enabled(self):
         return self.access_code_type != Resource.ACCESS_CODE_TYPE_NONE
 
@@ -673,11 +729,10 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         return [x.field_name for x in metadata_set.required_fields.all()]
 
     def clean(self):
-        if self.min_price_per_hour is not None and self.max_price_per_hour is not None:
-            if self.min_price_per_hour > self.max_price_per_hour:
-                raise ValidationError(
-                    {'min_price_per_hour': _('This value cannot be greater than max price per hour')}
-                )
+        if self.min_price is not None and self.max_price is not None and self.min_price > self.max_price:
+            raise ValidationError(
+                {'min_price': _('This value cannot be greater than max price')}
+            )
         if self.min_period % self.slot_size != datetime.timedelta(0):
             raise ValidationError({'min_period': _('This value must be a multiple of slot_size')})
 

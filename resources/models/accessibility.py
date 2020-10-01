@@ -1,7 +1,35 @@
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext as _
 from .base import AutoIdentifiedModel
+
+
+def get_resource_accessibility_url(resource):
+    url = '{base_url}api/v1/accessibility/targets/{system_id}/{servicepoint_id}'
+    url = url.format(
+        base_url=settings.RESPA_ACCESSIBILITY_API_BASE_URL,
+        system_id=settings.RESPA_ACCESSIBILITY_API_SYSTEM_ID,
+        servicepoint_id=resource.id,
+    )
+    return url
+
+
+def get_unit_accessibility_url(unit):
+    unit_internal_identifier = None
+    for identifier in unit.identifiers.all():
+        if identifier.namespace == 'internal':
+            unit_internal_identifier = identifier.value
+            break
+    if unit_internal_identifier is None:
+        return None
+    url = '{base_url}api/v1/accessibility/targets/{system_id}/{servicepoint_id}'
+    url = url.format(
+        base_url=settings.RESPA_ACCESSIBILITY_API_BASE_URL,
+        system_id=settings.RESPA_ACCESSIBILITY_API_UNIT_SYSTEM_ID,
+        servicepoint_id=unit_internal_identifier,
+    )
+    return url
 
 
 class AccessibilityViewpoint(AutoIdentifiedModel):
@@ -51,6 +79,7 @@ class ResourceAccessibility(AutoIdentifiedModel):
                                  verbose_name=_('Resource'), db_index=True, on_delete=models.CASCADE)
     value = models.ForeignKey(AccessibilityValue, verbose_name=_('Accessibility summary value'),
                               on_delete=models.CASCADE)
+    shortage_count = models.IntegerField(verbose_name=_('Accessibility shortage count'))
     order = models.IntegerField(verbose_name=_('Resource ordering priority'))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Time of creation'))
     modified_at = models.DateTimeField(auto_now=True, verbose_name=_('Time of modification'))
@@ -76,6 +105,7 @@ class UnitAccessibility(AutoIdentifiedModel):
                              verbose_name=_('Resource'), db_index=True, on_delete=models.CASCADE)
     value = models.ForeignKey(AccessibilityValue, verbose_name=_('Accessibility summary value'),
                               on_delete=models.CASCADE)
+    shortage_count = models.IntegerField(verbose_name=_('Accessibility shortage count'))
     order = models.IntegerField(verbose_name=_('Resource ordering priority'))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Time of creation'))
     modified_at = models.DateTimeField(auto_now=True, verbose_name=_('Time of modification'))

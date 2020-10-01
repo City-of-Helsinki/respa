@@ -1,5 +1,5 @@
 {% extends "respa_admin/_base.html" %}
-{% load staticfiles %}
+{% load static %}
 
 {% block form_nav %}
     {% include "respa_admin/units/form/_nav.html" %}
@@ -18,8 +18,8 @@
             {% include "respa_admin/forms/_form_errors.html" %}
 
             {% include "respa_admin/units/form/_general_info.html" %}
+            {% include "respa_admin/units/form/_unit_settings.html" %}
             {% include "respa_admin/units/form/_periods.html" with formset=period_formset_with_days %}
-
             <div class="navbar-fixed-bottom">
                 {% include "respa_admin/units/form/_toolbar.html" %}
             </div>

@@ -23,8 +23,11 @@ class PeriodMixin():
         such as self.object and self.model.
     """
     def get_context_data(self, **kwargs):
+        is_formset_in_kwargs = 'period_formset_with_days' in kwargs
         context = super().get_context_data(**kwargs)
-        context['period_formset_with_days'] = self.get_period_formset()
+        # If formset is passed explicitly via kwargs, do not override
+        if not is_formset_in_kwargs:
+            context['period_formset_with_days'] = self.get_period_formset()
         return context
 
     def get_period_formset(self):

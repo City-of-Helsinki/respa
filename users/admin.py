@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib import admin
 from resources.models import Reservation
+from allauth.socialaccount.models import SocialAccount, EmailAddress
 
 
 User = get_user_model()
@@ -78,8 +79,12 @@ def anonymize_user_data(modeladmin, request, queryset):
         user.uuid = uuid.uuid4()
         user.save()
 
+        SocialAccount.objects.filter(user=user).update(uid=user.uuid, extra_data='{}')
+        EmailAddress.objects.filter(user=user).update(email=user.email)
+
         user_reservations = Reservation.objects.filter(user=user)
         user_reservations.update(
+            state=Reservation.CANCELLED,
             event_subject='Removed',
             event_description='Sensitive data of this reservation has been anonymized by a script.',
             host_name='Removed',
@@ -90,7 +95,16 @@ def anonymize_user_data(modeladmin, request, queryset):
             reserver_phone_number='Removed',
             reserver_address_street='Removed',
             reserver_address_zip='Removed',
-            reserver_address_city='Removed'
+            reserver_address_city='Removed',
+            company='Removed',
+            billing_first_name='Removed',
+            billing_last_name='Removed',
+            billing_email_address='Removed',
+            billing_phone_number='Removed',
+            billing_address_street='Removed',
+            billing_address_zip='Removed',
+            billing_address_city='Removed',
+            participants='Removed'
         )
     anonymize_user_data.short_description = 'Anonymize user\'s personal information'
 

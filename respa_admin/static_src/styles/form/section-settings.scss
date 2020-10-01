@@ -1,0 +1,12 @@
+#settings {
+    .disallow-overlapping {
+        padding-bottom: 24px;
+
+        span {
+            font-weight: bold;
+            display: inline-block;
+            max-width: 100%;
+            margin-bottom: 6px;
+        }
+    }
+}

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+import os
 import logging
 import datetime
 import pytz
+import mimetypes
 
 from django.utils import timezone
 import django.contrib.postgres.fields as pgfields
@@ -276,6 +278,7 @@ class Reservation(ModifiableModel):
                                        user=user)
 
         self.state = new_state
+
         self.save()
 
     def can_modify(self, user):
@@ -346,7 +349,12 @@ class Reservation(ModifiableModel):
         that it can be excluded when checking if the resource is available.
         """
 
-        user_is_admin = self.resource.is_admin(self.user)
+        if 'user' in kwargs:
+            user = kwargs['user']
+        else:
+            user = self.user
+
+        user_is_admin = user and self.resource.is_admin(user)
 
         if self.end <= self.begin:
             raise ValidationError(_("You must end the reservation after it has begun"))
@@ -359,13 +367,37 @@ class Reservation(ModifiableModel):
             if day and not is_valid_time_slot(dt, self.resource.slot_size, day['opens']):
                 raise ValidationError(_("Begin and end time must match time slots"), code='invalid_time_slot')
 
+        # Check if Unit has disallow_overlapping_reservations value of True
+        if (
+            self.resource.unit.disallow_overlapping_reservations and not
+            self.resource.can_create_overlapping_reservations(user)
+        ):
+            reservations_for_same_unit = Reservation.objects.filter(user=user, resource__unit=self.resource.unit)
+            valid_reservations_for_same_unit = reservations_for_same_unit.exclude(state=Reservation.CANCELLED)
+            user_has_conflicting_reservations = valid_reservations_for_same_unit.filter(
+                Q(begin__gt=self.begin, begin__lt=self.end)
+                | Q(begin__lt=self.begin, end__gt=self.begin)
+                | Q(begin__gte=self.begin, end__lte=self.end)
+            )
+
+            if user_has_conflicting_reservations:
+                raise ValidationError(
+                    _('This unit does not allow overlapping reservations for its resources'),
+                    code='conflicting_reservation'
+                )
+
         original_reservation = self if self.pk else kwargs.get('original_reservation', None)
         if self.resource.check_reservation_collision(self.begin, self.end, original_reservation):
             raise ValidationError(_("The resource is already reserved for some of the period"))
 
-        if not user_is_admin and (self.end - self.begin) < self.resource.min_period:
-            raise ValidationError(_("The minimum reservation length is %(min_period)s") %
-                                  {'min_period': humanize_duration(self.resource.min_period)})
+        if not user_is_admin:
+            if (self.end - self.begin) < self.resource.min_period:
+                raise ValidationError(_("The minimum reservation length is %(min_period)s") %
+                                      {'min_period': humanize_duration(self.resource.min_period)})
+        else:
+            if not (self.end - self.begin) % self.resource.slot_size == datetime.timedelta(0):
+                raise ValidationError(_("The minimum reservation length is %(slot_size)s") %
+                                      {'slot_size': humanize_duration(self.resource.slot_size)})
 
         if self.access_code:
             validate_access_code(self.access_code, self.resource.access_code_type)
@@ -412,12 +444,19 @@ class Reservation(ModifiableModel):
             if self.can_view_access_code(user) and self.access_code:
                 context['access_code'] = self.access_code
 
-            if notification_type == NotificationType.RESERVATION_CONFIRMED:
+            if notification_type in [NotificationType.RESERVATION_CONFIRMED, NotificationType.RESERVATION_CREATED]:
                 if self.resource.reservation_confirmed_notification_extra:
                     context['extra_content'] = self.resource.reservation_confirmed_notification_extra
             elif notification_type == NotificationType.RESERVATION_REQUESTED:
                 if self.resource.reservation_requested_notification_extra:
                     context['extra_content'] = self.resource.reservation_requested_notification_extra
+            elif notification_type in [NotificationType.RESERVATION_CANCELLED, NotificationType.RESERVATION_DENIED]:
+                if hasattr(self, 'cancel_reason'):
+                    context['extra_content'] = '\n\n{}\n\n{}\n\n{}\n\n{}'.format(
+                        self.cancel_reason.description,
+                        self.cancel_reason.category.description_fi,
+                        self.cancel_reason.category.description_en,
+                        self.cancel_reason.category.description_sv)
 
             # Get last main and ground plan images. Normally there shouldn't be more than one of each
             # of those images.
@@ -451,7 +490,9 @@ class Reservation(ModifiableModel):
         except NotificationTemplate.DoesNotExist:
             return
 
-        if user:
+        if getattr(self, 'order', None) and self.billing_email_address:
+            email_address = self.billing_email_address
+        elif user:
             email_address = user.email
         else:
             if not (self.reserver_email_address or self.user):
@@ -492,9 +533,11 @@ class Reservation(ModifiableModel):
     def send_reservation_confirmed_mail(self):
         reservations = [self]
         ical_file = build_reservations_ical_file(reservations)
-        attachment = ('reservation.ics', ical_file, 'text/calendar')
+        ics_attachment = ('reservation.ics', ical_file, 'text/calendar')
+        attachments = [ics_attachment] + self.get_resource_email_attachments()
+
         self.send_reservation_mail(NotificationType.RESERVATION_CONFIRMED,
-                                   attachments=[attachment])
+                                   attachments=attachments)
 
     def send_reservation_cancelled_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_CANCELLED)
@@ -502,16 +545,30 @@ class Reservation(ModifiableModel):
     def send_reservation_created_mail(self):
         reservations = [self]
         ical_file = build_reservations_ical_file(reservations)
-        attachment = 'reservation.ics', ical_file, 'text/calendar'
+        ics_attachment = ('reservation.ics', ical_file, 'text/calendar')
+        attachments = [ics_attachment] + self.get_resource_email_attachments()
+
         self.send_reservation_mail(NotificationType.RESERVATION_CREATED,
-                                   attachments=[attachment])
+                                   attachments=attachments)
 
     def send_reservation_created_with_access_code_mail(self):
         reservations = [self]
         ical_file = build_reservations_ical_file(reservations)
-        attachment = 'reservation.ics', ical_file, 'text/calendar'
+        ics_attachment = ('reservation.ics', ical_file, 'text/calendar')
+        attachments = [ics_attachment] + self.get_resource_email_attachments()
         self.send_reservation_mail(NotificationType.RESERVATION_CREATED_WITH_ACCESS_CODE,
-                                   attachments=[attachment])
+                                   attachments=attachments)
+
+    def get_resource_email_attachments(self):
+        attachments = []
+        for attachment in self.resource.attachments.all():
+            file_name = os.path.basename(attachment.attachment_file.name)
+            file_type = mimetypes.guess_type(attachment.attachment_file.url)[0]
+            if not file_type:
+                continue
+            attachments.append((file_name, attachment.attachment_file.read(), file_type))
+
+        return attachments
 
     def send_access_code_created_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_ACCESS_CODE_CREATED)
@@ -551,3 +608,39 @@ class ReservationMetadataSet(ModifiableModel):
 
     def __str__(self):
         return self.name
+
+
+class ReservationCancelReasonCategory(ModifiableModel):
+    CONFIRMED = 'confirmed'
+    REQUESTED = 'requested'
+    OWN = 'own'
+
+    RESERVATION_TYPE_CHOICES = (
+        (CONFIRMED, _('Confirmed reservation')),
+        (REQUESTED, _('Requested reservation')),
+        (OWN, _('Own reservation')),
+    )
+
+    reservation_type = models.CharField(max_length=32, choices=RESERVATION_TYPE_CHOICES, verbose_name=_('Reservation type'), default=CONFIRMED)
+    name = models.CharField(max_length=100, verbose_name=_('Name'), unique=True)
+    description = models.TextField(blank=True, verbose_name=_('Description'))
+
+    class Meta:
+        verbose_name = _('Reservation cancellation reason category')
+        verbose_name_plural = _('Reservation cancellation reason categories')
+
+    def __str__(self):
+        return self.name
+
+
+class ReservationCancelReason(ModifiableModel):
+    reservation = models.OneToOneField(Reservation, on_delete=models.CASCADE, related_name='cancel_reason', null=False)
+    category = models.ForeignKey(ReservationCancelReasonCategory, on_delete=models.PROTECT, null=False)
+    description = models.TextField(blank=True, verbose_name=_('Description'))
+
+    class Meta:
+        verbose_name = _('Reservation cancellation reason')
+        verbose_name_plural = _('Reservation cancellation reasons')
+
+    def __str__(self):
+        return '{} ({})'.format(self.category.name, self.reservation.pk)

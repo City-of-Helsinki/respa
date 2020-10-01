@@ -21,7 +21,8 @@ from resources.models import (
     Resource,
     ResourceImage,
     Unit,
-    UnitAuthorization
+    UnitAuthorization,
+    TermsOfUse
 )
 
 from users.models import User
@@ -175,6 +176,11 @@ class ResourceForm(forms.ModelForm):
         label='Nimi [fi]',
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['generic_terms'].queryset = TermsOfUse.objects.filter(terms_type=TermsOfUse.TERMS_TYPE_GENERIC)
+        self.fields['payment_terms'].queryset = TermsOfUse.objects.filter(terms_type=TermsOfUse.TERMS_TYPE_PAYMENT)
+
     class Meta:
         model = Resource
 
@@ -221,9 +227,11 @@ class ResourceForm(forms.ModelForm):
             'need_manual_confirmation',
             'authentication',
             'access_code_type',
-            'max_price_per_hour',
-            'min_price_per_hour',
+            'max_price',
+            'min_price',
+            'price_type',
             'generic_terms',
+            'payment_terms',
             'public',
             'reservation_metadata_set',
         ] + translated_fields
@@ -278,7 +286,14 @@ class UnitForm(forms.ModelForm):
             'address_zip',
             'municipality',
             'phone',
+            'disallow_overlapping_reservations'
         ] + translated_fields
+
+        widgets = {
+            'disallow_overlapping_reservations': RespaRadioSelect(
+                choices=((True, _('Yes')), (False, _('No')))
+            ),
+        }
 
 
 class PeriodFormset(forms.BaseInlineFormSet):

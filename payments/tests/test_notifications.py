@@ -97,7 +97,7 @@ def test_reservation_created_notification(order_with_products):
     assert len(mail.outbox) == 1
     check_received_mail_exists(
         'Reservation created subject.',
-        order_with_products.reservation.user.email,
+        order_with_products.reservation.billing_email_address,
         get_expected_strings(order_with_products),
     )
 
@@ -124,7 +124,7 @@ def test_reservation_cancelled_notification(order_with_products, order_state, no
         assert len(mail.outbox) == 1
         check_received_mail_exists(
             'Reservation cancelled subject.',
-            order_with_products.reservation.user.email,
+            order_with_products.reservation.billing_email_address,
             get_expected_strings(order_with_products),
         )
     else:

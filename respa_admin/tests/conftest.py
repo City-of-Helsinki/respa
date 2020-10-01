@@ -8,7 +8,8 @@ from resources.tests.conftest import (
     purpose,
     resource_in_unit,
     space_resource_type,
-    terms_of_use,
+    generic_terms,
+    payment_terms,
     test_unit,
     test_unit2,
     general_admin,
@@ -47,9 +48,11 @@ EMPTY_RESOURCE_FORM_DATA = {
     'need_manual_confirmation': '',
     'authentication': '',
     'access_code_type': '',
-    'max_price_per_hour': '',
-    'min_price_per_hour': '',
+    'max_price': '',
+    'min_price': '',
+    'price_type': '',
     'generic_terms': '',
+    'payment_terms': '',
     'specific_terms': '',
     'reservation_confirmed_notification_extra': '',
 
@@ -131,7 +134,7 @@ def empty_period_form_data():
 
 @pytest.fixture
 def valid_resource_form_data(
-    equipment, terms_of_use, purpose, space_resource_type, test_unit, empty_resource_form_data
+    equipment, generic_terms, payment_terms, purpose, space_resource_type, test_unit, empty_resource_form_data
 ):
     data = empty_resource_form_data
     data.update({
@@ -139,7 +142,8 @@ def valid_resource_form_data(
         'authentication': 'weak',
         'equipment': equipment.pk,
         'external_reservation_url': 'http://calendar.example.tld',
-        'generic_terms': terms_of_use.pk,
+        'generic_terms': generic_terms.pk,
+        'payment_terms': payment_terms.pk,
         'max_period': '02:00:00',
         'min_period': '01:00:00',
         'slot_size': '00:30:00',
@@ -153,6 +157,7 @@ def valid_resource_form_data(
         'days-periods-0-0-opens': '08:00',
         'days-periods-0-0-closes': '12:00',
         'days-periods-0-0-weekday': '1',
+        'price_type': 'hourly'
     })
     return data
 

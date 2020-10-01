@@ -9,7 +9,7 @@ from arrow.parser import ParserError
 
 from django import forms
 from django.conf import settings
-from django.db.models import OuterRef, Prefetch, Q, Subquery, Value
+from django.db.models import OuterRef, Prefetch, Q, Subquery, Value, Sum
 from django.db.models.functions import Coalesce, Least
 from django.urls import reverse
 from django.contrib.gis.db.models.functions import Distance
@@ -18,7 +18,7 @@ from django.contrib.auth import get_user_model
 
 from resources.pagination import PurposePagination
 from rest_framework import exceptions, filters, mixins, serializers, viewsets, response, status
-from rest_framework.authentication import SessionAuthentication
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.decorators import action
 from guardian.core import ObjectPermissionChecker
 
@@ -28,6 +28,7 @@ from resources.models import (
     ResourceImage, ResourceType, ResourceEquipment, TermsOfUse, Equipment, ReservationMetadataSet,
     ResourceDailyOpeningHours, UnitAccessibility
 )
+from resources.models.accessibility import get_resource_accessibility_url
 from resources.models.resource import determine_hours_time_range
 
 from ..auth import is_general_admin, is_staff
@@ -63,7 +64,7 @@ def parse_query_time_range(params):
 
 def get_resource_reservations_queryset(begin, end):
     qs = Reservation.objects.filter(begin__lte=end, end__gte=begin).current()
-    qs = qs.order_by('begin').prefetch_related('catering_orders').select_related('user')
+    qs = qs.order_by('begin').prefetch_related('catering_orders').select_related('user', 'order')
     return qs
 
 
@@ -169,12 +170,24 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
     required_reservation_extra_fields = serializers.ReadOnlyField(source='get_required_reservation_extra_field_names')
     is_favorite = serializers.SerializerMethodField()
     generic_terms = serializers.SerializerMethodField()
+    payment_terms = serializers.SerializerMethodField()
+    accessibility_base_url = serializers.SerializerMethodField()
     # deprecated, backwards compatibility
     reservable_days_in_advance = serializers.ReadOnlyField(source='get_reservable_max_days_in_advance')
     reservable_max_days_in_advance = serializers.ReadOnlyField(source='get_reservable_max_days_in_advance')
     reservable_before = serializers.SerializerMethodField()
     reservable_min_days_in_advance = serializers.ReadOnlyField(source='get_reservable_min_days_in_advance')
     reservable_after = serializers.SerializerMethodField()
+    max_price_per_hour = serializers.SerializerMethodField()
+    min_price_per_hour = serializers.SerializerMethodField()
+
+    def get_max_price_per_hour(self, obj):
+        """Backwards compatibility for 'max_price_per_hour' field that is now deprecated"""
+        return obj.max_price if obj.price_type == Resource.PRICE_TYPE_HOURLY else None
+
+    def get_min_price_per_hour(self, obj):
+        """Backwards compatibility for 'min_price_per_hour' field that is now deprecated"""
+        return obj.min_price if obj.price_type == Resource.PRICE_TYPE_HOURLY else None
 
     def get_extra_fields(self, includes, context):
         """ Define extra fields that can be included via query parameters. Method from ExtraDataMixin."""
@@ -198,9 +211,18 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
             summaries_by_viewpoint.get(
                 vp.id,
                 ResourceAccessibility(
-                    viewpoint=vp, resource=obj, value=AccessibilityValue(value=AccessibilityValue.UNKNOWN_VALUE)))
-            for vp in accessibility_viewpoints]
+                    viewpoint=vp,
+                    resource=obj,
+                    value=AccessibilityValue(value=AccessibilityValue.UNKNOWN_VALUE),
+                    shortage_count=0,
+                )
+            )
+            for vp in accessibility_viewpoints
+        ]
         return [ResourceAccessibilitySerializer(summary).data for summary in summaries]
+
+    def get_accessibility_base_url(self, obj):
+        return get_resource_accessibility_url(obj)
 
     def get_user_permissions(self, obj):
         request = self.context.get('request', None)
@@ -224,6 +246,10 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
 
     def get_generic_terms(self, obj):
         data = TermsOfUseSerializer(obj.generic_terms).data
+        return data['text']
+
+    def get_payment_terms(self, obj):
+        data = TermsOfUseSerializer(obj.payment_terms).data
         return data['text']
 
     def get_reservable_before(self, obj):
@@ -387,32 +413,50 @@ class ResourceOrderingFilter(django_filters.OrderingFilter):
 
     def filter(self, qs, value):
         if value and ('accessibility' in value or '-accessibility' in value):
-            viewpoint_id = self.parent.data.get('accessibility_viewpoint')
+            viewpoint_ids = self.parent.data.getlist('accessibility_viewpoint', [])
             try:
-                accessibility_viewpoint = AccessibilityViewpoint.objects.get(id=viewpoint_id)
+                accessibility_viewpoints = AccessibilityViewpoint.objects.filter(id__in=viewpoint_ids)
             except AccessibilityViewpoint.DoesNotExist:
-                accessibility_viewpoint = AccessibilityViewpoint.objects.first()
-            if accessibility_viewpoint is None:
+                accessibility_viewpoints = AccessibilityViewpoint.objects.all()[:1]
+            if len(accessibility_viewpoints) == 0:
                 logging.error('Accessibility Viewpoints are not imported from Accessibility database')
                 value = [val for val in value if val != 'accessibility' and val != '-accessibility']
                 return super().filter(qs, value)
 
-            # annotate the queryset with accessibility priority from selected viewpoint.
+            # annotate the queryset with accessibility priority from selected viewpoints.
             # use the worse value of the resource and unit accessibilities.
             # missing accessibility data is considered same priority as UNKNOWN.
+            # order_by must be cleared in subquery for values() to trigger correct GROUP BY.
             resource_accessibility_summary = ResourceAccessibility.objects.filter(
-                resource_id=OuterRef('pk'), viewpoint_id=accessibility_viewpoint.id)
-            resource_accessibility_order = Subquery(resource_accessibility_summary.values('order')[:1])
+                resource_id=OuterRef('pk'),
+                viewpoint__in=accessibility_viewpoints,
+            ).order_by().values(
+                'resource_id',
+            ).annotate(
+                order_sum=Sum(
+                    Coalesce('order', Value(AccessibilityValue.UNKNOWN_ORDERING))
+                )
+            )
+            resource_accessibility_order = Subquery(resource_accessibility_summary.values('order_sum'))
             unit_accessibility_summary = UnitAccessibility.objects.filter(
-                unit_id=OuterRef('unit_id'), viewpoint_id=accessibility_viewpoint.id)
-            unit_accessibility_order = Subquery(unit_accessibility_summary.values('order')[:1])
+                unit_id=OuterRef('unit_id'),
+                viewpoint__in=accessibility_viewpoints,
+            ).order_by().values(
+                'unit_id',
+            ).annotate(
+                order_sum=Sum(
+                    Coalesce('order', Value(AccessibilityValue.UNKNOWN_ORDERING))
+                )
+            )
+            unit_accessibility_order = Subquery(unit_accessibility_summary.values('order_sum'))
             qs = qs.annotate(
                 accessibility_priority=Least(
-                    Coalesce(resource_accessibility_order, Value(AccessibilityValue.UNKNOWN_ORDERING)),
-                    Coalesce(unit_accessibility_order, Value(AccessibilityValue.UNKNOWN_ORDERING))
-                )
+                    resource_accessibility_order,
+                    unit_accessibility_order,
+                ),
             ).prefetch_related('accessibility_summaries')
-        return super().filter(qs, value)
+        qs = super().filter(qs, value)
+        return qs
 
 
 class ResourceFilterSet(django_filters.FilterSet):
@@ -466,7 +510,7 @@ class ResourceFilterSet(django_filters.FilterSet):
             return queryset.exclude(favorited_by=self.user)
 
     def filter_free_of_charge(self, queryset, name, value):
-        qs = Q(min_price_per_hour__lte=0) | Q(min_price_per_hour__isnull=True)
+        qs = Q(min_price__lte=0) | Q(min_price__isnull=True)
         if value:
             return queryset.filter(qs)
         else:
@@ -602,7 +646,7 @@ class ResourceFilterSet(django_filters.FilterSet):
 
     class Meta:
         model = Resource
-        fields = ['purpose', 'type', 'people', 'need_manual_confirmation', 'is_favorite', 'unit', 'available_between', 'min_price_per_hour']
+        fields = ['purpose', 'type', 'people', 'need_manual_confirmation', 'is_favorite', 'unit', 'available_between', 'min_price']
 
 
 class ResourceFilterBackend(filters.BaseFilterBackend):
@@ -726,7 +770,7 @@ class ResourceCacheMixin:
 
 class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
                           viewsets.GenericViewSet, ResourceCacheMixin):
-    queryset = Resource.objects.select_related('generic_terms', 'unit', 'type', 'reservation_metadata_set')
+    queryset = Resource.objects.select_related('generic_terms', 'payment_terms', 'unit', 'type', 'reservation_metadata_set')
     queryset = queryset.prefetch_related('favorited_by', 'resource_equipment', 'resource_equipment__equipment',
                                          'purposes', 'images', 'purposes', 'groups')
     if settings.RESPA_PAYMENTS_ENABLED:
@@ -771,6 +815,10 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
                       viewsets.GenericViewSet, ResourceCacheMixin):
     queryset = ResourceListViewSet.queryset
+    authentication_classes = (
+        list(drf_settings.DEFAULT_AUTHENTICATION_CLASSES) +
+        [SessionAuthentication] +
+        ([TokenAuthentication] if settings.ENABLE_RESOURCE_TOKEN_AUTH else []))
 
     def get_serializer_class(self):
         if settings.RESPA_PAYMENTS_ENABLED:
@@ -786,6 +834,14 @@ class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context.update(self._get_cache_context())
+
+        request_user = self.request.user
+        if request_user.is_authenticated:
+            prefetched_user = get_user_model().objects.prefetch_related('unit_authorizations', 'unit_group_authorizations__subject__members').\
+                get(pk=request_user.pk)
+
+            context['prefetched_user'] = prefetched_user
+
         return context
 
     def get_queryset(self):
