@@ -604,17 +604,28 @@ function initializeDatepickerButtonListeners() {
   }
 }
 
-function updateCalendar(datepicker, dayOfTheWeek, startDateString, endDateString) {
+function updateCalendar(datepicker, value, startDateString, endDateString) {
   const startDate = new Date(startDateString);
   const endDate = new Date(endDateString);
   const dates = [];
 
   for (const d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
     const day = new Date(d);
-    if(day.getDay() == dayOfTheWeek) {
-      dates.push(day);
+    if(value == 'first-days-of-the-months') {
+      if(day.getDate() == 1) {
+        dates.push(day);
+      }
+    }
+    else if(value == 'clear-all-selections') {
+      datepicker.datepicker('setDates', []);
+      return;
+    }
+    else {
+      if(day.getDay() == value) {
+        dates.push(day);
+      }
     }
   }
-
+  console.log('ajettiin loppuun');
   datepicker.datepicker('setDates', dates.concat(datepicker.datepicker('getDates')));
 }

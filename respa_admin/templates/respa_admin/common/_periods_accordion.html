@@ -35,15 +35,21 @@
                 <h4>{% trans "Start date" %}</h4>
                 {% with period.multidaysettings.0 as multiday_settings_form %}
                 {{ multiday_settings_form.id }}
-                <div class="input-row datepicker-start-date"></div>
-                <div class="datepicker-action-buttons">
-                    <button class="datepicker-select-mondays" value="1" type="button">Select every mondays</button>
-                    <button class="datepicker-select-mondays" value="2" type="button">Select every tuesdays</button>
-                    <button class="datepicker-select-mondays" value="3" type="button">Select every wednesdays</button>
-                    <button class="datepicker-select-mondays" value="4" type="button">Select every thursdays</button>
-                    <button class="datepicker-select-mondays" value="5" type="button">Select every fridays</button>
-                    <button class="datepicker-select-mondays" value="6" type="button">Select every saturdays</button>
-                    <button class="datepicker-select-mondays" value="0" type="button">Select every sundays</button>
+                <div class="datepicker-container">
+                    <div class="datepicker-start-date"></div>
+                    <div class="datepicker-action-buttons">
+                        <button class="datepicker-select-mondays resources-button mb-5" value="1" type="button">{% trans "Select every mondays" %}</button>
+                        <button class="datepicker-select-mondays resources-button mb-3" value="2" type="button">{% trans "Select every tuesdays" %}</button>
+                        <button class="datepicker-select-mondays resources-button" value="3" type="button">{% trans "Select every wednesdays" %}</button>
+                        <button class="datepicker-select-mondays resources-button" value="4" type="button">{% trans "Select every thursdays" %}</button>
+                    </div>
+                    <div class="datepicker-action-buttons">
+                        <button class="datepicker-select-mondays resources-button" value="5" type="button">{% trans "Select every fridays" %}</button>
+                        <button class="datepicker-select-mondays resources-button" value="6" type="button">{% trans "Select every saturdays" %}</button>
+                        <button class="datepicker-select-mondays resources-button" value="0" type="button">{% trans "Select every sundays" %}</button>
+                        <button class="datepicker-select-mondays resources-button" value="first-days-of-the-months" type="button">{% trans "Select every first days of the month" %}</button>
+                        <button class="datepicker-select-mondays resources-button" value="clear-all-selections" type="button">{% trans "Clear all selections" %}</button>
+                    </div>
                 </div>
                 <div class="initial-start-dates">
                     {% for initial_start_date in multiday_settings_form.initial_start_dates %}
