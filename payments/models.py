@@ -193,6 +193,7 @@ class OrderQuerySet(models.QuerySet):
         ).filter(
             confirmed_by_staff_at__lt=earliest_allowed_requested
         )
+
         for order in too_old_waiting_requested_orders:
             order.set_state(Order.EXPIRED)
 

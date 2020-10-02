@@ -13,6 +13,8 @@ There are a couple of required configuration keys that need to be set in order t
 - `RESPA_PAYMENTS_ENABLED`: Whether payments are enabled or not. Boolean `True`/`False`. The default value is `False`.
 - `RESPA_PAYMENTS_PROVIDER_CLASS`: Dotted path to the active provider class e.g. `payments.providers.BamboraPayformProvider` as a string. No default value.
 - `RESPA_PAYMENTS_PAYMENT_WAITING_TIME`: In minutes, how old the potential unpaid orders/reservations have to be in order for Respa cleanup to set them expired. The default value is `15`.
+- `RESPA_PAYMENTS_PAYMENT_REQUESTED_WAITING_TIME`: In hours, how old requested unpaid orders/reservations have to be after staff confirmation in order for Respa cleanup to set them expired. The default value is `24`.
+
 
 `./manage.py expire_too_old_unpaid_orders` runs the order/reservation cleanup for current orders. You'll probably want to run it periodically at least in production. [Cron](https://en.wikipedia.org/wiki/Cron) is one candidate for doing that.
 
@@ -26,6 +28,8 @@ In addition to the general configuration keys mentioned in the previous section,
 - `RESPA_PAYMENTS_BAMBORA_API_KEY`: Identifies which merchant store account to use with Bambora. Value can be found in the merchant portal. Provided as a string. No default value.
 - `RESPA_PAYMENTS_BAMBORA_API_SECRET`: Used to calculate hashes out of the data being sent and received, to verify it is not being tampered with. Also found in the merchant portal and provided as a string. No default value.
 - `RESPA_PAYMENTS_BAMBORA_PAYMENT_METHODS`: An array of payment methods to show to the user to select from e.g.`['nordea', 'creditcards']`. Full list of supported values can be found in [the currencies section of](https://payform.bambora.com/docs/web_payments/?page=full-api-reference#currencies) Bambora's API documentation page.
+- `RESPA_PAYMENTS_BAMBORA_TOKEN_VALID_DAYS`: In days, how long payment token used for payment link is valid and usable for customer to make payment.
+
 
 ## Basics
 
@@ -33,13 +37,13 @@ Model `Product` represents everything that can be ordered and paid alongside a r
 
 There are currently two types of products:
 
-- `rent`: At least one product of type `rent` must be ordered when such is available on the resource. 
+- `rent`: At least one product of type `rent` must be ordered when such is available on the resource.
 
 - `extra`: Ordering of products of type `extra` is not mandatory, so when there are only `extra` products available, one can create a reservation without an order. However, when an order is created, even with just extra product(s), it must be paid to get the reservation confirmed.
 
 Everytime a product is saved, a new copy of it is created in the db, so product modifying does not affect already existing orders.
 
-All prices are in euros. A product's price is stored in `price` field. However, there are different ways the value should be interpreted depending on `price_type` field's value: 
+All prices are in euros. A product's price is stored in `price` field. However, there are different ways the value should be interpreted depending on `price_type` field's value:
 
 - `fixed`: The price stays always the same regardless of the reservation, so if `price` is `10.00` the final price is 10.00 EUR.
 
@@ -49,7 +53,11 @@ Model `Order` represents orders of products. One and only one order is linked to
 
 An order can be in state `waiting`, `confirmed`, `rejected`, `expired` or `cancelled`. A new order will start from state `waiting`, and from there it will change to one of the other states. Only valid other state change is from `confirmed` to `cancelled`.
 
-An order is created by providing its data in `order` field when creating a reservation via the API. The UI must also provide a return URL to which the user will be redirected after the payment process has been completed. In the creation response the UI gets back a payment URL, to which it must redirect the user to start the actual payment process. 
+An order is created by providing its data in `order` field when creating a reservation via the API. The UI must also provide a return URL to which the user will be redirected after the payment process has been completed. In the creation response the UI gets back a payment URL, to which it must redirect the user to start the actual payment process.
+
+## Requested reservations
+
+Payment integration has been implemented to support reservations in resources that requires staff confirmation. In that case payment link is sent to reserver in email after staff has changed reservations state to `waiting_for_payment`. `NotificationTemplate` with `NotificationType` `RESERVATION_WAITING_FOR_PAYMENT` must be defined and the template body must include `{{payment_url}}` tag for payment link to be included in the email. Default wait time for payment before order gets expired is 24 hours and it can be changed with setting `RESPA_PAYMENTS_PAYMENT_REQUESTED_WAITING_TIME`.
 
 ## Administration
 

@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 import pytest
 from django.core import management
@@ -10,6 +10,7 @@ from ..factories import OrderFactory
 from ..models import Order, OrderLogEntry
 
 PAYMENT_WAITING_MINUTES = 15
+REQUESTED_PAYMENT_WAITING_HOURS = 24
 
 COMMAND_NAME = 'expire_too_old_unpaid_orders'
 
@@ -25,6 +26,7 @@ def get_order_not_expired_time():
 @pytest.fixture(autouse=True)
 def init(db, settings):
     settings.RESPA_PAYMENTS_PAYMENT_WAITING_TIME = PAYMENT_WAITING_MINUTES
+    settings.RESPA_PAYMENTS_PAYMENT_REQUESTED_WAITING_TIME = REQUESTED_PAYMENT_WAITING_HOURS
 
 
 def set_order_created_at(order, created_at):
@@ -49,6 +51,17 @@ def test_orders_get_expired(two_hour_reservation, order_with_products):
     order_with_products.refresh_from_db()
     assert two_hour_reservation.state == Reservation.CANCELLED
     assert order_with_products.state == Order.EXPIRED
+
+
+def test_requested_reservation_orders_get_expired(order_with_products):
+    order_with_products.is_requested_order = True
+    order_with_products.confirmed_by_staff_at = datetime.now() - timedelta(hours=REQUESTED_PAYMENT_WAITING_HOURS + 1)
+    order_with_products.save()
+    management.call_command(COMMAND_NAME)
+
+    order_with_products.refresh_from_db()
+    assert order_with_products.state == Order.EXPIRED
+    assert order_with_products.reservation.state == Reservation.CANCELLED
 
 
 @pytest.mark.parametrize('order_state', (Order.CANCELLED, Order.REJECTED, Order.CONFIRMED))
