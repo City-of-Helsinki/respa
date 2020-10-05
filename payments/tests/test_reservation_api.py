@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, create_autospec, patch
 from urllib.parse import urlencode
+from decimal import Decimal
 
 import pytest
 from guardian.shortcuts import assign_perm
@@ -12,7 +13,7 @@ from resources.tests.conftest import resource_in_unit, user_api_client  # noqa
 from resources.tests.test_reservation_api import day_and_period  # noqa
 
 from ..factories import ProductFactory
-from ..models import Order, Product
+from ..models import Order, Product, ReservationCustomPrice
 from ..providers.base import PaymentProvider
 from .test_order_api import ORDER_LINE_FIELDS, PRODUCT_FIELDS
 
@@ -32,6 +33,20 @@ def build_reservation_data(resource):
         'end': '2115-04-04T12:00:00+02:00'
     }
 
+
+@pytest.mark.django_db
+@pytest.fixture
+def reservation(resource_in_unit, user):
+    return Reservation.objects.create(
+        resource=resource_in_unit,
+        begin='2115-04-04T09:00:00+02:00',
+        end='2115-04-04T10:00:00+02:00',
+        user=user,
+        event_subject='some fancy event',
+        host_name='esko',
+        reserver_name='martta',
+        state=Reservation.CONFIRMED
+    )
 
 def build_order_data(product, quantity=None, product_2=None, quantity_2=None):
     data = {
@@ -344,3 +359,22 @@ def test_unit_admin_and_unit_manager_may_bypass_payment(user_api_client, resourc
     assert response.status_code == 201
     new_reservation = Reservation.objects.last()
     assert new_reservation.state == Reservation.CONFIRMED
+
+
+def test_update_custom_price(general_admin, api_client, reservation, resource_in_unit):
+    reservation_data = build_reservation_data(resource_in_unit)
+    detail_url = get_detail_url(reservation)
+    print(vars(general_admin))
+
+    reservation_data['custom_price'] = {
+        'price': 555.10,
+        'price_type': ReservationCustomPrice.CUSTOM
+    }
+
+    api_client.force_authenticate(user=general_admin)
+    response = api_client.put(detail_url, data=reservation_data)
+    assert response.status_code == 200, "Request failed with: %s" % (str(response.content, 'utf8'))
+    reservation.refresh_from_db()
+    two_places = Decimal(10) ** -2
+    assert reservation.custom_price.price == Decimal(reservation_data['custom_price']['price']).quantize(two_places)
+    assert reservation.custom_price.price_type == reservation_data['custom_price']['price_type']

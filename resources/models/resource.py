@@ -692,6 +692,9 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     def can_ignore_max_period(self, user):
         return self._has_perm(user, 'can_ignore_max_period')
 
+    def can_set_custom_price_for_reservations(self, user):
+        return self._has_perm(user, 'can_set_custom_price_for_reservations')
+
     def is_access_code_enabled(self):
         return self.access_code_type != Resource.ACCESS_CODE_TYPE_NONE
 
