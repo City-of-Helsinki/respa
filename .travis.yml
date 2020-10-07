@@ -13,7 +13,6 @@ node_js: 'lts/*'
 
 matrix:
   allow_failures:
-  - python: 3.8-dev
 
 cache: pip
 
