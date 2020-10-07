@@ -52,7 +52,7 @@ ecdsa==0.15               # via python-jose
 factory-boy==2.12.0       # via -r requirements.in
 faker==1.0.2              # via -r requirements.in, factory-boy
 flake8==3.6.0             # via -r requirements.in
-freezegun==0.3.11         # via -r requirements.in
+freezegun==1.0.0          # via -r requirements.in
 future==0.17.1            # via pyjwkest
 humanize==0.5.1           # via delorean
 icalendar==4.0.3          # via -r requirements.in
@@ -94,7 +94,7 @@ requests-oauthlib==1.2.0  # via django-allauth
 requests==2.23.0          # via -r requirements.in, django-allauth, django-anymail, django-helusers, django-munigeo, pyjwkest, requests-cache, requests-ntlm, requests-oauthlib
 rsa==4.0                  # via python-jose
 sentry-sdk==0.14.1        # via -r requirements.in
-six==1.12.0               # via -r requirements.in, cryptography, database-sanitizer, django-anymail, django-guardian, django-image-cropping, django-munigeo, django-sanitized-dump, ecdsa, faker, freezegun, more-itertools, pip-tools, pyjwkest, pytest, python-dateutil, python-jose
+six==1.12.0               # via -r requirements.in, cryptography, database-sanitizer, django-anymail, django-guardian, django-image-cropping, django-munigeo, django-sanitized-dump, ecdsa, faker, more-itertools, pip-tools, pyjwkest, pytest, python-dateutil, python-jose
 sqlparse==0.3.0           # via django
 text-unidecode==1.2       # via faker
 tzlocal==1.5.1            # via delorean
