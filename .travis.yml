@@ -9,10 +9,12 @@ python:
   - '3.6'
   - '3.7'
   - '3.8'
+  - '3.9-dev'
 node_js: 'lts/*'
 
 matrix:
   allow_failures:
+  - python: 3.9-dev
 
 cache: pip
 
