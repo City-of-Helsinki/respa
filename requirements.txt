@@ -70,7 +70,7 @@ oauthlib==3.0.0           # via requests-oauthlib
 pillow==7.0.0             # via easy-thumbnails
 pip-tools==4.5.1          # via -r requirements.in
 pluggy==0.8.1             # via pytest
-psycopg2==2.7.6.1         # via -r requirements.in
+psycopg2==2.8.6           # via -r requirements.in
 py==1.7.0                 # via pytest
 pyasn1==0.4.8             # via python-jose, rsa
 pycodestyle==2.4.0        # via flake8
