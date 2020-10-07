@@ -12,7 +12,7 @@ atomicwrites==1.2.1       # via pytest
 attrs==18.2.0             # via pytest
 babel==2.6.0              # via delorean
 certifi==2018.11.29       # via requests, sentry-sdk
-cffi==1.11.5              # via cryptography
+cffi==1.14.3              # via cryptography
 chardet==3.0.4            # via requests
 click==7.0                # via pip-tools
 coverage==4.5.2           # via -r requirements.in, pytest-cov
@@ -74,7 +74,7 @@ psycopg2==2.7.6.1         # via -r requirements.in
 py==1.7.0                 # via pytest
 pyasn1==0.4.8             # via python-jose, rsa
 pycodestyle==2.4.0        # via flake8
-pycparser==2.19           # via cffi
+pycparser==2.20           # via cffi
 pycryptodomex==3.7.3      # via pyjwkest
 pyflakes==2.0.0           # via flake8
 pyjwkest==1.4.0           # via drf-oidc-auth
