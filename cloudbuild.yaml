@@ -1,0 +1,39 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: 
+  - '-c'
+  - |
+    docker build -t ${_AWS_ID}.dkr.ecr.${_AWS_DEFAULT_REGION}.amazonaws.com/${REPO_NAME}:$(echo ${BUILD_ID} | cut -b 1-8) .
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  env:
+    - "DEBIAN_FRONTEND=noninteractive"
+    - "AWS_ACCESS_KEY_ID=${_AWS_ACCESS_KEY_ID}"
+    - "AWS_SECRET_ACCESS_KEY=${_AWS_SECRET_ACCESS_KEY}"
+    - "AWS_DEFAULT_REGION=${_AWS_DEFAULT_REGION}"
+  args: 
+  - '-c'
+  - |
+    if [ -n "${_DEPLOYMENT}" ]; then
+      apt update && apt install -y unzip python &&
+      curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip" &&
+      unzip awscli-bundle.zip &&
+      ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws &&
+      aws ecr get-login-password | docker login --username AWS --password-stdin ${_AWS_ID}.dkr.ecr.${_AWS_DEFAULT_REGION}.amazonaws.com
+      docker push ${_AWS_ID}.dkr.ecr.${_AWS_DEFAULT_REGION}.amazonaws.com/${REPO_NAME}:$(echo ${BUILD_ID} | cut -b 1-8)
+    fi
+- name: 'gcr.io/cloud-builders/kubectl'
+  entrypoint: 'bash'
+  env:
+    - "AWS_ACCESS_KEY_ID=${_AWS_ACCESS_KEY_ID}"
+    - "AWS_SECRET_ACCESS_KEY=${_AWS_SECRET_ACCESS_KEY}"
+    - "AWS_DEFAULT_REGION=${_AWS_DEFAULT_REGION}"
+  args:
+  - '-c'
+  - |
+    if [ -n "${_DEPLOYMENT}" ]; then
+      ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws &&
+      aws eks update-kubeconfig --name ${_CLUSTER} --region=${_AWS_DEFAULT_REGION} && 
+      kubectl -n ${_NAMESPACE} set image deployment/${_DEPLOYMENT} ${_DEPLOYMENT}=${_AWS_ID}.dkr.ecr.${_AWS_DEFAULT_REGION}.amazonaws.com/${REPO_NAME}:$(echo ${BUILD_ID} | cut -b 1-8)
+    fi
