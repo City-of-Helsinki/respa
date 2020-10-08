@@ -35,5 +35,5 @@ steps:
     if [ -n "${_DEPLOYMENT}" ]; then
       ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws &&
       aws eks update-kubeconfig --name ${_CLUSTER} --region=${_AWS_DEFAULT_REGION} && 
-      kubectl -n ${_NAMESPACE} set image deployment/${_DEPLOYMENT} ${_DEPLOYMENT}=${_DOCKER_REGISTRY}/${REPO_NAME}:$(echo ${BUILD_ID} | cut -b 1-8)
+      kubectl -n ${_NAMESPACE} set image deployment/${_DEPLOYMENT} ${_DEPLOYMENT}=${_DOCKER_REGISTRY}:$(echo ${BUILD_ID} | cut -b 1-8)
     fi
