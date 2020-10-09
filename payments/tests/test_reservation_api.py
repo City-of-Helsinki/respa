@@ -18,7 +18,7 @@ from .test_order_api import ORDER_LINE_FIELDS, PRODUCT_FIELDS
 
 LIST_URL = reverse('reservation-list')
 
-ORDER_FIELDS = {'id', 'state', 'price', 'order_lines'}
+ORDER_FIELDS = {'id', 'state', 'price', 'order_lines', 'is_requested_order'}
 
 
 def get_detail_url(reservation):
@@ -199,6 +199,32 @@ def test_order_post(user_api_client, resource_in_unit, product, product_2, mock_
     assert order_lines[1].product == product_2
     assert order_lines[1].quantity == 5
 
+
+def test_requested_reservation_order_post(user_api_client, resource_in_unit, product, mock_provider):
+    reservation_data = build_reservation_data(resource_in_unit)
+    reservation_data['order'] = build_order_data(product=product)
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+
+    response = user_api_client.post(LIST_URL, reservation_data)
+
+    assert response.status_code == 201, response.data
+    mock_provider.initiate_payment.assert_called()
+
+    excepted_payment_url = 'https://mocked-payment-url.com'
+    order_data = response.data['order']
+    assert order_data['payment_url'].startswith(excepted_payment_url)
+
+    # check created object
+    new_order = Order.objects.last()
+    assert new_order.reservation == Reservation.objects.last()
+    assert new_order.payment_url.startswith(excepted_payment_url)
+
+    # check order lines
+    order_lines = new_order.order_lines.all()
+    assert order_lines.count() == 1
+    assert order_lines[0].product == product
+    assert order_lines[0].quantity == 1
 
 def test_order_product_must_match_resource(user_api_client, product, resource_in_unit, resource_in_unit2):
     product_with_another_resource = ProductFactory(resources=[resource_in_unit2])

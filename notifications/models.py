@@ -32,6 +32,7 @@ class NotificationType:
     # we don't confuse the user with "new reservation created"-style
     # messaging.
     RESERVATION_ACCESS_CODE_CREATED = 'reservation_access_code_created'
+    RESERVATION_WAITING_FOR_PAYMENT = 'reservation_waiting_for_payment'
     CATERING_ORDER_CREATED = 'catering_order_created'
     CATERING_ORDER_MODIFIED = 'catering_order_modified'
     CATERING_ORDER_DELETED = 'catering_order_deleted'
@@ -54,6 +55,7 @@ class NotificationTemplate(TranslatableModel):
         (NotificationType.RESERVATION_DENIED, _('Reservation denied')),
         (NotificationType.RESERVATION_CREATED_WITH_ACCESS_CODE, _('Reservation created with access code')),
         (NotificationType.RESERVATION_ACCESS_CODE_CREATED, _('Access code was created for a reservation')),
+        (NotificationType.RESERVATION_WAITING_FOR_PAYMENT, _('Reservation waiting for payment')),
 
         (NotificationType.CATERING_ORDER_CREATED, _('Catering order created')),
         (NotificationType.CATERING_ORDER_MODIFIED, _('Catering order modified')),

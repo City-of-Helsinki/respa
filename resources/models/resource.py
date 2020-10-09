@@ -736,11 +736,6 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         if self.min_period % self.slot_size != datetime.timedelta(0):
             raise ValidationError({'min_period': _('This value must be a multiple of slot_size')})
 
-        if self.need_manual_confirmation and self.products.current().exists():
-            raise ValidationError(
-                {'need_manual_confirmation': _('This cannot be enabled because the resource has product(s).')}
-            )
-
 
 class ResourceImage(ModifiableModel):
     TYPES = (
