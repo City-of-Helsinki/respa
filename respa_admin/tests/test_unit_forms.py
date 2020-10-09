@@ -1,6 +1,6 @@
 import pytest
 from django.urls import reverse
-from resources.models import Unit
+from resources.models import Unit, Period
 
 
 @pytest.mark.django_db
@@ -49,6 +49,14 @@ def test_add_unit_period(admin_client, test_unit, empty_period_form_data, test_u
         'days-periods-0-0-opens': test_day['opens'],
         'days-periods-0-0-closes': test_day['closes'],
         'days-periods-0-0-weekday': test_day['weekday'],
+        'periods-0-reservation_length_type': Period.LENGTH_WITHIN_DAY,
+        'multidaysettings-periods-0-0-duration_unit': 'week',
+        'multidaysettings-periods-0-0-max_duration': '7',
+        'multidaysettings-periods-0-0-min_duration': '1',
+        'multidaysettings-periods-0-INITIAL_FORMS': ['0'],
+        'multidaysettings-periods-0-MAX_NUM_FORMS': ['1'],
+        'multidaysettings-periods-0-MIN_NUM_FORMS': ['0'],
+        'multidaysettings-periods-0-TOTAL_FORMS': ['0'],
     })
     # Edit the unit
     unit_data.update(period_data)
