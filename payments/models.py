@@ -247,7 +247,7 @@ class Order(models.Model):
             self.create_log_entry(state_change=self.state, message='Created.')
 
     def set_confirmed_by_staff(self):
-        self.confirmed_by_staff_at = datetime.now()
+        self.confirmed_by_staff_at = now()
         self.save()
 
     def get_order_lines(self):

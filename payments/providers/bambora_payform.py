@@ -2,10 +2,11 @@ import hashlib
 import hmac
 import logging
 from datetime import datetime, timedelta
-
 import requests
-from django.http import HttpResponse
 from requests.exceptions import RequestException
+
+from django.http import HttpResponse
+from django.utils.timezone import now
 
 from ..exceptions import (
     DuplicateOrderError, OrderStateTransitionError, PayloadValidationError, ServiceUnavailableError,
@@ -52,7 +53,7 @@ class BamboraPayformProvider(PaymentProvider):
         """Initiate payment by constructing the payload with necessary items"""
 
         token_valid_days = self.config.get(RESPA_PAYMENTS_BAMBORA_TOKEN_VALID_DAYS)
-        token_valid_until = datetime.now() + timedelta(days=token_valid_days)
+        token_valid_until = now() + timedelta(days=token_valid_days)
 
         payload = {
             'version': 'w3.1',

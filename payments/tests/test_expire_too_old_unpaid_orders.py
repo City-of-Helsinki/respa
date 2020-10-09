@@ -1,4 +1,4 @@
-from datetime import timedelta, datetime
+from datetime import timedelta
 
 import pytest
 from django.core import management
@@ -55,7 +55,7 @@ def test_orders_get_expired(two_hour_reservation, order_with_products):
 
 def test_requested_reservation_orders_get_expired(order_with_products):
     order_with_products.is_requested_order = True
-    order_with_products.confirmed_by_staff_at = datetime.now() - timedelta(hours=REQUESTED_PAYMENT_WAITING_HOURS + 1)
+    order_with_products.confirmed_by_staff_at = now() - timedelta(hours=REQUESTED_PAYMENT_WAITING_HOURS + 1)
     order_with_products.save()
     management.call_command(COMMAND_NAME)
 
