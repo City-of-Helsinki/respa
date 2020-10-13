@@ -435,6 +435,7 @@ function addNewPeriod() {
     updatePeriodInputIds();
     attachPeriodEventHandlers(newItem);
     initializeDatepicker(newItem);
+    initializeDatepickerButtonListeners();
   }
 }
 
@@ -594,19 +595,21 @@ function initializeDatepicker(periodItem) {
 function initializeDatepickerButtonListeners() {
   const periods = getPeriodsList();
   for(const period of periods) {
-    const datepicker = $(period).find('.datepicker-start-date');
     const actionButtonsContainer = $(period).find('div.datepicker-action-buttons').children();
-    const startDateString = $(period).find('.period-start').first().val();
-    const endDateString = $(period).find('.period-end').first().val();
     Array.from(actionButtonsContainer).forEach(button => {
-      button.addEventListener('click', () => updateCalendar(datepicker, button.value, startDateString, endDateString), false);
+      button.addEventListener('click', () => updateCalendar(period, button.value), false);
     })
   }
 }
 
-function updateCalendar(datepicker, value, startDateString, endDateString) {
-  const startDate = new Date(startDateString);
-  const endDate = new Date(endDateString);
+function updateCalendar(period, value) {
+
+  const datepicker = $(period).find('.datepicker-start-date');
+  const startDateInput = $(period).find('.period-start').first();
+  const endDateInput = $(period).find('.period-end').first();
+  const startDatesContainer = $(period).find('.start-dates');
+  const startDate = new Date(startDateInput.val());
+  const endDate = new Date(endDateInput.val());
   const dates = [];
 
   for (const d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
@@ -618,6 +621,7 @@ function updateCalendar(datepicker, value, startDateString, endDateString) {
     }
     else if(value == 'clear-all-selections') {
       datepicker.datepicker('setDates', []);
+      startDatesContainer.empty();
       return;
     }
     else {
@@ -626,6 +630,5 @@ function updateCalendar(datepicker, value, startDateString, endDateString) {
       }
     }
   }
-  console.log('ajettiin loppuun');
   datepicker.datepicker('setDates', dates.concat(datepicker.datepicker('getDates')));
 }

@@ -30,6 +30,20 @@
 
     <div class="panel-collapse collapse" role="tabpanel" id="collapse{{id}}" aria-labelledby="heading{{id}}">
         <div class="container-fluid hours-wrapper">
+            <div class="input-row period-input" id="period-input-{{ id }}">
+                <div class="form-group schedule">
+                    <label class="control-label input-label">{% trans "Name" %} *</label>
+                    {{ period.name }}
+                </div>
+                <div class="form-group time-interval">
+                    <label class="control-label input-label">{% trans "Time interval" %}</label>
+                    <div class="input-row range-input date-input" id="date-inputs-{{ id }}">
+                        {{ period.start }}
+                        <span class="glyphicon glyphicon-minus"></span>
+                        {{ period.end }}
+                    </div>
+                </div>
+            </div>
             <div class="hours-table-header" id="period-list">
                 {% include "respa_admin/forms/_select.html" with field=period.reservation_length_type extra_classes="reservation-length-type" %}
                 <h4>{% trans "Start date" %}</h4>
@@ -75,20 +89,6 @@
                     {{ multiday_settings_form.must_end_on_start_day }}
                 </div>
                 {% endwith %}
-                <div class="input-row period-input" id="period-input-{{ id }}">
-                    <div class="form-group schedule">
-                        <label class="control-label input-label">{% trans "Name" %} *</label>
-                        {{ period.name }}
-                    </div>
-                    <div class="form-group time-interval">
-                        <label class="control-label input-label">{% trans "Time interval" %}</label>
-                        <div class="input-row range-input date-input" id="date-inputs-{{ id }}">
-                            {{ period.start }}
-                            <span class="glyphicon glyphicon-minus"></span>
-                            {{ period.end }}
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <div class="hidden" id="days-management-form">
