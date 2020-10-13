@@ -6,6 +6,7 @@ export function initializePeriods() {
   enableAddNewPeriod();
   setPeriodAndDayItems();
   initialSortPeriodDays();
+  initializeDatepickers();
   initializeDatepickerButtonListeners();
 }
 
@@ -557,7 +558,7 @@ function changeReservationLengthType(dropdown) {
   }
 }
 
-export function initializeDatepickers() {
+function initializeDatepickers() {
   $('.accordion-item').each(function() {
     initializeDatepicker($(this));
   })
