@@ -364,7 +364,6 @@ def test_unit_admin_and_unit_manager_may_bypass_payment(user_api_client, resourc
 def test_update_custom_price(general_admin, api_client, reservation, resource_in_unit):
     reservation_data = build_reservation_data(resource_in_unit)
     detail_url = get_detail_url(reservation)
-    print(vars(general_admin))
 
     reservation_data['custom_price'] = {
         'price': 555.10,

@@ -116,7 +116,7 @@ def test_get_pretax_price_for_reservation_success(product_1, two_hour_reservatio
 
 def test_get_custom_price_for_reservation_success(product_1, two_hour_reservation):
     """Test that price of reservation is calculated right way if custom price for reservation is set"""
-    custom_price = ReservationCustomPrice.objects.create(reservation=two_hour_reservation, price=Decimal(1.00),
+    ReservationCustomPrice.objects.create(reservation=two_hour_reservation, price=Decimal(1.00),
                                                          price_type=ReservationCustomPrice.HALF)
     rounded = product_1.get_price_for_reservation(two_hour_reservation)
     not_rounded = product_1.get_price_for_reservation(two_hour_reservation, rounded=False)
@@ -126,8 +126,7 @@ def test_get_custom_price_for_reservation_success(product_1, two_hour_reservatio
 
 def test_get_custom_pretax_price_for_reservation_success(product_1, two_hour_reservation):
     """Test that price of reservation is calculated right way if custom price for reservation is set"""
-    custom_price = ReservationCustomPrice.objects.create(reservation=two_hour_reservation, price=Decimal(25.62),
+    ReservationCustomPrice.objects.create(reservation=two_hour_reservation, price=Decimal(25.62),
                                                          price_type=ReservationCustomPrice.HALF)
     rounded = product_1.get_pretax_price_for_reservation(two_hour_reservation)
-    not_rounded = product_1.get_price_for_reservation(two_hour_reservation, rounded=False)
     assert rounded == Decimal('20.66')
