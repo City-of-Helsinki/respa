@@ -7,7 +7,7 @@ from pytz import UTC
 
 from resources.tests.conftest import resource_in_unit  # noqa
 
-from ..models import ARCHIVED_AT_NONE, Product
+from ..models import ARCHIVED_AT_NONE, Product, ReservationCustomPrice
 
 
 @pytest.fixture(autouse=True)
@@ -112,3 +112,21 @@ def test_get_pretax_price_for_reservation_success(product_1, two_hour_reservatio
     not_rounded = product_1.get_pretax_price_for_reservation(two_hour_reservation, rounded=False)
     assert rounded == Decimal('20.66')
     assert not_rounded.quantize(Decimal('0.00001')) == Decimal('20.66129')
+
+
+def test_get_custom_price_for_reservation_success(product_1, two_hour_reservation):
+    """Test that price of reservation is calculated right way if custom price for reservation is set"""
+    ReservationCustomPrice.objects.create(reservation=two_hour_reservation, price=Decimal(1.00),
+                                                         price_type=ReservationCustomPrice.HALF)
+    rounded = product_1.get_price_for_reservation(two_hour_reservation)
+    not_rounded = product_1.get_price_for_reservation(two_hour_reservation, rounded=False)
+    assert rounded == Decimal('1.00')
+    assert not_rounded == Decimal('1.00')
+
+
+def test_get_custom_pretax_price_for_reservation_success(product_1, two_hour_reservation):
+    """Test that price of reservation is calculated right way if custom price for reservation is set"""
+    ReservationCustomPrice.objects.create(reservation=two_hour_reservation, price=Decimal(25.62),
+                                                         price_type=ReservationCustomPrice.HALF)
+    rounded = product_1.get_pretax_price_for_reservation(two_hour_reservation)
+    assert rounded == Decimal('20.66')

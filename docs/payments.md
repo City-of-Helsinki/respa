@@ -243,6 +243,23 @@ Example full return url: `https://varaamo.hel.fi/payment-return-url/?payment_sta
 
 Modifying an order is not possible, and after a reservation's creation the `order` field is read-only.
 
+### Custom price
+
+Admins and some staff members with permission `can_set_custom_price_for_reservations` can set custom price for individual reservation. The custom price is set with PUT-request to Reservations details endpoint.
+
+Example of custom_price field in Reservation PUT request
+
+```json
+...
+
+"custom_price": {
+    "price": "10.00",
+    "price_type": "half"
+}
+
+...
+```
+
 ### Order data in reservation API endpoint
 
 Reservation data in the API includes `order` field when the current user has permission to view it (either own reservation or via the explicit view order permission).

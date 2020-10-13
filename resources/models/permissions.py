@@ -25,6 +25,7 @@ RESOURCE_PERMISSIONS = (
     ('can_create_overlapping_reservations', _('Can create overlapping reservations')),
     ('can_ignore_max_reservations_per_user', _('Can ignore resources max reservations per user rule')),
     ('can_ignore_max_period', _('Can ignore resources max period rule')),
+    ('can_set_custom_price_for_reservations', _('Can set custom price for individual reservations')),
 )
 
 UNIT_ROLE_PERMISSIONS = {
@@ -118,6 +119,11 @@ UNIT_ROLE_PERMISSIONS = {
         UnitAuthorizationLevel.manager
     ],
     'can_ignore_max_period': [
+        UnitGroupAuthorizationLevel.admin,
+        UnitAuthorizationLevel.admin,
+        UnitAuthorizationLevel.manager
+    ],
+    'can_set_custom_price_for_reservations': [
         UnitGroupAuthorizationLevel.admin,
         UnitAuthorizationLevel.admin,
         UnitAuthorizationLevel.manager

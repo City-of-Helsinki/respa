@@ -152,10 +152,24 @@ class Product(models.Model):
         else:
             raise NotImplementedError('Cannot calculate price, unknown price type "{}".'.format(self.price_type))
 
+    @rounded
+    def get_pretax_custom_price_for_reservation(self, reservation: Reservation) -> Decimal:
+        return convert_aftertax_to_pretax(self.get_custom_price_for_reservation(reservation), self.tax_percentage)
+
+    @rounded
+    def get_custom_price_for_reservation(self, reservation: Reservation) -> Decimal:
+        return reservation.custom_price.price
+
     def get_pretax_price_for_reservation(self, reservation: Reservation, rounded: bool = True) -> Decimal:
+        if hasattr(reservation, 'custom_price'):
+            return self.get_pretax_custom_price_for_reservation(reservation, rounded=rounded)
+
         return self.get_pretax_price_for_time_range(reservation.begin, reservation.end, rounded=rounded)
 
     def get_price_for_reservation(self, reservation: Reservation, rounded: bool = True) -> Decimal:
+        if hasattr(reservation, 'custom_price'):
+            return self.get_custom_price_for_reservation(reservation, rounded=rounded)
+
         return self.get_price_for_time_range(reservation.begin, reservation.end, rounded=rounded)
 
 
@@ -340,6 +354,31 @@ class OrderLogEntry(models.Model):
         return '{} order {} state change {} message {}'.format(
             self.timestamp, self.order_id, self.state_change or None, self.message or None
         )
+
+
+class ReservationCustomPrice(models.Model):
+    HALF = 'half'
+    FREE = 'free'
+    CUSTOM = 'custom'
+
+    PRICE_TYPE_CHOICES = (
+        (HALF, _('half')),
+        (FREE, _('free')),
+        (CUSTOM, _('custom')),
+    )
+
+    reservation = models.OneToOneField(
+        Reservation, verbose_name=_('custom price'), related_name='custom_price', on_delete=models.CASCADE
+    )
+    price = models.DecimalField(verbose_name=_('price including VAT'), max_digits=10, decimal_places=2)
+    price_type = models.CharField(max_length=32, verbose_name=_('price type'), choices=PRICE_TYPE_CHOICES)
+
+    class Meta:
+        verbose_name = _('custom price')
+        verbose_name_plural = _('custom prices')
+
+    def __str__(self):
+        return '{} ({})'.format(self.price, self.reservation)
 
 
 class LocalizedSerializerField(serializers.Field):

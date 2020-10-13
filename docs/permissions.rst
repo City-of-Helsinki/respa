@@ -140,6 +140,7 @@ can_create_reservations_for_other_users  X       X      X
 can_create_overlapping_reservations      X       X      X      X
 can_ignore_max_reservations_per_user     X       X      X      X
 can_ignore_max_period                    X       X      X      X
+can_set_custom_price_for_reservations    X       X      X      X
 ====================================== ====== ======= ====== ====== ======
 
 
@@ -207,6 +208,9 @@ can_ignore_max_reservations_per_user
 
 can_ignore_max_period
   Can ignore resources max period rule
+
+can_set_custom_price_for_reservations
+  Can set custom price for individual reservations
 
 
 Respa Admin Permissions

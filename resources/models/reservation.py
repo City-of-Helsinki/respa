@@ -324,6 +324,9 @@ class Reservation(ModifiableModel):
     def can_add_product_order(self, user):
         return self.is_own(user)
 
+    def can_set_custom_price(self, user):
+        return self.resource.can_set_custom_price_for_reservations(user)
+
     def can_view_product_orders(self, user):
         if self.is_own(user):
             return True
