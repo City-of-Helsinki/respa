@@ -2,10 +2,10 @@ import { initializeResourceForm, calendarHandler, coloredDropdownListener, addDr
 import { toggleCurrentLanguage, calculateTranslatedFields }  from './resourceFormLanguage';
 
 function start() {
+  calendarHandler();
   initializeResourceForm();
   toggleCurrentLanguage();
   calculateTranslatedFields();
-  calendarHandler();
   addDropdownColor();
   coloredDropdownListener();
 }

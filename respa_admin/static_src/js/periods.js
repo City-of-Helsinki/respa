@@ -559,6 +559,7 @@ function changeReservationLengthType(dropdown) {
 }
 
 function initializeDatepickers() {
+  window.foo = $;
   $('.accordion-item').each(function() {
     initializeDatepicker($(this));
   })
@@ -573,11 +574,12 @@ function initializeDatepicker(periodItem) {
   const initialStartDates = initialStartDatesContainer.map((index, input) => input.value).get();
 
   startDateCalendar.datepicker({
-    startDate: startDateInput.val(),
-    endDate: endDateInput.val(),
+    startDate: startDateInput.datepicker('getDate'),
+    endDate: endDateInput.datepicker('getDate'),
     format: 'yyyy-mm-dd',
     multidate: true,
     multidateSeparator: ',',
+    language: 'fi',
   }).datepicker('setDates', initialStartDates).on('changeDate', function(event) {
     startDatesContainer.empty();
     event.dates.forEach((date, index) => {
@@ -587,8 +589,8 @@ function initializeDatepicker(periodItem) {
   });
   [startDateInput, endDateInput].forEach(elem => {
     elem.on('change', function(e) {
-      startDateCalendar.datepicker('setStartDate', startDateInput.val());
-      startDateCalendar.datepicker('setEndDate', endDateInput.val());
+      startDateCalendar.datepicker('setStartDate', startDateInput.datepicker('getDate'));
+      startDateCalendar.datepicker('setEndDate', endDateInput.datepicker('getDate'));
     })
   })
 }

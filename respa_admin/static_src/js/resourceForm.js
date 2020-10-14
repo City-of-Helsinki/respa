@@ -21,7 +21,6 @@ export function initializeResourceForm() {
   initializePeriods();
   setImageItem();
   reservationLengthTypeListener();
-  initializeDatepickers();
 }
 
 /*
