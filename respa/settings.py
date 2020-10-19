@@ -97,6 +97,10 @@ DATABASES = {
 DATABASES['default']['ATOMIC_REQUESTS'] = True
 DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = env('DISABLE_SERVER_SIDE_CURSORS')
 
+GRAPHENE = {
+    "SCHEMA": "resources.schema.schema"
+}
+
 SECURE_PROXY_SSL_HEADER = env('SECURE_PROXY_SSL_HEADER')
 
 SITE_ID = 1
@@ -150,6 +154,8 @@ INSTALLED_APPS = [
     'respa_admin',
 
     'sanitized_dump',
+
+    'graphene_django',
 ]
 
 if env('SENTRY_DSN'):

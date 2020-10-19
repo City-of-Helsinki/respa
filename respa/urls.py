@@ -1,5 +1,6 @@
 from django.urls import path, re_path
 from django.conf.urls import include
+from graphene_django.views import GraphQLView
 from django.conf import settings
 from django.conf.urls.static import static
 from helusers.admin_site import admin
@@ -31,6 +32,7 @@ urlpatterns = [
     path('v1/', include(router.urls)),
     re_path(r'v1/reservation/ical/(?P<ical_token>[-\w\d]+).ics$', ICalFeedView.as_view(), name='ical-feed'),
     path('', RedirectView.as_view(url='v1/')),
+    path('graphql', GraphQLView.as_view(graphiql=True)),
 ]
 
 if 'reports' in settings.INSTALLED_APPS:
