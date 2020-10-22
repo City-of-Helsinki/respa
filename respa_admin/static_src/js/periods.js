@@ -611,8 +611,8 @@ function updateCalendar(period, value) {
   const startDateInput = $(period).find('.period-start').first();
   const endDateInput = $(period).find('.period-end').first();
   const startDatesContainer = $(period).find('.start-dates');
-  const startDate = new Date(startDateInput.val());
-  const endDate = new Date(endDateInput.val());
+  const startDate = new Date(convertDateFormat(startDateInput.val()));
+  const endDate = new Date(convertDateFormat(endDateInput.val()));
   const dates = [];
 
   for (const d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
