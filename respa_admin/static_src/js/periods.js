@@ -102,7 +102,7 @@ function updatePeriodInputIds() {
   let periods = $('#current-periods-list').children();
 
   periods.each(function (i, periodItem) {
-    let inputs = $(periodItem).find('input[name]');
+    let inputs = $(periodItem).find('input[name]').not('.input-start-date');
     inputs.each(function (inputIndex, input) {
       $(input).attr('id', $(input).attr('id').replace(/-(\d+)-/, "-" + i + "-"));
       $(input).attr('name', $(input).attr('name').replace(/-(\d+)-/, "-" + i + "-"));
@@ -437,6 +437,7 @@ function addNewPeriod() {
     attachPeriodEventHandlers(newItem);
     initializeDatepicker(newItem);
     initializeDatepickerButtonListeners();
+    reservationLengthTypeListener();
   }
 }
 
@@ -544,6 +545,7 @@ export function reservationLengthTypeListener(event) {
     if(dropdown.value === 'over_night') {
       changeReservationLengthType(dropdown);
     }
+    dropdown.removeEventListener('change', (event) => changeReservationLengthType(event.target));
     dropdown.addEventListener('change', (event) => changeReservationLengthType(event.target), false);
   });
 }
@@ -583,7 +585,7 @@ function initializeDatepicker(periodItem) {
   }).datepicker('setDates', initialStartDates).on('changeDate', function(event) {
     startDatesContainer.empty();
     event.dates.forEach((date, index) => {
-      const dateInput = $('<input>').attr('type', 'hidden').attr('name', 'start_dates').val(event.format(index));
+      const dateInput = $('<input>').addClass('input-start-date').attr('type', 'hidden').attr('name', 'start_dates').val(event.format(index));
       startDatesContainer.append(dateInput);
     })
   });

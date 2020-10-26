@@ -30,6 +30,7 @@
 
     <div class="panel-collapse collapse" role="tabpanel" id="collapse{{id}}" aria-labelledby="heading{{id}}">
         <div class="container-fluid hours-wrapper">
+            <h4>{% trans "General information" %}</h4>
             <div class="input-row period-input" id="period-input-{{ id }}">
                 <div class="form-group schedule">
                     <label class="control-label input-label">{% trans "Name" %} *</label>
@@ -46,7 +47,7 @@
             </div>
             <div class="hours-table-header" id="period-list">
                 {% include "respa_admin/forms/_select.html" with field=period.reservation_length_type extra_classes="reservation-length-type" %}
-                <h4>{% trans "Start date" %}</h4>
+                <h4>{% trans "Allowed reservation start days" %}</h4>
                 {% with period.multidaysettings.0 as multiday_settings_form %}
                 {{ multiday_settings_form.id }}
                 <div class="datepicker-container">
@@ -71,6 +72,7 @@
                     {% endfor %}
                 </div>
                 <div class="start-dates"></div>
+                <h4>{% trans "Allowed reservation duration" %}</h4>
                 <div class="input-row">
                     {% include "respa_admin/forms/_select.html" with field=multiday_settings_form.duration_unit %}
                 </div>
@@ -90,7 +92,7 @@
                 </div>
                 {% endwith %}
             </div>
-
+            <h4>{% trans "Opening hours" %}</h4>
             <div class="hidden" id="days-management-form">
                 {{ period.days.management_form }}
             </div>
