@@ -67,7 +67,7 @@ mccabe==0.6.1             # via flake8
 more-itertools==5.0.0     # via pytest
 ntlm-auth==1.2.0          # via requests-ntlm
 oauthlib==3.0.0           # via requests-oauthlib
-pillow==7.0.0             # via easy-thumbnails
+pillow==8.0.1             # via easy-thumbnails
 pip-tools==4.5.1          # via -r requirements.in
 pluggy==0.8.1             # via pytest
 psycopg2==2.7.6.1         # via -r requirements.in
