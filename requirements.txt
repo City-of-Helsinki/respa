@@ -7,7 +7,6 @@
 --no-binary psycopg2
 
 arrow==0.13.0             # via -r requirements.in
-asn1crypto==0.24.0        # via cryptography
 atomicwrites==1.2.1       # via pytest
 attrs==18.2.0             # via pytest
 babel==2.6.0              # via delorean
@@ -16,7 +15,7 @@ cffi==1.11.5              # via cryptography
 chardet==3.0.4            # via requests
 click==7.0                # via pip-tools
 coverage==4.5.2           # via -r requirements.in, pytest-cov
-cryptography==2.5         # via requests-ntlm
+cryptography==3.2         # via requests-ntlm
 daemonize==2.5.0          # via -r requirements.in
 database-sanitizer==1.1.0  # via -r requirements.in, django-sanitized-dump
 defusedxml==0.5.0         # via python3-openid
