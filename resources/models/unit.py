@@ -122,6 +122,12 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
     def __str__(self):
         return "%s (%s)" % (get_translated(self, 'name'), self.id)
 
+    def get_period_for_timespan(self, start_date, end_date):
+        try:
+            return self.periods.get(start__lte=start_date, end__gte=end_date)
+        except:
+            return None
+
     def get_opening_hours(self, begin=None, end=None):
         """
         :rtype : dict[str, list[dict[str, datetime.datetime]]]

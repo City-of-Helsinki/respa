@@ -298,10 +298,17 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         try:
             return self.periods.get(start__lte=start_date, end__gte=end_date)
         except:
-            return None
+            try:
+                return self.unit.get_period_for_timespan(start_date, end_date)
+            except:
+                return None
 
     def get_overlapping_periods_for_timespan(self, start_date, end_date):
         return self.periods.filter(end__gt=start_date, start__lt=end_date)
+
+    def timespan_has_closed_overlapping_periods(self, start_date, end_date):
+        return (Period.objects.filter(resource=self, closed=True, end__gt=start_date, start__lt=end_date).exists() or
+            Period.objects.filter(unit=self.unit, closed=True, end__gt=start_date, start__lt=end_date).exists())
 
     def validate_reservation_period(self, reservation, user, data=None):
         """
@@ -350,6 +357,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         end_date = end.date()
 
         period = self.get_period_for_timespan(begin_date, end_date)
+
         is_within_day_reservation = begin_date == end_date
 
         if (not period or period.reservation_length_type == Period.LENGTH_WITHIN_DAY) and not is_within_day_reservation:
@@ -370,6 +378,9 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             # Restrictions for a multi day reservation
             if not period or not period.has_multiday_settings():
                 raise ValidationError(_('This resource has not been configured for multi day reservations'))
+
+            if self.timespan_has_closed_overlapping_periods(begin_date, end_date):
+                raise ValidationError(_('This resource is closed during reservation time'))
 
             multiday_settings = period.multiday_settings
 

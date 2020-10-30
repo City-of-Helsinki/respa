@@ -2720,6 +2720,7 @@ def test_over_night_reservation(user, resource_in_unit, api_client, list_url):
     """
 
     resource_in_unit.periods.all().delete()
+    resource_in_unit.unit.periods.all().delete()
     # Create period for resource
     period = Period.objects.create(resource=resource_in_unit, start='2115-04-01', end='2115-04-30', reservation_length_type='over_night')
     # Create multiday settings for previously created period
@@ -2770,24 +2771,24 @@ def test_over_night_reservation(user, resource_in_unit, api_client, list_url):
     assert reservation.end == dateparse.parse_datetime('2115-04-08T12:00:00+02:00')
     reservation.delete()
 
-    # Test making a reservation with duration type month
+    # Test making a reservation with duration type month and unit specific multiday settings
+
+    resource_in_unit.periods.all().delete()
+    resource_in_unit.unit.periods.all().delete()
+
+    # Create period for resource
+    period = Period.objects.create(unit=resource_in_unit.unit, start='2115-01-01', end='2115-12-30', reservation_length_type='over_night')
+    # Create multiday settings for previously created period
+    settings = MultidaySettings.objects.create(period=period, min_duration=1, max_duration=3, duration_unit=MultidaySettings.DURATION_UNIT_MONTH, check_in_time='14:00', check_out_time='12:00')
+    # Create first available start day to beginning of period
+    settings.start_days.create(day='2115-04-01')
+    settings.start_days.create(day='2115-06-01')
+
     reservation_data = {
         'resource': resource_in_unit.pk,
         'begin': '2115-04-01T12:00:00+02:00',
         'end': '2115-06-01T12:00:00+02:00'
     }
-
-    period.start = '2115-01-01'
-    period.end = '2115-12-30'
-    period.save()
-
-    settings.min_duration = 1
-    settings.max_duration = 3
-    settings.duration_unit = MultidaySettings.DURATION_UNIT_MONTH
-    settings.save()
-
-    settings.start_days.create(day='2115-04-01')
-    settings.start_days.create(day='2115-06-01')
 
     response = api_client.post(list_url, data=reservation_data)
     assert response.status_code == 201, "Request failed with: %s" % (str(response.content, 'utf8'))
@@ -2851,6 +2852,21 @@ def test_over_night_reservation_with_incorrect_settings(user, resource_in_unit, 
 
     response = api_client.post(list_url, data=reservation_data)
     assert response.status_code == 400
+
+
+    # Reservation is partially inside closed period
+
+    closed_period = Period.objects.create(resource=resource_in_unit, start='2115-04-10', end='2115-04-12', reservation_length_type='over_night', closed=True)
+    reservation_data = {
+        'resource': resource_in_unit.pk,
+        'begin': '2115-04-04T12:00:00+02:00',
+        'end': '2115-04-11T12:00:00+02:00'
+    }
+
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 400
+
+    closed_period.delete()
 
     # Reservation doesn't end on start day
     settings.must_end_on_start_day = True
