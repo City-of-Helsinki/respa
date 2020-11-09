@@ -336,6 +336,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         else:
             end = tz.localize(end)
 
+        """
         if begin.date() != end.date():
             raise ValidationError(_("You cannot make a multi day reservation"))
 
@@ -348,6 +349,9 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         if not self.can_ignore_max_period(user) and (self.max_period and (end - begin) > self.max_period):
             raise ValidationError(_("The maximum reservation length is %(max_period)s") %
                                   {'max_period': humanize_duration(self.max_period)})
+        """
+        return
+                      
 
     def validate_max_reservations_per_user(self, user):
         """
