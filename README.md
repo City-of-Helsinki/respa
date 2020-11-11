@@ -195,7 +195,7 @@ Generated key needs to be added as a key-provider into Keycloak realm. Key can b
 
 After the new provider has been added, you can passivate old "rsa-generated" -provider
 
-Next you need to add mapper for token audience property. Mapper cna be added from Realm > Clients > Client > Mappers > Create. Use following settings:
+Next you need to add mapper for token audience property. Mapper can be added from Realm > Clients > Client > Mappers > Create. Use following settings:
 
     Protocol: openid-connect
     Name: Audience mapper
@@ -205,7 +205,7 @@ Next you need to add mapper for token audience property. Mapper cna be added fro
     Add to ID token: Off
     Add to access token: On
 
-Next you need to configure new key to respa. This can be done by adding JWT_AUTH into local_settings.py:
+Next you need to configure new key to Respa. This can be done by adding JWT_AUTH into local_settings.py:
 
     JWT_AUTH = {
         'JWT_AUDIENCE': 'your client',
