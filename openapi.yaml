@@ -390,6 +390,12 @@ paths:
         duration in a desired time interval. This allows fetching only the resources that match a particular need at a particular time.
         The optional **page** parameter allows specifying page number and **page_size** allows specifying more than the default 20 units per page.
       parameters:
+      - name: user
+        in: query
+        description: Only return resources that are related to given user. Expects
+          to recieve user's UUID.
+        schema:
+          type: string
       - name: purpose
         in: query
         description: Only return resources that have the specified purpose(s)
@@ -690,6 +696,12 @@ paths:
         in: query
         description: Only return reservations that has given parameter in the host
           name field.
+        schema:
+          type: string
+      - name: reserver_id
+        in: query
+        description: Only return reservations that has given parameter in the reserver
+          id field.
         schema:
           type: string
       - name: reserver_name
@@ -1154,6 +1166,14 @@ components:
           type: string
           description: The maximum duration of a reservation for the resource, in
             hh:mm:ss
+        min_price:
+          type: number
+          description: The minimum price of a reservation
+        max_price:
+          type: number
+          description: The maximum price of a reservation
+        price_type:
+          $ref: '#/components/schemas/price_type'
         created_by:
           type: string
         modified_by:
@@ -1161,6 +1181,7 @@ components:
         unit:
           type: string
           description: Unique identifier for the unit where the resource is located
+          $ref: '#/components/schemas/unit'
         location:
           $ref: '#/components/schemas/location'
         equipment:
@@ -1237,6 +1258,9 @@ components:
     reservation:
       type: object
       properties:
+        id:
+          type: string
+          description: Unique identifier of the reservation
         url:
           type: string
           description: URL of the reservation
@@ -1271,6 +1295,9 @@ components:
           enum:
           - normal
           - blocked
+        reserver_id: 
+          type: string
+          description: Reserver ID (business or person)
         need_manual_confirmation:
           type: boolean
           description: Does the reservation require a confirmation from the unit personnel?
@@ -1328,6 +1355,12 @@ components:
           description: Reserver email address
         cancel_reason:
           $ref: '#/components/schemas/cancel_reason_read'
+        staff_event: 
+          type: boolean
+          description: Whether reservation is a staff event.
+        comments: 
+          type: string
+          description: Reservation comments
     equipment:
       type: object
       properties:
@@ -1623,3 +1656,10 @@ components:
             en:
               type: string
               description: English full description for the cancel reason category
+
+    price_type:
+      description: Price type
+      type: string
+      enum:
+        - fixed
+        - per_period
