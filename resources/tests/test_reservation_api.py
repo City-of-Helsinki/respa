@@ -8,6 +8,7 @@ from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test.utils import override_settings
 from django.utils import dateparse, timezone, translation
+from django.conf import settings
 from guardian.shortcuts import assign_perm, remove_perm
 from freezegun import freeze_time
 from icalendar import Calendar
@@ -226,6 +227,39 @@ def test_authenticated_user_can_make_reservation(api_client, list_url, reservati
     assert reservation.begin == dateparse.parse_datetime('2115-04-04T11:00:00+02:00')
     assert reservation.end == dateparse.parse_datetime('2115-04-04T12:00:00+02:00')
 
+@pytest.mark.django_db
+def test_authenticated_user_can_make_multi_day_reservation(api_client, list_url, reservation_data, resource_in_unit, user):
+    """
+    Tests that an authenticated user can create a multi day reservation when ENABLE_USER_MULTIPLE_RESERVATION_DATES=True .
+    """
+    api_client.force_authenticate(user=user)
+    settings.ENABLE_USER_MULTIPLE_RESERVATION_DATES = True
+    reservation_data['begin'] = '2115-04-04T15:00:00+02:00'
+    reservation_data['end'] = '2115-04-05T09:00:00+02:00'
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201
+    reservation = Reservation.objects.filter(user=user).latest('created_at')
+    assert reservation.resource == resource_in_unit
+    assert reservation.begin == dateparse.parse_datetime('2115-04-04T15:00:00+02:00')
+    assert reservation.end == dateparse.parse_datetime('2115-04-05T09:00:00+02:00')
+    settings.ENABLE_USER_MULTIPLE_RESERVATION_DATES = False
+
+@pytest.mark.django_db
+def test_authenticated_user_can_make_single_day_reservation_out_of_opening_hours(api_client, list_url, reservation_data, resource_in_unit, user):
+    """
+    Tests that an authenticated user can create a single day reservation out of opening hours when ENABLE_USER_IGNORE_OPENING_HOURS=True .
+    """
+    api_client.force_authenticate(user=user)
+    settings.ENABLE_USER_IGNORE_OPENING_HOURS = True
+    reservation_data['begin'] = '2115-04-04T06:00:00+02:00'
+    reservation_data['end'] = '2115-04-04T08:00:00+02:00'
+    response = api_client.post(list_url, data=reservation_data)
+    assert response.status_code == 201
+    reservation = Reservation.objects.filter(user=user).latest('created_at')
+    assert reservation.resource == resource_in_unit
+    assert reservation.begin == dateparse.parse_datetime('2115-04-04T06:00:00+02:00')
+    assert reservation.end == dateparse.parse_datetime('2115-04-04T08:00:00+02:00')
+    settings.ENABLE_USER_IGNORE_OPENING_HOURS = False
 
 @pytest.mark.django_db
 def test_authenticated_user_can_modify_reservation(

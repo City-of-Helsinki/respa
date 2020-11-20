@@ -336,20 +336,23 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         else:
             end = tz.localize(end)
 
-        """
-        if begin.date() != end.date():
+        if begin.date() != end.date() and not settings.ENABLE_USER_MULTIPLE_RESERVATION_DATES:
             raise ValidationError(_("You cannot make a multi day reservation"))
+        elif begin.date() != end.date() and settings.ENABLE_USER_MULTIPLE_RESERVATION_DATES:
+            return
 
-        if not self.can_ignore_opening_hours(user):
+        if not self.can_ignore_opening_hours(user) and not settings.ENABLE_USER_IGNORE_OPENING_HOURS:
             opening_hours = self.get_opening_hours(begin.date(), end.date())
             days = opening_hours.get(begin.date(), None)
             if days is None or not any(day['opens'] and begin >= day['opens'] and end <= day['closes'] for day in days):
                 raise ValidationError(_("You must start and end the reservation during opening hours"))
+        elif not self.can_ignore_opening_hours(user) and settings.ENABLE_USER_IGNORE_OPENING_HOURS and not (end - begin) > self.max_period:
+            return
 
         if not self.can_ignore_max_period(user) and (self.max_period and (end - begin) > self.max_period):
             raise ValidationError(_("The maximum reservation length is %(max_period)s") %
                                   {'max_period': humanize_duration(self.max_period)})
-        """
+
         return
                       
 
