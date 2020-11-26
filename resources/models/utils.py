@@ -141,6 +141,7 @@ def generate_reservation_xlsx(reservations):
     worksheet = workbook.add_worksheet()
 
     headers = [
+        ('Id', 30),
         ('Unit', 30),
         ('Resource', 30),
         ('Begin time', 15),
@@ -161,17 +162,18 @@ def generate_reservation_xlsx(reservations):
 
     date_format = workbook.add_format({'num_format': 'dd.mm.yyyy hh:mm', 'align': 'left'})
     for row, reservation in enumerate(reservations, 1):
-        worksheet.write(row, 0, reservation['unit'])
-        worksheet.write(row, 1, reservation['resource'])
-        worksheet.write(row, 2, localtime(reservation['begin']).replace(tzinfo=None), date_format)
-        worksheet.write(row, 3, localtime(reservation['end']).replace(tzinfo=None), date_format)
-        worksheet.write(row, 4, localtime(reservation['created_at']).replace(tzinfo=None), date_format)
+        worksheet.write(row, 0, reservation['id'])
+        worksheet.write(row, 1, reservation['unit'])
+        worksheet.write(row, 2, reservation['resource'])
+        worksheet.write(row, 3, localtime(reservation['begin']).replace(tzinfo=None), date_format)
+        worksheet.write(row, 4, localtime(reservation['end']).replace(tzinfo=None), date_format)
+        worksheet.write(row, 5, localtime(reservation['created_at']).replace(tzinfo=None), date_format)
         if 'user' in reservation:
-            worksheet.write(row, 5, reservation['user'])
+            worksheet.write(row, 6, reservation['user'])
         if 'comments' in reservation:
-            worksheet.write(row, 6, reservation['comments'])
-        worksheet.write(row, 7, reservation['staff_event'])
-        for i, field in enumerate(RESERVATION_EXTRA_FIELDS, 8):
+            worksheet.write(row, 7, reservation['comments'])
+        worksheet.write(row, 8, reservation['staff_event'])
+        for i, field in enumerate(RESERVATION_EXTRA_FIELDS, 9):
             if field in reservation:
                 worksheet.write(row, i, reservation[field])
     workbook.close()
