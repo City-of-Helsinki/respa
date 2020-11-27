@@ -362,10 +362,10 @@ RESPA_ADMIN_USERNAME_LOGIN = env.bool(
     'RESPA_ADMIN_USERNAME_LOGIN', default=True)
 
 # Setting enables multi day user reservations
-ENABLE_USER_MULTIPLE_RESERVATION_DATES = False
+ENABLE_USER_MULTIPLE_RESERVATION_DATES = True
 
 # Setting enables single day out of opening hours user reservation
-ENABLE_USER_IGNORE_OPENING_HOURS = False
+ENABLE_USER_IGNORE_OPENING_HOURS = True
 
 RESPA_PAYMENTS_ENABLED = env('RESPA_PAYMENTS_ENABLED')
 
