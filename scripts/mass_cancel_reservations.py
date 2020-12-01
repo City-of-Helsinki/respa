@@ -31,4 +31,4 @@ for reservation in reservations:
     reservation.set_state(Reservation.CANCELLED, None)
 
     print('Cancelled reservation {} for resource {}'.format(reservation.pk, reservation.resource.name))
-    time.sleep(0.1)
+    time.sleep(0.25)
