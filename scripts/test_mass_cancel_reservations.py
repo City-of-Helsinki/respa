@@ -10,7 +10,7 @@ from resources.models.utils import generate_reservation_xlsx
 municipality_helsinki = Municipality.objects.get(id='helsinki')
 
 reservations = Reservation.objects.filter(
-    id=622090,
+    id=622114,
     state__in=[Reservation.CONFIRMED, Reservation.REQUESTED],
     begin__gte='2020-11-30 23:59:59.99+02',
     end__lte='2020-12-20 23:59:59.99+02',
@@ -32,4 +32,4 @@ for reservation in reservations:
     reservation.set_state(Reservation.CANCELLED, None)
 
     print('Cancelled reservation {} for resource {}'.format(reservation.pk, reservation.resource.name))
-    time.sleep(0.1)
+    time.sleep(0.25)
