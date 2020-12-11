@@ -12,8 +12,8 @@ municipality_helsinki = Municipality.objects.get(id='helsinki')
 reservations = Reservation.objects.filter(
     id=622114,
     state__in=[Reservation.CONFIRMED, Reservation.REQUESTED],
-    begin__gte='2020-11-30 23:59:59.99+02',
-    end__lte='2020-12-20 23:59:59.99+02',
+    begin__gte='2020-12-20 23:59:59.99+02',
+    end__lte='2021-01-10 23:59:59.99+02',
     staff_event=False,
     resource__unit__municipality=municipality_helsinki,
     resource__public=True
