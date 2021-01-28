@@ -12,7 +12,7 @@ atomicwrites==1.2.1       # via pytest
 attrs==18.2.0             # via pytest
 babel==2.6.0              # via delorean
 certifi==2018.11.29       # via requests, sentry-sdk
-cffi==1.11.5              # via cryptography
+cffi==1.14.3              # via cryptography
 chardet==3.0.4            # via requests
 click==7.0                # via pip-tools
 coverage==4.5.2           # via -r requirements.in, pytest-cov
@@ -52,7 +52,7 @@ ecdsa==0.15               # via python-jose
 factory-boy==2.12.0       # via -r requirements.in
 faker==1.0.2              # via -r requirements.in, factory-boy
 flake8==3.6.0             # via -r requirements.in
-freezegun==0.3.11         # via -r requirements.in
+freezegun==1.0.0          # via -r requirements.in
 future==0.17.1            # via pyjwkest
 humanize==0.5.1           # via delorean
 icalendar==4.0.3          # via -r requirements.in
@@ -70,11 +70,11 @@ oauthlib==3.0.0           # via requests-oauthlib
 pillow==8.0.1             # via easy-thumbnails
 pip-tools==4.5.1          # via -r requirements.in
 pluggy==0.8.1             # via pytest
-psycopg2==2.7.6.1         # via -r requirements.in
+psycopg2==2.8.6           # via -r requirements.in
 py==1.7.0                 # via pytest
 pyasn1==0.4.8             # via python-jose, rsa
 pycodestyle==2.4.0        # via flake8
-pycparser==2.19           # via cffi
+pycparser==2.20           # via cffi
 pycryptodomex==3.7.3      # via pyjwkest
 pyflakes==2.0.0           # via flake8
 pyjwkest==1.4.0           # via drf-oidc-auth
@@ -94,7 +94,7 @@ requests-oauthlib==1.2.0  # via django-allauth
 requests==2.23.0          # via -r requirements.in, django-allauth, django-anymail, django-helusers, django-munigeo, pyjwkest, requests-cache, requests-ntlm, requests-oauthlib
 rsa==4.0                  # via python-jose
 sentry-sdk==0.14.1        # via -r requirements.in
-six==1.12.0               # via -r requirements.in, cryptography, database-sanitizer, django-anymail, django-guardian, django-image-cropping, django-munigeo, django-sanitized-dump, ecdsa, faker, freezegun, more-itertools, pip-tools, pyjwkest, pytest, python-dateutil, python-jose
+six==1.12.0               # via -r requirements.in, cryptography, database-sanitizer, django-anymail, django-guardian, django-image-cropping, django-munigeo, django-sanitized-dump, ecdsa, faker, more-itertools, pip-tools, pyjwkest, pytest, python-dateutil, python-jose
 sqlparse==0.3.0           # via django
 text-unidecode==1.2       # via faker
 tzlocal==1.5.1            # via delorean
