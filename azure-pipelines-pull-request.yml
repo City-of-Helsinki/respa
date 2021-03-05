@@ -2,13 +2,9 @@
 
 # Continuous integration (CI) triggers cause a pipeline to run whenever you push 
 # an update to the specified branches or you push specified tags.
-trigger:
-  branches:
-    include:
-    - develop
-  paths:
-    exclude:
-    - README.md
+#
+# Opt out of CI triggers
+trigger: none
 
 # Pull request (PR) triggers cause a pipeline to run whenever a pull request is 
 # opened with one of the specified target branches, or when updates are made to 
@@ -17,10 +13,10 @@ trigger:
 # GitHub creates a new ref when a pull request is created. The ref points to a 
 # merge commit, which is the merged code between the source and target branches 
 # of the pull request.
-# pr:
-#  branches:
-#    include:
-#    - develop
+pr:
+  branches:
+    include:
+    - develop
 
 # By default, use self-hosted agents
 pool: Default
@@ -34,6 +30,4 @@ resources:
     name: respa/respa-pipelines
 
 extends:
-  template: azure-pipelines.yml@respa-pipelines
-
-# test change 7
+  template: azure-pipelines-pull-request.yml@respa-pipelines

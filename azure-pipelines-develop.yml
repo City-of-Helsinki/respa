@@ -6,6 +6,7 @@ trigger:
   branches:
     include:
     - develop
+    - feature/*
   paths:
     exclude:
     - README.md
@@ -17,10 +18,9 @@ trigger:
 # GitHub creates a new ref when a pull request is created. The ref points to a 
 # merge commit, which is the merged code between the source and target branches 
 # of the pull request.
-# pr:
-#  branches:
-#    include:
-#    - develop
+#
+# Opt out of pull request validation 
+pr: none
 
 # By default, use self-hosted agents
 pool: Default
@@ -30,10 +30,9 @@ resources:
   # Azure DevOps repository
   - repository: respa-pipelines
     type: git
+    ref: refs/heads/feature/ADK-154
     # project/repository
     name: respa/respa-pipelines
 
 extends:
-  template: azure-pipelines.yml@respa-pipelines
-
-# test change 7
+  template: azure-pipelines-develop.yml@respa-pipelines
