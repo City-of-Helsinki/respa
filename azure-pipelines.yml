@@ -17,10 +17,10 @@ trigger:
 # GitHub creates a new ref when a pull request is created. The ref points to a 
 # merge commit, which is the merged code between the source and target branches 
 # of the pull request.
-pr:
-  branches:
-    include:
-    - develop
+# pr:
+#  branches:
+#    include:
+#    - develop
 
 # By default, use self-hosted agents
 pool: Default
