@@ -26,7 +26,6 @@ resources:
   # Azure DevOps repository
   - repository: respa-pipelines
     type: git
-    ref: refs/heads/feature/ADK-154
     # project/repository
     name: respa/respa-pipelines
 

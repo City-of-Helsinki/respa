@@ -6,7 +6,6 @@ trigger:
   branches:
     include:
     - develop
-    - feature/*
   paths:
     exclude:
     - README.md
@@ -30,7 +29,6 @@ resources:
   # Azure DevOps repository
   - repository: respa-pipelines
     type: git
-    ref: refs/heads/feature/ADK-154
     # project/repository
     name: respa/respa-pipelines
 
