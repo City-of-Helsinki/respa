@@ -21,3 +21,5 @@ USE_X_FORWARDED_HOST = deploy_env('USE_X_FORWARDED_HOST')
 
 if deploy_env('SECURE_PROXY'):
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+ROOT_URLCONF = 'deploy.urls'
