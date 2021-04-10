@@ -44,6 +44,8 @@ env = environ.Env(
     ALLOWED_HOSTS=(list, []),
     ADMINS=(list, []),
     DATABASE_URL=(str, 'postgis:///respa'),
+    MOUNT_PATH=(str, ''),
+    USE_X_FORWARDED_HOST = (bool, False),
     SECURE_PROXY_SSL_HEADER=(tuple, None),
     TOKEN_AUTH_ACCEPTED_AUDIENCE=(str, ''),
     TOKEN_AUTH_SHARED_SECRET=(str, ''),
@@ -98,6 +100,8 @@ DATABASES['default']['ATOMIC_REQUESTS'] = True
 DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = env('DISABLE_SERVER_SIDE_CURSORS')
 
 SECURE_PROXY_SSL_HEADER = env('SECURE_PROXY_SSL_HEADER')
+USE_X_FORWARDED_HOST = env('USE_X_FORWARDED_HOST')
+MOUNT_PATH = env('MOUNT_PATH')
 
 SITE_ID = 1
 
