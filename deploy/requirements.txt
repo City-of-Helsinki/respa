@@ -2,3 +2,4 @@
 uwsgi
 whitenoise
 whitenoise[brotli]
+elastic-apm
