@@ -11,7 +11,7 @@ asn1crypto==0.24.0        # via cryptography
 atomicwrites==1.2.1       # via pytest
 attrs==18.2.0             # via pytest
 babel==2.6.0              # via delorean
-certifi==2018.11.29       # via requests, sentry-sdk
+certifi==2020.12.5       # via requests, sentry-sdk
 cffi==1.11.5              # via cryptography
 chardet==3.0.4            # via requests
 click==7.0                # via pip-tools
@@ -91,14 +91,14 @@ pyyaml==5.3.1             # via database-sanitizer, django-munigeo, django-sanit
 requests-cache==0.4.13    # via django-munigeo
 requests-ntlm==1.1.0      # via -r requirements.in
 requests-oauthlib==1.2.0  # via django-allauth
-requests==2.23.0          # via -r requirements.in, django-allauth, django-anymail, django-helusers, django-munigeo, pyjwkest, requests-cache, requests-ntlm, requests-oauthlib
+requests==2.25.1          # via -r requirements.in, django-allauth, django-anymail, django-helusers, django-munigeo, pyjwkest, requests-cache, requests-ntlm, requests-oauthlib
 rsa==4.0                  # via python-jose
-sentry-sdk==0.14.1        # via -r requirements.in
+sentry-sdk==1.0.0         # via -r requirements.in
 six==1.12.0               # via -r requirements.in, cryptography, database-sanitizer, django-anymail, django-guardian, django-image-cropping, django-munigeo, django-sanitized-dump, ecdsa, faker, freezegun, more-itertools, pip-tools, pyjwkest, pytest, python-dateutil, python-jose
 sqlparse==0.3.0           # via django
 text-unidecode==1.2       # via faker
 tzlocal==1.5.1            # via delorean
-urllib3==1.25.8           # via requests, sentry-sdk
+urllib3==1.26.4           # via requests, sentry-sdk
 xlsxwriter==1.1.2         # via -r requirements.in
 
 # The following packages are considered to be unsafe in a requirements file:
