@@ -2,4 +2,3 @@
 uwsgi
 whitenoise
 whitenoise[brotli]
-gunicorn
