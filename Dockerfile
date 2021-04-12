@@ -16,4 +16,4 @@ COPY . .
 
 RUN mkdir -p www/media
 
-CMD deploy/server.sh
+CMD uwsgi
