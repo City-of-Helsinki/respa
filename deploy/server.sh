@@ -1,7 +1,5 @@
-#!/bin/bash
+#!/bin/sh
 
-echo "NOTICE: Get static files for serving"
-./manage.py collectstatic --no-input
+./deploy/init.sh
 
-echo "NOTICE: Start the uwsgi web server"
-exec uwsgi --http :8000 --wsgi-file deploy/wsgi.py --check-static /usr/src/app/www
+exec uwsgi
