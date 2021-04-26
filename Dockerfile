@@ -8,6 +8,7 @@ ENV APP_NAME respa
 RUN apt-get update && apt-get install -y gdal-bin postgresql-client npm gettext
 
 COPY requirements.txt .
+
 COPY deploy/requirements.txt ./deploy/requirements.txt
 
 RUN pip install --no-cache-dir -r deploy/requirements.txt
