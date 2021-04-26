@@ -5,7 +5,7 @@ WORKDIR /usr/src/app
 
 ENV APP_NAME respa
 
-RUN apt-get update && apt-get install -y gdal-bin postgresql-client npm gettext
+RUN apt-get update && apt-get install -y gdal-bin postgresql-client gettext npm
 
 COPY requirements.txt .
 
