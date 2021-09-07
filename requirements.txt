@@ -269,7 +269,7 @@ text-unidecode==1.2
     # via faker
 tzlocal==1.5.1
     # via delorean
-urllib3==1.26.4
+urllib3==1.26.5
     # via
     #   requests
     #   sentry-sdk
