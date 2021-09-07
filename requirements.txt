@@ -55,6 +55,7 @@ django==2.2.24
     #   django-mptt
     #   django-munigeo
     #   django-reversion
+    #   djangorestframework
     #   drf-oidc-auth
     #   easy-thumbnails
 django-admin-json-editor==0.1.5
@@ -104,7 +105,7 @@ django-reversion==3.0.2
     # via -r requirements.in
 django-sanitized-dump==1.2.1
     # via -r requirements.in
-djangorestframework==3.9.1
+djangorestframework==3.11.2
     # via
     #   -r requirements.in
     #   django-parler-rest
