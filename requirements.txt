@@ -168,7 +168,7 @@ pluggy==0.8.1
     # via pytest
 psycopg2==2.7.6.1
     # via -r requirements.in
-py==1.7.0
+py==1.10.0
     # via pytest
 pyasn1==0.4.8
     # via
