@@ -218,7 +218,7 @@ pytz==2018.9
     #   django
     #   icalendar
     #   tzlocal
-pyyaml==5.3.1
+pyyaml==5.4
     # via
     #   database-sanitizer
     #   django-munigeo
