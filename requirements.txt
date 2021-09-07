@@ -240,7 +240,7 @@ requests-ntlm==1.1.0
     # via -r requirements.in
 requests-oauthlib==1.2.0
     # via django-allauth
-rsa==4.0
+rsa==4.7
     # via python-jose
 sentry-sdk==1.0.0
     # via -r requirements.in
