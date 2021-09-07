@@ -8,8 +8,6 @@
 
 arrow==0.13.0
     # via -r requirements.in
-asn1crypto==0.24.0
-    # via cryptography
 atomicwrites==1.2.1
     # via pytest
 attrs==18.2.0
@@ -20,7 +18,7 @@ certifi==2020.12.5
     # via
     #   requests
     #   sentry-sdk
-cffi==1.11.5
+cffi==1.14.6
     # via cryptography
 chardet==3.0.4
     # via requests
@@ -30,7 +28,7 @@ coverage==4.5.2
     # via
     #   -r requirements.in
     #   pytest-cov
-cryptography==2.5
+cryptography==3.3.2
     # via requests-ntlm
 daemonize==2.5.0
     # via -r requirements.in
