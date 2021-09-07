@@ -146,7 +146,7 @@ jinja2==2.10.1
     #   django-jinja
 jsonschema==2.6.0
     # via -r requirements.in
-lxml==4.3.0
+lxml==4.6.3
     # via
     #   -r requirements.in
     #   python-docx
