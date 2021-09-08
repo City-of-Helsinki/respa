@@ -42,6 +42,21 @@ defusedxml==0.5.0
     # via python3-openid
 delorean==1.0.0
     # via -r requirements.in
+django==2.2.24
+    # via
+    #   -r requirements.in
+    #   django-admin-json-editor
+    #   django-allauth
+    #   django-anymail
+    #   django-cors-headers
+    #   django-filter
+    #   django-helusers
+    #   django-jinja
+    #   django-mptt
+    #   django-munigeo
+    #   django-reversion
+    #   drf-oidc-auth
+    #   easy-thumbnails
 django-admin-json-editor==0.1.5
     # via -r requirements.in
 django-allauth==0.41.0
@@ -78,39 +93,24 @@ django-mptt==0.9.1
     # via django-munigeo
 django-munigeo==0.3.5
     # via -r requirements.in
-django-parler-rest==2.0
-    # via django-munigeo
 django-parler==1.9.2
     # via
     #   -r requirements.in
     #   django-munigeo
     #   django-parler-rest
+django-parler-rest==2.0
+    # via django-munigeo
 django-reversion==3.0.2
     # via -r requirements.in
 django-sanitized-dump==1.2.1
-    # via -r requirements.in
-django==2.2.24
-    # via
-    #   -r requirements.in
-    #   django-admin-json-editor
-    #   django-allauth
-    #   django-anymail
-    #   django-cors-headers
-    #   django-filter
-    #   django-helusers
-    #   django-jinja
-    #   django-mptt
-    #   django-munigeo
-    #   django-reversion
-    #   drf-oidc-auth
-    #   easy-thumbnails
-djangorestframework-jwt==1.11.0
     # via -r requirements.in
 djangorestframework==3.9.1
     # via
     #   -r requirements.in
     #   django-parler-rest
     #   drf-oidc-auth
+djangorestframework-jwt==1.11.0
+    # via -r requirements.in
 drf-oidc-auth==0.9
     # via django-helusers
 easy-thumbnails==2.5
@@ -159,7 +159,7 @@ ntlm-auth==1.2.0
     # via requests-ntlm
 oauthlib==3.0.0
     # via requests-oauthlib
-pillow==8.0.1
+pillow==8.3.2
     # via easy-thumbnails
 pip-tools==4.5.1
     # via -r requirements.in
@@ -187,15 +187,15 @@ pyjwt==1.7.1
     # via
     #   -r requirements.in
     #   djangorestframework-jwt
-pytest-cov==2.6.1
-    # via -r requirements.in
-pytest-django==3.4.5
-    # via -r requirements.in
 pytest==4.1.1
     # via
     #   -r requirements.in
     #   pytest-cov
     #   pytest-django
+pytest-cov==2.6.1
+    # via -r requirements.in
+pytest-django==3.4.5
+    # via -r requirements.in
 python-dateutil==2.7.5
     # via
     #   arrow
@@ -222,12 +222,6 @@ pyyaml==5.3.1
     #   database-sanitizer
     #   django-munigeo
     #   django-sanitized-dump
-requests-cache==0.4.13
-    # via django-munigeo
-requests-ntlm==1.1.0
-    # via -r requirements.in
-requests-oauthlib==1.2.0
-    # via django-allauth
 requests==2.25.1
     # via
     #   -r requirements.in
@@ -239,6 +233,12 @@ requests==2.25.1
     #   requests-cache
     #   requests-ntlm
     #   requests-oauthlib
+requests-cache==0.4.13
+    # via django-munigeo
+requests-ntlm==1.1.0
+    # via -r requirements.in
+requests-oauthlib==1.2.0
+    # via django-allauth
 rsa==4.0
     # via python-jose
 sentry-sdk==1.0.0
