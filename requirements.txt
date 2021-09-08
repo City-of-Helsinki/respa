@@ -159,7 +159,7 @@ ntlm-auth==1.2.0
     # via requests-ntlm
 oauthlib==3.0.0
     # via requests-oauthlib
-pillow==8.0.1
+pillow==8.3.2
     # via easy-thumbnails
 pip-tools==4.5.1
     # via -r requirements.in
