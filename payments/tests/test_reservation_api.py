@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, create_autospec, patch
 from urllib.parse import urlencode
+from decimal import Decimal
 
 import pytest
 from guardian.shortcuts import assign_perm
@@ -12,13 +13,13 @@ from resources.tests.conftest import resource_in_unit, user_api_client  # noqa
 from resources.tests.test_reservation_api import day_and_period  # noqa
 
 from ..factories import ProductFactory
-from ..models import Order, Product
+from ..models import Order, Product, ReservationCustomPrice
 from ..providers.base import PaymentProvider
 from .test_order_api import ORDER_LINE_FIELDS, PRODUCT_FIELDS
 
 LIST_URL = reverse('reservation-list')
 
-ORDER_FIELDS = {'id', 'state', 'price', 'order_lines'}
+ORDER_FIELDS = {'id', 'state', 'price', 'order_lines', 'is_requested_order'}
 
 
 def get_detail_url(reservation):
@@ -32,6 +33,20 @@ def build_reservation_data(resource):
         'end': '2115-04-04T12:00:00+02:00'
     }
 
+
+@pytest.mark.django_db
+@pytest.fixture
+def reservation(resource_in_unit, user):
+    return Reservation.objects.create(
+        resource=resource_in_unit,
+        begin='2115-04-04T09:00:00+02:00',
+        end='2115-04-04T10:00:00+02:00',
+        user=user,
+        event_subject='some fancy event',
+        host_name='esko',
+        reserver_name='martta',
+        state=Reservation.CONFIRMED
+    )
 
 def build_order_data(product, quantity=None, product_2=None, quantity_2=None):
     data = {
@@ -200,6 +215,32 @@ def test_order_post(user_api_client, resource_in_unit, product, product_2, mock_
     assert order_lines[1].quantity == 5
 
 
+def test_requested_reservation_order_post(user_api_client, resource_in_unit, product, mock_provider):
+    reservation_data = build_reservation_data(resource_in_unit)
+    reservation_data['order'] = build_order_data(product=product)
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+
+    response = user_api_client.post(LIST_URL, reservation_data)
+
+    assert response.status_code == 201, response.data
+    mock_provider.initiate_payment.assert_called()
+
+    excepted_payment_url = 'https://mocked-payment-url.com'
+    order_data = response.data['order']
+    assert order_data['payment_url'].startswith(excepted_payment_url)
+
+    # check created object
+    new_order = Order.objects.last()
+    assert new_order.reservation == Reservation.objects.last()
+    assert new_order.payment_url.startswith(excepted_payment_url)
+
+    # check order lines
+    order_lines = new_order.order_lines.all()
+    assert order_lines.count() == 1
+    assert order_lines[0].product == product
+    assert order_lines[0].quantity == 1
+
 def test_order_product_must_match_resource(user_api_client, product, resource_in_unit, resource_in_unit2):
     product_with_another_resource = ProductFactory(resources=[resource_in_unit2])
     data = build_reservation_data(resource_in_unit)
@@ -318,3 +359,21 @@ def test_unit_admin_and_unit_manager_may_bypass_payment(user_api_client, resourc
     assert response.status_code == 201
     new_reservation = Reservation.objects.last()
     assert new_reservation.state == Reservation.CONFIRMED
+
+
+def test_update_custom_price(general_admin, api_client, reservation, resource_in_unit):
+    reservation_data = build_reservation_data(resource_in_unit)
+    detail_url = get_detail_url(reservation)
+
+    reservation_data['custom_price'] = {
+        'price': 555.10,
+        'price_type': ReservationCustomPrice.CUSTOM
+    }
+
+    api_client.force_authenticate(user=general_admin)
+    response = api_client.put(detail_url, data=reservation_data)
+    assert response.status_code == 200, "Request failed with: %s" % (str(response.content, 'utf8'))
+    reservation.refresh_from_db()
+    two_places = Decimal(10) ** -2
+    assert reservation.custom_price.price == Decimal(reservation_data['custom_price']['price']).quantize(two_places)
+    assert reservation.custom_price.price_type == reservation_data['custom_price']['price_type']

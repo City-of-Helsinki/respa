@@ -692,6 +692,9 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     def can_ignore_max_period(self, user):
         return self._has_perm(user, 'can_ignore_max_period')
 
+    def can_set_custom_price_for_reservations(self, user):
+        return self._has_perm(user, 'can_set_custom_price_for_reservations')
+
     def is_access_code_enabled(self):
         return self.access_code_type != Resource.ACCESS_CODE_TYPE_NONE
 
@@ -735,11 +738,6 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             )
         if self.min_period % self.slot_size != datetime.timedelta(0):
             raise ValidationError({'min_period': _('This value must be a multiple of slot_size')})
-
-        if self.need_manual_confirmation and self.products.current().exists():
-            raise ValidationError(
-                {'need_manual_confirmation': _('This cannot be enabled because the resource has product(s).')}
-            )
 
 
 class ResourceImage(ModifiableModel):

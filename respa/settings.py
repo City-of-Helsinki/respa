@@ -75,6 +75,7 @@ env = environ.Env(
     RESPA_PAYMENTS_ENABLED=(bool, False),
     RESPA_PAYMENTS_PROVIDER_CLASS=(str, ''),
     RESPA_PAYMENTS_PAYMENT_WAITING_TIME=(int, 15),
+    RESPA_PAYMENTS_PAYMENT_REQUESTED_WAITING_TIME=(int, 24),
     ENABLE_RESOURCE_TOKEN_AUTH=(bool, False),
     DISABLE_SERVER_SIDE_CURSORS=(bool, False)
 )
@@ -373,6 +374,7 @@ RESPA_PAYMENTS_PROVIDER_CLASS = env('RESPA_PAYMENTS_PROVIDER_CLASS')
 
 # amount of minutes before orders in state "waiting" will be set to state "expired"
 RESPA_PAYMENTS_PAYMENT_WAITING_TIME = env('RESPA_PAYMENTS_PAYMENT_WAITING_TIME')
+RESPA_PAYMENTS_PAYMENT_REQUESTED_WAITING_TIME = env('RESPA_PAYMENTS_PAYMENT_REQUESTED_WAITING_TIME')
 
 # local_settings.py can be used to override environment-specific settings
 # like database and email that differ between development and production.

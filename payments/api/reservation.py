@@ -7,7 +7,7 @@ from payments.exceptions import (
 )
 from resources.api.reservation import ReservationSerializer
 
-from ..models import OrderLine, Product
+from ..models import OrderLine, Product, ReservationCustomPrice
 from ..providers import get_payment_provider
 from .base import OrderSerializerBase
 
@@ -18,7 +18,7 @@ class ReservationEndpointOrderSerializer(OrderSerializerBase):
     payment_url = serializers.SerializerMethodField()
 
     class Meta(OrderSerializerBase.Meta):
-        fields = OrderSerializerBase.Meta.fields + ('id', 'return_url', 'payment_url')
+        fields = OrderSerializerBase.Meta.fields + ('id', 'return_url', 'payment_url', 'is_requested_order')
 
     def create(self, validated_data):
         order_lines_data = validated_data.pop('order_lines', [])
@@ -32,6 +32,8 @@ class ReservationEndpointOrderSerializer(OrderSerializerBase):
                                         ui_return_url=return_url)
         try:
             self.context['payment_url'] = payments.initiate_payment(order)
+            order.payment_url = self.context['payment_url']
+            order.save()
         except DuplicateOrderError as doe:
             raise exceptions.APIException(detail=str(doe),
                                           code=status.HTTP_409_CONFLICT)
@@ -81,9 +83,14 @@ class ReservationEndpointOrderSerializer(OrderSerializerBase):
 
         return data
 
+class ReservationEndpointCustomPriceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReservationCustomPrice
+        fields = ('price', 'price_type')
 
 class PaymentsReservationSerializer(ReservationSerializer):
     order = serializers.SlugRelatedField('order_number', read_only=True)
+    custom_price = ReservationEndpointCustomPriceSerializer(required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -104,7 +111,7 @@ class PaymentsReservationSerializer(ReservationSerializer):
             self.fields['order'] = ReservationEndpointOrderSerializer(read_only=True)
 
     class Meta(ReservationSerializer.Meta):
-        fields = ReservationSerializer.Meta.fields + ['order']
+        fields = ReservationSerializer.Meta.fields + ['order', 'custom_price']
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -118,18 +125,42 @@ class PaymentsReservationSerializer(ReservationSerializer):
     def create(self, validated_data):
         order_data = validated_data.pop('order', None)
         reservation = super().create(validated_data)
+        prefetched_user = self.context.get('prefetched_user', None)
+        user = prefetched_user or self.context['request'].user
 
         if order_data:
             if not reservation.can_add_product_order(self.context['request'].user):
                 raise PermissionDenied()
 
             order_data['reservation'] = reservation
+            resource = reservation.resource
+            if resource.need_manual_confirmation and not resource.can_bypass_manual_confirmation(user):
+                order_data['is_requested_order'] = True
+
             ReservationEndpointOrderSerializer(context=self.context).create(validated_data=order_data)
+
+        return reservation
+
+    def update(self, instance, validated_data):
+        custom_price_data = validated_data.pop('custom_price', None)
+        reservation = super().update(instance, validated_data)
+        prefetched_user = self.context.get('prefetched_user', None)
+        user = prefetched_user or self.context['request'].user
+
+        if custom_price_data:
+            if not reservation.can_set_custom_price(user):
+                raise PermissionDenied()
+            if hasattr(reservation, 'custom_price'):
+                reservation.custom_price.delete()
+            custom_price_data['reservation'] = reservation
+            ReservationEndpointCustomPriceSerializer(context=self.context).create(validated_data=custom_price_data)
 
         return reservation
 
     def validate(self, data):
         order_data = data.pop('order', None)
+        custom_price_data = data.pop('custom_price', None)
         data = super().validate(data)
+        data['custom_price'] = custom_price_data
         data['order'] = order_data
         return data

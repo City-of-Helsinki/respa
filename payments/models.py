@@ -152,10 +152,24 @@ class Product(models.Model):
         else:
             raise NotImplementedError('Cannot calculate price, unknown price type "{}".'.format(self.price_type))
 
+    @rounded
+    def get_pretax_custom_price_for_reservation(self, reservation: Reservation) -> Decimal:
+        return convert_aftertax_to_pretax(self.get_custom_price_for_reservation(reservation), self.tax_percentage)
+
+    @rounded
+    def get_custom_price_for_reservation(self, reservation: Reservation) -> Decimal:
+        return reservation.custom_price.price
+
     def get_pretax_price_for_reservation(self, reservation: Reservation, rounded: bool = True) -> Decimal:
+        if hasattr(reservation, 'custom_price'):
+            return self.get_pretax_custom_price_for_reservation(reservation, rounded=rounded)
+
         return self.get_pretax_price_for_time_range(reservation.begin, reservation.end, rounded=rounded)
 
     def get_price_for_reservation(self, reservation: Reservation, rounded: bool = True) -> Decimal:
+        if hasattr(reservation, 'custom_price'):
+            return self.get_custom_price_for_reservation(reservation, rounded=rounded)
+
         return self.get_price_for_time_range(reservation.begin, reservation.end, rounded=rounded)
 
 
@@ -173,7 +187,8 @@ class OrderQuerySet(models.QuerySet):
         earliest_allowed_timestamp = now() - timedelta(minutes=settings.RESPA_PAYMENTS_PAYMENT_WAITING_TIME)
         log_entry_timestamps = OrderLogEntry.objects.filter(order=OuterRef('pk')).order_by('id').values('timestamp')
         too_old_waiting_orders = self.filter(
-            state=Order.WAITING
+            state=Order.WAITING,
+            is_requested_order=False
         ).annotate(
             created_at=Subquery(
                 log_entry_timestamps[:1]
@@ -184,7 +199,19 @@ class OrderQuerySet(models.QuerySet):
         for order in too_old_waiting_orders:
             order.set_state(Order.EXPIRED)
 
-        return too_old_waiting_orders.count()
+        earliest_allowed_requested = now() - timedelta(hours=settings.RESPA_PAYMENTS_PAYMENT_REQUESTED_WAITING_TIME)
+
+        too_old_waiting_requested_orders = self.filter(
+            state=Order.WAITING,
+            is_requested_order=True
+        ).filter(
+            confirmed_by_staff_at__lt=earliest_allowed_requested
+        )
+
+        for order in too_old_waiting_requested_orders:
+            order.set_state(Order.EXPIRED)
+
+        return too_old_waiting_orders.count() + too_old_waiting_requested_orders.count()
 
 
 class Order(models.Model):
@@ -207,6 +234,9 @@ class Order(models.Model):
     reservation = models.OneToOneField(
         Reservation, verbose_name=_('reservation'), related_name='order', on_delete=models.PROTECT
     )
+    payment_url = models.CharField(max_length=200, verbose_name=_('payment url'), blank=True, default='')
+    is_requested_order = models.BooleanField(verbose_name=_('is requested order'), default=False)
+    confirmed_by_staff_at = models.DateTimeField(verbose_name=_('confirmed by staff at'), blank=True, null=True)
 
     objects = OrderQuerySet.as_manager()
 
@@ -229,6 +259,10 @@ class Order(models.Model):
 
         if is_new:
             self.create_log_entry(state_change=self.state, message='Created.')
+
+    def set_confirmed_by_staff(self):
+        self.confirmed_by_staff_at = now()
+        self.save()
 
     def get_order_lines(self):
         # This allows us to do price calculations using order line objects that
@@ -320,6 +354,31 @@ class OrderLogEntry(models.Model):
         return '{} order {} state change {} message {}'.format(
             self.timestamp, self.order_id, self.state_change or None, self.message or None
         )
+
+
+class ReservationCustomPrice(models.Model):
+    HALF = 'half'
+    FREE = 'free'
+    CUSTOM = 'custom'
+
+    PRICE_TYPE_CHOICES = (
+        (HALF, _('half')),
+        (FREE, _('free')),
+        (CUSTOM, _('custom')),
+    )
+
+    reservation = models.OneToOneField(
+        Reservation, verbose_name=_('custom price'), related_name='custom_price', on_delete=models.CASCADE
+    )
+    price = models.DecimalField(verbose_name=_('price including VAT'), max_digits=10, decimal_places=2)
+    price_type = models.CharField(max_length=32, verbose_name=_('price type'), choices=PRICE_TYPE_CHOICES)
+
+    class Meta:
+        verbose_name = _('custom price')
+        verbose_name_plural = _('custom prices')
+
+    def __str__(self):
+        return '{} ({})'.format(self.price, self.reservation)
 
 
 class LocalizedSerializerField(serializers.Field):

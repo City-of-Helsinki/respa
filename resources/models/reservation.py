@@ -276,6 +276,11 @@ class Reservation(ModifiableModel):
                     self.send_reservation_cancelled_mail()
             reservation_cancelled.send(sender=self.__class__, instance=self,
                                        user=user)
+        elif new_state == Reservation.WAITING_FOR_PAYMENT:
+            order = self.get_order()
+            if order and order.payment_url:
+                order.set_confirmed_by_staff()
+                self.send_reservation_waiting_for_payment_mail()
 
         self.state = new_state
 
@@ -318,6 +323,9 @@ class Reservation(ModifiableModel):
 
     def can_add_product_order(self, user):
         return self.is_own(user)
+
+    def can_set_custom_price(self, user):
+        return self.resource.can_set_custom_price_for_reservations(user)
 
     def can_view_product_orders(self, user):
         if self.is_own(user):
@@ -457,6 +465,8 @@ class Reservation(ModifiableModel):
                         self.cancel_reason.category.description_fi,
                         self.cancel_reason.category.description_en,
                         self.cancel_reason.category.description_sv)
+            elif notification_type in [NotificationType.RESERVATION_WAITING_FOR_PAYMENT]:
+                context['payment_url'] = self.order.payment_url
 
             # Get last main and ground plan images. Normally there shouldn't be more than one of each
             # of those images.
@@ -558,6 +568,10 @@ class Reservation(ModifiableModel):
         attachments = [ics_attachment] + self.get_resource_email_attachments()
         self.send_reservation_mail(NotificationType.RESERVATION_CREATED_WITH_ACCESS_CODE,
                                    attachments=attachments)
+
+    def send_reservation_waiting_for_payment_mail(self):
+        self.send_reservation_mail(NotificationType.RESERVATION_WAITING_FOR_PAYMENT,
+                                   attachments=[])
 
     def get_resource_email_attachments(self):
         attachments = []

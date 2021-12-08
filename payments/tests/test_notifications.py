@@ -85,6 +85,18 @@ def reservation_cancelled_notification():
         )
 
 
+@pytest.fixture(autouse=True)
+def reservation_waiting_for_payment_notification():
+    NotificationTemplate.objects.filter(type=NotificationType.RESERVATION_WAITING_FOR_PAYMENT).delete()
+    with translation.override('fi'):
+        return NotificationTemplate.objects.create(
+            type=NotificationType.RESERVATION_WAITING_FOR_PAYMENT,
+            short_message='Reservation waiting for payment',
+            subject='Reservation waiting for payment subject.',
+            body='Here\'s your payment link {{payment_url}}'
+        )
+
+
 @pytest.mark.django_db
 @override_settings(RESPA_MAILS_ENABLED=True)
 def test_reservation_created_notification(order_with_products):
@@ -99,6 +111,28 @@ def test_reservation_created_notification(order_with_products):
         'Reservation created subject.',
         order_with_products.reservation.billing_email_address,
         get_expected_strings(order_with_products),
+    )
+
+
+@pytest.mark.django_db
+@override_settings(RESPA_MAILS_ENABLED=True)
+def test_reservation_waiting_for_payment_notification(order_with_products):
+    reservation = order_with_products.reservation
+    reservation.state = Reservation.REQUESTED
+    reservation.save()
+    order_with_products.payment_url = 'https://foo.com'
+    order_with_products.save()
+    user = reservation.user
+    user.preferred_language = 'fi'
+    user.save()
+
+    reservation.set_state(Reservation.WAITING_FOR_PAYMENT, None)
+
+    assert len(mail.outbox) == 1
+    check_received_mail_exists(
+        'Reservation waiting for payment subject.',
+        reservation.billing_email_address,
+        (reservation.order.payment_url,),
     )
 
 
