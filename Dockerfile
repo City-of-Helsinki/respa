@@ -15,8 +15,7 @@ RUN pip install --no-cache-dir -r deploy/requirements.txt
 
 COPY . .
 
-# Upgrading NPM will cause an error "Unexpected token =" during the build
-# RUN npm install -g npm && ./build-resources && apt-get remove -y npm && apt autoremove -y
+RUN npm install -g npm@8.1.2 && ./build-resources && apt-get remove -y npm && apt autoremove -y
 
 RUN mkdir -p www/media
 
