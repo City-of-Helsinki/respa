@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r deploy/requirements.txt
 
 COPY . .
 
-RUN ./build-resources
+RUN npm install -g npm@8.1.2 && ./build-resources && apt-get remove -y npm && apt autoremove -y
 
 RUN mkdir -p www/media
 
