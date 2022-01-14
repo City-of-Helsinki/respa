@@ -40,7 +40,7 @@ defusedxml==0.5.0
     # via python3-openid
 delorean==1.0.0
     # via -r requirements.in
-django==2.2.24
+django==2.2.26
     # via
     #   -r requirements.in
     #   django-admin-json-editor
@@ -70,7 +70,7 @@ django-enumfields==1.0.0
     # via -r requirements.in
 django-environ==0.4.5
     # via -r requirements.in
-django-filter==2.1.0
+django-filter==2.4.0
     # via -r requirements.in
 django-grappelli==2.12.2
     # via -r requirements.in
@@ -158,7 +158,7 @@ ntlm-auth==1.2.0
     # via requests-ntlm
 oauthlib==3.0.0
     # via requests-oauthlib
-pillow==9.0.0
+pillow==8.4.0
     # via easy-thumbnails
 pip-tools==4.5.1
     # via -r requirements.in
