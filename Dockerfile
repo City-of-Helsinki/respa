@@ -11,7 +11,7 @@ COPY requirements.txt .
 
 COPY deploy/requirements.txt ./deploy/requirements.txt
 
-RUN pip install --no-cache-dir -r deploy/requirements.txt
+RUN python -m pip install --upgrade pip && pip install --no-cache-dir -r deploy/requirements.txt
 
 COPY . .
 
