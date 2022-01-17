@@ -5,7 +5,8 @@ WORKDIR /usr/src/app
 
 ENV APP_NAME respa
 
-RUN apt-get update && apt-get install -y gdal-bin postgresql-client gettext npm
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
+RUN apt-get update && apt-get install -y gdal-bin postgresql-client gettext nodejs
 
 COPY requirements.txt .
 
@@ -15,7 +16,7 @@ RUN python -m pip install --upgrade pip && pip install --no-cache-dir -r deploy/
 
 COPY . .
 
-RUN npm install -g npm@8.1.2 && ./build-resources && apt-get remove -y npm && apt autoremove -y
+RUN ./build-resources
 
 RUN mkdir -p www/media
 
