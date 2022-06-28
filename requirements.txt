@@ -6,7 +6,7 @@
 #
 --no-binary psycopg2
 
-arrow==0.13.0
+arrow==0.15.1
     # via -r requirements.in
 atomicwrites==1.2.1
     # via pytest
