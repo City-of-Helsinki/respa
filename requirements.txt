@@ -18,7 +18,7 @@ certifi==2020.12.5
     # via
     #   requests
     #   sentry-sdk
-cffi==1.14.6
+cffi==1.15.1
     # via cryptography
 chardet==3.0.4
     # via requests
@@ -124,7 +124,7 @@ faker==1.0.2
     #   factory-boy
 flake8==3.6.0
     # via -r requirements.in
-freezegun==0.3.11
+freezegun==1.2.2
     # via -r requirements.in
 future==0.17.1
     # via pyjwkest
@@ -160,11 +160,11 @@ oauthlib==3.0.0
     # via requests-oauthlib
 pillow==8.4.0
     # via easy-thumbnails
-pip-tools==4.5.1
+pip-tools==5.5.0
     # via -r requirements.in
-pluggy==0.8.1
+pluggy==0.13.1
     # via pytest
-psycopg2==2.7.6.1
+psycopg2==2.8.6
     # via -r requirements.in
 py==1.10.0
     # via pytest
@@ -176,7 +176,7 @@ pycodestyle==2.4.0
     # via flake8
 pycparser==2.19
     # via cffi
-pycryptodomex==3.7.3
+pycryptodomex==3.17
     # via pyjwkest
 pyflakes==2.0.0
     # via flake8
@@ -186,7 +186,7 @@ pyjwt==1.7.1
     # via
     #   -r requirements.in
     #   djangorestframework-jwt
-pytest==4.1.1
+pytest==5.4.3
     # via
     #   -r requirements.in
     #   pytest-cov
