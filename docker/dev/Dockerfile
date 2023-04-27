@@ -1,10 +1,11 @@
-FROM python:3.6
+FROM python:3.8
 
 WORKDIR /usr/src/app
 
 ENV APP_NAME respa
 
-RUN apt-get update && apt-get install -y gdal-bin postgresql-client
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
+RUN apt-get update && apt-get install -y gdal-bin postgresql-client gettext nodejs
 
 COPY requirements.txt ./requirements.txt
 COPY dev-requirements.txt ./dev-requirements.txt
