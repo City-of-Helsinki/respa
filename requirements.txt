@@ -26,7 +26,7 @@ coverage==4.5.2
     # via
     #   -r requirements.in
     #   pytest-cov
-cryptography==3.3.2
+cryptography==40.0.2
     # via requests-ntlm
 daemonize==2.5.0
     # via -r requirements.in
@@ -245,7 +245,6 @@ sentry-sdk==1.0.0
 six==1.12.0
     # via
     #   -r requirements.in
-    #   cryptography
     #   database-sanitizer
     #   django-anymail
     #   django-guardian
