@@ -257,7 +257,7 @@ six==1.12.0
     #   pyjwkest
     #   python-dateutil
     #   python-jose
-sqlparse==0.3.0
+sqlparse==0.4.4
     # via django
 text-unidecode==1.2
     # via faker
