@@ -124,7 +124,7 @@ flake8==3.6.0
     # via -r requirements.in
 freezegun==1.2.2
     # via -r requirements.in
-future==0.17.1
+future==0.18.3
     # via pyjwkest
 humanize==0.5.1
     # via delorean
