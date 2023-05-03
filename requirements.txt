@@ -8,13 +8,11 @@
 
 arrow==0.13.0
     # via -r requirements.in
-atomicwrites==1.2.1
-    # via pytest
 attrs==18.2.0
     # via pytest
 babel==2.9.1
     # via delorean
-certifi==2020.12.5
+certifi==2022.12.7
     # via
     #   requests
     #   sentry-sdk
@@ -28,7 +26,7 @@ coverage==4.5.2
     # via
     #   -r requirements.in
     #   pytest-cov
-cryptography==3.3.2
+cryptography==40.0.2
     # via requests-ntlm
 daemonize==2.5.0
     # via -r requirements.in
@@ -40,22 +38,6 @@ defusedxml==0.5.0
     # via python3-openid
 delorean==1.0.0
     # via -r requirements.in
-django==2.2.28
-    # via
-    #   -r requirements.in
-    #   django-admin-json-editor
-    #   django-allauth
-    #   django-anymail
-    #   django-cors-headers
-    #   django-filter
-    #   django-helusers
-    #   django-jinja
-    #   django-mptt
-    #   django-munigeo
-    #   django-reversion
-    #   djangorestframework
-    #   drf-oidc-auth
-    #   easy-thumbnails
 django-admin-json-editor==0.1.5
     # via -r requirements.in
 django-allauth==0.41.0
@@ -92,24 +74,40 @@ django-mptt==0.9.1
     # via django-munigeo
 django-munigeo==0.3.5
     # via -r requirements.in
+django-parler-rest==2.0
+    # via django-munigeo
 django-parler==1.9.2
     # via
     #   -r requirements.in
     #   django-munigeo
     #   django-parler-rest
-django-parler-rest==2.0
-    # via django-munigeo
 django-reversion==3.0.2
     # via -r requirements.in
 django-sanitized-dump==1.2.1
+    # via -r requirements.in
+django==2.2.28
+    # via
+    #   -r requirements.in
+    #   django-admin-json-editor
+    #   django-allauth
+    #   django-anymail
+    #   django-cors-headers
+    #   django-filter
+    #   django-helusers
+    #   django-jinja
+    #   django-mptt
+    #   django-munigeo
+    #   django-reversion
+    #   djangorestframework
+    #   drf-oidc-auth
+    #   easy-thumbnails
+djangorestframework-jwt==1.11.0
     # via -r requirements.in
 djangorestframework==3.11.2
     # via
     #   -r requirements.in
     #   django-parler-rest
     #   drf-oidc-auth
-djangorestframework-jwt==1.11.0
-    # via -r requirements.in
 drf-oidc-auth==0.9
     # via django-helusers
 easy-thumbnails==2.5
@@ -126,7 +124,7 @@ flake8==3.6.0
     # via -r requirements.in
 freezegun==1.2.2
     # via -r requirements.in
-future==0.17.1
+future==0.18.3
     # via pyjwkest
 humanize==0.5.1
     # via delorean
@@ -144,7 +142,7 @@ jinja2==2.11.3
     #   django-jinja
 jsonschema==2.6.0
     # via -r requirements.in
-lxml==4.6.5
+lxml==4.9.2
     # via
     #   -r requirements.in
     #   python-docx
@@ -158,7 +156,9 @@ ntlm-auth==1.2.0
     # via requests-ntlm
 oauthlib==3.0.0
     # via requests-oauthlib
-pillow==8.4.0
+packaging==23.1
+    # via pytest
+pillow==9.5.0
     # via easy-thumbnails
 pip-tools==5.5.0
     # via -r requirements.in
@@ -186,15 +186,15 @@ pyjwt==1.7.1
     # via
     #   -r requirements.in
     #   djangorestframework-jwt
+pytest-cov==2.6.1
+    # via -r requirements.in
+pytest-django==3.4.5
+    # via -r requirements.in
 pytest==5.4.3
     # via
     #   -r requirements.in
     #   pytest-cov
     #   pytest-django
-pytest-cov==2.6.1
-    # via -r requirements.in
-pytest-django==3.4.5
-    # via -r requirements.in
 python-dateutil==2.7.5
     # via
     #   arrow
@@ -221,6 +221,12 @@ pyyaml==5.4
     #   database-sanitizer
     #   django-munigeo
     #   django-sanitized-dump
+requests-cache==0.4.13
+    # via django-munigeo
+requests-ntlm==1.1.0
+    # via -r requirements.in
+requests-oauthlib==1.2.0
+    # via django-allauth
 requests==2.25.1
     # via
     #   -r requirements.in
@@ -232,20 +238,13 @@ requests==2.25.1
     #   requests-cache
     #   requests-ntlm
     #   requests-oauthlib
-requests-cache==0.4.13
-    # via django-munigeo
-requests-ntlm==1.1.0
-    # via -r requirements.in
-requests-oauthlib==1.2.0
-    # via django-allauth
 rsa==4.7
     # via python-jose
-sentry-sdk==1.0.0
+sentry-sdk==1.21.0
     # via -r requirements.in
 six==1.12.0
     # via
     #   -r requirements.in
-    #   cryptography
     #   database-sanitizer
     #   django-anymail
     #   django-guardian
@@ -254,25 +253,25 @@ six==1.12.0
     #   django-sanitized-dump
     #   ecdsa
     #   faker
-    #   freezegun
     #   more-itertools
-    #   pip-tools
     #   pyjwkest
-    #   pytest
     #   python-dateutil
     #   python-jose
-sqlparse==0.3.0
+sqlparse==0.4.4
     # via django
 text-unidecode==1.2
     # via faker
 tzlocal==1.5.1
     # via delorean
-urllib3==1.26.5
+urllib3==1.26.15
     # via
     #   requests
     #   sentry-sdk
+wcwidth==0.2.6
+    # via pytest
 xlsxwriter==1.1.2
     # via -r requirements.in
 
 # The following packages are considered to be unsafe in a requirements file:
+# pip
 # setuptools
