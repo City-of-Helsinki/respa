@@ -14,15 +14,5 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # To get Sentry report for URLs
 import environ
-env = environ.Env(
-    DEBUG_REQUEST=(bool, False), 
-    ELASTIC_APM_SERVER_URL=(str, ""))
-
+env = environ.Env(DEBUG_REQUEST=(bool, False))
 DEBUG_REQUEST = env('DEBUG_REQUEST')
-
-ELASTIC_APM_SERVER_URL = env('ELASTIC_APM_SERVER_URL')
-
-if ELASTIC_APM_SERVER_URL:
-    INSTALLED_APPS += [
-    'elasticapm.contrib.django',
-    ]
