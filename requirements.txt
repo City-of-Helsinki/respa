@@ -16,7 +16,7 @@ certifi==2022.12.7
     #   sentry-sdk
 cffi==1.15.1
     # via cryptography
-chardet==3.0.4
+charset-normalizer==3.1.0
     # via requests
 click==7.0
     # via pip-tools
@@ -24,7 +24,7 @@ coverage==4.5.2
     # via
     #   -r requirements.in
     #   pytest-cov
-cryptography==40.0.2
+cryptography==41.0.1
     # via requests-ntlm
 daemonize==2.5.0
     # via -r requirements.in
@@ -225,7 +225,7 @@ requests-ntlm==1.1.0
     # via -r requirements.in
 requests-oauthlib==1.2.0
     # via django-allauth
-requests==2.25.1
+requests==2.31.0
     # via
     #   -r requirements.in
     #   django-allauth
