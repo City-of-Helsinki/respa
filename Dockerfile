@@ -10,7 +10,7 @@ RUN adduser respa --home /usr/src/app
 WORKDIR /usr/src/app
 
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
-RUN apt-get update && apt-get install -y gdal-bin postgresql-client gettext nodejs
+RUN apt-get update && apt-get install -y gdal-bin postgresql-client gettext nodejs npm
 
 COPY --chown=respa:respa requirements.txt .
 
