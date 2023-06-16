@@ -1,5 +1,5 @@
 
-FROM python:3.8
+FROM python:3.8-bullseye
 
 ENV APP_NAME respa
 
@@ -9,7 +9,7 @@ RUN adduser respa --home /usr/src/app
 
 WORKDIR /usr/src/app
 
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get update && apt-get install -y gdal-bin postgresql-client gettext nodejs
 
 COPY --chown=respa:respa requirements.txt .
