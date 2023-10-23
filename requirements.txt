@@ -114,7 +114,7 @@ djangorestframework-jwt==1.11.0
     # via -r requirements.in
 drf-oidc-auth==0.9
     # via django-helusers
-easy-thumbnails==2.5
+easy-thumbnails==2.8.5
     # via -r requirements.in
 ecdsa==0.15
     # via python-jose

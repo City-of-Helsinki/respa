@@ -16,7 +16,7 @@ pytz
 coverage
 django-cors-headers
 django-image-cropping
-easy_thumbnails
+easy_thumbnails>=2.8.5
 django-helusers
 django-allauth
 djangorestframework-jwt
