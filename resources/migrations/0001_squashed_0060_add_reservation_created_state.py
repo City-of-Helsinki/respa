@@ -8,6 +8,7 @@ from django.conf import settings
 import django.contrib.gis.db.models.fields
 import django.contrib.postgres.fields.hstore
 import django.contrib.postgres.fields.ranges
+from django.contrib.postgres.operations import HStoreExtension
 import django.core.validators
 from django.db import migrations, models
 import django.db.models.deletion
@@ -58,6 +59,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        HStoreExtension(),
         migrations.CreateModel(
             name='Day',
             fields=[
