@@ -24,7 +24,7 @@ pyjwt
 django-hstore
 XlsxWriter
 icalendar
-pip-tools
+pip-tools>=7.3.0
 Faker
 django-guardian
 Jinja2
@@ -49,3 +49,7 @@ jsonschema
 django-admin-json-editor
 factory_boy
 isort
+pillow>=10.0.1
+certifi>=2023.7.22
+cryptography>=41.0.4
+urllib3>=1.26.18
