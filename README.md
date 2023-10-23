@@ -82,7 +82,7 @@ sudo -u postgres psql respa -c "CREATE EXTENSION postgis;"
 
 ### Build Respa Admin static resources
 
-Make sure you have Node 8 or LTS and npm installed.
+Make sure you have Node v14.21.X (npm v6.14.X) installed.
 
 ```shell
 ./build-resources
