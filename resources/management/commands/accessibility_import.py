@@ -53,7 +53,7 @@ class Command(BaseCommand):
                 continue
             vp_ids.append(vp_id)
             vp_attributes = {
-                'order_text': viewpoint_data['viewpointOrderText'],
+                'order_text': viewpoint_data.get('viewpointOrderText', '0'),
             }
             enabled_languages = [lang[0] for lang in settings.LANGUAGES]
             for name_translation in viewpoint_data['names']:
