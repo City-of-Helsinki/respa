@@ -22,7 +22,7 @@
     "jquery": "^3.5.1",
     "js-yaml": "^3.13.1",
     "node-sass": "^7.0.1",
-    "popper.js": "1.12.9",
+    "popper.js": "1.16.1",
     "shortid": "^2.2.8",
     "stylelint": "^14.2.0",
     "stylelint-scss": "^4.1.0"
