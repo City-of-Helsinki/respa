@@ -74,7 +74,7 @@ django-environ==0.4.5
     # via -r requirements.in
 django-filter==2.4.0
     # via -r requirements.in
-django-grappelli==2.12.2
+django-grappelli==2.15.2
     # via -r requirements.in
 django-guardian==1.4.9
     # via -r requirements.in
