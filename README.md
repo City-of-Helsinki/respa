@@ -176,6 +176,45 @@ then go to Django Admin and set the `is_staff` flag on for the user that
 got created when testing the login.  This allows the user to use the
 Respa Admin.
 
+### Keycloak authentication
+
+Keycloak can be used as an alternative authentication provider. 
+
+In order to use Keycloak, you must first generate new RSA-key. You can create new key by with following command:
+
+    ssh-keygen -C "varaamo" -f id_rsa -t rsa -b 4096 -m pem -N ""
+
+Generated key needs to be added as a key-provider into Keycloak realm. Key can be added from Realm > Keys > Providers > Add Keystrore > RSA. Use following settings:
+
+    Console Display Name: rsa
+    Priority: 100
+    Enabled: On
+    Active: On
+    Algorithm: RS256
+    Private RSA Key: generated key
+    X509 Certificate: leave blank
+
+After the new provider has been added, you can passivate old "rsa-generated" -provider
+
+Next you need to add mapper for token audience property. Mapper can be added from Realm > Clients > Client > Mappers > Create. Use following settings:
+
+    Protocol: openid-connect
+    Name: Audience mapper
+    Mapper Type: Audience
+    Included Client Audience: your client
+    Included Custom Audience: leave blank
+    Add to ID token: Off
+    Add to access token: On
+
+Next you need to configure new key to Respa. This can be done by adding JWT_AUTH into local_settings.py:
+
+    JWT_AUTH = {
+        'JWT_AUDIENCE': 'your client',
+        'JWT_PUBLIC_KEY': 'your public key',
+        'JWT_PRIVATE_KEY': 'your private key',
+        'JWT_ALGORITHM': 'RS256'
+    }
+    
 Installation with Docker
 ------------------------
 
