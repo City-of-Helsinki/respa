@@ -16,7 +16,7 @@
     "bootstrap": "^4.3.1",
     "bootstrap-datepicker": "^1.8.0",
     "copy-webpack-plugin": "^10.2.0",
-    "css-loader": "^6.5.1",
+    "css-loader": "^6.8.1",
     "extract-text-webpack-plugin": "^3.0.2",
     "hel-bootstrap-3": "^1.0.0-beta.4",
     "hel-icons": "^1.0.0-beta.2",
