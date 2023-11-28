@@ -27,7 +27,7 @@
     "popper.js": "1.12.9",
     "shortid": "^2.2.8",
     "stylelint": "^14.2.0",
-    "stylelint-scss": "^4.1.0"
+    "stylelint-scss": "^4.7.0"
   },
   "devDependencies": {
     "file-loader": "^1.1.11",
