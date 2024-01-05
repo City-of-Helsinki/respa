@@ -186,7 +186,7 @@ pycodestyle==2.4.0
     # via flake8
 pycparser==2.19
     # via cffi
-pycryptodomex==3.17
+pycryptodomex==3.19.1
     # via pyjwkest
 pyflakes==2.0.0
     # via flake8
